@@ -167,11 +167,26 @@ Ditto-FrontEnd/
 ├── public/                    # 이미지, 아이콘 등 정적 파일
 ├── src/
 │   ├── app/                   # App Router 페이지와 레이아웃
+│   │   ├── page.js            # 홈
+│   │   ├── ai-course/page.js  # AI 코스 만들기
+│   │   ├── news/page.js       # 뉴스피드
+│   │   ├── mypage/page.js     # 마이페이지
+│   │   ├── login/page.js      # 로그인
+│   │   ├── signup/page.js     # 회원가입
+│   │   ├── layout.js          # 전역 HTML 레이아웃
+│   │   └── globals.css        # 전역 스타일과 Tailwind 토큰
 │   ├── components/
-│   │   ├── common/            # 여러 기능이 공유하는 UI
-│   │   └── layout/            # 헤더, 푸터 등 레이아웃 UI
+│   │   ├── home/              # 홈 화면 전용 섹션과 UI
+│   │   ├── ai-course/         # AI 코스 생성·편집 화면 전용 UI
+│   │   ├── news/              # 뉴스피드 화면 전용 UI
+│   │   ├── mypage/            # 마이페이지 화면 전용 UI
+│   │   ├── auth/              # 로그인·회원가입 화면 전용 UI
+│   │   ├── common/            # 도메인에 묶이지 않는 재사용 UI
+│   │   └── layout/            # 전역 레이아웃을 구성하는 UI
 │   ├── lib/
-│   │   └── api/               # Axios 공통 설정
+│   │   ├── api/               # Axios 공통 설정
+│   │   ├── fixtures/          # 화면 개발용 정적 더미 데이터
+│   │   └── utils/             # 순수 함수와 범용 유틸리티
 │   └── stores/                # Zustand 전역 클라이언트 상태
 ├── .env.example               # 공개 가능한 환경변수 예시
 ├── AGENTS.md                  # 에이전트 작업 규칙
@@ -180,7 +195,11 @@ Ditto-FrontEnd/
 └── package.json
 ```
 
-기능이 늘어나면 `src/features/auth`, `src/features/courses`처럼 도메인 단위 폴더를 추가합니다.
+`components/common`에는 버튼, 선택기, 빈 상태처럼 여러 도메인에서 공유하는 UI를 둡니다. `components/layout`에는 헤더, 푸터, 내비게이션처럼 페이지 골격을 만드는 UI를 둡니다. 특정 페이지나 도메인에서만 쓰는 컴포넌트는 `components/home`, `components/ai-course`, `components/news`, `components/mypage`, `components/auth` 아래에 먼저 배치합니다.
+
+`lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
+
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
 
 ## Axios 사용법
 
