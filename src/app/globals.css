@@ -1,28 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f7fb;
-  --foreground: #17152e;
-  --ink-strong: #100f24;
-  --ink-muted: #6f6a86;
-  --ink-subtle: #9a94ad;
-  --line: #e7e1f2;
-  --line-strong: #d5cce8;
-  --surface: #ffffff;
-  --surface-soft: #f4f0ff;
-  --surface-muted: #eeedf4;
-  --brand: #6236f5;
-  --brand-dark: #4d27d2;
-  --brand-soft: #eee8ff;
-  --brand-accent: #ff5f8f;
-  --brand-mint: #38d6b0;
-  --warning: #f59e0b;
-  --success: #12b981;
-  --danger: #ef4444;
-  --radius-card: 1.25rem;
-  --radius-control: 999px;
-  --shadow-card: 0 24px 60px rgb(45 31 91 / 10%);
-  --shadow-control: 0 12px 30px rgb(98 54 245 / 18%);
+  --background: #fcfcfc;
+  --foreground: #1a142e;
+  --ink-muted: #6b6685;
+  --line: #e8e4f5;
+  --surface-soft: #f6f3fd;
+  --brand: #5c2ef5;
+  --brand-dark: #4a2fa8;
+  --brand-soft: #f0ebff;
+  --accent: #6d28d9;
+  --accent-soft: #f4f1fe;
 }
 
 @theme inline {
@@ -40,13 +28,9 @@
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
   --color-brand-soft: var(--brand-soft);
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-mint: var(--brand-mint);
-  --color-warning: var(--warning);
-  --color-success: var(--success);
-  --color-danger: var(--danger);
-  --font-sans: Pretendard, "Pretendard Variable", -apple-system, BlinkMacSystemFont,
-    "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: "Pretendard", "Noto Sans KR", Arial, Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --radius-card: var(--radius-card);
   --radius-control: var(--radius-control);
@@ -62,13 +46,16 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Pretendard, "Pretendard Variable", -apple-system,
-    BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI",
-    sans-serif;
+  font-family: "Pretendard", "Noto Sans KR", Arial, Helvetica, sans-serif;
 }
 
 ::selection {
-  background: var(--brand-soft);
+  background: #fff176;
+  color: var(--brand-dark);
+}
+
+::-moz-selection {
+  background: #fff176;
   color: var(--brand-dark);
 }
 
