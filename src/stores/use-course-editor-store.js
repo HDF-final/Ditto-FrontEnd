@@ -22,6 +22,8 @@ export const useCourseEditorStore = create((set, get) => ({
   addOpen: false,
   detailStop: null,
   deleteId: null,
+  optimizeOpen: false,
+  saveOpen: false,
 
   // Push the current stop order onto the undo history.
   snapshot: () =>
@@ -70,6 +72,13 @@ export const useCourseEditorStore = create((set, get) => ({
     set({ stops: swapStops(stops, index, target) });
   },
 
+  // Replace the whole stop order (e.g. applying an optimization result).
+  // Only called from an explicit user action — never automatically.
+  setStops: (stops) => {
+    get().snapshot();
+    set({ stops: cloneStops(stops) });
+  },
+
   // Move a stop from one index to another (drag and drop).
   reorderStop: (from, to) => {
     const { stops, snapshot } = get();
@@ -107,4 +116,8 @@ export const useCourseEditorStore = create((set, get) => ({
     }
     set({ deleteId: null });
   },
+  openOptimize: () => set({ optimizeOpen: true }),
+  closeOptimize: () => set({ optimizeOpen: false }),
+  openSave: () => set({ saveOpen: true }),
+  closeSave: () => set({ saveOpen: false }),
 }));

@@ -4,6 +4,8 @@ import { useCourseEditorStore } from "@/stores/use-course-editor-store";
 import { AddPlaceModal } from "./add-place-modal";
 import { DeletePlaceDialog } from "./delete-place-dialog";
 import { PlaceDetailModal } from "./place-detail";
+import { OptimizationModal } from "./optimization-modal";
+import { SaveCourseModal } from "./save-course-modal";
 
 // Detail modal for a stop already in the course.
 function StopDetailModal() {
@@ -26,6 +28,8 @@ export function CourseModals() {
       <AddPlaceModal />
       <DeletePlaceDialog />
       <StopDetailModal />
+      <OptimizationModal />
+      <SaveCourseModal />
     </>
   );
 }

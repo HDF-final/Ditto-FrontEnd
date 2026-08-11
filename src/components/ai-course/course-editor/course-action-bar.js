@@ -7,6 +7,8 @@ export function CourseActionBar() {
   const openAdd = useCourseEditorStore((state) => state.openAdd);
   const undo = useCourseEditorStore((state) => state.undo);
   const canUndo = useCourseEditorStore((state) => state.history.length > 0);
+  const openOptimize = useCourseEditorStore((state) => state.openOptimize);
+  const openSave = useCourseEditorStore((state) => state.openSave);
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -25,17 +27,16 @@ export function CourseActionBar() {
       >
         + 장소 추가
       </button>
-      {/* Optimize / save are out of scope for this milestone. */}
       <button
         type="button"
-        disabled
+        onClick={openOptimize}
         className={buttonClassName({ variant: "secondary", size: "sm" })}
       >
         ⚡ 코스 최적화
       </button>
       <button
         type="button"
-        disabled
+        onClick={openSave}
         className={buttonClassName({ variant: "primary", size: "sm" })}
       >
         ⊕ 코스 저장

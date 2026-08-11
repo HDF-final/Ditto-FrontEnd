@@ -21,6 +21,7 @@ const product = (name, price, badge, badgeColor, image) => ({
 export const placeCatalog = [
   {
     id: "place-smt-lounge",
+    coord: [20, 30],
     category: "한식당",
     kind: "food",
     name: "SMT 라운지 더현대서울점",
@@ -42,6 +43,7 @@ export const placeCatalog = [
   },
   {
     id: "place-mlb",
+    coord: [68, 55],
     category: "패션",
     kind: "brand",
     name: "MLB 더현대서울점",
@@ -71,6 +73,7 @@ export const placeCatalog = [
   },
   {
     id: "place-eql",
+    coord: [72, 60],
     category: "패션",
     kind: "brand",
     name: "EQL 이퀄",
@@ -100,6 +103,7 @@ export const placeCatalog = [
   },
   {
     id: "place-eoi",
+    coord: [25, 40],
     category: "디저트·카페",
     kind: "food",
     name: "EOI 이오이",
@@ -121,6 +125,7 @@ export const placeCatalog = [
   },
   {
     id: "place-spider-popup",
+    coord: [70, 58],
     category: "팝업",
     kind: "popup",
     name: "스파이더맨 브랜드 뉴 데이 팝업",
@@ -142,6 +147,7 @@ export const placeCatalog = [
   },
   {
     id: "place-seongsu-popup",
+    coord: [66, 52],
     category: "팝업",
     kind: "popup",
     name: "성수동 시즌 팝업스토어",
@@ -163,6 +169,7 @@ export const placeCatalog = [
   },
   {
     id: "place-nudake",
+    coord: [40, 80],
     category: "디저트·카페",
     kind: "food",
     name: "누데이크 하우스 도산",
@@ -184,6 +191,7 @@ export const placeCatalog = [
   },
   {
     id: "place-tamburins",
+    coord: [45, 78],
     category: "뷰티",
     kind: "brand",
     name: "탬버린즈 플래그십",

@@ -25,3 +25,29 @@ export function hasStop(stops, id) {
 export function renumberStops(stops) {
   return stops.map((stop, index) => ({ ...stop, number: index + 1 }));
 }
+
+// Nearest-neighbor ordering by each stop's [x, y] coord, starting from the
+// first stop. Returns a new array; input is left untouched. Used to suggest an
+// optimized route — it never mutates the course on its own.
+export function optimizeOrder(stops) {
+  if (stops.length < 2) {
+    return stops.slice();
+  }
+  const remaining = stops.slice();
+  const route = [remaining.shift()];
+  while (remaining.length) {
+    const [lastX, lastY] = route[route.length - 1].coord || [0, 0];
+    let bestIndex = 0;
+    let bestDistance = Infinity;
+    remaining.forEach((stop, index) => {
+      const [x, y] = stop.coord || [0, 0];
+      const distance = Math.hypot(x - lastX, y - lastY);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIndex = index;
+      }
+    });
+    route.push(remaining.splice(bestIndex, 1)[0]);
+  }
+  return route;
+}
