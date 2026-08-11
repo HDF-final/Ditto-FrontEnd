@@ -56,7 +56,6 @@ export function SiteHeader() {
               width={137}
               height={43}
               priority
-              className="h-auto"
               style={{ width: "137px", height: "auto" }}
             />
             <span className="mt-1 whitespace-nowrap text-[13px] font-medium leading-none text-ink-muted">
