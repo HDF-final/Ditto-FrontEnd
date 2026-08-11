@@ -1,13 +1,27 @@
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
+import { MypageProfile } from "@/components/mypage/mypage-profile";
+import { MypageTabs } from "@/components/mypage/mypage-tabs";
+import {
+  mypageCourses,
+  mypageProfile,
+  mypageStats,
+  mypageTabs,
+} from "@/lib/fixtures/mypage";
 
 export const metadata = { title: "마이페이지" };
 
 export default function MyPage() {
   return (
-    <PlaceholderPage
-      eyebrow="My DITTO"
-      title="마이페이지"
-      description="내 코스, 북마크, 국가·언어 설정과 계정 정보를 관리하는 화면이 들어갈 자리입니다."
-    />
+    <main className="bg-background">
+      <MypageProfile profile={mypageProfile} stats={mypageStats} />
+      <section className="px-5 py-[60px] lg:px-24">
+        <MypageTabs tabs={mypageTabs} />
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {mypageCourses.map((course) => (
+            <MypageCourseCard key={course.title} course={course} />
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
