@@ -8,7 +8,7 @@ export function CourseEditor({ course }) {
       <CourseTitleEditor defaultTitle={course.title} />
       <CourseActionBar />
       <p className="inline-block w-fit rounded-control bg-brand-soft px-3.5 py-2 text-xs font-semibold text-brand-dark">
-        장소를 눌러 완료 상태를 표시해보세요
+        카드를 드래그해 코스 순서를 바꾸고, 순번을 눌러 완료 상태를 표시해보세요
       </p>
       <CourseTimeline stops={course.stops} />
     </section>

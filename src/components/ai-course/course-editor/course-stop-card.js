@@ -37,15 +37,32 @@ function StopThumbnail({ src, alt }) {
       alt={alt}
       fill
       sizes="104px"
-      className="object-cover"
+      className="pointer-events-none object-cover"
       onError={() => setFailed(true)}
     />
   );
 }
 
-export function CourseStopCard({ stop, order, selected, onToggle }) {
+export function CourseStopCard({
+  stop,
+  order,
+  selected,
+  onToggle,
+  dragging = false,
+  dropTarget = false,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDrop,
+}) {
   return (
-    <li className="relative flex gap-4">
+    <li
+      className={["relative flex gap-4 transition-opacity", dragging ? "opacity-45" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <button
         type="button"
         onClick={onToggle}
@@ -78,10 +95,19 @@ export function CourseStopCard({ stop, order, selected, onToggle }) {
 
       <div className="flex-1">
         <article
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          aria-roledescription="드래그하여 순서를 바꿀 수 있는 장소"
           className={[
-            "flex items-center gap-4 rounded-card border bg-surface p-4 shadow-card transition",
+            "flex cursor-grab items-center gap-4 rounded-card border bg-surface p-4 shadow-card transition active:cursor-grabbing",
+            dropTarget
+              ? "outline outline-2 outline-offset-2 outline-dashed outline-brand-accent"
+              : "",
             selected ? "border-brand-accent" : "border-line hover:border-line-strong",
-          ].join(" ")}
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           <div className="min-w-0 flex-1">
             <span className="inline-block rounded-control bg-brand-dark px-3 py-1 text-xs font-bold text-brand-soft">
