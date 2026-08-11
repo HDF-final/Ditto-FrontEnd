@@ -1,13 +1,18 @@
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { LoginForm } from "@/components/auth/login-form";
 
-export const metadata = { title: "로그인" };
+export const metadata = {
+  title: "로그인",
+  description: "DITTO 계정으로 로그인하고 저장한 코스를 이어서 확인하세요.",
+};
 
 export default function LoginPage() {
   return (
-    <PlaceholderPage
-      eyebrow="DITTO Auth"
-      title="로그인"
-      description="여행자 계정으로 저장한 코스와 개인화 설정을 이어가기 위한 로그인 화면이 들어갈 자리입니다."
-    />
+    <AuthShell
+      title="다시 오셨네요"
+      description="로그인하고 저장한 코스를 이어서 확인하세요."
+    >
+      <LoginForm />
+    </AuthShell>
   );
 }

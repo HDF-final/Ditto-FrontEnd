@@ -96,7 +96,7 @@ export function SiteHeader() {
             <HeartIcon />
           </Link>
           <Link
-            href="/mypage"
+            href="/login"
             className="rounded-full bg-brand px-5 py-3 text-sm font-black leading-none text-white transition hover:bg-brand-dark"
           >
             로그인

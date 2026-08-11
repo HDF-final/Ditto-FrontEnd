@@ -146,6 +146,10 @@ Next.js App Router는 `src/app` 아래의 폴더를 URL 경로로 사용하고, 
 | URL | 파일 | 용도 |
 | --- | --- | --- |
 | `/` | `src/app/page.js` | 홈 |
+| `/login` | `src/app/login/page.js` | 로그인 (UI 검증만, 성공 시 `/`로 이동) |
+| `/signup` | `src/app/signup/page.js` | 회원가입 (UI 검증만, 성공 시 `/country`로 이동) |
+| `/country` | `src/app/country/page.js` | 국가·언어 선택 (성공 시 `/persona?lang=…`) |
+| `/persona` | `src/app/persona/page.js` | 쇼핑 타입(페르소나) 선택 (성공 시 `/`로 이동) |
 | `/ai-course` | `src/app/ai-course/page.js` | AI 코스 만들기 |
 | `/courses` | `src/app/courses/page.js` | 코스 리스트 |
 | `/community` | `src/app/community/page.js` | 여행자 커뮤니티 |
@@ -173,6 +177,8 @@ Ditto-FrontEnd/
 │   │   ├── mypage/page.js     # 마이페이지
 │   │   ├── login/page.js      # 로그인
 │   │   ├── signup/page.js     # 회원가입
+│   │   ├── country/page.js    # 국가·언어 선택
+│   │   ├── persona/page.js    # 쇼핑 타입(페르소나) 선택
 │   │   ├── layout.js          # 전역 HTML 레이아웃
 │   │   └── globals.css        # 전역 스타일과 Tailwind 토큰
 │   ├── components/
@@ -180,7 +186,7 @@ Ditto-FrontEnd/
 │   │   ├── ai-course/         # AI 코스 생성·편집 화면 전용 UI
 │   │   ├── news/              # 뉴스피드 화면 전용 UI
 │   │   ├── mypage/            # 마이페이지 화면 전용 UI
-│   │   ├── auth/              # 로그인·회원가입 화면 전용 UI
+│   │   ├── auth/              # 로그인·가입·국가·페르소나 온보딩 UI
 │   │   ├── common/            # 도메인에 묶이지 않는 재사용 UI
 │   │   └── layout/            # 전역 레이아웃을 구성하는 UI
 │   ├── lib/
@@ -197,9 +203,16 @@ Ditto-FrontEnd/
 
 `components/common`에는 버튼, 선택기, 빈 상태처럼 여러 도메인에서 공유하는 UI를 둡니다. `components/layout`에는 헤더, 푸터, 내비게이션처럼 페이지 골격을 만드는 UI를 둡니다. 특정 페이지나 도메인에서만 쓰는 컴포넌트는 `components/home`, `components/ai-course`, `components/news`, `components/mypage`, `components/auth` 아래에 먼저 배치합니다.
 
-`lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
+`lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가 코드처럼 온보딩과 공용 셀렉터가 공유하는 값은 `src/stores/use-preference-store.js`에 두되 **persist하지 않습니다**. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+
+인증·온보딩 임시 이동 정책(실제 로그인/토큰 없음):
+
+```text
+/signup → /country → /persona?lang=… → /
+/login → /
+```
 
 ## Axios 사용법
 
