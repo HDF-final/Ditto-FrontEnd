@@ -1,5 +1,16 @@
 import Link from "next/link";
 
+import { BrandAsset } from "@/components/common/brand-asset";
+import { ButtonLink } from "@/components/common/button";
+import { Card } from "@/components/common/card";
+import {
+  ContentGrid,
+  PageShell,
+  PageSection,
+  SectionHeader,
+  SectionInner,
+} from "@/components/layout/page-shell";
+
 const foundations = [
   {
     title: "Next.js + React",
@@ -29,8 +40,8 @@ const routeLinks = [
 export default function Home() {
   return (
     <main>
-      <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-20">
-        <div className="grid overflow-hidden rounded-[2rem] border border-line bg-surface-soft lg:grid-cols-2">
+      <PageShell className="lg:py-20">
+        <div className="grid overflow-hidden rounded-card border border-line bg-surface-soft lg:grid-cols-2">
           <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
               K-Culture Shopping Mate
@@ -45,79 +56,59 @@ export default function Home() {
               실내지도와 여행자 커뮤니티로 경험을 이어갑니다.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/ai-course"
-                className="rounded-full bg-brand px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-dark"
-              >
+              <ButtonLink href="/ai-course" size="lg">
                 AI 코스 만들기
-              </Link>
-              <Link
-                href="/courses"
-                className="rounded-full border border-brand bg-white px-6 py-3 text-sm font-bold text-brand transition hover:bg-brand-soft"
-              >
+              </ButtonLink>
+              <ButtonLink href="/courses" variant="secondary" size="lg">
                 인기 코스 둘러보기
-              </Link>
+              </ButtonLink>
             </div>
           </div>
-          <div className="flex min-h-80 items-center justify-center bg-linear-to-br from-[#28166f] via-[#6537db] to-[#9b5cff] p-10 text-white">
-            <div className="text-center">
-              <p className="text-5xl font-black tracking-[0.08em]">DITTO</p>
-              <p className="mt-3 text-sm text-white/70">Front-end foundation</p>
-            </div>
+          <div className="flex min-h-80 items-center justify-center bg-linear-to-br from-brand-dark via-brand to-brand-accent p-10">
+            <BrandAsset
+              name="boni"
+              className="size-56 bg-white/15"
+              imageClassName="p-4"
+              priority
+            />
           </div>
         </div>
-      </section>
+      </PageShell>
 
-      <section className="border-y border-line bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
-            Project foundation
-          </p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-ink">
-            초기 기술 구성
-          </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <PageSection bleed>
+        <SectionInner>
+          <SectionHeader eyebrow="Project foundation" title="초기 기술 구성" />
+          <ContentGrid>
             {foundations.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-3xl border border-line bg-surface-soft p-6"
-              >
+              <Card key={item.title}>
                 <h3 className="font-bold text-ink">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-ink-muted">
                   {item.description}
                 </p>
-              </article>
+              </Card>
             ))}
-          </div>
-        </div>
-      </section>
+          </ContentGrid>
+        </SectionInner>
+      </PageSection>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
-              Routes
-            </p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-ink">
-              기본 라우팅 확인
-            </h2>
-          </div>
-          <p className="text-sm text-ink-muted">
-            각 링크는 App Router의 독립된 page.js로 연결됩니다.
-          </p>
-        </div>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <PageSection>
+        <SectionHeader
+          eyebrow="Routes"
+          title="기본 라우팅 확인"
+          description="각 링크는 App Router의 독립된 page.js로 연결됩니다."
+        />
+        <ContentGrid className="gap-3" columns="four">
           {routeLinks.map((route) => (
             <Link
               key={route.href}
               href={route.href}
-              className="rounded-2xl border border-line bg-white p-5 font-bold text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-lg"
+              className="rounded-card border border-line bg-surface p-5 font-bold text-ink transition hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-card"
             >
               {route.label} →
             </Link>
           ))}
-        </div>
-      </section>
+        </ContentGrid>
+      </PageSection>
     </main>
   );
 }

@@ -1,9 +1,11 @@
-import Link from "next/link";
+import { ButtonLink } from "@/components/common/button";
+import { SoftCard } from "@/components/common/card";
+import { PageShell } from "@/components/layout/page-shell";
 
 export function PlaceholderPage({ eyebrow, title, description }) {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-7xl items-center px-5 py-20 lg:px-8">
-      <section className="w-full rounded-[2rem] border border-line bg-surface-soft p-8 sm:p-12 lg:p-16">
+    <PageShell className="flex min-h-[calc(100vh-8rem)] items-center py-20">
+      <SoftCard className="w-full p-8 sm:p-12 lg:p-16">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
           {eyebrow}
         </p>
@@ -14,17 +16,12 @@ export function PlaceholderPage({ eyebrow, title, description }) {
           {description}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/"
-            className="rounded-full bg-brand px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-dark"
-          >
-            홈으로 돌아가기
-          </Link>
-          <span className="rounded-full border border-line bg-white px-5 py-3 text-sm font-semibold text-ink-muted">
+          <ButtonLink href="/">홈으로 돌아가기</ButtonLink>
+          <span className="rounded-control border border-line bg-white px-5 py-3 text-sm font-semibold text-ink-muted">
             라우팅 준비 완료
           </span>
         </div>
-      </section>
-    </main>
+      </SoftCard>
+    </PageShell>
   );
 }
