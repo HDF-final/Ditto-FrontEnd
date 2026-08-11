@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    <html lang="ko" className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="flex min-h-full flex-col">
         <SiteHeader />
         <div className="flex-1">{children}</div>
