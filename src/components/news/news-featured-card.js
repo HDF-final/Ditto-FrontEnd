@@ -1,8 +1,13 @@
+import Link from "next/link";
+
 import { ViewCount } from "@/components/news/view-count";
 
 export function NewsFeaturedCard({ news }) {
   return (
-    <article className="grid overflow-hidden rounded-[32px] border border-line bg-white shadow-[0_12px_30px_rgba(43,28,89,0.08)] lg:grid-cols-[520px_1fr]">
+    <Link
+      href={`/news/${news.slug}`}
+      className="grid overflow-hidden rounded-[32px] border border-line bg-white shadow-[0_12px_30px_rgba(43,28,89,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(43,28,89,0.12)] lg:grid-cols-[520px_1fr]"
+    >
       <div
         className={`min-h-[240px] bg-linear-to-br ${news.gradient} lg:min-h-[305px]`}
       />
@@ -20,6 +25,6 @@ export function NewsFeaturedCard({ news }) {
           <ViewCount value={news.views} />
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

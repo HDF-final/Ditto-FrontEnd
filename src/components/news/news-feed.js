@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { ViewCount } from "@/components/news/view-count";
@@ -33,8 +34,9 @@ export function NewsFeed({ tabs, items }) {
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {visibleItems.map((item) => (
-          <article
-            key={item.title}
+          <Link
+            key={item.slug ?? item.title}
+            href={`/news/${item.slug}`}
             className="flex flex-col gap-3 rounded-[20px] border border-line bg-white p-5 shadow-[0_8px_20px_rgba(43,28,89,0.06)] transition hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(43,28,89,0.12)]"
           >
             <h3 className="text-base font-black leading-snug text-ink">
@@ -46,13 +48,18 @@ export function NewsFeed({ tabs, items }) {
             <div
               className={`mt-1 h-[150px] rounded-[14px] bg-linear-to-br ${item.gradient}`}
             />
-            <div className="mt-1 flex items-center justify-between gap-3">
+            {item.summary ? (
+              <p className="line-clamp-2 text-sm leading-6 text-ink-muted">
+                {item.summary}
+              </p>
+            ) : null}
+            <div className="mt-auto flex items-center justify-between gap-3">
               <span className="rounded-full bg-brand-soft px-4 py-2 text-xs font-black text-brand">
                 {item.label}
               </span>
               <ViewCount value={item.views} />
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </section>
