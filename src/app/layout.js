@@ -1,5 +1,4 @@
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { AppFrame } from "@/components/layout/app-frame";
 import "./globals.css";
 
 export const metadata = {
@@ -15,9 +14,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="flex min-h-full flex-col">
-        <SiteHeader />
-        <div className="flex-1">{children}</div>
-        <SiteFooter />
+        <AppFrame>{children}</AppFrame>
       </body>
     </html>
   );

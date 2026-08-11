@@ -1,13 +1,18 @@
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { SignupForm } from "@/components/auth/signup-form";
 
-export const metadata = { title: "회원가입" };
+export const metadata = {
+  title: "회원가입",
+  description: "DITTO에 가입하고 코스 저장과 공유를 시작하세요.",
+};
 
 export default function SignupPage() {
   return (
-    <PlaceholderPage
-      eyebrow="DITTO Auth"
-      title="회원가입"
-      description="국가·언어 설정과 여행 취향을 연결할 신규 계정 생성 화면이 들어갈 자리입니다."
-    />
+    <AuthShell
+      title="디토 시작하기"
+      description="30초면 충분해요. 코스 저장과 공유가 열립니다."
+    >
+      <SignupForm />
+    </AuthShell>
   );
 }
