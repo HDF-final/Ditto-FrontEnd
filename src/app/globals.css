@@ -11,6 +11,18 @@
   --brand-soft: #f0ebff;
   --accent: #6d28d9;
   --accent-soft: #f4f1fe;
+  --surface: #ffffff;
+  --surface-muted: #eeecf5;
+  --ink-strong: #14102a;
+  --ink-subtle: #9993a8;
+  --line-strong: #d9d2ec;
+  --brand-accent: #ff5f8f;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --radius-card: 1.25rem;
+  --radius-control: 999px;
+  --shadow-card: 0 3px 14px rgba(30, 27, 46, 0.08);
+  --shadow-control: 0 12px 30px rgba(92, 46, 245, 0.2);
 }
 
 @theme inline {
@@ -28,6 +40,9 @@
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-accent: var(--brand-accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --font-sans: "Pretendard", "Noto Sans KR", Arial, Helvetica, sans-serif;
