@@ -1,10 +1,18 @@
+import {
+  DEFAULT_PERSONA_ID,
+  getPersonaById,
+} from "@/lib/fixtures/personas";
+
+const defaultPersona = getPersonaById(DEFAULT_PERSONA_ID, "ko");
+
 export const mypageProfile = {
   name: "Annie",
   description: "여의도 · 더현대 서울 단골",
   persona: {
-    name: "오픈런러버",
-    description: "신상·팝업 뜨면 오픈런하는 얼리어답터",
-    image: "/assets/common/orange-1.svg",
+    id: defaultPersona.id,
+    name: defaultPersona.name,
+    description: defaultPersona.description,
+    image: defaultPersona.imageSrc,
   },
 };
 
