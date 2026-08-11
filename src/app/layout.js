@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import "./globals.css";
 
 export const metadata = {
@@ -12,13 +13,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    <html lang="ko" className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="flex min-h-full flex-col">
         <SiteHeader />
-        {children}
-        <footer className="border-t border-line bg-white px-5 py-6 text-center text-sm text-ink-muted">
-          © 2026 DITTO. Front-end foundation.
-        </footer>
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );
