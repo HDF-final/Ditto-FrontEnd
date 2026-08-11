@@ -1,28 +1,28 @@
-// Static sample data for the Boni concierge panel.
-// Placeholder UI data only — no real AI API is called.
-
 export const boniProfile = {
   name: "Boni",
-  role: "AI Concierge",
-  tagline: "AI cat guiding your course choices",
+  role: "DITTO AI concierge",
+  tagline: "코스는 그대로 두고 질문에만 답해요",
 };
 
 export const initialMessages = [
   {
-    id: "boni-intro",
+    id: "msg-initial-1",
     from: "boni",
-    text: "안녕 나는 보니야 🐾\nK-MZ Trend 코스를 선택하셨네요! 요즘 한국에서 가장 핫한 팝업과 핫플레이스를 안내해 드릴게요.",
+    text: "안녕하세요! 코스 이동, 예약, 쇼핑 팁이 궁금하면 바로 물어보세요.",
   },
 ];
 
+export const boniReply =
+  "좋아요. 현재 코스 기준으로 이동 동선과 체류 시간을 함께 고려해볼게요.";
+
 export const quickQuestions = [
-  "K pop 성지 따라가고 싶어",
-  "가격이 너무 비싼 것 같아",
-  "2시간 안에 끝낼 수 있어?",
+  "비 오는 날에도 괜찮을까?",
+  "점심 예약은 어디가 좋아?",
+  "쇼핑 시간을 더 늘리고 싶어",
 ];
 
-// Canned reply — this is a placeholder, not a real AI response.
-export const boniReply = "네! 그에 맞는 코스를 업데이트해드릴게요 🐾";
-
-// Sample-only share code. NOT a real generated value — shown for UI purposes.
-export const sampleShareCode = "DEMO-8K2Q";
+export const topCourseQuestions = [
+  "이 코스를 반나절 일정으로 줄여줘",
+  "카페 중심으로 다시 추천해줘",
+  "외국인 친구와 가기 좋은 순서 알려줘",
+];

@@ -2,19 +2,20 @@
 
 import { useEffect } from "react";
 
-// Reusable centered modal overlay. Closes on Escape and backdrop click.
-export function Modal({ open, onClose, labelledBy, className = "", children }) {
+export function Modal({ open, onClose, labelledBy, children }) {
   useEffect(() => {
     if (!open) {
       return undefined;
     }
-    function onKeyDown(event) {
+
+    function handleKeyDown(event) {
       if (event.key === "Escape") {
         onClose?.();
       }
     }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
   if (!open) {
@@ -23,7 +24,7 @@ export function Modal({ open, onClose, labelledBy, className = "", children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-strong/45 p-5"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(10,8,20,0.58)] p-5 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose?.();
@@ -34,21 +35,8 @@ export function Modal({ open, onClose, labelledBy, className = "", children }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={[
-          "relative w-full max-w-md rounded-card bg-surface p-6 shadow-card",
-          className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className="w-full max-w-xl rounded-card border border-line bg-surface p-6 shadow-card"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="닫기"
-          className="absolute right-3.5 top-3 text-2xl leading-none text-ink-subtle transition hover:text-ink"
-        >
-          &times;
-        </button>
         {children}
       </div>
     </div>

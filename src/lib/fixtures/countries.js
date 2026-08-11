@@ -1,45 +1,30 @@
-/**
- * Country / language options from the HTML mock (country.html).
- * Single source for onboarding country cards and shared country selectors.
- */
-
-export const COUNTRIES = [
-  {
-    code: "KR",
-    name: "한국",
-    language: "한국어",
-    flag: "🇰🇷",
-    lang: "ko",
-  },
-  {
-    code: "CN",
-    name: "中国",
-    language: "简体中文",
-    flag: "🇨🇳",
-    lang: "zh",
-  },
-  {
-    code: "JP",
-    name: "日本",
-    language: "日本語",
-    flag: "🇯🇵",
-    lang: "ja",
-  },
+export const countries = [
   {
     code: "US",
     name: "United States",
-    language: "English",
-    flag: "🇺🇸",
+    flag: "US",
     lang: "en",
+    languageLabel: "English",
+    description: "English copy and K-culture shopping routes are prioritized.",
+  },
+  {
+    code: "CN",
+    name: "China",
+    flag: "CN",
+    lang: "zh",
+    languageLabel: "中文",
+    description: "중국 여행자에게 익숙한 쇼핑 동선과 인기 브랜드를 우선해요.",
+  },
+  {
+    code: "JP",
+    name: "Japan",
+    flag: "JP",
+    lang: "ja",
+    languageLabel: "日本語",
+    description: "일본 여행자에게 맞춘 짧은 이동 동선과 트렌드 코스를 추천해요.",
   },
 ];
 
-export const DEFAULT_COUNTRY_CODE = "KR";
-
-export function getCountryByCode(code) {
-  return COUNTRIES.find((country) => country.code === code) ?? COUNTRIES[0];
-}
-
 export function resolveLang(lang) {
-  return COUNTRIES.some((country) => country.lang === lang) ? lang : "ko";
+  return ["ko", "en", "zh", "ja"].includes(lang) ? lang : "ko";
 }

@@ -1,55 +1,30 @@
 "use client";
 
-import { useState } from "react";
-
 import { Modal } from "@/components/common/modal";
-import { sampleShareCode } from "@/lib/fixtures/concierge";
 import { useCourseEditorStore } from "@/stores/use-course-editor-store";
 
 export function SaveCourseModal() {
   const open = useCourseEditorStore((state) => state.saveOpen);
   const close = useCourseEditorStore((state) => state.closeSave);
   const title = useCourseEditorStore((state) => state.title);
-  const count = useCourseEditorStore((state) => state.stops.length);
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(sampleShareCode);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  function handleClose() {
-    setCopied(false);
-    close();
-  }
+  const stops = useCourseEditorStore((state) => state.stops);
 
   return (
-    <Modal open={open} onClose={handleClose} labelledBy="save-title">
-      <h3 id="save-title" className="mb-2 text-lg font-black text-ink">
-        코스가 저장됐어요 🎉
+    <Modal open={open} onClose={close} labelledBy="save-course-title">
+      <h3 id="save-course-title" className="mb-2 text-lg font-black text-ink">
+        코스 저장
       </h3>
-      <p className="text-sm text-ink">
-        <b>{title || "나의 코스"}</b> · {count}곳
-      </p>
-      <p className="mt-1 text-sm leading-6 text-ink-muted">
-        아래 코드로 앱에서 이 코스를 불러올 수 있어요.
-      </p>
-      <div className="my-4 rounded-2xl bg-brand-soft px-4 py-3 text-center text-2xl font-black tracking-[0.25em] text-brand-dark">
-        {sampleShareCode}
-      </div>
-      <p className="mb-4 text-center text-[11px] text-ink-subtle">
-        * 예시용 샘플 코드입니다 (실제 저장/발급 값이 아니에요)
+      <p className="text-sm leading-6 text-ink-muted">
+        <b className="text-ink">{title || "이름 없는 코스"}</b>에 장소{" "}
+        {stops.length}개가 담겨 있어요. 실제 저장 API가 연결되면 이 버튼에서
+        서버 저장을 호출합니다.
       </p>
       <button
         type="button"
-        onClick={copy}
-        className="w-full rounded-full bg-brand px-5 py-3 text-sm font-bold text-white shadow-control transition hover:bg-brand-dark"
+        onClick={close}
+        className="mt-5 w-full rounded-control bg-brand px-4 py-3 text-sm font-bold text-white shadow-control transition hover:bg-brand-dark"
       >
-        {copied ? "복사됐어요!" : "코드 복사"}
+        확인
       </button>
     </Modal>
   );

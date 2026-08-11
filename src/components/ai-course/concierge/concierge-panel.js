@@ -7,7 +7,7 @@ import { ConciergeHeader } from "./concierge-header";
 import { ChatMessageList } from "./chat-message-list";
 import { QuickQuestionList } from "./quick-question-list";
 import { ChatInput } from "./chat-input";
-import { TopCourseSection } from "../top-courses/top-course-section";
+import { TopCourseSection } from "./top-course-section";
 
 export function ConciergePanel() {
   const [messages, setMessages] = useState(initialMessages);

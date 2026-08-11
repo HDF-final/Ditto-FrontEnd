@@ -56,7 +56,6 @@ export function SiteHeader() {
               width={137}
               height={43}
               priority
-              className="h-auto"
               style={{ width: "137px", height: "auto" }}
             />
             <span className="mt-1 whitespace-nowrap text-[13px] font-medium leading-none text-ink-muted">
@@ -96,7 +95,7 @@ export function SiteHeader() {
             <HeartIcon />
           </Link>
           <Link
-            href="/login"
+            href="/mypage"
             className="rounded-full bg-brand px-5 py-3 text-sm font-black leading-none text-white transition hover:bg-brand-dark"
           >
             로그인
