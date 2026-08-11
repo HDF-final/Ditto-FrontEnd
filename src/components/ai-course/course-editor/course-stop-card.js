@@ -1,53 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-
-function StopThumbnail({ src, alt }) {
-  const [failed, setFailed] = useState(false);
-
-  if (!src || failed) {
-    return (
-      <div
-        className="flex size-full items-center justify-center bg-brand-soft text-brand"
-        role="img"
-        aria-label={`${alt} 이미지를 불러오지 못했습니다`}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-8"
-          aria-hidden="true"
-        >
-          <rect x="3" y="4" width="18" height="16" rx="3" />
-          <circle cx="8.5" cy="9.5" r="1.5" />
-          <path d="m4 17 4.5-4.5a2 2 0 0 1 2.8 0L20 21" />
-        </svg>
-      </div>
-    );
-  }
-
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      sizes="104px"
-      className="pointer-events-none object-cover"
-      onError={() => setFailed(true)}
-    />
-  );
-}
+import { PlaceThumbnail } from "./place-thumbnail";
+import { CourseStopControls } from "./course-stop-controls";
 
 export function CourseStopCard({
   stop,
   order,
   selected,
   onToggle,
+  onOpenDetail,
+  onDelete,
   dragging = false,
   dropTarget = false,
   onDragStart,
@@ -100,16 +62,21 @@ export function CourseStopCard({
           onDragEnd={onDragEnd}
           aria-roledescription="드래그하여 순서를 바꿀 수 있는 장소"
           className={[
-            "flex cursor-grab items-center gap-4 rounded-card border bg-surface p-4 shadow-card transition active:cursor-grabbing",
+            "flex cursor-grab items-center gap-3 rounded-card border bg-surface p-5 shadow-card transition active:cursor-grabbing",
             dropTarget
-              ? "outline outline-2 outline-offset-2 outline-dashed outline-brand-accent"
+              ? "outline outline-2 outline-offset-2 outline-dashed outline-brand"
               : "",
             selected ? "border-brand-accent" : "border-line hover:border-line-strong",
           ]
             .filter(Boolean)
             .join(" ")}
         >
-          <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={onOpenDetail}
+            className="min-w-0 flex-1 text-left"
+            aria-label={`${stop.name} 상세보기`}
+          >
             <span className="inline-block rounded-control bg-brand-dark px-3 py-1 text-xs font-bold text-brand-soft">
               {stop.category}
             </span>
@@ -119,10 +86,19 @@ export function CourseStopCard({
             <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-ink-muted">
               {stop.description}
             </p>
-          </div>
-          <div className="relative size-[104px] flex-none overflow-hidden rounded-full bg-surface-muted shadow-card max-[640px]:hidden">
-            <StopThumbnail src={stop.image} alt={stop.name} />
-          </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenDetail}
+            aria-label={`${stop.name} 상세보기`}
+            className="relative size-20 flex-none overflow-hidden rounded-full bg-surface-muted shadow-card max-[640px]:hidden"
+          >
+            <PlaceThumbnail src={stop.image} alt={stop.name} sizes="92px" />
+          </button>
+
+          {/* delete — vertically centered on the right */}
+          <CourseStopControls onDelete={onDelete} />
         </article>
       </div>
     </li>
