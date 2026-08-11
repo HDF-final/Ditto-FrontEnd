@@ -1,16 +1,18 @@
 import { CourseTitleEditor } from "./course-title-editor";
 import { CourseActionBar } from "./course-action-bar";
 import { CourseTimeline } from "./course-timeline";
+import { CourseModals } from "./course-modals";
 
-export function CourseEditor({ course }) {
+export function CourseEditor() {
   return (
     <section className="flex flex-col gap-5">
-      <CourseTitleEditor defaultTitle={course.title} />
+      <CourseTitleEditor />
       <CourseActionBar />
       <p className="inline-block w-fit rounded-control bg-brand-soft px-3.5 py-2 text-xs font-semibold text-brand-dark">
-        카드를 드래그해 코스 순서를 바꾸고, 순번을 눌러 완료 상태를 표시해보세요
+        카드를 드래그해 순서를 바꾸고, 카드를 눌러 상세 정보를 확인하세요
       </p>
-      <CourseTimeline stops={course.stops} />
+      <CourseTimeline />
+      <CourseModals />
     </section>
   );
 }

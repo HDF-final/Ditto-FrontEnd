@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCourseEditorStore } from "@/stores/use-course-editor-store";
 
-export function CourseTitleEditor({ defaultTitle = "" }) {
-  const [title, setTitle] = useState(defaultTitle);
+export function CourseTitleEditor() {
+  const title = useCourseEditorStore((state) => state.title);
+  const setTitle = useCourseEditorStore((state) => state.setTitle);
 
   return (
     <div>
