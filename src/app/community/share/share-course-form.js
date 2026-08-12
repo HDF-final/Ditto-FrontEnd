@@ -72,6 +72,7 @@ export function ShareCourseForm({ courses }) {
   const shouldScroll = courses.length > 4;
   const publishCourse = () => {
     const sharedCourse = {
+      slug: "first-timer-photo-route",
       country: "JP",
       name: "Annie",
       hash: selectedCourse.tags,

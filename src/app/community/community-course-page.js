@@ -8,7 +8,10 @@ const storageKey = "ditto:shared-community-courses";
 
 function CommunityCard({ card, rank }) {
   return (
-    <article className="overflow-hidden rounded-[28px] bg-white shadow-[0_10px_24px_rgba(43,28,89,0.08)]">
+    <Link
+      href={`/community/${card.slug || "first-timer-photo-route"}`}
+      className="block overflow-hidden rounded-[28px] bg-white shadow-[0_10px_24px_rgba(43,28,89,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_32px_rgba(43,28,89,0.14)]"
+    >
       <div
         className={`flex h-[158px] bg-linear-to-br ${card.gradient} px-6 py-7`}
       >
@@ -41,7 +44,7 @@ function CommunityCard({ card, rank }) {
           <span>📌 {card.saves}</span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 
