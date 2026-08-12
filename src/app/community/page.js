@@ -167,7 +167,7 @@ export default function CommunityPage() {
             </div>
           </div>
           <Link
-            href="/ai-course"
+            href="/community/share"
             className="inline-flex w-fit items-center justify-center rounded-full bg-brand px-8 py-4 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
           >
             내 코스 공유하기 →
