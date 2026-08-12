@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Happiness Sans";
+  src: url("/assets/fonts/HappinessSansVF.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
 :root {
   --background: #fcfcfc;
   --foreground: #1a142e;
@@ -49,7 +57,8 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-line-hover: var(--line-hover);
-  --font-sans: "Pretendard", "Noto Sans KR", Arial, Helvetica, sans-serif;
+  --font-sans: "Happiness Sans", "Pretendard", "Noto Sans KR", Arial, Helvetica,
+    sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --radius-card: var(--radius-card);
   --radius-control: var(--radius-control);
@@ -65,7 +74,8 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Pretendard", "Noto Sans KR", Arial, Helvetica, sans-serif;
+  font-family: "Happiness Sans", "Pretendard", "Noto Sans KR", Arial, Helvetica,
+    sans-serif;
 }
 
 ::selection {
