@@ -98,7 +98,7 @@ export function ShareCourseForm({ courses }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-6 sm:px-8 pb-12 pt-[94px] lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 pb-12 pt-[94px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
@@ -120,7 +120,7 @@ export function ShareCourseForm({ courses }) {
         </div>
       </section>
 
-      <section className="bg-white px-6 sm:px-8 pb-[120px] lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 pb-[120px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="rounded-[28px] bg-surface-soft p-7 lg:p-8">
             <div className="flex items-center justify-between">

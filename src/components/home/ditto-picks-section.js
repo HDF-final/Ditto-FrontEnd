@@ -4,7 +4,7 @@ import { SectionHeading } from "@/components/home/section-heading";
 
 export function DittoPicksSection() {
   return (
-    <section id="picks" className="scroll-mt-24 bg-surface-soft px-6 sm:px-8 py-16 lg:px-28 xl:px-32">
+    <section id="picks" className="scroll-mt-24 bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <SectionHeading
         eyebrow="DITTO PICKS"
         title="기본 코스 추천"

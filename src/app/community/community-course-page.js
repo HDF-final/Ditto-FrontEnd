@@ -70,7 +70,7 @@ export function CommunityCoursePage({ initialCards }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-6 sm:px-8 pb-16 pt-[94px] lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 pb-16 pt-[94px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black text-brand">
@@ -108,7 +108,7 @@ export function CommunityCoursePage({ initialCards }) {
         </div>
       </section>
 
-      <section className="bg-surface-soft px-6 sm:px-8 py-[58px] lg:px-28 xl:px-32">
+      <section className="bg-surface-soft px-10 sm:px-14 py-[58px] lg:px-52 xl:px-60 2xl:px-72">
         <div
           className={
             shouldScroll

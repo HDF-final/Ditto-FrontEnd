@@ -14,7 +14,7 @@ export function NewsFeed({ tabs, items }) {
       : items.filter((item) => item.category === activeTab);
 
   return (
-    <section className="bg-surface-soft px-6 sm:px-8 py-[60px] lg:px-28 xl:px-32">
+    <section className="bg-surface-soft px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
       <div className="mb-6 flex gap-[22px] border-b border-line">
         {tabs.map((tab) => (
           <button

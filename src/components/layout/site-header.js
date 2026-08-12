@@ -47,7 +47,7 @@ function HeartIcon() {
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="flex h-[94px] items-center justify-between gap-6 px-6 sm:px-8 lg:px-28 xl:px-32">
+      <div className="flex h-[94px] items-center justify-between gap-6 px-10 sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
         <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
           <div className="flex flex-col">
             <Image

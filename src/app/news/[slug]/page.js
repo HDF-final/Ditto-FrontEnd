@@ -47,7 +47,7 @@ export default async function NewsDetailPage({ params }) {
 
   return (
     <main className="bg-surface-soft">
-      <section className="bg-white px-6 sm:px-8 pb-10 pt-8 lg:px-28 xl:px-32 lg:pb-14">
+      <section className="bg-white px-10 sm:px-14 pb-10 pt-8 lg:px-52 xl:px-60 2xl:px-72 lg:pb-14">
         <div
           className={`mx-auto grid max-w-7xl gap-10 rounded-[32px] bg-linear-to-br ${news.gradient} px-6 py-10 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-10 lg:grid-cols-[1fr_330px] lg:px-14 lg:py-16`}
         >
@@ -92,7 +92,7 @@ export default async function NewsDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-6 sm:px-8 py-14 lg:px-28 xl:px-32 lg:py-20">
+      <section className="px-10 sm:px-14 py-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
             {body.slice(0, 2).map((paragraph) => (
@@ -155,7 +155,7 @@ export default async function NewsDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="bg-white px-6 sm:px-8 py-12 lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 py-12 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl">
           <div className="mb-6 flex items-center justify-between gap-4">
             <h2 className="text-2xl font-black text-ink">관련 뉴스</h2>

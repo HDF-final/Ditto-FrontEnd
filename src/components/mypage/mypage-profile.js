@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function MypageProfile({ profile, stats }) {
   return (
-    <section className="border-b border-line bg-white px-6 sm:px-8 pt-[60px] lg:px-28 xl:px-32">
+    <section className="border-b border-line bg-white px-10 sm:px-14 pt-[60px] lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-10 pb-[60px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="flex items-center gap-5">

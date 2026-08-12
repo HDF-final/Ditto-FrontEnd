@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function AppBanner() {
   return (
-    <section className="bg-background px-6 sm:px-8 py-16 lg:px-28 xl:px-32">
+    <section className="bg-background px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="grid min-h-60 overflow-hidden rounded-[32px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] lg:grid-cols-[1fr_420px]">
         <div className="flex flex-col justify-center gap-3 p-8 sm:p-[60px]">
           <h2 className="text-2xl font-black text-white sm:text-[28px]">

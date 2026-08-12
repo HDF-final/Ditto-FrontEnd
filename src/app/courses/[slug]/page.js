@@ -94,7 +94,7 @@ function StopSection({ course }) {
 
 function RecommendationNote({ course }) {
   return (
-    <section className="bg-surface-soft px-6 sm:px-8 py-16 lg:px-28 xl:px-32">
+    <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">BONI NOTE</p>
@@ -158,7 +158,7 @@ function RecommendationNote({ course }) {
 
 function ReviewCards() {
   return (
-    <section className="bg-surface-soft px-6 sm:px-8 pb-16 lg:px-28 xl:px-32">
+    <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">REVIEWS</p>
@@ -203,7 +203,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-6 sm:px-8 pb-20 pt-[72px] lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 pb-20 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
           <GradientPanel
             gradient={course.gradient}
@@ -245,7 +245,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="bg-white px-6 sm:px-8 pb-16 lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1fr]">
           <StopSection course={course} />
           <GradientPanel

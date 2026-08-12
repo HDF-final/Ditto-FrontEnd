@@ -7,7 +7,7 @@ export const metadata = { title: "뉴스피드" };
 export default function NewsPage() {
   return (
     <main className="bg-background">
-      <section className="bg-white px-6 sm:px-8 py-[60px] lg:px-28 xl:px-32">
+      <section className="bg-white px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="mb-6">
           <p className="text-xs font-black uppercase tracking-[0.04em] text-brand">
             DITTO NEWSLETTER

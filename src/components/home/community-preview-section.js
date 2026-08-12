@@ -16,7 +16,7 @@ export function CommunityPreviewSection() {
   return (
     <section
       id="community"
-      className="scroll-mt-[94px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 sm:px-8 py-16 lg:px-28 xl:px-32"
+      className="scroll-mt-[94px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72"
     >
       <SectionHeading
         eyebrow="TRAVELER COMMUNITY"
@@ -52,7 +52,7 @@ export function CommunityPreviewSection() {
                   </p>
                 </div>
               </div>
-              <h3 className="mt-8 min-h-[68px] text-[28px] font-black leading-tight text-ink">
+              <h3 className="mt-7 min-h-[58px] text-[22px] font-black leading-tight text-ink">
                 {course.title}
               </h3>
               <div className="mt-5 h-px bg-line" />
