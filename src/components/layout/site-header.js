@@ -75,7 +75,7 @@ export function SiteHeader() {
             >
               {item.label}
               {item.badge ? (
-                <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
+                <span className="rounded-full bg-highlight px-3 py-1 text-[10px] font-bold text-ink">
                   {item.badge}
                 </span>
               ) : null}

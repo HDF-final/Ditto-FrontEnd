@@ -27,6 +27,8 @@
   --line-strong: #d9d2ec;
   --line-hover: #cfc4f5;
   --brand-accent: #ff5f8f;
+  --highlight: #d9ff4a;
+  --highlight-soft: #f4ffd6;
   --danger: #ef4444;
   --success: #22c55e;
   --radius-card: 1.25rem;
@@ -52,6 +54,8 @@
   --color-brand-dark: var(--brand-dark);
   --color-brand-soft: var(--brand-soft);
   --color-brand-accent: var(--brand-accent);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-accent: var(--accent);

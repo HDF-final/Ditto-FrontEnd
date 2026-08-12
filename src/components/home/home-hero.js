@@ -46,8 +46,8 @@ export function HomeHero({ slides }) {
                 onClick={() => setActiveIndex(index)}
                 className={`h-2 rounded-full transition ${
                   activeIndex === index
-                    ? "w-5 bg-brand"
-                    : "w-2 bg-[#d9d5e8] hover:bg-brand/50"
+                    ? "w-5 bg-highlight"
+                    : "w-2 bg-[#d9d5e8] hover:bg-highlight/70"
                 }`}
               />
             ))}
