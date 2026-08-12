@@ -47,7 +47,7 @@ function HeartIcon() {
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="flex h-[94px] items-center justify-between gap-6 px-5 lg:px-24">
+      <div className="flex h-[94px] items-center justify-between gap-6 px-6 sm:px-8 lg:px-28 xl:px-32">
         <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
           <div className="flex flex-col">
             <Image
@@ -84,7 +84,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-6 text-ink">
-          <Link href="/country" aria-label="국가·언어 선택" className="hover:text-brand">
+          <Link
+            href="/country"
+            aria-label="국가·언어 선택"
+            className="hover:text-brand"
+          >
             <GlobeIcon />
           </Link>
           <Link

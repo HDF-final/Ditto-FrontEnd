@@ -111,7 +111,7 @@ function StopList({ stops }) {
 
 function AuthorNote({ course }) {
   return (
-    <section className="bg-surface-soft px-5 py-16 lg:px-24">
+    <section className="bg-surface-soft px-6 sm:px-8 py-16 lg:px-28 xl:px-32">
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -198,7 +198,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
   return (
     <main className="bg-background">
-      <section className="px-5 pb-16 pt-[72px] lg:px-24">
+      <section className="px-6 sm:px-8 pb-16 pt-[72px] lg:px-28 xl:px-32">
         <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
           <GradientBlock
             gradient={course.gradient}
@@ -240,7 +240,7 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-5 py-8 lg:px-24">
+      <section className="px-6 sm:px-8 py-8 lg:px-28 xl:px-32">
         <div className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
           <StopList stops={course.stops} />
           <GradientBlock
@@ -254,7 +254,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <AuthorNote course={course} />
 
-      <section className="bg-surface-soft px-5 pb-16 lg:px-24">
+      <section className="bg-surface-soft px-6 sm:px-8 pb-16 lg:px-28 xl:px-32">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black text-brand">REVIEWS</p>

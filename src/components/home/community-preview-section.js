@@ -16,7 +16,7 @@ export function CommunityPreviewSection() {
   return (
     <section
       id="community"
-      className="scroll-mt-[94px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-16 lg:px-24"
+      className="scroll-mt-[94px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 sm:px-8 py-16 lg:px-28 xl:px-32"
     >
       <SectionHeading
         eyebrow="TRAVELER COMMUNITY"

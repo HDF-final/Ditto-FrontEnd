@@ -17,7 +17,7 @@ export function HomeHero({ slides }) {
   const activeSlide = slides[activeIndex];
 
   return (
-    <section className="px-5 py-6 lg:px-24">
+    <section className="px-6 sm:px-8 py-6 lg:px-28 xl:px-32">
       <div className="grid min-h-[440px] overflow-hidden rounded-[32px] bg-surface-soft lg:grid-cols-[1fr_560px]">
         <div className="flex flex-col justify-center gap-6 p-8 sm:p-14 lg:p-[60px]">
           <h1 className="text-3xl font-black leading-tight text-ink sm:text-5xl">

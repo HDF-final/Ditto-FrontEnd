@@ -3,7 +3,7 @@ import { SectionHeading } from "@/components/home/section-heading";
 
 export function KeywordSection() {
   return (
-    <section className="bg-background px-5 py-16 lg:px-24">
+    <section className="bg-background px-6 sm:px-8 py-16 lg:px-28 xl:px-32">
       <SectionHeading
         eyebrow="REALTIME TREND"
         title="실시간 주목 키워드"

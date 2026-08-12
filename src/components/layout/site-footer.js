@@ -31,7 +31,7 @@ const footerColumns = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-white px-5 pb-[55px] pt-[62px] lg:px-24">
+    <footer className="bg-white px-6 sm:px-8 pb-[55px] pt-[62px] lg:px-28 xl:px-32">
       <div className="flex flex-wrap gap-x-[62px] gap-y-10">
         <div className="min-w-[150px]">
           <Link href="/" className="block" aria-label="DITTO 홈">
