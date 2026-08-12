@@ -5,6 +5,7 @@ import {
   communityCourses,
   getCommunityCourse,
 } from "@/lib/fixtures/community-courses";
+import { CommunityChatButton } from "./community-chat-button";
 
 export function generateStaticParams() {
   return communityCourses.map((course) => ({ slug: course.slug }));
@@ -276,7 +277,7 @@ export default async function CommunityCourseDetailPage({ params }) {
             <div className="mt-5 flex flex-wrap gap-3">
               <ActionButton>코스 저장</ActionButton>
               <ActionButton variant="outline">공유하기</ActionButton>
-              <ActionButton>대화 참여</ActionButton>
+              <CommunityChatButton course={course} />
             </div>
           </div>
         </div>
