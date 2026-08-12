@@ -80,7 +80,7 @@ export function CommunityPreviewSection() {
         ))}
       </div>
       <div className="mt-7 flex justify-center gap-2" aria-hidden="true">
-        <span className="h-2 w-5 rounded-full bg-highlight" />
+        <span className="h-2 w-5 rounded-full bg-white" />
         <span className="h-2 w-2 rounded-full bg-white/40" />
         <span className="h-2 w-2 rounded-full bg-white/40" />
         <span className="h-2 w-2 rounded-full bg-white/40" />
