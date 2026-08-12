@@ -1,7 +1,7 @@
 export function PageShell({ children, className = "" }) {
   return (
     <main
-      className={["mx-auto w-full max-w-7xl px-5 py-12 lg:px-8 lg:py-16", className]
+      className={["mx-auto w-full max-w-7xl px-10 py-14 sm:px-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-16", className]
         .filter(Boolean)
         .join(" ")}
     >
@@ -18,7 +18,7 @@ export function PageSection({
 }) {
   const baseClassName = bleed
     ? "border-y border-line bg-surface"
-    : "mx-auto w-full max-w-7xl px-5 py-16 lg:px-8";
+    : "mx-auto w-full max-w-7xl px-10 py-[72px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72";
 
   return (
     <section className={[baseClassName, className].filter(Boolean).join(" ")} {...props}>
@@ -30,7 +30,7 @@ export function PageSection({
 export function SectionInner({ children, className = "" }) {
   return (
     <div
-      className={["mx-auto w-full max-w-7xl px-5 py-16 lg:px-8", className]
+      className={["mx-auto w-full max-w-7xl px-10 py-[72px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72", className]
         .filter(Boolean)
         .join(" ")}
     >

@@ -14,7 +14,7 @@ export default function MyPage() {
   return (
     <main className="bg-background">
       <MypageProfile profile={mypageProfile} stats={mypageStats} />
-      <section className="px-5 py-[60px] lg:px-24">
+      <section className="px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
         <MypageTabs tabs={mypageTabs} />
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {mypageCourses.map((course) => (

@@ -4,13 +4,11 @@ import { SectionHeading } from "@/components/home/section-heading";
 
 export function DittoPicksSection() {
   return (
-    <section id="picks" className="scroll-mt-24 bg-surface-soft px-5 py-16 lg:px-24">
+    <section id="picks" className="scroll-mt-24 bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <SectionHeading
         eyebrow="DITTO PICKS"
         title="기본 코스 추천"
         description="인기 많은 더현대 대표 쇼핑·팝업·미식 코스"
-        href="/courses"
-        linkLabel="전체 코스 보기"
       />
       <div className="mb-6 flex flex-wrap gap-2">
         {categoryChips.map((chip, index) => (

@@ -47,7 +47,7 @@ function HeartIcon() {
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="flex h-[94px] items-center justify-between gap-6 px-5 lg:px-24">
+      <div className="flex h-[94px] items-center justify-between gap-6 px-10 sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
         <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
           <div className="flex flex-col">
             <Image
@@ -64,7 +64,7 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-black lg:flex">
+        <nav className="hidden items-center gap-6 text-base font-black lg:flex">
           {navigation.map((item) => (
             <Link
               key={item.href}
@@ -84,7 +84,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-6 text-ink">
-          <Link href="/country" aria-label="국가·언어 선택" className="hover:text-brand">
+          <Link
+            href="/country"
+            aria-label="국가·언어 선택"
+            className="hover:text-brand"
+          >
             <GlobeIcon />
           </Link>
           <Link
@@ -96,7 +100,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/login"
-            className="rounded-full bg-brand px-5 py-3 text-sm font-black leading-none text-white transition hover:bg-brand-dark"
+            className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
           >
             로그인
           </Link>

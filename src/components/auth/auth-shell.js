@@ -14,7 +14,7 @@ export function AuthShell({
   wide = false,
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-auth-canvas px-5 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-auth-canvas px-6 py-12 sm:px-8">
       <div
         className={[
           "flex w-full flex-col gap-[22px]",

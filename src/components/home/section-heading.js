@@ -20,7 +20,7 @@ export function SectionHeading({
             {eyebrow}
           </p>
           <h2
-            className={`mt-1 text-2xl font-black tracking-tight sm:text-[28px] ${
+            className={`mt-1 text-[30px] font-black tracking-tight sm:text-[34px] ${
               inverse ? "text-white" : "text-ink"
             }`}
           >

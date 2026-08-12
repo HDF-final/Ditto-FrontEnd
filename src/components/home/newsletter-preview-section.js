@@ -7,7 +7,7 @@ export function NewsletterPreviewSection() {
   return (
     <section
       id="newsletter"
-      className="scroll-mt-[94px] bg-surface-soft px-5 py-16 lg:px-24"
+      className="scroll-mt-[94px] bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72"
     >
       <SectionHeading
         eyebrow="DITTO NEWSLETTER"
