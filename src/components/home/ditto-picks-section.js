@@ -9,8 +9,6 @@ export function DittoPicksSection() {
         eyebrow="DITTO PICKS"
         title="기본 코스 추천"
         description="인기 많은 더현대 대표 쇼핑·팝업·미식 코스"
-        href="/courses"
-        linkLabel="전체 코스 보기"
       />
       <div className="mb-6 flex flex-wrap gap-2">
         {categoryChips.map((chip, index) => (

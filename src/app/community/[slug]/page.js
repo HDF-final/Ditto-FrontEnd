@@ -111,12 +111,12 @@ function StopList({ stops }) {
 
 function AuthorNote({ course }) {
   return (
-    <section className="px-5 py-16 lg:px-24">
-      <div className="mx-auto max-w-[1030px]">
+    <section className="bg-surface-soft px-5 py-16 lg:px-24">
+      <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black text-brand">COURSE NOTE</p>
-            <h2 className="mt-3 text-[30px] font-black text-ink">
+            <h2 className="mt-3 text-[32px] font-black text-ink">
               작성자가 남긴 기록
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
@@ -131,61 +131,44 @@ function AuthorNote({ course }) {
           </Link>
         </div>
 
-        <article className="mt-6 rounded-[28px] border border-line bg-white px-6 py-8 lg:px-14 lg:py-12">
-          <div className="flex items-center gap-4">
-            <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
-              {course.country}
-            </span>
+        <article className="mt-8 rounded-[28px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
+          <div className="grid gap-7 p-8 lg:grid-cols-[0.86fr_1fr]">
             <div>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-black text-ink">{course.name}</p>
-                <span className="rounded-full bg-brand-soft px-3 py-1 text-[10px] font-black text-brand">
-                  JAPAN
+              <div className="flex items-center gap-4">
+                <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
+                  {course.country}
                 </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-black text-ink">{course.name}</p>
+                    <span className="font-black text-ink">·</span>
+                    <span className="text-sm font-black text-ink">JAPAN</span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium text-ink-muted">
+                    2026.03.02 작성 · 세 번 다녀옴
+                  </p>
+                </div>
               </div>
-              <p className="mt-1 text-xs font-medium text-ink-muted">
-                2026.03.02 작성 · 세 번 다녀옴
+              <GradientBlock
+                gradient={course.gradient}
+                className="mt-6 flex h-[164px] items-center justify-center rounded-[18px] text-sm font-black text-white"
+              >
+                사진
+              </GradientBlock>
+            </div>
+
+            <div className="rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink">
+              <p>{course.note}</p>
+              <p className="mt-5">
+                1층 워터폴 가든은 입구에서 바로 보여요. 사람이 몰리기 전인 오전
+                11시쯤이 가장 한산합니다. 사진은 물이 떨어지는 쪽을 등지고
+                찍으면 조명이 예쁘게 들어와요.
+              </p>
+              <p className="mt-5">
+                마지막은 B2 크리에이티브 그라운드예요. 선물 살 만한 게 많아서
+                일부러 마지막에 넣었어요.
               </p>
             </div>
-          </div>
-
-          <div className="mt-8 space-y-5 text-[15px] font-medium leading-7 text-ink">
-            <p>{course.note}</p>
-            <p>
-              1층 워터폴 가든은 입구에서 바로 보여요. 사람이 몰리기 전인 오전
-              11시쯤이 가장 한산합니다. 사진은 물이 떨어지는 쪽을 등지고 찍으면
-              조명이 예쁘게 들어와요.
-            </p>
-            <p>
-              5층 사운즈 포레스트는 중간에 쉬어가는 구간으로 넣었어요. 실내인데
-              나무가 많아서 밖에 있는 기분이 들어요.
-            </p>
-            <p>
-              마지막은 B2 크리에이티브 그라운드예요. 선물 살 만한 게 많아서
-              일부러 마지막에 넣었습니다.
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            <GradientBlock
-              gradient={course.gradient}
-              className="h-[142px] rounded-[16px]"
-            />
-            <GradientBlock
-              gradient="from-[#4a2fa8] to-[#9b5cf6]"
-              className="h-[142px] rounded-[16px]"
-            />
-            <GradientBlock
-              gradient={course.gradient}
-              className="h-[142px] rounded-[16px]"
-            />
-          </div>
-
-          <div className="mt-7 h-px bg-line" />
-          <div className="mt-5 flex flex-wrap gap-7 text-sm font-medium text-ink-muted">
-            <span>♡ 좋아요 128</span>
-            <span>▱ 저장 96</span>
-            <span>↗ 공유</span>
           </div>
         </article>
       </div>
@@ -195,38 +178,12 @@ function AuthorNote({ course }) {
 
 function ReviewCard({ review }) {
   return (
-    <article className="rounded-[20px] bg-white p-6 shadow-[0_10px_28px_rgba(43,28,89,0.12)]">
-      <div className="flex items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-black text-ink">{review.name}</p>
-            <span className="rounded-full bg-brand-soft px-3 py-1 text-[10px] font-black text-brand">
-              {review.country}
-            </span>
-          </div>
-          <p className="mt-1 text-xs font-medium text-ink-muted">
-            1개월 전 방문 · 첫 방문
-          </p>
-        </div>
-      </div>
-      <p className="mt-6 min-h-[70px] text-sm font-medium leading-6 text-ink">
+    <article className="rounded-[20px] bg-white p-6">
+      <h3 className="text-lg font-black text-ink">{review.name}</h3>
+      <p className="mt-5 min-h-[54px] text-sm font-medium leading-6 text-ink">
         {review.text}
       </p>
-      <div className="mt-5 flex gap-3">
-        <GradientBlock
-          gradient="from-[#2d1b8e] to-[#8c57fa]"
-          className="size-[66px] rounded-[12px]"
-        />
-        <GradientBlock
-          gradient="from-[#5c2ef5] to-[#8c57fa]"
-          className="size-[66px] rounded-[12px]"
-        />
-      </div>
-      <p className="mt-4 text-xs font-black text-brand">{review.tag}</p>
-      <div className="mt-5 flex gap-6 text-xs font-medium text-ink-muted">
-        <span>도움돼요 {review.likes}</span>
-        <span>답글 {review.replies}</span>
-      </div>
+      <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
     </article>
   );
 }
@@ -297,16 +254,13 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <AuthorNote course={course} />
 
-      <section className="bg-surface-soft px-5 py-16 lg:px-24">
+      <section className="bg-surface-soft px-5 pb-16 lg:px-24">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black text-brand">REVIEWS</p>
             <h2 className="mt-3 text-[30px] font-black text-ink">
               이 코스 다녀온 사람들
             </h2>
-            <p className="mt-2 text-sm font-medium text-ink-muted">
-              실제로 따라간 분들이 남긴 후기예요.
-            </p>
           </div>
           <Link
             href="/community/share"
@@ -315,7 +269,7 @@ export default async function CommunityCourseDetailPage({ params }) {
             후기 쓰기 →
           </Link>
         </div>
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+        <div className="mt-7 grid gap-5 lg:grid-cols-3">
           {reviewCards.map((review) => (
             <ReviewCard key={review.name} review={review} />
           ))}
