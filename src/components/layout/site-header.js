@@ -84,7 +84,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-6 text-ink">
-          <Link href="/news" aria-label="언어 설정" className="hover:text-brand">
+          <Link href="/country" aria-label="국가·언어 선택" className="hover:text-brand">
             <GlobeIcon />
           </Link>
           <Link
@@ -95,7 +95,7 @@ export function SiteHeader() {
             <HeartIcon />
           </Link>
           <Link
-            href="/mypage"
+            href="/login"
             className="rounded-full bg-brand px-5 py-3 text-sm font-black leading-none text-white transition hover:bg-brand-dark"
           >
             로그인

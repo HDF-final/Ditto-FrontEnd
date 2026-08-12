@@ -1,52 +1,121 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  AuthAltLink,
+  AuthFieldError,
+  authButtonClassName,
+  authInputClassName,
+} from "@/components/auth/auth-shell";
+import {
+  validateEmail,
+  validatePassword,
+} from "@/lib/utils/auth-validation";
 
-import { Button } from "@/components/common/button";
+/**
+ * Temporary success policy (UI-only, no real auth):
+ * valid login form → navigate to home (`/`).
+ */
+const LOGIN_SUCCESS_HREF = "/";
+
+const initialErrors = {
+  email: "",
+  password: "",
+};
 
 export function LoginForm() {
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState(initialErrors);
 
   function handleSubmit(event) {
     event.preventDefault();
-    setSubmitted(true);
+
+    const nextErrors = {
+      email: validateEmail(email),
+      password: validatePassword(password),
+    };
+
+    setErrors(nextErrors);
+
+    if (nextErrors.email || nextErrors.password) {
+      return;
+    }
+
+    // Front-end validation only — no tokens, session, or storage.
+    router.push(LOGIN_SUCCESS_HREF);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-2 text-sm font-bold text-ink">
-        이메일
-        <input
-          type="email"
-          required
-          className="rounded-control border border-line bg-white px-4 py-3 text-sm outline-none transition focus:border-brand"
-          placeholder="ditto@example.com"
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-sm font-bold text-ink">
-        비밀번호
-        <input
-          type="password"
-          required
-          className="rounded-control border border-line bg-white px-4 py-3 text-sm outline-none transition focus:border-brand"
-          placeholder="비밀번호"
-        />
-      </label>
-      <Button type="submit" className="mt-2 w-full">
-        로그인
-      </Button>
-      {submitted ? (
-        <p className="text-sm font-semibold text-brand">
-          로그인 API 연결 전 임시 화면입니다.
-        </p>
-      ) : null}
-      <p className="text-center text-sm text-ink-muted">
-        계정이 없나요?{" "}
-        <Link href="/signup" className="font-bold text-brand">
-          회원가입
-        </Link>
-      </p>
-    </form>
+    <>
+      <form
+        className="flex flex-col gap-3.5"
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        <div>
+          <label htmlFor="login-email" className="sr-only">
+            이메일
+          </label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="이메일을 입력하세요"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (errors.email) {
+                setErrors((current) => ({ ...current, email: "" }));
+              }
+            }}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? "login-email-error" : undefined}
+            className={authInputClassName(Boolean(errors.email))}
+          />
+          <AuthFieldError id="login-email-error" message={errors.email} />
+        </div>
+        <div>
+          <label htmlFor="login-password" className="sr-only">
+            비밀번호
+          </label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="비밀번호를 입력하세요"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (errors.password) {
+                setErrors((current) => ({ ...current, password: "" }));
+              }
+            }}
+            aria-invalid={errors.password ? true : undefined}
+            aria-describedby={
+              errors.password ? "login-password-error" : undefined
+            }
+            className={authInputClassName(Boolean(errors.password))}
+          />
+          <AuthFieldError
+            id="login-password-error"
+            message={errors.password}
+          />
+        </div>
+        <button type="submit" className={authButtonClassName()}>
+          로그인 <span aria-hidden="true">→</span>
+        </button>
+      </form>
+      <AuthAltLink
+        prompt="아직 계정이 없으신가요?"
+        href="/signup"
+        label="회원가입"
+      />
+    </>
   );
 }

@@ -1,48 +1,100 @@
 "use client";
 
-import Link from "next/link";
-
-import { countries } from "@/lib/fixtures/countries";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authButtonClassName } from "@/components/auth/auth-shell";
+import {
+  COUNTRIES,
+  DEFAULT_COUNTRY_CODE,
+  getCountryByCode,
+} from "@/lib/fixtures/countries";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 
+/**
+ * Temporary success policy (UI-only):
+ * selected country → `/persona?lang=…` (before shopping-type selection).
+ * Country preference is kept in memory Zustand only — not browser storage.
+ */
 export function CountryForm() {
-  const countryCode = usePreferenceStore((state) => state.countryCode);
+  const router = useRouter();
+  const storedCountryCode = usePreferenceStore((state) => state.countryCode);
   const setCountryCode = usePreferenceStore((state) => state.setCountryCode);
-  const selected = countries.find((country) => country.code === countryCode) ?? countries[0];
+  const [selectedCode, setSelectedCode] = useState(
+    () => storedCountryCode || DEFAULT_COUNTRY_CODE,
+  );
+  const [error, setError] = useState("");
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const selected = getCountryByCode(selectedCode);
+
+    if (!selected) {
+      setError("국가를 선택해 주세요.");
+      return;
+    }
+
+    setError("");
+    setCountryCode(selected.code);
+    router.push(`/persona?lang=${selected.lang}`);
+  }
 
   return (
-    <div className="grid gap-5 md:grid-cols-[1fr_280px]">
-      <div className="grid gap-3 sm:grid-cols-3">
-        {countries.map((country) => (
-          <button
-            key={country.code}
-            type="button"
-            onClick={() => setCountryCode(country.code)}
-            className={[
-              "rounded-card border p-5 text-left transition",
-              country.code === countryCode
-                ? "border-brand bg-brand-soft text-brand"
-                : "border-line bg-white text-ink hover:border-line-strong",
-            ].join(" ")}
-          >
-            <span className="text-2xl">{country.flag}</span>
-            <span className="mt-4 block text-base font-black">{country.name}</span>
-            <span className="mt-1 block text-xs font-semibold text-ink-muted">
-              {country.languageLabel}
-            </span>
-          </button>
-        ))}
+    <form className="flex flex-col gap-[22px]" onSubmit={handleSubmit} noValidate>
+      <div
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        role="radiogroup"
+        aria-label="국가 선택"
+      >
+        {COUNTRIES.map((country) => {
+          const selected = country.code === selectedCode;
+
+          return (
+            <button
+              key={country.code}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => {
+                setSelectedCode(country.code);
+                setError("");
+              }}
+              className={[
+                "flex h-16 items-center gap-3 rounded-[14px] border-[1.5px] px-4 text-left",
+                "font-sans transition-[border-color,background] duration-150",
+                "hover:border-line-hover",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+                selected ? "border-brand bg-brand-soft" : "border-line bg-white",
+              ].join(" ")}
+            >
+              <span
+                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg leading-none"
+                aria-hidden="true"
+              >
+                {country.flag}
+              </span>
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-sm font-bold text-ink">
+                  {country.name}
+                </span>
+                <span className="text-xs font-normal text-ink-muted">
+                  {country.language}
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <aside className="rounded-card bg-surface-soft p-5">
-        <p className="text-sm font-bold text-ink">{selected.name} 기준</p>
-        <p className="mt-2 text-sm leading-6 text-ink-muted">{selected.description}</p>
-        <Link
-          href={`/persona?lang=${selected.lang}`}
-          className="mt-5 inline-flex w-full items-center justify-center rounded-control bg-brand px-4 py-3 text-sm font-bold text-white shadow-control transition hover:bg-brand-dark"
-        >
-          다음
-        </Link>
-      </aside>
-    </div>
+
+      {error ? (
+        <p className="text-center text-xs font-medium text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <button type="submit" className={authButtonClassName()}>
+        계속하기 <span aria-hidden="true">→</span>
+      </button>
+    </form>
   );
 }

@@ -1,12 +1,7 @@
 "use client";
 
+import { COUNTRIES } from "@/lib/fixtures/countries";
 import { usePreferenceStore } from "@/stores/use-preference-store";
-
-const countries = [
-  { code: "US", label: "English" },
-  { code: "JP", label: "日本語" },
-  { code: "CN", label: "中文" },
-];
 
 export function CountrySelector() {
   const countryCode = usePreferenceStore((state) => state.countryCode);
@@ -20,9 +15,9 @@ export function CountrySelector() {
         value={countryCode}
         onChange={(event) => setCountryCode(event.target.value)}
       >
-        {countries.map((country) => (
+        {COUNTRIES.map((country) => (
           <option key={country.code} value={country.code}>
-            {country.label}
+            {country.flag} {country.language}
           </option>
         ))}
       </select>
