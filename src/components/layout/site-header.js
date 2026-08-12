@@ -64,7 +64,7 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-black lg:flex">
+        <nav className="hidden items-center gap-6 text-base font-black lg:flex">
           {navigation.map((item) => (
             <Link
               key={item.href}
@@ -100,7 +100,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/login"
-            className="rounded-full bg-brand px-5 py-3 text-sm font-black leading-none text-white transition hover:bg-brand-dark"
+            className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
           >
             로그인
           </Link>
