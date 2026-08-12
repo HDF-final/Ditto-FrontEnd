@@ -1,7 +1,7 @@
-import { AiCourseLayout } from "@/components/ai-course/ai-course-layout";
+import { CourseRecommend } from "@/components/ai-course/recommend/course-recommend";
 
-export const metadata = { title: "AI 코스 편집" };
+export const metadata = { title: "코스 추천" };
 
 export default function AiCoursePage() {
-  return <AiCourseLayout />;
+  return <CourseRecommend />;
 }
