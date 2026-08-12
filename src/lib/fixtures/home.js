@@ -84,10 +84,10 @@ export const pickCourses = [
 export const communityCourses = [
   {
     rank: 1,
-    flag: "KR",
+    flag: "JP",
     name: "Yuki_T",
-    hash: "#여름휴가 #팝업",
-    title: "여름에 이거 세 개는 필수야",
+    hash: "#첫방문 #포토스팟",
+    title: "처음이면 이 코스로 시작해",
     spots: ["올리브영 시그니처", "탬버린즈 팝업", "5F 루프탑 카페"],
     likes: 742,
     comments: 58,
