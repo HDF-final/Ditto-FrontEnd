@@ -13,19 +13,78 @@ const plusMenuItems = [
   { icon: <CalendarDays size={15} />, label: "날짜/시간 설정", desc: "운영 중인 곳만 필터링" },
 ];
 
-export function PromptScreen({ onSubmit }) {
+const MODE_OPTIONS = [
+  { value: "auto", label: "자동", desc: "챗봇 Boni" },
+  { value: "manual", label: "수동", desc: "직접 만들기" },
+];
+
+// Segmented 자동/수동 switch. 자동 lets Boni build the course, 수동 starts empty.
+// A white indicator slides between the two options on change.
+function ModeToggle({ mode, onModeChange }) {
+  const activeIndex = MODE_OPTIONS.findIndex((option) => option.value === mode);
+
+  return (
+    <div
+      className="relative flex items-center p-[4px] rounded-full mb-6 md:mb-7"
+      style={{ background: "#f0ecfa", border: "1px solid #e0d9f8" }}
+      role="tablist"
+      aria-label="코스 만들기 방식"
+    >
+      {/* Sliding highlight — one option wide, translated to the active slot. */}
+      <span
+        aria-hidden="true"
+        className="absolute top-[4px] bottom-[4px] left-[4px] rounded-full bg-white"
+        style={{
+          width: "calc(50% - 4px)",
+          boxShadow: "0 3px 10px rgba(92,46,245,0.16)",
+          transform: `translateX(${activeIndex * 100}%)`,
+          transition: "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      />
+      {MODE_OPTIONS.map((option) => {
+        const active = mode === option.value;
+        return (
+          <button
+            key={option.value}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onModeChange(option.value)}
+            className="relative z-10 flex w-[80px] md:w-[90px] flex-col items-center rounded-full py-[6px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
+          >
+            <span
+              className="text-[13px] md:text-[14px] font-bold leading-none"
+              style={{ color: active ? "#5c2ef5" : "#9994ad" }}
+            >
+              {option.label}
+            </span>
+            <span
+              className="text-[9px] md:text-[10px] mt-[3px] leading-none"
+              style={{ color: active ? "#8b7ae0" : "#bcb6cf" }}
+            >
+              {option.desc}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
   const [input, setInput] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const boniSrc = useTransparentBg(BONI_IMAGE);
 
+  const isManual = mode === "manual";
+
   const submit = (val) => {
-    if (val.trim()) onSubmit(val.trim());
+    if (val.trim()) onStart(val.trim());
   };
 
   return (
     <main
       className="flex-1 flex flex-col items-center justify-center bg-white px-4 py-8"
-      style={{ minHeight: "calc(100vh - 94px - 355px)" }}
+      style={{ minHeight: "calc(100vh - 94px)" }}
     >
       {/* Boni */}
       <div className="relative mb-6 md:mb-8">
@@ -40,12 +99,34 @@ export function PromptScreen({ onSubmit }) {
       <h1 className="text-[24px] md:text-[36px] font-bold text-[#1a142e] mb-2 md:mb-3 text-center">
         오늘은 무엇을 해볼까요?
       </h1>
-      <p className="text-[14px] md:text-[16px] text-[#9994ad] mb-7 md:mb-10 text-center">
-        Boni가 최적의 K-Culture 코스를 만들어 드릴게요
+      <p className="text-[14px] md:text-[16px] text-[#9994ad] mb-6 md:mb-8 text-center">
+        {isManual
+          ? "빈 코스에서 시작해 원하는 장소를 직접 담아보세요"
+          : "Boni가 최적의 K-Culture 코스를 만들어 드릴게요"}
       </p>
 
-      {/* Input bar */}
-      <div className="w-full max-w-[720px]">
+      <ModeToggle mode={mode} onModeChange={onModeChange} />
+
+      {/* Fixed-height region: auto and manual content differ in height, so we
+          reserve the taller (auto) height to keep the toggle from shifting.
+          Content is top-aligned so it hugs the toggle instead of floating. */}
+      <div className="w-full max-w-[720px] flex flex-col items-center justify-start min-h-[165px] md:min-h-[122px]">
+      {isManual ? (
+        /* 수동: skip the prompt bar and jump straight into an empty course. */
+        <div className="w-full flex flex-col items-center">
+          <button
+            onClick={() => onStart("")}
+            className="flex items-center gap-2 rounded-full px-8 py-[15px] text-[16px] font-bold text-white bg-[#1a142e] hover:bg-[#2a2140] transition-all hover:scale-[1.02] active:scale-95"
+          >
+            <Plus size={18} /> 빈 코스로 시작하기
+          </button>
+          <p className="text-[12px] text-[#9994ad] mt-4 text-center">
+            다음 화면에서 &lsquo;장소 추가&rsquo;로 백화점 안 상점을 골라 담을 수 있어요
+          </p>
+        </div>
+      ) : (
+      /* Input bar */
+      <div className="w-full">
         <div className="relative">
           {/* Plus popup menu */}
           {menuOpen && (
@@ -136,6 +217,8 @@ export function PromptScreen({ onSubmit }) {
             </button>
           ))}
         </div>
+      </div>
+      )}
       </div>
     </main>
   );
