@@ -9,10 +9,18 @@ import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import {
+  attachPlaceIdsToCourseDataset,
   calculateCourseRoute,
   loadCourseRoutingDataset,
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
+import { getNavigablePlaces } from "@/lib/api/place-navigation";
+import {
+  addCoursePlace,
+  createCourse,
+  deleteCoursePlace,
+  updateCourse,
+} from "@/lib/api/courses";
 
 const MAX_COURSE_PLACES = 8;
 
@@ -49,6 +57,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
   const [addOpen, setAddOpen] = useState(false);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
+  const [savedCourse, setSavedCourse] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("idle");
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
@@ -58,14 +68,26 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   useEffect(() => {
     let active = true;
-    loadCourseRoutingDataset()
-      .then((dataset) => {
+    Promise.all([loadCourseRoutingDataset(), getNavigablePlaces()])
+      .then(([dataset, navigationPlaces]) => {
         if (!active) return;
-        setPlaceCatalog(dataset.places);
+        const hydratedDataset = attachPlaceIdsToCourseDataset(
+          dataset,
+          navigationPlaces,
+        );
+        setPlaceCatalog(hydratedDataset.places);
+        if (hydratedDataset.unmappedPlaceCount > 0) {
+          setNotice(
+            `${hydratedDataset.unmappedPlaceCount}개 매장의 DB 연결 정보가 없어 저장에서 제외됩니다.`,
+          );
+        }
         setDatasetStatus("ready");
       })
-      .catch(() => {
-        if (active) setDatasetStatus("error");
+      .catch((error) => {
+        if (active) {
+          setDatasetStatus("error");
+          setNotice(error.message || "장소 정보를 불러오지 못했습니다.");
+        }
       });
     return () => {
       active = false;
@@ -76,9 +98,17 @@ export function ResultScreen({ chat, onPlaceClick }) {
   // 방문 체크는 이전 코스 기준이라 함께 비웁니다.
   // effect 대신 렌더 중 조정 패턴을 쓰는 이유: 응답 직후 한 번에 반영돼야
   // 버퍼링이 풀리는 프레임에서 이전 코스가 잠깐 비쳐 보이지 않습니다.
-  if (aiCourse && aiCourse !== appliedCourse) {
+  if (aiCourse && aiCourse !== appliedCourse && datasetStatus === "ready") {
+    const hydratedPlaces = aiCourse.places.map((place) => {
+      const catalogPlace = placeCatalog.find(
+        (candidate) => candidate.navigationKey === place.navigationKey,
+      );
+      return catalogPlace ? { ...place, placeId: catalogPlace.placeId } : place;
+    });
     setAppliedCourse(aiCourse);
-    setItems(aiCourse.places);
+    setItems(hydratedPlaces);
+    setSavedCourse(null);
+    setSaveStatus("idle");
     setHistory([]);
     setVisited(new Set());
     setNotice("");
@@ -181,6 +211,75 @@ export function ResultScreen({ chat, onPlaceClick }) {
     }
   };
 
+  const handleSave = async () => {
+    if (items.length === 0) {
+      setNotice("저장할 장소를 한 곳 이상 담아주세요.");
+      return;
+    }
+    const placeIds = items.map((item) => item.placeId);
+    if (placeIds.some((placeId) => placeId === null || placeId === undefined)) {
+      setNotice("DB 장소 정보가 연결되지 않은 매장이 있어 저장할 수 없어요.");
+      return;
+    }
+
+    const name = courseTitle.trim() || "이름 없는 코스";
+    let reconciledPlaceIds = savedCourse?.placeIds.map(Number) ?? [];
+    setSaveStatus("saving");
+    setNotice("코스를 저장하고 있어요.");
+    try {
+      if (!savedCourse) {
+        const created = await createCourse({ name, placeIds });
+        setSavedCourse({
+          courseId: created.courseId,
+          placeIds: created.places.map((place) => place.placeId),
+        });
+        setCourseTitle(created.name);
+      } else {
+        const desiredIds = placeIds.map(Number);
+        const desiredSet = new Set(desiredIds);
+
+        for (const placeId of reconciledPlaceIds.filter(
+          (id) => !desiredSet.has(id),
+        )) {
+          await deleteCoursePlace(savedCourse.courseId, placeId);
+          reconciledPlaceIds = reconciledPlaceIds.filter(
+            (id) => id !== placeId,
+          );
+        }
+
+        for (const placeId of desiredIds.filter(
+          (id) => !reconciledPlaceIds.includes(id),
+        )) {
+          await addCoursePlace(savedCourse.courseId, {
+            placeId,
+            position: reconciledPlaceIds.length + 1,
+          });
+          reconciledPlaceIds.push(placeId);
+        }
+
+        await updateCourse(savedCourse.courseId, {
+          name,
+          orderedPlaceIds: desiredIds,
+        });
+        setSavedCourse({
+          courseId: savedCourse.courseId,
+          placeIds: desiredIds,
+        });
+      }
+      setNotice("코스와 방문 순서를 저장했어요.");
+      setSaveStatus("saved");
+    } catch (error) {
+      if (savedCourse) {
+        setSavedCourse({
+          courseId: savedCourse.courseId,
+          placeIds: reconciledPlaceIds,
+        });
+      }
+      setNotice(error.message || "코스를 저장하지 못했습니다.");
+      setSaveStatus("error");
+    }
+  };
+
   // ── Drag to reorder (native HTML5 DnD) ──
   const handleDragStart = (event, index) => {
     dragIndex.current = index;
@@ -259,8 +358,12 @@ export function ResultScreen({ chat, onPlaceClick }) {
           >
             <Zap size={12} className="text-yellow-500" /> 최적화
           </button>
-          <button className="flex items-center gap-[5px] rounded-full px-[14px] py-[7px] text-[12px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors">
-            <Save size={12} /> 저장
+          <button
+            onClick={handleSave}
+            disabled={saveStatus === "saving" || datasetStatus !== "ready"}
+            className="flex items-center gap-[5px] rounded-full px-[14px] py-[7px] text-[12px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Save size={12} /> {saveStatus === "saving" ? "저장 중" : "저장"}
           </button>
         </div>
 

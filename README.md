@@ -291,16 +291,20 @@ Tailwind CSS 4를 사용하며 전역 디자인 토큰은 `src/app/globals.css`�
 `.env.example`은 키 이름과 안전한 예시만 포함해 Git에 커밋합니다. 실제 값은 Git에서 제외되는 `.env.local`에 작성합니다.
 
 ```dotenv
-NEXT_PUBLIC_API_BASE_URL=/api
+NEXT_PUBLIC_API_BASE_URL=/api/v1
+NEXT_PUBLIC_LOCAL_USER_ID=1
 API_PROXY_TARGET=http://localhost:8080
 ```
 
 | 키 | 설명 |
 | --- | --- |
-| `NEXT_PUBLIC_API_BASE_URL` | 브라우저가 호출할 기준 경로. 프록시를 쓰므로 `/api` 그대로 둡니다. |
+| `NEXT_PUBLIC_API_BASE_URL` | 브라우저가 호출할 API 기준 경로. 기본값 `/api/v1`. |
+| `NEXT_PUBLIC_LOCAL_USER_ID` | 로컬 인증 대체용 `X-User-Id`. 운영 빌드에서는 사용하지 않습니다. |
 | `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값 `http://localhost:8080`. |
 
 `NEXT_PUBLIC_` 접두사가 붙은 값은 브라우저 번들에 포함되므로 비밀 키를 넣으면 안 됩니다.
+개발 환경에서는 `NEXT_PUBLIC_LOCAL_USER_ID`를 `X-User-Id` 헤더로 전달하며, 운영 인증이 연결되면 제거합니다.
+브라우저의 `/api/*` 요청은 Next.js rewrite를 통해 `API_PROXY_TARGET`으로 전달합니다.
 
 ## 라이브러리 관리
 
