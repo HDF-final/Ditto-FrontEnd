@@ -7,6 +7,7 @@ import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
 import { places as initialPlaces, extraPlaces } from "./recommend-data";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
+import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 
 /**
  * Category order used by "최적화" to build a logical route that finishes at a
@@ -33,33 +34,6 @@ function optimizeOrder(list) {
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
-}
-
-function CourseMap() {
-  return (
-    <div
-      className="w-full h-full flex items-center justify-center"
-      style={{ background: "#f7f5ff", border: "1.5px dashed #d8d3ee" }}
-    >
-      <div className="flex flex-col items-center gap-3 opacity-30">
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#5c2ef5"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-          <line x1="9" y1="3" x2="9" y2="18" />
-          <line x1="15" y1="6" x2="15" y2="21" />
-        </svg>
-        <p className="text-[13px] font-medium text-[#5c2ef5]">지도 준비 중</p>
-      </div>
-    </div>
-  );
 }
 
 export function ResultScreen({ onPlaceClick }) {
@@ -320,7 +294,7 @@ export function ResultScreen({ onPlaceClick }) {
       {/* ── Right: map + chat overlay ── */}
       <div className="relative h-[260px] rounded-[20px] overflow-hidden order-1 md:order-2 md:h-auto md:flex-1 md:min-w-0">
         <div className="w-full h-full">
-          <CourseMap />
+          <CourseNavigationMap />
         </div>
 
         {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead) */}
