@@ -4,7 +4,7 @@
 
 import { useRef, useState } from "react";
 import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
-import { places as initialPlaces, extraPlaces } from "./recommend-data";
+import { places as initialPlaces, departmentStorePlaces } from "./recommend-data";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
@@ -36,8 +36,9 @@ function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
 }
 
-export function ResultScreen({ onPlaceClick }) {
-  const [items, setItems] = useState(initialPlaces);
+export function ResultScreen({ startEmpty = false, onPlaceClick }) {
+  // 수동 mode hands us an empty course to build from scratch.
+  const [items, setItems] = useState(startEmpty ? [] : initialPlaces);
   const [history, setHistory] = useState([]); // stack of previous orders for undo
   const [hoveredId, setHoveredId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
@@ -63,8 +64,8 @@ export function ResultScreen({ onPlaceClick }) {
     });
   };
 
-  // Candidate places not already in the course.
-  const availablePlaces = extraPlaces.filter(
+  // Candidate places (department-store shops) not already in the course.
+  const availablePlaces = departmentStorePlaces.filter(
     (p) => !items.some((item) => item.id === p.id)
   );
 
@@ -128,7 +129,7 @@ export function ResultScreen({ onPlaceClick }) {
   return (
     <>
     <main
-      className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden md:h-[calc(100vh-94px)]"
+      className="flex-1 md:flex-none flex flex-col md:flex-row overflow-y-auto md:overflow-hidden md:h-[calc(100vh-94px)]"
       style={{ background: "#f0ecfa", gap: "12px", padding: "12px" }}
     >
       {/* ── Left: course list ── */}
@@ -176,6 +177,26 @@ export function ResultScreen({ onPlaceClick }) {
         <p className="text-[#9994ad] text-[12px] border border-dashed border-[#ccc8d8] rounded-[8px] px-[14px] py-[9px] bg-white/60">
           카드를 드래그해 코스 순서를 바꿔보세요
         </p>
+
+        {/* Empty course — guide the user to add their first place */}
+        {items.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center">
+            <p className="text-[14px] font-semibold text-[#1a142e]">
+              아직 담은 장소가 없어요
+            </p>
+            <p className="text-[12px] text-[#9994ad] leading-[1.5]">
+              &lsquo;장소 추가&rsquo;를 눌러 백화점 안 상점을
+              <br />
+              카테고리·층별로 골라 담아보세요
+            </p>
+            <button
+              onClick={() => setAddOpen(true)}
+              className="mt-1 flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95"
+            >
+              <Plus size={13} /> 장소 추가
+            </button>
+          </div>
+        )}
 
         {/* Place cards */}
         <div className="flex flex-col gap-[10px]">
