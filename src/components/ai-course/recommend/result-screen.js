@@ -2,43 +2,38 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
-import { places as initialPlaces, departmentStorePlaces } from "./recommend-data";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
+import {
+  calculateCourseRoute,
+  loadCourseRoutingDataset,
+  optimizeCourseRoute,
+} from "@/lib/navigation/course-routing-service";
 
-/**
- * Category order used by "최적화" to build a logical route that finishes at a
- * restaurant (the course finale). Lower number = earlier in the course.
- */
-const CATEGORY_PRIORITY = {
-  전시: 0,
-  팝업: 1,
-  "디자이너 편집샵": 2,
-  패션: 3,
-  뷰티: 4,
-  카페: 5,
-  음식점: 6,
-};
-
-function optimizeOrder(list) {
-  return [...list].sort((a, b) => {
-    const pa = CATEGORY_PRIORITY[a.category] ?? 4;
-    const pb = CATEGORY_PRIORITY[b.category] ?? 4;
-    if (pa !== pb) return pa - pb;
-    return (b.rating ?? 0) - (a.rating ?? 0);
-  });
-}
+const MAX_COURSE_PLACES = 8;
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
 }
 
 export function ResultScreen({ startEmpty = false, onPlaceClick }) {
-  // 수동 mode hands us an empty course to build from scratch.
-  const [items, setItems] = useState(startEmpty ? [] : initialPlaces);
+  const [items, setItems] = useState([]);
+  const [placeCatalog, setPlaceCatalog] = useState([]);
+  const [datasetStatus, setDatasetStatus] = useState("loading");
+  const [routeState, setRouteState] = useState({
+    status: "idle",
+    itinerary: null,
+    graph: null,
+    floors: [],
+  });
+  const [preferences, setPreferences] = useState({
+    excludeElevator: false,
+    excludeEscalator: false,
+  });
+  const [notice, setNotice] = useState("");
   const [history, setHistory] = useState([]); // stack of previous orders for undo
   const [hoveredId, setHoveredId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
@@ -48,6 +43,62 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    loadCourseRoutingDataset()
+      .then((dataset) => {
+        if (!active) return;
+        setPlaceCatalog(dataset.places);
+        setItems(startEmpty ? [] : dataset.defaults);
+        setDatasetStatus("ready");
+      })
+      .catch(() => {
+        if (active) setDatasetStatus("error");
+      });
+    return () => {
+      active = false;
+    };
+  }, [startEmpty]);
+
+  useEffect(() => {
+    let active = true;
+    const updateRoute = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (datasetStatus !== "ready" || items.length === 0) {
+        setRouteState((state) => ({
+          ...state,
+          status: "idle",
+          itinerary: null,
+        }));
+        return;
+      }
+
+      setRouteState((state) => ({ ...state, status: "loading" }));
+      try {
+        const route = await calculateCourseRoute(items, preferences);
+        if (!active) return;
+        setRouteState({
+          status: route.itinerary ? "ready" : "unavailable",
+          ...route,
+        });
+      } catch {
+        if (active) {
+          setRouteState((state) => ({
+            ...state,
+            status: "error",
+            itinerary: null,
+          }));
+        }
+      }
+    };
+
+    updateRoute();
+    return () => {
+      active = false;
+    };
+  }, [datasetStatus, items, preferences]);
 
   // Push the current order onto the undo stack, then apply `next`.
   const commit = (next) => {
@@ -65,11 +116,16 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
   };
 
   // Candidate places (department-store shops) not already in the course.
-  const availablePlaces = departmentStorePlaces.filter(
+  const availablePlaces = placeCatalog.filter(
     (p) => !items.some((item) => item.id === p.id)
   );
 
   const handleAddPlace = (place) => {
+    if (items.length >= MAX_COURSE_PLACES) {
+      setNotice("출발지와 도착지를 포함해 최대 8곳까지 담을 수 있어요.");
+      return;
+    }
+    setNotice("");
     commit([...items, place]);
   };
 
@@ -86,9 +142,20 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
     });
   };
 
-  const handleOptimize = () => {
-    const next = optimizeOrder(items);
-    if (!sameOrder(next, items)) commit(next);
+  const handleOptimize = async () => {
+    if (items.length < 2) return;
+    try {
+      setNotice("실제 이동 거리를 계산해 최적 순서를 찾는 중이에요.");
+      const optimized = await optimizeCourseRoute(items, preferences);
+      if (!optimized) {
+        setNotice("현재 이동수단 조건으로 모든 장소를 연결할 수 없어요.");
+        return;
+      }
+      if (!sameOrder(optimized.places, items)) commit(optimized.places);
+      setNotice("최단 이동거리 기준으로 코스 순서를 정리했어요.");
+    } catch {
+      setNotice("코스 최적화 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   // ── Drag to reorder (native HTML5 DnD) ──
@@ -164,7 +231,8 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
           </button>
           <button
             onClick={handleOptimize}
-            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors"
+            disabled={items.length < 2 || routeState.status === "loading"}
+            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Zap size={12} className="text-yellow-500" /> 최적화
           </button>
@@ -175,8 +243,70 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
 
         {/* Drag hint */}
         <p className="text-[#9994ad] text-[12px] border border-dashed border-[#ccc8d8] rounded-[8px] px-[14px] py-[9px] bg-white/60">
-          카드를 드래그해 코스 순서를 바꿔보세요
+          카드를 드래그해 순서를 바꾸세요 · 첫 장소는 출발, 마지막은 도착
         </p>
+
+        <div className="rounded-[12px] border border-[#e5e0f2] bg-[#faf9fe] px-3 py-3">
+          <p className="mb-2 text-[11px] font-bold text-[#6b6685]">이동수단 조건</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              ["excludeElevator", "엘리베이터 제외"],
+              ["excludeEscalator", "에스컬레이터 제외"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={preferences[key]}
+                onClick={() => {
+                  setPreferences((current) => ({
+                    ...current,
+                    [key]: !current[key],
+                  }));
+                  setNotice("");
+                }}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                  preferences[key]
+                    ? "border-[#5c2ef5] bg-[#5c2ef5] text-white"
+                    : "border-[#d8d3e8] bg-white text-[#6b6685] hover:border-[#5c2ef5]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {preferences.excludeElevator && preferences.excludeEscalator ? (
+            <p className="mt-2 text-[10px] leading-relaxed text-[#e05a47]">
+              두 수단을 모두 제외하면 다른 층으로 이동할 수 없어요.
+            </p>
+          ) : null}
+        </div>
+
+        {notice ? (
+          <p className="rounded-[10px] bg-[#f0ecfa] px-3 py-2 text-[11px] font-medium text-[#5c2ef5]">
+            {notice}
+          </p>
+        ) : null}
+
+        {items.length >= 2 ? (
+          <div className="grid grid-cols-3 gap-2 rounded-[12px] bg-[#f6f4fa] px-3 py-3 text-center">
+            <div>
+              <strong className="block text-[15px] text-[#1a142e]">{items.length}</strong>
+              <span className="text-[10px] text-[#6b6685]">방문 장소</span>
+            </div>
+            <div>
+              <strong className="block text-[15px] text-[#1a142e]">
+                {routeState.itinerary?.floorIds.length ?? 0}
+              </strong>
+              <span className="text-[10px] text-[#6b6685]">이용 층</span>
+            </div>
+            <div>
+              <strong className="block text-[15px] text-[#1a142e]">
+                {routeState.itinerary?.connectorSteps.length ?? 0}
+              </strong>
+              <span className="text-[10px] text-[#6b6685]">층간 이동</span>
+            </div>
+          </div>
+        ) : null}
 
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
@@ -233,6 +363,13 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
                 >
                   {index + 1}
                 </div>
+                <span className="mt-1 whitespace-nowrap text-[9px] font-bold text-[#6b6685]">
+                  {index === 0
+                    ? "출발"
+                    : index === items.length - 1
+                      ? "도착"
+                      : "경유"}
+                </span>
               </div>
               <button
                 className="flex-1 bg-white rounded-[14px] p-[16px] flex items-center gap-[12px] text-left transition-all duration-150 border-2"
@@ -244,7 +381,7 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
                       : "0 2px 8px rgba(0,0,0,0.05)",
                   opacity: visited.has(place.id) ? 0.6 : 1,
                 }}
-                onClick={() => onPlaceClick(place)}
+                onClick={() => onPlaceClick?.(place)}
                 onMouseEnter={() => setHoveredId(place.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -315,7 +452,11 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
       {/* ── Right: map + chat overlay ── */}
       <div className="relative h-[260px] rounded-[20px] overflow-hidden order-1 md:order-2 md:h-auto md:flex-1 md:min-w-0">
         <div className="w-full h-full">
-          <CourseNavigationMap />
+          <CourseNavigationMap
+            route={routeState.itinerary}
+            routeFloorIds={routeState.itinerary?.floorIds}
+            routeGraph={routeState.graph}
+          />
         </div>
 
         {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead) */}

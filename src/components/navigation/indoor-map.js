@@ -2,6 +2,7 @@
 
 import {
   Html,
+  Line,
   OrbitControls,
   OrthographicCamera,
   useTexture,
@@ -25,6 +26,8 @@ import {
 
 const FLOOR_WIDTH = 100;
 const DEFAULT_ASPECT_RATIO = 1500 / 2400;
+const ROUTE_COLOR = "#10b981";
+const ROUTE_LINE_WIDTH = 3.5;
 
 class MapErrorBoundary extends Component {
   constructor(props) {
@@ -130,6 +133,120 @@ function FloorLabel({ floor }) {
   );
 }
 
+function toWorldPoint(node, floor, flatView) {
+  const scale = flatView ? 1 : floor.scale;
+  const offsetX = flatView ? 0 : floor.offsetX;
+  const offsetZ = flatView ? 0 : floor.offsetZ;
+  return [
+    offsetX + (node.uv.u - 0.5) * FLOOR_WIDTH * scale,
+    floor.y + 0.85,
+    offsetZ + (node.uv.v - 0.5) * FLOOR_WIDTH * DEFAULT_ASPECT_RATIO * scale,
+  ];
+}
+
+function RouteMarker({ position, label, destination = false }) {
+  return (
+    <Html
+      position={position}
+      center
+      sprite
+      style={{ pointerEvents: "none" }}
+      zIndexRange={[40, 20]}
+    >
+      <div
+        className={`whitespace-nowrap rounded-full border-2 border-white px-2 py-1 text-[10px] font-extrabold text-white shadow-md ${
+          destination ? "bg-[#ff6b57]" : "bg-[#059669]"
+        }`}
+      >
+        {label}
+      </div>
+    </Html>
+  );
+}
+
+function RouteOverlay({ graph, itinerary, visibleFloors, flatView }) {
+  const routeGeometry = useMemo(() => {
+    if (!graph || !itinerary) return null;
+    const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
+    const placesById = new Map(graph.places.map((place) => [place.id, place]));
+    const floorsById = new Map(visibleFloors.map((floor) => [floor.id, floor]));
+    const segments = [];
+    const connectors = [];
+
+    itinerary.legs.forEach((leg) => {
+      leg.route.floorSegments.forEach((segment, segmentIndex) => {
+        const floor = floorsById.get(segment.floorId);
+        if (!floor || segment.nodeIds.length < 2) return;
+        const points = segment.nodeIds
+          .map((nodeId) => nodesById.get(nodeId))
+          .filter(Boolean)
+          .map((node) => toWorldPoint(node, floor, flatView));
+        if (points.length >= 2) {
+          segments.push({
+            key: `${leg.index}-${segmentIndex}-${segment.floorId}`,
+            points,
+          });
+        }
+      });
+
+      if (!flatView) {
+        leg.route.connectorSteps.forEach((step, connectorIndex) => {
+          const fromNode = nodesById.get(step.fromNodeId);
+          const toNode = nodesById.get(step.toNodeId);
+          const fromFloor = floorsById.get(step.fromFloor);
+          const toFloor = floorsById.get(step.toFloor);
+          if (!fromNode || !toNode || !fromFloor || !toFloor) return;
+          connectors.push({
+            key: `${leg.index}-${connectorIndex}-${step.connectorId}`,
+            points: [
+              toWorldPoint(fromNode, fromFloor, false),
+              toWorldPoint(toNode, toFloor, false),
+            ],
+          });
+        });
+      }
+    });
+
+    const markers = itinerary.stopPlaceIds.flatMap((placeId, index) => {
+      const place = placesById.get(placeId);
+      const node = place ? nodesById.get(place.nodeId) : null;
+      const floor = place?.floorId ? floorsById.get(place.floorId) : null;
+      if (!node || !floor) return [];
+      const lastIndex = itinerary.stopPlaceIds.length - 1;
+      return [
+        {
+          key: placeId,
+          position: toWorldPoint(node, floor, flatView),
+          label: index === 0 ? "출발" : index === lastIndex ? "도착" : String(index),
+          destination: index === lastIndex,
+        },
+      ];
+    });
+
+    return { segments, connectors, markers };
+  }, [flatView, graph, itinerary, visibleFloors]);
+
+  if (!routeGeometry) return null;
+
+  return (
+    <>
+      {[...routeGeometry.segments, ...routeGeometry.connectors].map((line) => (
+        <Line
+          key={line.key}
+          points={line.points}
+          color={ROUTE_COLOR}
+          lineWidth={ROUTE_LINE_WIDTH}
+          depthTest={false}
+          renderOrder={12}
+        />
+      ))}
+      {routeGeometry.markers.map(({ key, ...marker }) => (
+        <RouteMarker key={key} {...marker} />
+      ))}
+    </>
+  );
+}
+
 function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
   const { size } = useThree();
   const cameraRef = useRef(null);
@@ -226,7 +343,13 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
   );
 }
 
-function FloorStack({ viewMode, visibleFloors, resetSignal }) {
+function FloorStack({
+  viewMode,
+  visibleFloors,
+  resetSignal,
+  route,
+  routeGraph,
+}) {
   const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
     DEFAULT_ASPECT_RATIO,
   );
@@ -246,6 +369,12 @@ function FloorStack({ viewMode, visibleFloors, resetSignal }) {
           {viewMode !== "floor" ? <FloorLabel floor={floor} /> : null}
         </group>
       ))}
+      <RouteOverlay
+        graph={routeGraph}
+        itinerary={route}
+        visibleFloors={visibleFloors}
+        flatView={viewMode === "floor"}
+      />
       <MapCamera
         key={`${viewMode}-${visibleFloors.map((floor) => floor.id).join("-")}-${resetSignal}`}
         viewMode={viewMode}
@@ -345,7 +474,7 @@ function FloorSelector({ selectedView, onSelect }) {
   );
 }
 
-export function IndoorMap({ routeFloorIds = FLOOR_ORDER }) {
+export function IndoorMap({ route, routeFloorIds = FLOOR_ORDER, routeGraph }) {
   const [selectedView, setSelectedView] = useState("all");
   const [resetSignal, setResetSignal] = useState(0);
   const [datasetStatus, setDatasetStatus] = useState("loading");
@@ -448,6 +577,8 @@ export function IndoorMap({ routeFloorIds = FLOOR_ORDER }) {
                 viewMode={viewMode}
                 visibleFloors={visibleFloors}
                 resetSignal={resetSignal}
+                route={route}
+                routeGraph={routeGraph}
               />
             </Suspense>
           </Canvas>

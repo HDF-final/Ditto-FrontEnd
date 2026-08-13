@@ -21,13 +21,22 @@ const IndoorMap = dynamic(
   },
 );
 
-export function CourseNavigationMap({ className = "", routeFloorIds }) {
+export function CourseNavigationMap({
+  className = "",
+  route,
+  routeFloorIds,
+  routeGraph,
+}) {
   return (
     <section
       aria-label="더현대 서울 층별 실내 지도"
       className={`relative h-full min-h-[260px] w-full overflow-hidden bg-[#f7f5ff] ${className}`}
     >
-      <IndoorMap routeFloorIds={routeFloorIds} />
+      <IndoorMap
+        route={route}
+        routeFloorIds={routeFloorIds}
+        routeGraph={routeGraph}
+      />
     </section>
   );
 }
