@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { Plus, X } from "./recommend-icons";
-import { DEPARTMENT_CATEGORIES, DEPARTMENT_FLOORS } from "./recommend-data";
+import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
 
 const ALL = "전체";
 
@@ -36,14 +36,15 @@ function FilterChip({ label, active, onClick }) {
 export function AddPlaceModal({ open, places, onAdd, onClose }) {
   const [category, setCategory] = useState(ALL);
   const [floor, setFloor] = useState(ALL);
+  const [query, setQuery] = useState("");
 
   // Only show categories/floors that actually have candidates available.
   const categoryOptions = useMemo(
-    () => [ALL, ...DEPARTMENT_CATEGORIES.filter((c) => places.some((p) => p.category === c))],
+    () => [ALL, ...new Set(places.map((place) => place.category))],
     [places]
   );
   const floorOptions = useMemo(
-    () => [ALL, ...DEPARTMENT_FLOORS.filter((f) => places.some((p) => p.floor === f))],
+    () => [ALL, ...FLOOR_ORDER.filter((f) => places.some((p) => p.floor === f))],
     [places]
   );
 
@@ -52,10 +53,21 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
       places.filter(
         (p) =>
           (category === ALL || p.category === category) &&
-          (floor === ALL || p.floor === floor)
+          (floor === ALL || p.floor === floor) &&
+          p.name
+            .toLocaleLowerCase("ko")
+            .includes(query.trim().toLocaleLowerCase("ko"))
       ),
-    [places, category, floor]
+    [places, category, floor, query]
   );
+
+  const handleAdd = (place) => {
+    onAdd(place);
+    setCategory(ALL);
+    setFloor(ALL);
+    setQuery("");
+    onClose();
+  };
 
   if (!open) return null;
 
@@ -87,6 +99,16 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
 
         {/* Filters: category + floor */}
         <div className="shrink-0 px-5 pt-4 pb-3 border-b border-[#f0ecfa] flex flex-col gap-[10px]">
+          <label>
+            <span className="sr-only">매장명 검색</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="124개 매장 중 이름으로 검색"
+              className="w-full rounded-xl border border-[#e0d9f8] bg-[#faf8ff] px-3.5 py-2.5 text-[13px] text-[#1a142e] outline-none transition-colors placeholder:text-[#aaa5b8] focus:border-[#5c2ef5]"
+            />
+          </label>
           <div>
             <p className="text-[10px] font-bold tracking-wide text-[#9994ad] mb-[6px]">
               카테고리
@@ -171,7 +193,7 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
                   </p>
                 </div>
                 <button
-                  onClick={() => onAdd(place)}
+                  onClick={() => handleAdd(place)}
                   className="shrink-0 flex items-center gap-[4px] rounded-full px-[13px] py-[7px] text-[12px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95"
                 >
                   <Plus size={13} /> 추가
