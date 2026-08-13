@@ -33,6 +33,12 @@ const ROUTE_CORE_LINE_WIDTH = 5.5;
 const ROUTE_PULSE_LINE_WIDTH = 2;
 const ROUTE_PULSE_SPEED = 1.35;
 const OVERVIEW_ZOOM_MULTIPLIER = 1.15;
+const FLOOR_VERTICAL_GAP = 8.7 * 1.05;
+const OVERVIEW_CAMERA_OFFSET = new THREE.Vector3(94, 104, 126);
+const FLOOR_CAMERA_HEIGHT = 118;
+const CAMERA_EPSILON = 0.0001;
+const OVERVIEW_MIN_POLAR_ANGLE = 0.42;
+const OVERVIEW_MAX_POLAR_ANGLE = 1.47;
 
 class MapErrorBoundary extends Component {
   constructor(props) {
@@ -312,10 +318,16 @@ function RouteOverlay({ graph, itinerary, visibleFloors, flatView }) {
   );
 }
 
-function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
+function MapCamera({
+  viewMode,
+  visibleFloors,
+  singleFloorAspectRatio,
+  resetSignal,
+}) {
   const { size } = useThree();
   const cameraRef = useRef(null);
   const controlsRef = useRef(null);
+  const appliedPresetRef = useRef("");
   const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
   const firstFloor = visibleFloors[0];
   const lastFloor = visibleFloors.at(-1);
@@ -331,29 +343,82 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
       )
     : Math.max(2.2, Math.min(size.width / 150, size.height / 120)) *
       OVERVIEW_ZOOM_MULTIPLIER;
+  const presetKey = `${viewMode}:${visibleFloors
+    .map((floor) => `${floor.id}@${floor.y}`)
+    .join(",")}:${size.width}x${size.height}:${targetZoom.toFixed(4)}:${resetSignal}`;
 
-  useEffect(() => {
+  useFrame(() => {
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     if (!camera || !controls) return;
 
-    const target = new THREE.Vector3(0, focusY, 0);
-    const offset = singleFloor
-      ? new THREE.Vector3(0, 118, 0.001)
-      : new THREE.Vector3(94, 104, 126);
-    const position = target.clone().add(offset);
-    const up = singleFloor
-      ? new THREE.Vector3(0, 0, -1)
-      : new THREE.Vector3(0, 1, 0);
+    if (appliedPresetRef.current !== presetKey) {
+      const target = new THREE.Vector3(0, focusY, 0);
+      const position = singleFloor
+        ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
+        : target.clone().add(OVERVIEW_CAMERA_OFFSET);
 
-    camera.position.copy(position);
-    camera.up.copy(up);
-    camera.zoom = targetZoom;
-    camera.clearViewOffset();
-    camera.updateProjectionMatrix();
-    controls.target.copy(target);
-    controls.update();
-  }, [focusY, singleFloor, size.height, size.width, targetZoom]);
+      controls.enabled = false;
+      controls.enableDamping = false;
+      controls.enablePan = Boolean(singleFloor);
+      controls.enableRotate = !singleFloor;
+      controls.minPolarAngle = singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE;
+      controls.maxPolarAngle = singleFloor
+        ? Math.PI
+        : OVERVIEW_MAX_POLAR_ANGLE;
+      controls.minAzimuthAngle = -Infinity;
+      controls.maxAzimuthAngle = Infinity;
+      controls.screenSpacePanning = Boolean(singleFloor);
+      controls.mouseButtons.LEFT = singleFloor
+        ? THREE.MOUSE.PAN
+        : THREE.MOUSE.ROTATE;
+      controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+      controls.mouseButtons.RIGHT = singleFloor
+        ? THREE.MOUSE.PAN
+        : THREE.MOUSE.ROTATE;
+      controls.touches.ONE = singleFloor ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+      controls.touches.TWO = singleFloor
+        ? THREE.TOUCH.DOLLY_PAN
+        : THREE.TOUCH.DOLLY_ROTATE;
+
+      camera.up.set(0, singleFloor ? 0 : 1, singleFloor ? -1 : 0);
+      camera.position.copy(position);
+      camera.zoom = targetZoom;
+      camera.clearViewOffset();
+      camera.updateProjectionMatrix();
+      controls.target.copy(target);
+      controls.update();
+      controls.saveState();
+      controls.enableDamping = !singleFloor;
+      controls.enabled = true;
+      appliedPresetRef.current = presetKey;
+      return;
+    }
+
+    if (!singleFloor) return;
+
+    const panLimit = FLOOR_WIDTH * singleFloorAspectRatio * 0.45;
+    const constrainedZ = THREE.MathUtils.clamp(
+      controls.target.z,
+      -panLimit,
+      panLimit,
+    );
+    const needsConstraint =
+      Math.abs(controls.target.x) > CAMERA_EPSILON ||
+      Math.abs(controls.target.y - focusY) > CAMERA_EPSILON ||
+      Math.abs(controls.target.z - constrainedZ) > CAMERA_EPSILON ||
+      Math.abs(camera.position.x) > CAMERA_EPSILON ||
+      Math.abs(camera.position.y - (focusY + FLOOR_CAMERA_HEIGHT)) >
+        CAMERA_EPSILON ||
+      Math.abs(camera.position.z - (constrainedZ + 0.001)) > CAMERA_EPSILON;
+
+    if (needsConstraint) {
+      controls.target.set(0, focusY, constrainedZ);
+      camera.position.set(0, focusY + FLOOR_CAMERA_HEIGHT, constrainedZ + 0.001);
+      camera.up.set(0, 0, -1);
+      controls.update();
+    }
+  });
 
   return (
     <>
@@ -368,15 +433,16 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
       <OrbitControls
         ref={controlsRef}
         makeDefault
-        enableDamping
+        enableDamping={!singleFloor}
         dampingFactor={0.08}
         enablePan={Boolean(singleFloor)}
         enableRotate={!singleFloor}
         enableZoom
-        minPolarAngle={singleFloor ? 0 : 0.14}
-        maxPolarAngle={singleFloor ? Math.PI : Math.PI * 0.47}
-        minAzimuthAngle={singleFloor ? -Infinity : -Math.PI * 0.48}
-        maxAzimuthAngle={singleFloor ? Infinity : Math.PI * 0.48}
+        screenSpacePanning={Boolean(singleFloor)}
+        minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
+        maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
+        minAzimuthAngle={-Infinity}
+        maxAzimuthAngle={Infinity}
         minZoom={1.5}
         maxZoom={14}
         rotateSpeed={0.62}
@@ -388,7 +454,22 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
                 MIDDLE: THREE.MOUSE.DOLLY,
                 RIGHT: THREE.MOUSE.PAN,
               }
-            : undefined
+            : {
+                LEFT: THREE.MOUSE.ROTATE,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.ROTATE,
+              }
+        }
+        touches={
+          singleFloor
+            ? {
+                ONE: THREE.TOUCH.PAN,
+                TWO: THREE.TOUCH.DOLLY_PAN,
+              }
+            : {
+                ONE: THREE.TOUCH.ROTATE,
+                TWO: THREE.TOUCH.DOLLY_ROTATE,
+              }
         }
       />
     </>
@@ -428,10 +509,10 @@ function FloorStack({
         flatView={viewMode === "floor"}
       />
       <MapCamera
-        key={`${viewMode}-${visibleFloors.map((floor) => floor.id).join("-")}-${resetSignal}`}
         viewMode={viewMode}
         visibleFloors={visibleFloors}
         singleFloorAspectRatio={singleFloorAspectRatio}
+        resetSignal={resetSignal}
       />
     </>
   );
@@ -526,7 +607,11 @@ function FloorSelector({ selectedView, onSelect }) {
   );
 }
 
-export function IndoorMap({ route, routeFloorIds = FLOOR_ORDER, routeGraph }) {
+export function IndoorMap({
+  route,
+  routeFloorIds = FLOOR_ORDER,
+  routeGraph,
+}) {
   const [selectedView, setSelectedView] = useState("all");
   const [resetSignal, setResetSignal] = useState(0);
   const [datasetStatus, setDatasetStatus] = useState("loading");
@@ -548,7 +633,10 @@ export function IndoorMap({ route, routeFloorIds = FLOOR_ORDER, routeGraph }) {
 
     if (viewMode !== "route") return floors;
 
-    return floors.map((floor, index) => ({ ...floor, y: index * 8.7 }));
+    return floors.map((floor, index) => ({
+      ...floor,
+      y: index * FLOOR_VERTICAL_GAP,
+    }));
   }, [routeFloorIdSet, selectedView, viewMode]);
 
   useEffect(() => {
