@@ -1,0 +1,2814 @@
+{
+  "schemaVersion": 2,
+  "floorId": "5F",
+  "source": {
+    "format": "CVAT for images 1.1",
+    "imageName": "floor-5f.png",
+    "width": 2400,
+    "height": 1500
+  },
+  "stats": {
+    "polylineCount": 19,
+    "rawSegmentCount": 69,
+    "uniqueSegmentCount": 69,
+    "removedDuplicateSegments": 0,
+    "zeroLengthSegmentCount": 0,
+    "splitCorridorSegmentCount": 89,
+    "corridorComponentCount": 1,
+    "attachmentCount": 32,
+    "maximumAccessDistancePixels": 118.48
+  },
+  "nodes": [
+    {
+      "id": "5F_N0001",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1248.4,
+        "y": 605.13
+      },
+      "uv": {
+        "u": 0.520167,
+        "v": 0.40342
+      }
+    },
+    {
+      "id": "5F_N0002",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1269.41,
+        "y": 605.13
+      },
+      "uv": {
+        "u": 0.528921,
+        "v": 0.40342
+      }
+    },
+    {
+      "id": "5F_N0003",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1269.41,
+        "y": 643.2
+      },
+      "uv": {
+        "u": 0.528921,
+        "v": 0.4288
+      }
+    },
+    {
+      "id": "5F_N0004",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1269.41,
+        "y": 876.13
+      },
+      "uv": {
+        "u": 0.528921,
+        "v": 0.584087
+      }
+    },
+    {
+      "id": "5F_N0005",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1226,
+        "y": 876.13
+      },
+      "uv": {
+        "u": 0.510833,
+        "v": 0.584087
+      }
+    },
+    {
+      "id": "5F_N0006",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1221.09,
+        "y": 876.13
+      },
+      "uv": {
+        "u": 0.508787,
+        "v": 0.584087
+      }
+    },
+    {
+      "id": "5F_N0007",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1221.09,
+        "y": 1121.93
+      },
+      "uv": {
+        "u": 0.508787,
+        "v": 0.747953
+      }
+    },
+    {
+      "id": "5F_N0008",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1027.81,
+        "y": 1115.63
+      },
+      "uv": {
+        "u": 0.428254,
+        "v": 0.743753
+      }
+    },
+    {
+      "id": "5F_N0009",
+      "kind": "corridor",
+      "pixel": {
+        "x": 878.66,
+        "y": 1105.13
+      },
+      "uv": {
+        "u": 0.366108,
+        "v": 0.736753
+      }
+    },
+    {
+      "id": "5F_N0010",
+      "kind": "corridor",
+      "pixel": {
+        "x": 794.62,
+        "y": 1090.42
+      },
+      "uv": {
+        "u": 0.331092,
+        "v": 0.726947
+      }
+    },
+    {
+      "id": "5F_N0011",
+      "kind": "corridor",
+      "pixel": {
+        "x": 660.17,
+        "y": 1063.11
+      },
+      "uv": {
+        "u": 0.275071,
+        "v": 0.70874
+      }
+    },
+    {
+      "id": "5F_N0012",
+      "kind": "corridor",
+      "pixel": {
+        "x": 403.87,
+        "y": 1010.59
+      },
+      "uv": {
+        "u": 0.168279,
+        "v": 0.673727
+      }
+    },
+    {
+      "id": "5F_N0013",
+      "kind": "corridor",
+      "pixel": {
+        "x": 336.64,
+        "y": 983.28
+      },
+      "uv": {
+        "u": 0.140267,
+        "v": 0.65552
+      }
+    },
+    {
+      "id": "5F_N0014",
+      "kind": "corridor",
+      "pixel": {
+        "x": 233.7,
+        "y": 962.27
+      },
+      "uv": {
+        "u": 0.097375,
+        "v": 0.641513
+      }
+    },
+    {
+      "id": "5F_N0015",
+      "kind": "corridor",
+      "pixel": {
+        "x": 233.7,
+        "y": 844.62
+      },
+      "uv": {
+        "u": 0.097375,
+        "v": 0.56308
+      }
+    },
+    {
+      "id": "5F_N0016",
+      "kind": "corridor",
+      "pixel": {
+        "x": 233.7,
+        "y": 609.33
+      },
+      "uv": {
+        "u": 0.097375,
+        "v": 0.40622
+      }
+    },
+    {
+      "id": "5F_N0017",
+      "kind": "corridor",
+      "pixel": {
+        "x": 233.7,
+        "y": 453.87
+      },
+      "uv": {
+        "u": 0.097375,
+        "v": 0.30258
+      }
+    },
+    {
+      "id": "5F_N0018",
+      "kind": "corridor",
+      "pixel": {
+        "x": 450.08,
+        "y": 453.87
+      },
+      "uv": {
+        "u": 0.187533,
+        "v": 0.30258
+      }
+    },
+    {
+      "id": "5F_N0019",
+      "kind": "corridor",
+      "pixel": {
+        "x": 562.6591,
+        "y": 446.3588
+      },
+      "uv": {
+        "u": 0.234441,
+        "v": 0.297573
+      }
+    },
+    {
+      "id": "5F_N0020",
+      "kind": "corridor",
+      "pixel": {
+        "x": 576.13,
+        "y": 445.46
+      },
+      "uv": {
+        "u": 0.240054,
+        "v": 0.296973
+      }
+    },
+    {
+      "id": "5F_N0021",
+      "kind": "corridor",
+      "pixel": {
+        "x": 679.08,
+        "y": 420.25
+      },
+      "uv": {
+        "u": 0.28295,
+        "v": 0.280167
+      }
+    },
+    {
+      "id": "5F_N0022",
+      "kind": "corridor",
+      "pixel": {
+        "x": 854.7672,
+        "y": 392.6933
+      },
+      "uv": {
+        "u": 0.356153,
+        "v": 0.261796
+      }
+    },
+    {
+      "id": "5F_N0023",
+      "kind": "corridor",
+      "pixel": {
+        "x": 893.36,
+        "y": 386.64
+      },
+      "uv": {
+        "u": 0.372233,
+        "v": 0.25776
+      }
+    },
+    {
+      "id": "5F_N0024",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1002.6,
+        "y": 369.83
+      },
+      "uv": {
+        "u": 0.41775,
+        "v": 0.246553
+      }
+    },
+    {
+      "id": "5F_N0025",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1098.6343,
+        "y": 365.2149
+      },
+      "uv": {
+        "u": 0.457764,
+        "v": 0.243477
+      }
+    },
+    {
+      "id": "5F_N0026",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1221.09,
+        "y": 359.33
+      },
+      "uv": {
+        "u": 0.508787,
+        "v": 0.239553
+      }
+    },
+    {
+      "id": "5F_N0027",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1222.4353,
+        "y": 359.3645
+      },
+      "uv": {
+        "u": 0.509348,
+        "v": 0.239576
+      }
+    },
+    {
+      "id": "5F_N0028",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1375.8022,
+        "y": 363.2953
+      },
+      "uv": {
+        "u": 0.573251,
+        "v": 0.242197
+      }
+    },
+    {
+      "id": "5F_N0029",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1384.96,
+        "y": 363.53
+      },
+      "uv": {
+        "u": 0.577067,
+        "v": 0.242353
+      }
+    },
+    {
+      "id": "5F_N0030",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1574.03,
+        "y": 386.64
+      },
+      "uv": {
+        "u": 0.655846,
+        "v": 0.25776
+      }
+    },
+    {
+      "id": "5F_N0031",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1738.5836,
+        "y": 415.0132
+      },
+      "uv": {
+        "u": 0.72441,
+        "v": 0.276675
+      }
+    },
+    {
+      "id": "5F_N0032",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1817.73,
+        "y": 428.66
+      },
+      "uv": {
+        "u": 0.757388,
+        "v": 0.285773
+      }
+    },
+    {
+      "id": "5F_N0033",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2019.41,
+        "y": 485.38
+      },
+      "uv": {
+        "u": 0.841421,
+        "v": 0.323587
+      }
+    },
+    {
+      "id": "5F_N0034",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "5F_N0035",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 648
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.432
+      }
+    },
+    {
+      "id": "5F_N0036",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 712.27
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.474847
+      }
+    },
+    {
+      "id": "5F_N0037",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 842.52
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.56168
+      }
+    },
+    {
+      "id": "5F_N0038",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 844.62
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.56308
+      }
+    },
+    {
+      "id": "5F_N0039",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 865.63
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.577087
+      }
+    },
+    {
+      "id": "5F_N0040",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 930.76
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.620507
+      }
+    },
+    {
+      "id": "5F_N0041",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2050.92,
+        "y": 997.98
+      },
+      "uv": {
+        "u": 0.85455,
+        "v": 0.66532
+      }
+    },
+    {
+      "id": "5F_N0042",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2013.11,
+        "y": 1004.29
+      },
+      "uv": {
+        "u": 0.838796,
+        "v": 0.669527
+      }
+    },
+    {
+      "id": "5F_N0043",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1816.2174,
+        "y": 1051.6185
+      },
+      "uv": {
+        "u": 0.756757,
+        "v": 0.701079
+      }
+    },
+    {
+      "id": "5F_N0044",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1794.62,
+        "y": 1056.81
+      },
+      "uv": {
+        "u": 0.747758,
+        "v": 0.70454
+      }
+    },
+    {
+      "id": "5F_N0045",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1645.46,
+        "y": 1090.42
+      },
+      "uv": {
+        "u": 0.685608,
+        "v": 0.726947
+      }
+    },
+    {
+      "id": "5F_N0046",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1555.13,
+        "y": 1100.92
+      },
+      "uv": {
+        "u": 0.647971,
+        "v": 0.733947
+      }
+    },
+    {
+      "id": "5F_N0047",
+      "kind": "corridor",
+      "pixel": {
+        "x": 450.92,
+        "y": 303.87
+      },
+      "uv": {
+        "u": 0.187883,
+        "v": 0.20258
+      }
+    },
+    {
+      "id": "5F_N0048",
+      "kind": "corridor",
+      "pixel": {
+        "x": 232.5895,
+        "y": 1124.4677
+      },
+      "uv": {
+        "u": 0.096912,
+        "v": 0.749645
+      }
+    },
+    {
+      "id": "5F_N0049",
+      "kind": "corridor",
+      "pixel": {
+        "x": 232.44,
+        "y": 1146.3
+      },
+      "uv": {
+        "u": 0.09685,
+        "v": 0.7642
+      }
+    },
+    {
+      "id": "5F_N0050",
+      "kind": "corridor",
+      "pixel": {
+        "x": 400.5,
+        "y": 1310.17
+      },
+      "uv": {
+        "u": 0.166875,
+        "v": 0.873447
+      }
+    },
+    {
+      "id": "5F_N0051",
+      "kind": "corridor",
+      "pixel": {
+        "x": 795.46,
+        "y": 1268.15
+      },
+      "uv": {
+        "u": 0.331442,
+        "v": 0.845433
+      }
+    },
+    {
+      "id": "5F_N0052",
+      "kind": "corridor",
+      "pixel": {
+        "x": 948.82,
+        "y": 1266.05
+      },
+      "uv": {
+        "u": 0.395342,
+        "v": 0.844033
+      }
+    },
+    {
+      "id": "5F_N0053",
+      "kind": "corridor",
+      "pixel": {
+        "x": 950.92,
+        "y": 1425.71
+      },
+      "uv": {
+        "u": 0.396217,
+        "v": 0.950473
+      }
+    },
+    {
+      "id": "5F_N0054",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1560.17,
+        "y": 1427.81
+      },
+      "uv": {
+        "u": 0.650071,
+        "v": 0.951873
+      }
+    },
+    {
+      "id": "5F_N0055",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1560.17,
+        "y": 1358.49
+      },
+      "uv": {
+        "u": 0.650071,
+        "v": 0.90566
+      }
+    },
+    {
+      "id": "5F_N0056",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2016.05,
+        "y": 1329.08
+      },
+      "uv": {
+        "u": 0.840021,
+        "v": 0.886053
+      }
+    },
+    {
+      "id": "5F_N0057",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2099.6676,
+        "y": 998.7659
+      },
+      "uv": {
+        "u": 0.874862,
+        "v": 0.665844
+      }
+    },
+    {
+      "id": "5F_N0058",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2181.18,
+        "y": 1000.08
+      },
+      "uv": {
+        "u": 0.908825,
+        "v": 0.66672
+      }
+    },
+    {
+      "id": "5F_N0059",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2181.18,
+        "y": 1094.62
+      },
+      "uv": {
+        "u": 0.908825,
+        "v": 0.729747
+      }
+    },
+    {
+      "id": "5F_N0060",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2020.25,
+        "y": 316.47
+      },
+      "uv": {
+        "u": 0.841771,
+        "v": 0.21098
+      }
+    },
+    {
+      "id": "5F_N0061",
+      "kind": "corridor",
+      "pixel": {
+        "x": 279.9692,
+        "y": 607.9922
+      },
+      "uv": {
+        "u": 0.116654,
+        "v": 0.405328
+      }
+    },
+    {
+      "id": "5F_N0062",
+      "kind": "corridor",
+      "pixel": {
+        "x": 335.38,
+        "y": 606.39
+      },
+      "uv": {
+        "u": 0.139742,
+        "v": 0.40426
+      }
+    },
+    {
+      "id": "5F_N0063",
+      "kind": "corridor",
+      "pixel": {
+        "x": 335.5157,
+        "y": 646.9943
+      },
+      "uv": {
+        "u": 0.139798,
+        "v": 0.43133
+      }
+    },
+    {
+      "id": "5F_N0064",
+      "kind": "corridor",
+      "pixel": {
+        "x": 336.1761,
+        "y": 844.5162
+      },
+      "uv": {
+        "u": 0.140073,
+        "v": 0.563011
+      }
+    },
+    {
+      "id": "5F_N0065",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1150.5,
+        "y": 604.29
+      },
+      "uv": {
+        "u": 0.479375,
+        "v": 0.40286
+      }
+    },
+    {
+      "id": "5F_N0066",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1150.5,
+        "y": 873.19
+      },
+      "uv": {
+        "u": 0.479375,
+        "v": 0.582127
+      }
+    },
+    {
+      "id": "5F_N0067",
+      "kind": "corridor",
+      "pixel": {
+        "x": 894.2,
+        "y": 604.29
+      },
+      "uv": {
+        "u": 0.372583,
+        "v": 0.40286
+      }
+    },
+    {
+      "id": "5F_N0068",
+      "kind": "corridor",
+      "pixel": {
+        "x": 975.29,
+        "y": 604.29
+      },
+      "uv": {
+        "u": 0.406371,
+        "v": 0.40286
+      }
+    },
+    {
+      "id": "5F_N0069",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1560.17,
+        "y": 526.55
+      },
+      "uv": {
+        "u": 0.650071,
+        "v": 0.351033
+      }
+    },
+    {
+      "id": "5F_N0070",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1537.06,
+        "y": 961.43
+      },
+      "uv": {
+        "u": 0.640442,
+        "v": 0.640953
+      }
+    },
+    {
+      "id": "5F_N0071",
+      "kind": "corridor",
+      "pixel": {
+        "x": 614.79,
+        "y": 625.29
+      },
+      "uv": {
+        "u": 0.256162,
+        "v": 0.41686
+      }
+    },
+    {
+      "id": "5F_N0072",
+      "kind": "corridor",
+      "pixel": {
+        "x": 480.34,
+        "y": 753.45
+      },
+      "uv": {
+        "u": 0.200142,
+        "v": 0.5023
+      }
+    },
+    {
+      "id": "5F_N0073",
+      "kind": "corridor",
+      "pixel": {
+        "x": 686.22,
+        "y": 913.11
+      },
+      "uv": {
+        "u": 0.285925,
+        "v": 0.60874
+      }
+    },
+    {
+      "id": "5F_N0074",
+      "kind": "corridor",
+      "pixel": {
+        "x": 467.73,
+        "y": 850.08
+      },
+      "uv": {
+        "u": 0.194888,
+        "v": 0.56672
+      }
+    },
+    {
+      "id": "5F_N0075",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1009.75,
+        "y": 873.19
+      },
+      "uv": {
+        "u": 0.420729,
+        "v": 0.582127
+      }
+    },
+    {
+      "id": "5F_N0076",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1009.75,
+        "y": 944.62
+      },
+      "uv": {
+        "u": 0.420729,
+        "v": 0.629747
+      }
+    },
+    {
+      "id": "5F_N0077",
+      "kind": "corridor",
+      "pixel": {
+        "x": 902.6,
+        "y": 944.62
+      },
+      "uv": {
+        "u": 0.376083,
+        "v": 0.629747
+      }
+    },
+    {
+      "id": "5F_N0078",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2232.44,
+        "y": 868.99
+      },
+      "uv": {
+        "u": 0.930183,
+        "v": 0.579327
+      }
+    },
+    {
+      "id": "5F_N0079",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2232.44,
+        "y": 997.14
+      },
+      "uv": {
+        "u": 0.930183,
+        "v": 0.66476
+      }
+    },
+    {
+      "id": "5F_N0080",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1221.93,
+        "y": 513.95
+      },
+      "uv": {
+        "u": 0.509138,
+        "v": 0.342633
+      }
+    },
+    {
+      "id": "5F_N0081",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1150.5,
+        "y": 513.95
+      },
+      "uv": {
+        "u": 0.479375,
+        "v": 0.342633
+      }
+    },
+    {
+      "id": "5F_A0000",
+      "kind": "escalator",
+      "pixel": {
+        "x": 281.1,
+        "y": 647.1
+      },
+      "uv": {
+        "u": 0.117125,
+        "v": 0.4314
+      }
+    },
+    {
+      "id": "5F_A0001",
+      "kind": "escalator",
+      "pixel": {
+        "x": 303.9,
+        "y": 647.1
+      },
+      "uv": {
+        "u": 0.126625,
+        "v": 0.4314
+      }
+    },
+    {
+      "id": "5F_A0002",
+      "kind": "escalator",
+      "pixel": {
+        "x": 275.71,
+        "y": 844.62
+      },
+      "uv": {
+        "u": 0.114879,
+        "v": 0.56308
+      }
+    },
+    {
+      "id": "5F_A0003",
+      "kind": "escalator",
+      "pixel": {
+        "x": 305.13,
+        "y": 844.62
+      },
+      "uv": {
+        "u": 0.127137,
+        "v": 0.56308
+      }
+    },
+    {
+      "id": "5F_A0004",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1249,
+        "y": 643.2
+      },
+      "uv": {
+        "u": 0.520417,
+        "v": 0.4288
+      }
+    },
+    {
+      "id": "5F_A0005",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1226,
+        "y": 848.2
+      },
+      "uv": {
+        "u": 0.510833,
+        "v": 0.565467
+      }
+    },
+    {
+      "id": "5F_A0006",
+      "kind": "escalator",
+      "pixel": {
+        "x": 955.1,
+        "y": 846.3
+      },
+      "uv": {
+        "u": 0.397958,
+        "v": 0.5642
+      }
+    },
+    {
+      "id": "5F_A0007",
+      "kind": "escalator",
+      "pixel": {
+        "x": 963.4,
+        "y": 867
+      },
+      "uv": {
+        "u": 0.401417,
+        "v": 0.578
+      }
+    },
+    {
+      "id": "5F_A0008",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1983.3,
+        "y": 648
+      },
+      "uv": {
+        "u": 0.826375,
+        "v": 0.432
+      }
+    },
+    {
+      "id": "5F_A0009",
+      "kind": "escalator",
+      "pixel": {
+        "x": 2005.1,
+        "y": 648
+      },
+      "uv": {
+        "u": 0.835458,
+        "v": 0.432
+      }
+    },
+    {
+      "id": "5F_A0010",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1979.5,
+        "y": 842.52
+      },
+      "uv": {
+        "u": 0.824792,
+        "v": 0.56168
+      }
+    },
+    {
+      "id": "5F_A0011",
+      "kind": "escalator",
+      "pixel": {
+        "x": 2006.81,
+        "y": 844.62
+      },
+      "uv": {
+        "u": 0.836171,
+        "v": 0.56308
+      }
+    },
+    {
+      "id": "5F_A0012",
+      "kind": "elevator",
+      "pixel": {
+        "x": 427.7,
+        "y": 300.9
+      },
+      "uv": {
+        "u": 0.178208,
+        "v": 0.2006
+      }
+    },
+    {
+      "id": "5F_A0013",
+      "kind": "elevator",
+      "pixel": {
+        "x": 2005.5,
+        "y": 293.4
+      },
+      "uv": {
+        "u": 0.835625,
+        "v": 0.1956
+      }
+    },
+    {
+      "id": "5F_A0014",
+      "kind": "elevator",
+      "pixel": {
+        "x": 421,
+        "y": 1324.5
+      },
+      "uv": {
+        "u": 0.175417,
+        "v": 0.883
+      }
+    },
+    {
+      "id": "5F_A0015",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1530.2,
+        "y": 1357.4
+      },
+      "uv": {
+        "u": 0.637583,
+        "v": 0.904933
+      }
+    },
+    {
+      "id": "5F_A0016",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1992.1,
+        "y": 1344.62
+      },
+      "uv": {
+        "u": 0.830042,
+        "v": 0.896413
+      }
+    },
+    {
+      "id": "5F_A0017",
+      "kind": "restroom",
+      "pixel": {
+        "x": 208.1,
+        "y": 1124.3
+      },
+      "uv": {
+        "u": 0.086708,
+        "v": 0.749533
+      }
+    },
+    {
+      "id": "5F_A0018",
+      "kind": "restroom",
+      "pixel": {
+        "x": 2192.1,
+        "y": 1125.9
+      },
+      "uv": {
+        "u": 0.913375,
+        "v": 0.7506
+      }
+    },
+    {
+      "id": "5F_A0038",
+      "kind": "store",
+      "pixel": {
+        "x": 560.3,
+        "y": 411
+      },
+      "uv": {
+        "u": 0.233458,
+        "v": 0.274
+      }
+    },
+    {
+      "id": "5F_A0039",
+      "kind": "store",
+      "pixel": {
+        "x": 849.2,
+        "y": 357.2
+      },
+      "uv": {
+        "u": 0.353833,
+        "v": 0.238133
+      }
+    },
+    {
+      "id": "5F_A0040",
+      "kind": "store",
+      "pixel": {
+        "x": 1097.14,
+        "y": 334.12
+      },
+      "uv": {
+        "u": 0.457142,
+        "v": 0.222747
+      }
+    },
+    {
+      "id": "5F_A0041",
+      "kind": "store",
+      "pixel": {
+        "x": 1223.19,
+        "y": 329.92
+      },
+      "uv": {
+        "u": 0.509663,
+        "v": 0.219947
+      }
+    },
+    {
+      "id": "5F_A0042",
+      "kind": "store",
+      "pixel": {
+        "x": 1376.55,
+        "y": 334.12
+      },
+      "uv": {
+        "u": 0.573563,
+        "v": 0.222747
+      }
+    },
+    {
+      "id": "5F_A0043",
+      "kind": "store",
+      "pixel": {
+        "x": 1744.2,
+        "y": 382.44
+      },
+      "uv": {
+        "u": 0.72675,
+        "v": 0.25496
+      }
+    },
+    {
+      "id": "5F_A0044",
+      "kind": "store",
+      "pixel": {
+        "x": 2099.24,
+        "y": 930.76
+      },
+      "uv": {
+        "u": 0.874683,
+        "v": 0.620507
+      }
+    },
+    {
+      "id": "5F_A0045",
+      "kind": "store",
+      "pixel": {
+        "x": 2099.24,
+        "y": 1025.29
+      },
+      "uv": {
+        "u": 0.874683,
+        "v": 0.683527
+      }
+    },
+    {
+      "id": "5F_A0046",
+      "kind": "store",
+      "pixel": {
+        "x": 1824.03,
+        "y": 1084.12
+      },
+      "uv": {
+        "u": 0.760013,
+        "v": 0.722747
+      }
+    },
+    {
+      "id": "5F_A0047",
+      "kind": "store",
+      "pixel": {
+        "x": 1221.09,
+        "y": 1145.04
+      },
+      "uv": {
+        "u": 0.508787,
+        "v": 0.76336
+      }
+    },
+    {
+      "id": "5F_A0048",
+      "kind": "store",
+      "pixel": {
+        "x": 975.29,
+        "y": 722.77
+      },
+      "uv": {
+        "u": 0.406371,
+        "v": 0.481847
+      }
+    },
+    {
+      "id": "5F_A0049",
+      "kind": "store",
+      "pixel": {
+        "x": 973.19,
+        "y": 779.5
+      },
+      "uv": {
+        "u": 0.405496,
+        "v": 0.519667
+      }
+    },
+    {
+      "id": "5F_A0050",
+      "kind": "store",
+      "pixel": {
+        "x": 1271.51,
+        "y": 909.75
+      },
+      "uv": {
+        "u": 0.529796,
+        "v": 0.6065
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "5F_E0001",
+      "from": "5F_N0001",
+      "to": "5F_N0002",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 21.01
+    },
+    {
+      "id": "5F_E0002",
+      "from": "5F_N0002",
+      "to": "5F_N0003",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 38.07
+    },
+    {
+      "id": "5F_E0003",
+      "from": "5F_N0003",
+      "to": "5F_N0004",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 232.93
+    },
+    {
+      "id": "5F_E0004",
+      "from": "5F_N0004",
+      "to": "5F_N0005",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 43.41
+    },
+    {
+      "id": "5F_E0005",
+      "from": "5F_N0005",
+      "to": "5F_N0006",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 4.91
+    },
+    {
+      "id": "5F_E0006",
+      "from": "5F_N0006",
+      "to": "5F_N0007",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 245.8
+    },
+    {
+      "id": "5F_E0007",
+      "from": "5F_N0007",
+      "to": "5F_N0008",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 193.3826
+    },
+    {
+      "id": "5F_E0008",
+      "from": "5F_N0008",
+      "to": "5F_N0009",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 149.5191
+    },
+    {
+      "id": "5F_E0009",
+      "from": "5F_N0009",
+      "to": "5F_N0010",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 85.3177
+    },
+    {
+      "id": "5F_E0010",
+      "from": "5F_N0010",
+      "to": "5F_N0011",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 137.1956
+    },
+    {
+      "id": "5F_E0011",
+      "from": "5F_N0011",
+      "to": "5F_N0012",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 261.6258
+    },
+    {
+      "id": "5F_E0012",
+      "from": "5F_N0012",
+      "to": "5F_N0013",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 72.5652
+    },
+    {
+      "id": "5F_E0013",
+      "from": "5F_N0013",
+      "to": "5F_N0014",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 105.0622
+    },
+    {
+      "id": "5F_E0014",
+      "from": "5F_N0014",
+      "to": "5F_N0015",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 117.65
+    },
+    {
+      "id": "5F_E0015",
+      "from": "5F_N0015",
+      "to": "5F_N0016",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 235.29
+    },
+    {
+      "id": "5F_E0016",
+      "from": "5F_N0016",
+      "to": "5F_N0017",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 155.46
+    },
+    {
+      "id": "5F_E0017",
+      "from": "5F_N0017",
+      "to": "5F_N0018",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 216.38
+    },
+    {
+      "id": "5F_E0018",
+      "from": "5F_N0018",
+      "to": "5F_N0019",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 112.8294
+    },
+    {
+      "id": "5F_E0019",
+      "from": "5F_N0019",
+      "to": "5F_N0020",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 13.5009
+    },
+    {
+      "id": "5F_E0020",
+      "from": "5F_N0020",
+      "to": "5F_N0021",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 105.9917
+    },
+    {
+      "id": "5F_E0021",
+      "from": "5F_N0021",
+      "to": "5F_N0022",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 177.8352
+    },
+    {
+      "id": "5F_E0022",
+      "from": "5F_N0022",
+      "to": "5F_N0023",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 39.0646
+    },
+    {
+      "id": "5F_E0023",
+      "from": "5F_N0023",
+      "to": "5F_N0024",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 110.5258
+    },
+    {
+      "id": "5F_E0024",
+      "from": "5F_N0024",
+      "to": "5F_N0025",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 96.1451
+    },
+    {
+      "id": "5F_E0025",
+      "from": "5F_N0025",
+      "to": "5F_N0026",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 122.597
+    },
+    {
+      "id": "5F_E0026",
+      "from": "5F_N0026",
+      "to": "5F_N0027",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 1.3457
+    },
+    {
+      "id": "5F_E0027",
+      "from": "5F_N0027",
+      "to": "5F_N0028",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 153.4173
+    },
+    {
+      "id": "5F_E0028",
+      "from": "5F_N0028",
+      "to": "5F_N0029",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 9.1608
+    },
+    {
+      "id": "5F_E0029",
+      "from": "5F_N0029",
+      "to": "5F_N0030",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 190.4771
+    },
+    {
+      "id": "5F_E0030",
+      "from": "5F_N0030",
+      "to": "5F_N0031",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 166.9818
+    },
+    {
+      "id": "5F_E0031",
+      "from": "5F_N0031",
+      "to": "5F_N0032",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 80.3143
+    },
+    {
+      "id": "5F_E0032",
+      "from": "5F_N0032",
+      "to": "5F_N0033",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 209.5041
+    },
+    {
+      "id": "5F_E0033",
+      "from": "5F_N0033",
+      "to": "5F_N0034",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 83.8739
+    },
+    {
+      "id": "5F_E0034",
+      "from": "5F_N0034",
+      "to": "5F_N0035",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 84.89
+    },
+    {
+      "id": "5F_E0035",
+      "from": "5F_N0035",
+      "to": "5F_N0036",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 64.27
+    },
+    {
+      "id": "5F_E0036",
+      "from": "5F_N0036",
+      "to": "5F_N0037",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 130.25
+    },
+    {
+      "id": "5F_E0037",
+      "from": "5F_N0037",
+      "to": "5F_N0038",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 2.1
+    },
+    {
+      "id": "5F_E0038",
+      "from": "5F_N0038",
+      "to": "5F_N0039",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 21.01
+    },
+    {
+      "id": "5F_E0039",
+      "from": "5F_N0039",
+      "to": "5F_N0040",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 65.13
+    },
+    {
+      "id": "5F_E0040",
+      "from": "5F_N0040",
+      "to": "5F_N0041",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 67.22
+    },
+    {
+      "id": "5F_E0041",
+      "from": "5F_N0041",
+      "to": "5F_N0042",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 38.3329
+    },
+    {
+      "id": "5F_E0042",
+      "from": "5F_N0042",
+      "to": "5F_N0043",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 202.5011
+    },
+    {
+      "id": "5F_E0043",
+      "from": "5F_N0043",
+      "to": "5F_N0044",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 22.2126
+    },
+    {
+      "id": "5F_E0044",
+      "from": "5F_N0044",
+      "to": "5F_N0045",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 152.8998
+    },
+    {
+      "id": "5F_E0045",
+      "from": "5F_N0045",
+      "to": "5F_N0046",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 90.9382
+    },
+    {
+      "id": "5F_E0046",
+      "from": "5F_N0018",
+      "to": "5F_N0047",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 150.0024
+    },
+    {
+      "id": "5F_E0047",
+      "from": "5F_N0014",
+      "to": "5F_N0048",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 162.2015
+    },
+    {
+      "id": "5F_E0048",
+      "from": "5F_N0048",
+      "to": "5F_N0049",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 21.8328
+    },
+    {
+      "id": "5F_E0049",
+      "from": "5F_N0012",
+      "to": "5F_N0050",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 299.599
+    },
+    {
+      "id": "5F_E0050",
+      "from": "5F_N0010",
+      "to": "5F_N0051",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 177.732
+    },
+    {
+      "id": "5F_E0051",
+      "from": "5F_N0051",
+      "to": "5F_N0052",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 153.3744
+    },
+    {
+      "id": "5F_E0052",
+      "from": "5F_N0052",
+      "to": "5F_N0053",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 159.6738
+    },
+    {
+      "id": "5F_E0053",
+      "from": "5F_N0053",
+      "to": "5F_N0054",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 609.2536
+    },
+    {
+      "id": "5F_E0054",
+      "from": "5F_N0054",
+      "to": "5F_N0055",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 69.32
+    },
+    {
+      "id": "5F_E0055",
+      "from": "5F_N0042",
+      "to": "5F_N0056",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 324.8033
+    },
+    {
+      "id": "5F_E0056",
+      "from": "5F_N0041",
+      "to": "5F_N0057",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 48.7539
+    },
+    {
+      "id": "5F_E0057",
+      "from": "5F_N0057",
+      "to": "5F_N0058",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 81.523
+    },
+    {
+      "id": "5F_E0058",
+      "from": "5F_N0058",
+      "to": "5F_N0059",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 94.54
+    },
+    {
+      "id": "5F_E0059",
+      "from": "5F_N0033",
+      "to": "5F_N0060",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 168.9121
+    },
+    {
+      "id": "5F_E0060",
+      "from": "5F_N0016",
+      "to": "5F_N0061",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 46.2885
+    },
+    {
+      "id": "5F_E0061",
+      "from": "5F_N0061",
+      "to": "5F_N0062",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 55.434
+    },
+    {
+      "id": "5F_E0062",
+      "from": "5F_N0062",
+      "to": "5F_N0063",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 40.6045
+    },
+    {
+      "id": "5F_E0063",
+      "from": "5F_N0063",
+      "to": "5F_N0064",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 197.523
+    },
+    {
+      "id": "5F_E0064",
+      "from": "5F_N0064",
+      "to": "5F_N0013",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 138.7646
+    },
+    {
+      "id": "5F_E0065",
+      "from": "5F_N0001",
+      "to": "5F_N0065",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 97.9036
+    },
+    {
+      "id": "5F_E0066",
+      "from": "5F_N0065",
+      "to": "5F_N0066",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 268.9
+    },
+    {
+      "id": "5F_E0067",
+      "from": "5F_N0066",
+      "to": "5F_N0006",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 70.6512
+    },
+    {
+      "id": "5F_E0068",
+      "from": "5F_N0023",
+      "to": "5F_N0067",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 217.6516
+    },
+    {
+      "id": "5F_E0069",
+      "from": "5F_N0067",
+      "to": "5F_N0068",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 81.09
+    },
+    {
+      "id": "5F_E0070",
+      "from": "5F_N0068",
+      "to": "5F_N0065",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 175.21
+    },
+    {
+      "id": "5F_E0071",
+      "from": "5F_N0046",
+      "to": "5F_N0007",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 334.7001
+    },
+    {
+      "id": "5F_E0072",
+      "from": "5F_N0030",
+      "to": "5F_N0069",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 140.5948
+    },
+    {
+      "id": "5F_E0073",
+      "from": "5F_N0046",
+      "to": "5F_N0070",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 140.6556
+    },
+    {
+      "id": "5F_E0074",
+      "from": "5F_N0020",
+      "to": "5F_N0071",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 183.9386
+    },
+    {
+      "id": "5F_E0075",
+      "from": "5F_N0071",
+      "to": "5F_N0072",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 185.7466
+    },
+    {
+      "id": "5F_E0076",
+      "from": "5F_N0072",
+      "to": "5F_N0062",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 206.4947
+    },
+    {
+      "id": "5F_E0077",
+      "from": "5F_N0011",
+      "to": "5F_N0073",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 152.2452
+    },
+    {
+      "id": "5F_E0078",
+      "from": "5F_N0073",
+      "to": "5F_N0074",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 227.3998
+    },
+    {
+      "id": "5F_E0079",
+      "from": "5F_N0074",
+      "to": "5F_N0072",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 97.4493
+    },
+    {
+      "id": "5F_E0080",
+      "from": "5F_N0066",
+      "to": "5F_N0075",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 140.75
+    },
+    {
+      "id": "5F_E0081",
+      "from": "5F_N0075",
+      "to": "5F_N0076",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 71.43
+    },
+    {
+      "id": "5F_E0082",
+      "from": "5F_N0076",
+      "to": "5F_N0077",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 107.15
+    },
+    {
+      "id": "5F_E0083",
+      "from": "5F_N0077",
+      "to": "5F_N0009",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 162.2855
+    },
+    {
+      "id": "5F_E0084",
+      "from": "5F_N0039",
+      "to": "5F_N0078",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 181.5511
+    },
+    {
+      "id": "5F_E0085",
+      "from": "5F_N0078",
+      "to": "5F_N0079",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 128.15
+    },
+    {
+      "id": "5F_E0086",
+      "from": "5F_N0079",
+      "to": "5F_N0058",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 51.3442
+    },
+    {
+      "id": "5F_E0087",
+      "from": "5F_N0026",
+      "to": "5F_N0080",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 154.6223
+    },
+    {
+      "id": "5F_E0088",
+      "from": "5F_N0080",
+      "to": "5F_N0081",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 71.43
+    },
+    {
+      "id": "5F_E0089",
+      "from": "5F_N0081",
+      "to": "5F_N0065",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 90.34
+    },
+    {
+      "id": "5F_E0090",
+      "from": "5F_A0000",
+      "to": "5F_N0061",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 39.1242
+    },
+    {
+      "id": "5F_E0091",
+      "from": "5F_A0001",
+      "to": "5F_N0063",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.6159
+    },
+    {
+      "id": "5F_E0092",
+      "from": "5F_A0002",
+      "to": "5F_N0015",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 42.01
+    },
+    {
+      "id": "5F_E0093",
+      "from": "5F_A0003",
+      "to": "5F_N0064",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.0463
+    },
+    {
+      "id": "5F_E0094",
+      "from": "5F_A0004",
+      "to": "5F_N0003",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 20.41
+    },
+    {
+      "id": "5F_E0095",
+      "from": "5F_A0005",
+      "to": "5F_N0005",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 27.93
+    },
+    {
+      "id": "5F_E0096",
+      "from": "5F_A0006",
+      "to": "5F_N0075",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 60.9073
+    },
+    {
+      "id": "5F_E0097",
+      "from": "5F_A0007",
+      "to": "5F_N0075",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 46.7615
+    },
+    {
+      "id": "5F_E0098",
+      "from": "5F_A0008",
+      "to": "5F_N0035",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 67.62
+    },
+    {
+      "id": "5F_E0099",
+      "from": "5F_A0009",
+      "to": "5F_N0035",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 45.82
+    },
+    {
+      "id": "5F_E0100",
+      "from": "5F_A0010",
+      "to": "5F_N0037",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 71.42
+    },
+    {
+      "id": "5F_E0101",
+      "from": "5F_A0011",
+      "to": "5F_N0038",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 44.11
+    },
+    {
+      "id": "5F_E0102",
+      "from": "5F_A0012",
+      "to": "5F_N0047",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 23.4092
+    },
+    {
+      "id": "5F_E0103",
+      "from": "5F_A0013",
+      "to": "5F_N0060",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 27.3822
+    },
+    {
+      "id": "5F_E0104",
+      "from": "5F_A0014",
+      "to": "5F_N0050",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.012
+    },
+    {
+      "id": "5F_E0105",
+      "from": "5F_A0015",
+      "to": "5F_N0055",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 29.9898
+    },
+    {
+      "id": "5F_E0106",
+      "from": "5F_A0016",
+      "to": "5F_N0056",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 28.5499
+    },
+    {
+      "id": "5F_E0107",
+      "from": "5F_A0017",
+      "to": "5F_N0048",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 24.4901
+    },
+    {
+      "id": "5F_E0108",
+      "from": "5F_A0018",
+      "to": "5F_N0059",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 33.1313
+    },
+    {
+      "id": "5F_E0109",
+      "from": "5F_A0038",
+      "to": "5F_N0019",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 35.4374
+    },
+    {
+      "id": "5F_E0110",
+      "from": "5F_A0039",
+      "to": "5F_N0022",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 35.9273
+    },
+    {
+      "id": "5F_E0111",
+      "from": "5F_A0040",
+      "to": "5F_N0025",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.1308
+    },
+    {
+      "id": "5F_E0112",
+      "from": "5F_A0041",
+      "to": "5F_N0027",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 29.4542
+    },
+    {
+      "id": "5F_E0113",
+      "from": "5F_A0042",
+      "to": "5F_N0028",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 29.1849
+    },
+    {
+      "id": "5F_E0114",
+      "from": "5F_A0043",
+      "to": "5F_N0031",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 33.0538
+    },
+    {
+      "id": "5F_E0115",
+      "from": "5F_A0044",
+      "to": "5F_N0040",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 48.32
+    },
+    {
+      "id": "5F_E0116",
+      "from": "5F_A0045",
+      "to": "5F_N0057",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 26.5276
+    },
+    {
+      "id": "5F_E0117",
+      "from": "5F_A0046",
+      "to": "5F_N0043",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 33.4273
+    },
+    {
+      "id": "5F_E0118",
+      "from": "5F_A0047",
+      "to": "5F_N0007",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 23.11
+    },
+    {
+      "id": "5F_E0119",
+      "from": "5F_A0048",
+      "to": "5F_N0068",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 118.48
+    },
+    {
+      "id": "5F_E0120",
+      "from": "5F_A0049",
+      "to": "5F_N0075",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 100.5706
+    },
+    {
+      "id": "5F_E0121",
+      "from": "5F_A0050",
+      "to": "5F_N0004",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 33.6855
+    }
+  ],
+  "places": [
+    {
+      "id": "5F_ESC_W_DOWN_5F_4F",
+      "navigationKey": "5F_ESC_W_DOWN_5F_4F",
+      "name": "서측 에스컬레이터",
+      "nodeId": "5F_A0001",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "5F_ESC_W_UP_5F_6F",
+      "navigationKey": "5F_ESC_W_UP_5F_6F",
+      "name": "서측 에스컬레이터",
+      "nodeId": "5F_A0003",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "5F_ESC_C2_DOWN_5F_4F",
+      "navigationKey": "5F_ESC_C2_DOWN_5F_4F",
+      "name": "중앙 2 에스컬레이터",
+      "nodeId": "5F_A0004",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 4
+    },
+    {
+      "id": "5F_ESC_G_UP_5F_6F",
+      "navigationKey": "5F_ESC_G_UP_5F_6F",
+      "name": "정원 에스컬레이터",
+      "nodeId": "5F_A0007",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "5F_ESC_E_DOWN_5F_4F",
+      "navigationKey": "5F_ESC_E_DOWN_5F_4F",
+      "name": "동측 에스컬레이터",
+      "nodeId": "5F_A0009",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 9
+    },
+    {
+      "id": "5F_ESC_E_UP_5F_6F",
+      "navigationKey": "5F_ESC_E_UP_5F_6F",
+      "name": "동측 에스컬레이터",
+      "nodeId": "5F_A0011",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 11
+    },
+    {
+      "id": "5F_EV_NW",
+      "navigationKey": "5F_EV_NW",
+      "name": "북서 엘리베이터",
+      "nodeId": "5F_A0012",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "5F_EV_NE",
+      "navigationKey": "5F_EV_NE",
+      "name": "북동 엘리베이터",
+      "nodeId": "5F_A0013",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 13
+    },
+    {
+      "id": "5F_EV_SW",
+      "navigationKey": "5F_EV_SW",
+      "name": "남서 엘리베이터",
+      "nodeId": "5F_A0014",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "5F_EV_STROLLER",
+      "navigationKey": "5F_EV_STROLLER",
+      "name": "유아차 전용 엘리베이터",
+      "nodeId": "5F_A0015",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 15
+    },
+    {
+      "id": "5F_EV_SE",
+      "navigationKey": "5F_EV_SE",
+      "name": "남동 엘리베이터",
+      "nodeId": "5F_A0016",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 16
+    },
+    {
+      "id": "5F_RESTROOM_0017",
+      "navigationKey": "5F_RESTROOM_0017",
+      "name": "5층 서쪽 화장실",
+      "nodeId": "5F_A0017",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 17
+    },
+    {
+      "id": "5F_RESTROOM_0018",
+      "navigationKey": "5F_RESTROOM_0018",
+      "name": "5층 동쪽 화장실",
+      "nodeId": "5F_A0018",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 18
+    },
+    {
+      "id": "5F_STORE_0038",
+      "navigationKey": "5F_STORE_0038",
+      "name": "We,pet",
+      "nodeId": "5F_A0038",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 38
+    },
+    {
+      "id": "5F_STORE_0039",
+      "navigationKey": "5F_STORE_0039",
+      "name": "더현대 수비니어",
+      "nodeId": "5F_A0039",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 39
+    },
+    {
+      "id": "5F_STORE_0040",
+      "navigationKey": "5F_STORE_0040",
+      "name": "플레이 인더박스",
+      "nodeId": "5F_A0040",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 40
+    },
+    {
+      "id": "5F_STORE_0041",
+      "navigationKey": "5F_STORE_0041",
+      "name": "레고 LCS",
+      "nodeId": "5F_A0041",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 41
+    },
+    {
+      "id": "5F_STORE_0042",
+      "navigationKey": "5F_STORE_0042",
+      "name": "디즈니스토어",
+      "nodeId": "5F_A0042",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 42
+    },
+    {
+      "id": "5F_STORE_0043",
+      "navigationKey": "5F_STORE_0043",
+      "name": "LG 메가스토어",
+      "nodeId": "5F_A0043",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 43
+    },
+    {
+      "id": "5F_STORE_0044",
+      "navigationKey": "5F_STORE_0044",
+      "name": "다이슨",
+      "nodeId": "5F_A0044",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 44
+    },
+    {
+      "id": "5F_STORE_0045",
+      "navigationKey": "5F_STORE_0045",
+      "name": "애플스토어",
+      "nodeId": "5F_A0045",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 45
+    },
+    {
+      "id": "5F_STORE_0046",
+      "navigationKey": "5F_STORE_0046",
+      "name": "삼성스토어",
+      "nodeId": "5F_A0046",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 46
+    },
+    {
+      "id": "5F_STORE_0047",
+      "navigationKey": "5F_STORE_0047",
+      "name": "에픽서울",
+      "nodeId": "5F_A0047",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 47
+    },
+    {
+      "id": "5F_STORE_0048",
+      "navigationKey": "5F_STORE_0048",
+      "name": "블루보틀",
+      "nodeId": "5F_A0048",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 48
+    },
+    {
+      "id": "5F_STORE_0049",
+      "navigationKey": "5F_STORE_0049",
+      "name": "번패티번",
+      "nodeId": "5F_A0049",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 49
+    },
+    {
+      "id": "5F_STORE_0050",
+      "navigationKey": "5F_STORE_0050",
+      "name": "사운즈포레스트",
+      "nodeId": "5F_A0050",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 50
+    }
+  ],
+  "connectors": [
+    {
+      "id": "ESC_W_DOWN_6F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0000",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 0
+    },
+    {
+      "id": "ESC_W_DOWN_5F_4F",
+      "type": "escalator",
+      "nodeId": "5F_A0001",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "ESC_W_UP_4F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0002",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 2
+    },
+    {
+      "id": "ESC_W_UP_5F_6F",
+      "type": "escalator",
+      "nodeId": "5F_A0003",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "ESC_C2_DOWN_5F_4F",
+      "type": "escalator",
+      "nodeId": "5F_A0004",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 4
+    },
+    {
+      "id": "ESC_C2_UP_4F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0005",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 5
+    },
+    {
+      "id": "ESC_G_DOWN_6F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0006",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "정원 에스컬레이터",
+      "sourceCvatId": 6
+    },
+    {
+      "id": "ESC_G_UP_5F_6F",
+      "type": "escalator",
+      "nodeId": "5F_A0007",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "정원 에스컬레이터",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "ESC_E_DOWN_6F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0008",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 8
+    },
+    {
+      "id": "ESC_E_DOWN_5F_4F",
+      "type": "escalator",
+      "nodeId": "5F_A0009",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 9
+    },
+    {
+      "id": "ESC_E_UP_4F_5F",
+      "type": "escalator",
+      "nodeId": "5F_A0010",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 10
+    },
+    {
+      "id": "ESC_E_UP_5F_6F",
+      "type": "escalator",
+      "nodeId": "5F_A0011",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 11
+    },
+    {
+      "id": "EV_NW",
+      "type": "elevator",
+      "nodeId": "5F_A0012",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북서 엘리베이터",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "EV_NE",
+      "type": "elevator",
+      "nodeId": "5F_A0013",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북동 엘리베이터",
+      "sourceCvatId": 13
+    },
+    {
+      "id": "EV_SW",
+      "type": "elevator",
+      "nodeId": "5F_A0014",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남서 엘리베이터",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "EV_STROLLER",
+      "type": "elevator",
+      "nodeId": "5F_A0015",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "유아차 전용 엘리베이터",
+      "sourceCvatId": 15
+    },
+    {
+      "id": "EV_SE",
+      "type": "elevator",
+      "nodeId": "5F_A0016",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남동 엘리베이터",
+      "sourceCvatId": 16
+    }
+  ]
+}

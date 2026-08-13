@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-12T07:07:35.103Z",
+  "floorOrder": [
+    "B2",
+    "B1",
+    "1F",
+    "2F",
+    "3F",
+    "4F",
+    "5F",
+    "6F"
+  ],
+  "summary": {
+    "floorCount": 8,
+    "storePlaceCount": 124,
+    "databasePlaceCandidateCount": 232,
+    "elevatorShaftCount": 5,
+    "escalatorConnectorCount": 52,
+    "warningCount": 4,
+    "issueCount": 0
+  },
+  "warnings": [
+    "B1: removed 30 duplicate corridor segment(s).",
+    "2F: removed 1 zero-length corridor segment(s).",
+    "2F: removed 3 duplicate corridor segment(s).",
+    "4F: removed 1 duplicate corridor segment(s)."
+  ],
+  "routeChecks": [
+    {
+      "startId": "B2_STORE_0021",
+      "destinationId": "6F_STORE_0027",
+      "mode": "all",
+      "found": true
+    },
+    {
+      "startId": "B2_STORE_0021",
+      "destinationId": "6F_STORE_0027",
+      "mode": "elevator_only",
+      "found": true
+    },
+    {
+      "startId": "B2_STORE_0021",
+      "destinationId": "6F_STORE_0027",
+      "mode": "escalator_only",
+      "found": true
+    },
+    {
+      "startId": "6F_STORE_0027",
+      "destinationId": "B2_STORE_0021",
+      "mode": "all",
+      "found": true
+    },
+    {
+      "startId": "6F_STORE_0027",
+      "destinationId": "B2_STORE_0021",
+      "mode": "elevator_only",
+      "found": true
+    },
+    {
+      "startId": "6F_STORE_0027",
+      "destinationId": "B2_STORE_0021",
+      "mode": "escalator_only",
+      "found": true
+    }
+  ],
+  "floors": {
+    "B2": {
+      "file": "b2.json",
+      "sourceArchive": "b2_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 20,
+        "rawSegmentCount": 60,
+        "uniqueSegmentCount": 60,
+        "removedDuplicateSegments": 0,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 90,
+        "corridorComponentCount": 1,
+        "attachmentCount": 32,
+        "maximumAccessDistancePixels": 81.94
+      },
+      "placeCounts": {
+        "STORE": 17,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 4
+      }
+    },
+    "B1": {
+      "file": "b1.json",
+      "sourceArchive": "b1_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 14,
+        "rawSegmentCount": 82,
+        "uniqueSegmentCount": 52,
+        "removedDuplicateSegments": 30,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 91,
+        "corridorComponentCount": 1,
+        "attachmentCount": 45,
+        "maximumAccessDistancePixels": 154.93
+      },
+      "placeCounts": {
+        "STORE": 21,
+        "RESTROOM": 3,
+        "ELEVATOR": 5,
+        "ESCALATOR": 8
+      }
+    },
+    "1F": {
+      "file": "1f.json",
+      "sourceArchive": "1f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 12,
+        "rawSegmentCount": 31,
+        "uniqueSegmentCount": 31,
+        "removedDuplicateSegments": 0,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 63,
+        "corridorComponentCount": 1,
+        "attachmentCount": 40,
+        "maximumAccessDistancePixels": 143.75
+      },
+      "placeCounts": {
+        "STORE": 18,
+        "RESTROOM": 1,
+        "ELEVATOR": 5,
+        "ESCALATOR": 8
+      }
+    },
+    "2F": {
+      "file": "2f.json",
+      "sourceArchive": "2f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 20,
+        "rawSegmentCount": 58,
+        "uniqueSegmentCount": 54,
+        "removedDuplicateSegments": 3,
+        "zeroLengthSegmentCount": 1,
+        "splitCorridorSegmentCount": 86,
+        "corridorComponentCount": 1,
+        "attachmentCount": 35,
+        "maximumAccessDistancePixels": 87.04
+      },
+      "placeCounts": {
+        "STORE": 11,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 8
+      }
+    },
+    "3F": {
+      "file": "3f.json",
+      "sourceArchive": "3f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 8,
+        "rawSegmentCount": 38,
+        "uniqueSegmentCount": 38,
+        "removedDuplicateSegments": 0,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 68,
+        "corridorComponentCount": 1,
+        "attachmentCount": 34,
+        "maximumAccessDistancePixels": 175.36
+      },
+      "placeCounts": {
+        "STORE": 11,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 8
+      }
+    },
+    "4F": {
+      "file": "4f.json",
+      "sourceArchive": "4f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 20,
+        "rawSegmentCount": 77,
+        "uniqueSegmentCount": 76,
+        "removedDuplicateSegments": 1,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 108,
+        "corridorComponentCount": 1,
+        "attachmentCount": 41,
+        "maximumAccessDistancePixels": 160.39
+      },
+      "placeCounts": {
+        "STORE": 20,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 7
+      }
+    },
+    "5F": {
+      "file": "5f.json",
+      "sourceArchive": "5f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 19,
+        "rawSegmentCount": 69,
+        "uniqueSegmentCount": 69,
+        "removedDuplicateSegments": 0,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 89,
+        "corridorComponentCount": 1,
+        "attachmentCount": 32,
+        "maximumAccessDistancePixels": 118.48
+      },
+      "placeCounts": {
+        "STORE": 13,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 6
+      }
+    },
+    "6F": {
+      "file": "6f.json",
+      "sourceArchive": "6f_navigation_v1.zip",
+      "stats": {
+        "polylineCount": 11,
+        "rawSegmentCount": 36,
+        "uniqueSegmentCount": 36,
+        "removedDuplicateSegments": 0,
+        "zeroLengthSegmentCount": 0,
+        "splitCorridorSegmentCount": 56,
+        "corridorComponentCount": 1,
+        "attachmentCount": 26,
+        "maximumAccessDistancePixels": 84.72
+      },
+      "placeCounts": {
+        "STORE": 13,
+        "RESTROOM": 2,
+        "ELEVATOR": 5,
+        "ESCALATOR": 3
+      }
+    }
+  }
+}

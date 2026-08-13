@@ -1,0 +1,2870 @@
+{
+  "schemaVersion": 2,
+  "floorId": "2F",
+  "source": {
+    "format": "CVAT for images 1.1",
+    "imageName": "floor-2f.png",
+    "width": 2400,
+    "height": 1500
+  },
+  "stats": {
+    "polylineCount": 20,
+    "rawSegmentCount": 58,
+    "uniqueSegmentCount": 54,
+    "removedDuplicateSegments": 3,
+    "zeroLengthSegmentCount": 1,
+    "splitCorridorSegmentCount": 86,
+    "corridorComponentCount": 1,
+    "attachmentCount": 35,
+    "maximumAccessDistancePixels": 87.04
+  },
+  "nodes": [
+    {
+      "id": "2F_N0001",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1196.22,
+        "y": 512.77
+      },
+      "uv": {
+        "u": 0.498425,
+        "v": 0.341847
+      }
+    },
+    {
+      "id": "2F_N0002",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1265.21,
+        "y": 582.02
+      },
+      "uv": {
+        "u": 0.527171,
+        "v": 0.388013
+      }
+    },
+    {
+      "id": "2F_N0003",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.76,
+        "y": 582.02
+      },
+      "uv": {
+        "u": 0.47115,
+        "v": 0.388013
+      }
+    },
+    {
+      "id": "2F_N0004",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1265.21,
+        "y": 943.36
+      },
+      "uv": {
+        "u": 0.527171,
+        "v": 0.628907
+      }
+    },
+    {
+      "id": "2F_N0005",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1566.47,
+        "y": 942.52
+      },
+      "uv": {
+        "u": 0.652696,
+        "v": 0.628347
+      }
+    },
+    {
+      "id": "2F_N0006",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1566.47,
+        "y": 1047.56
+      },
+      "uv": {
+        "u": 0.652696,
+        "v": 0.698373
+      }
+    },
+    {
+      "id": "2F_N0007",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1608.8,
+        "y": 1106.53
+      },
+      "uv": {
+        "u": 0.670333,
+        "v": 0.737687
+      }
+    },
+    {
+      "id": "2F_N0008",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.3,
+        "y": 943.4
+      },
+      "uv": {
+        "u": 0.470958,
+        "v": 0.628933
+      }
+    },
+    {
+      "id": "2F_N0009",
+      "kind": "corridor",
+      "pixel": {
+        "x": 787.06,
+        "y": 942.52
+      },
+      "uv": {
+        "u": 0.327942,
+        "v": 0.628347
+      }
+    },
+    {
+      "id": "2F_N0010",
+      "kind": "corridor",
+      "pixel": {
+        "x": 789.02,
+        "y": 1093.97
+      },
+      "uv": {
+        "u": 0.328758,
+        "v": 0.729313
+      }
+    },
+    {
+      "id": "2F_N0011",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1265.21,
+        "y": 646
+      },
+      "uv": {
+        "u": 0.527171,
+        "v": 0.430667
+      }
+    },
+    {
+      "id": "2F_N0012",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1265.21,
+        "y": 854.4
+      },
+      "uv": {
+        "u": 0.527171,
+        "v": 0.5696
+      }
+    },
+    {
+      "id": "2F_N0013",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1265.21,
+        "y": 854.9
+      },
+      "uv": {
+        "u": 0.527171,
+        "v": 0.569933
+      }
+    },
+    {
+      "id": "2F_N0014",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.4132,
+        "y": 854.4669
+      },
+      "uv": {
+        "u": 0.471006,
+        "v": 0.569645
+      }
+    },
+    {
+      "id": "2F_N0015",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.4132,
+        "y": 854.4376
+      },
+      "uv": {
+        "u": 0.471006,
+        "v": 0.569625
+      }
+    },
+    {
+      "id": "2F_N0016",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.6786,
+        "y": 645.9395
+      },
+      "uv": {
+        "u": 0.471116,
+        "v": 0.430626
+      }
+    },
+    {
+      "id": "2F_N0017",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1130.6787,
+        "y": 645.8685
+      },
+      "uv": {
+        "u": 0.471116,
+        "v": 0.430579
+      }
+    },
+    {
+      "id": "2F_N0018",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1554.99,
+        "y": 532.5
+      },
+      "uv": {
+        "u": 0.647913,
+        "v": 0.355
+      }
+    },
+    {
+      "id": "2F_N0019",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1574.72,
+        "y": 392.58
+      },
+      "uv": {
+        "u": 0.656133,
+        "v": 0.26172
+      }
+    },
+    {
+      "id": "2F_N0020",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1755.2232,
+        "y": 424.0409
+      },
+      "uv": {
+        "u": 0.731343,
+        "v": 0.282694
+      }
+    },
+    {
+      "id": "2F_N0021",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1770.25,
+        "y": 426.66
+      },
+      "uv": {
+        "u": 0.737604,
+        "v": 0.28444
+      }
+    },
+    {
+      "id": "2F_N0022",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2012.41,
+        "y": 487.65
+      },
+      "uv": {
+        "u": 0.838504,
+        "v": 0.3251
+      }
+    },
+    {
+      "id": "2F_N0023",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 618.6
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.4124
+      }
+    },
+    {
+      "id": "2F_N0024",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 650.9
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.433933
+      }
+    },
+    {
+      "id": "2F_N0025",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 651.1
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.434067
+      }
+    },
+    {
+      "id": "2F_N0026",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 850.9
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.567267
+      }
+    },
+    {
+      "id": "2F_N0027",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 851.2
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.567467
+      }
+    },
+    {
+      "id": "2F_N0028",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 885.89
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.590593
+      }
+    },
+    {
+      "id": "2F_N0029",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2053.67,
+        "y": 1063.47
+      },
+      "uv": {
+        "u": 0.855696,
+        "v": 0.70898
+      }
+    },
+    {
+      "id": "2F_N0030",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2012.41,
+        "y": 1063.47
+      },
+      "uv": {
+        "u": 0.838504,
+        "v": 0.70898
+      }
+    },
+    {
+      "id": "2F_N0031",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2012.41,
+        "y": 1106.53
+      },
+      "uv": {
+        "u": 0.838504,
+        "v": 0.737687
+      }
+    },
+    {
+      "id": "2F_N0032",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1511.2695,
+        "y": 1112.4096
+      },
+      "uv": {
+        "u": 0.629696,
+        "v": 0.741606
+      }
+    },
+    {
+      "id": "2F_N0033",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1251.83,
+        "y": 1128.05
+      },
+      "uv": {
+        "u": 0.521596,
+        "v": 0.752033
+      }
+    },
+    {
+      "id": "2F_N0034",
+      "kind": "corridor",
+      "pixel": {
+        "x": 894.2952,
+        "y": 1101.7222
+      },
+      "uv": {
+        "u": 0.372623,
+        "v": 0.734481
+      }
+    },
+    {
+      "id": "2F_N0035",
+      "kind": "corridor",
+      "pixel": {
+        "x": 506.81,
+        "y": 1093.97
+      },
+      "uv": {
+        "u": 0.211171,
+        "v": 0.729313
+      }
+    },
+    {
+      "id": "2F_N0036",
+      "kind": "corridor",
+      "pixel": {
+        "x": 390.79,
+        "y": 1093.97
+      },
+      "uv": {
+        "u": 0.162829,
+        "v": 0.729313
+      }
+    },
+    {
+      "id": "2F_N0037",
+      "kind": "corridor",
+      "pixel": {
+        "x": 328,
+        "y": 1029.39
+      },
+      "uv": {
+        "u": 0.136667,
+        "v": 0.68626
+      }
+    },
+    {
+      "id": "2F_N0038",
+      "kind": "corridor",
+      "pixel": {
+        "x": 306.48,
+        "y": 894.85
+      },
+      "uv": {
+        "u": 0.1277,
+        "v": 0.596567
+      }
+    },
+    {
+      "id": "2F_N0039",
+      "kind": "corridor",
+      "pixel": {
+        "x": 306.48,
+        "y": 726.97
+      },
+      "uv": {
+        "u": 0.1277,
+        "v": 0.484647
+      }
+    },
+    {
+      "id": "2F_N0040",
+      "kind": "corridor",
+      "pixel": {
+        "x": 306.48,
+        "y": 641.9
+      },
+      "uv": {
+        "u": 0.1277,
+        "v": 0.427933
+      }
+    },
+    {
+      "id": "2F_N0041",
+      "kind": "corridor",
+      "pixel": {
+        "x": 306.48,
+        "y": 616.81
+      },
+      "uv": {
+        "u": 0.1277,
+        "v": 0.411207
+      }
+    },
+    {
+      "id": "2F_N0042",
+      "kind": "corridor",
+      "pixel": {
+        "x": 335.18,
+        "y": 503.8
+      },
+      "uv": {
+        "u": 0.139658,
+        "v": 0.335867
+      }
+    },
+    {
+      "id": "2F_N0043",
+      "kind": "corridor",
+      "pixel": {
+        "x": 433.84,
+        "y": 471.51
+      },
+      "uv": {
+        "u": 0.180767,
+        "v": 0.31434
+      }
+    },
+    {
+      "id": "2F_N0044",
+      "kind": "corridor",
+      "pixel": {
+        "x": 555.82,
+        "y": 433.84
+      },
+      "uv": {
+        "u": 0.231592,
+        "v": 0.289227
+      }
+    },
+    {
+      "id": "2F_N0045",
+      "kind": "corridor",
+      "pixel": {
+        "x": 661.4961,
+        "y": 410.1533
+      },
+      "uv": {
+        "u": 0.275623,
+        "v": 0.273436
+      }
+    },
+    {
+      "id": "2F_N0046",
+      "kind": "corridor",
+      "pixel": {
+        "x": 763.9,
+        "y": 387.2
+      },
+      "uv": {
+        "u": 0.318292,
+        "v": 0.258133
+      }
+    },
+    {
+      "id": "2F_N0047",
+      "kind": "corridor",
+      "pixel": {
+        "x": 964.81,
+        "y": 365.67
+      },
+      "uv": {
+        "u": 0.402004,
+        "v": 0.24378
+      }
+    },
+    {
+      "id": "2F_N0048",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1023.61,
+        "y": 365.67
+      },
+      "uv": {
+        "u": 0.426504,
+        "v": 0.24378
+      }
+    },
+    {
+      "id": "2F_N0049",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1190.84,
+        "y": 365.67
+      },
+      "uv": {
+        "u": 0.496183,
+        "v": 0.24378
+      }
+    },
+    {
+      "id": "2F_N0050",
+      "kind": "corridor",
+      "pixel": {
+        "x": 217.68,
+        "y": 1028.5
+      },
+      "uv": {
+        "u": 0.0907,
+        "v": 0.685667
+      }
+    },
+    {
+      "id": "2F_N0051",
+      "kind": "corridor",
+      "pixel": {
+        "x": 217.68,
+        "y": 1149.24
+      },
+      "uv": {
+        "u": 0.0907,
+        "v": 0.76616
+      }
+    },
+    {
+      "id": "2F_N0052",
+      "kind": "corridor",
+      "pixel": {
+        "x": 217.68,
+        "y": 1155.86
+      },
+      "uv": {
+        "u": 0.0907,
+        "v": 0.770573
+      }
+    },
+    {
+      "id": "2F_N0053",
+      "kind": "corridor",
+      "pixel": {
+        "x": 432.951,
+        "y": 289.8782
+      },
+      "uv": {
+        "u": 0.180396,
+        "v": 0.193252
+      }
+    },
+    {
+      "id": "2F_N0054",
+      "kind": "corridor",
+      "pixel": {
+        "x": 432.94,
+        "y": 287.64
+      },
+      "uv": {
+        "u": 0.180392,
+        "v": 0.19176
+      }
+    },
+    {
+      "id": "2F_N0055",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2012.1973,
+        "y": 456.5657
+      },
+      "uv": {
+        "u": 0.838416,
+        "v": 0.304377
+      }
+    },
+    {
+      "id": "2F_N0056",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2011.52,
+        "y": 357.6
+      },
+      "uv": {
+        "u": 0.838133,
+        "v": 0.2384
+      }
+    },
+    {
+      "id": "2F_N0057",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2089.0567,
+        "y": 1064.0277
+      },
+      "uv": {
+        "u": 0.87044,
+        "v": 0.709352
+      }
+    },
+    {
+      "id": "2F_N0058",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2224.98,
+        "y": 1066.17
+      },
+      "uv": {
+        "u": 0.927075,
+        "v": 0.71078
+      }
+    },
+    {
+      "id": "2F_N0059",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2224.98,
+        "y": 1145.04
+      },
+      "uv": {
+        "u": 0.927075,
+        "v": 0.76336
+      }
+    },
+    {
+      "id": "2F_N0060",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2224.98,
+        "y": 1145.09
+      },
+      "uv": {
+        "u": 0.927075,
+        "v": 0.763393
+      }
+    },
+    {
+      "id": "2F_N0061",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2013.3093,
+        "y": 1322.5142
+      },
+      "uv": {
+        "u": 0.838879,
+        "v": 0.881676
+      }
+    },
+    {
+      "id": "2F_N0062",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2013.31,
+        "y": 1322.68
+      },
+      "uv": {
+        "u": 0.838879,
+        "v": 0.881787
+      }
+    },
+    {
+      "id": "2F_N0063",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1607.9,
+        "y": 1276.04
+      },
+      "uv": {
+        "u": 0.669958,
+        "v": 0.850693
+      }
+    },
+    {
+      "id": "2F_N0064",
+      "kind": "corridor",
+      "pixel": {
+        "x": 390.0021,
+        "y": 1336.8445
+      },
+      "uv": {
+        "u": 0.162501,
+        "v": 0.89123
+      }
+    },
+    {
+      "id": "2F_N0065",
+      "kind": "corridor",
+      "pixel": {
+        "x": 390,
+        "y": 1337.48
+      },
+      "uv": {
+        "u": 0.1625,
+        "v": 0.891653
+      }
+    },
+    {
+      "id": "2F_N0066",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1377.39,
+        "y": 364.79
+      },
+      "uv": {
+        "u": 0.573913,
+        "v": 0.243193
+      }
+    },
+    {
+      "id": "2F_N0067",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1263.2572,
+        "y": 365.3284
+      },
+      "uv": {
+        "u": 0.526357,
+        "v": 0.243552
+      }
+    },
+    {
+      "id": "2F_N0068",
+      "kind": "corridor",
+      "pixel": {
+        "x": 281.7351,
+        "y": 894.677
+      },
+      "uv": {
+        "u": 0.11739,
+        "v": 0.596451
+      }
+    },
+    {
+      "id": "2F_N0069",
+      "kind": "corridor",
+      "pixel": {
+        "x": 259.3348,
+        "y": 894.5203
+      },
+      "uv": {
+        "u": 0.108056,
+        "v": 0.596347
+      }
+    },
+    {
+      "id": "2F_N0070",
+      "kind": "corridor",
+      "pixel": {
+        "x": 213.53,
+        "y": 894.2
+      },
+      "uv": {
+        "u": 0.088971,
+        "v": 0.596133
+      }
+    },
+    {
+      "id": "2F_N0071",
+      "kind": "corridor",
+      "pixel": {
+        "x": 211.43,
+        "y": 616.89
+      },
+      "uv": {
+        "u": 0.088096,
+        "v": 0.41126
+      }
+    },
+    {
+      "id": "2F_N0072",
+      "kind": "corridor",
+      "pixel": {
+        "x": 258.9787,
+        "y": 616.85
+      },
+      "uv": {
+        "u": 0.107908,
+        "v": 0.411233
+      }
+    },
+    {
+      "id": "2F_N0073",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2230.34,
+        "y": 618.99
+      },
+      "uv": {
+        "u": 0.929308,
+        "v": 0.41266
+      }
+    },
+    {
+      "id": "2F_N0074",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2230.34,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.929308,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "2F_N0075",
+      "kind": "corridor",
+      "pixel": {
+        "x": 970.9761,
+        "y": 513.944
+      },
+      "uv": {
+        "u": 0.404573,
+        "v": 0.342629
+      }
+    },
+    {
+      "id": "2F_N0076",
+      "kind": "corridor",
+      "pixel": {
+        "x": 969.83,
+        "y": 513.95
+      },
+      "uv": {
+        "u": 0.404096,
+        "v": 0.342633
+      }
+    },
+    {
+      "id": "2F_N0077",
+      "kind": "corridor",
+      "pixel": {
+        "x": 360.59,
+        "y": 850.08
+      },
+      "uv": {
+        "u": 0.150246,
+        "v": 0.56672
+      }
+    },
+    {
+      "id": "2F_N0078",
+      "kind": "corridor",
+      "pixel": {
+        "x": 582.44,
+        "y": 850.08
+      },
+      "uv": {
+        "u": 0.242683,
+        "v": 0.56672
+      }
+    },
+    {
+      "id": "2F_N0079",
+      "kind": "corridor",
+      "pixel": {
+        "x": 583.28,
+        "y": 850.08
+      },
+      "uv": {
+        "u": 0.243033,
+        "v": 0.56672
+      }
+    },
+    {
+      "id": "2F_A0000",
+      "kind": "escalator",
+      "pixel": {
+        "x": 281.9,
+        "y": 871.1
+      },
+      "uv": {
+        "u": 0.117458,
+        "v": 0.580733
+      }
+    },
+    {
+      "id": "2F_A0001",
+      "kind": "escalator",
+      "pixel": {
+        "x": 259.5,
+        "y": 870.9
+      },
+      "uv": {
+        "u": 0.108125,
+        "v": 0.5806
+      }
+    },
+    {
+      "id": "2F_A0002",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1179.4,
+        "y": 854.5
+      },
+      "uv": {
+        "u": 0.491417,
+        "v": 0.569667
+      }
+    },
+    {
+      "id": "2F_A0003",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1156.4,
+        "y": 854.5
+      },
+      "uv": {
+        "u": 0.481833,
+        "v": 0.569667
+      }
+    },
+    {
+      "id": "2F_A0004",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1242.8,
+        "y": 854.9
+      },
+      "uv": {
+        "u": 0.517833,
+        "v": 0.569933
+      }
+    },
+    {
+      "id": "2F_A0005",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1219.7,
+        "y": 854.4
+      },
+      "uv": {
+        "u": 0.508208,
+        "v": 0.5696
+      }
+    },
+    {
+      "id": "2F_A0006",
+      "kind": "escalator",
+      "pixel": {
+        "x": 2009.3,
+        "y": 850.9
+      },
+      "uv": {
+        "u": 0.837208,
+        "v": 0.567267
+      }
+    },
+    {
+      "id": "2F_A0007",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1987.1,
+        "y": 851.2
+      },
+      "uv": {
+        "u": 0.827958,
+        "v": 0.567467
+      }
+    },
+    {
+      "id": "2F_A0008",
+      "kind": "escalator",
+      "pixel": {
+        "x": 282.3,
+        "y": 641.9
+      },
+      "uv": {
+        "u": 0.117625,
+        "v": 0.427933
+      }
+    },
+    {
+      "id": "2F_A0009",
+      "kind": "escalator",
+      "pixel": {
+        "x": 259,
+        "y": 642.1
+      },
+      "uv": {
+        "u": 0.107917,
+        "v": 0.428067
+      }
+    },
+    {
+      "id": "2F_A0010",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1155.4,
+        "y": 645.9
+      },
+      "uv": {
+        "u": 0.481417,
+        "v": 0.4306
+      }
+    },
+    {
+      "id": "2F_A0011",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1178.2,
+        "y": 646
+      },
+      "uv": {
+        "u": 0.490917,
+        "v": 0.430667
+      }
+    },
+    {
+      "id": "2F_A0012",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1219.8,
+        "y": 646
+      },
+      "uv": {
+        "u": 0.50825,
+        "v": 0.430667
+      }
+    },
+    {
+      "id": "2F_A0013",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1242.7,
+        "y": 646
+      },
+      "uv": {
+        "u": 0.517792,
+        "v": 0.430667
+      }
+    },
+    {
+      "id": "2F_A0014",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1986.3,
+        "y": 651.1
+      },
+      "uv": {
+        "u": 0.827625,
+        "v": 0.434067
+      }
+    },
+    {
+      "id": "2F_A0015",
+      "kind": "escalator",
+      "pixel": {
+        "x": 2009,
+        "y": 650.9
+      },
+      "uv": {
+        "u": 0.837083,
+        "v": 0.433933
+      }
+    },
+    {
+      "id": "2F_A0034",
+      "kind": "store",
+      "pixel": {
+        "x": 653.87,
+        "y": 376.13
+      },
+      "uv": {
+        "u": 0.272446,
+        "v": 0.250753
+      }
+    },
+    {
+      "id": "2F_A0035",
+      "kind": "store",
+      "pixel": {
+        "x": 1023.61,
+        "y": 340.42
+      },
+      "uv": {
+        "u": 0.426504,
+        "v": 0.226947
+      }
+    },
+    {
+      "id": "2F_A0036",
+      "kind": "store",
+      "pixel": {
+        "x": 1263.11,
+        "y": 334.12
+      },
+      "uv": {
+        "u": 0.526296,
+        "v": 0.222747
+      }
+    },
+    {
+      "id": "2F_A0037",
+      "kind": "store",
+      "pixel": {
+        "x": 1761.01,
+        "y": 390.84
+      },
+      "uv": {
+        "u": 0.733754,
+        "v": 0.26056
+      }
+    },
+    {
+      "id": "2F_A0038",
+      "kind": "store",
+      "pixel": {
+        "x": 2099.24,
+        "y": 455.97
+      },
+      "uv": {
+        "u": 0.874683,
+        "v": 0.30398
+      }
+    },
+    {
+      "id": "2F_A0039",
+      "kind": "store",
+      "pixel": {
+        "x": 2088.74,
+        "y": 1084.12
+      },
+      "uv": {
+        "u": 0.870308,
+        "v": 0.722747
+      }
+    },
+    {
+      "id": "2F_A0040",
+      "kind": "store",
+      "pixel": {
+        "x": 1513.11,
+        "y": 1142.94
+      },
+      "uv": {
+        "u": 0.630462,
+        "v": 0.76196
+      }
+    },
+    {
+      "id": "2F_A0041",
+      "kind": "store",
+      "pixel": {
+        "x": 891.26,
+        "y": 1142.94
+      },
+      "uv": {
+        "u": 0.371358,
+        "v": 0.76196
+      }
+    },
+    {
+      "id": "2F_A0042",
+      "kind": "store",
+      "pixel": {
+        "x": 506.81,
+        "y": 1159.75
+      },
+      "uv": {
+        "u": 0.211171,
+        "v": 0.773167
+      }
+    },
+    {
+      "id": "2F_A0043",
+      "kind": "store",
+      "pixel": {
+        "x": 324.03,
+        "y": 726.97
+      },
+      "uv": {
+        "u": 0.135012,
+        "v": 0.484647
+      }
+    },
+    {
+      "id": "2F_A0046",
+      "kind": "store",
+      "pixel": {
+        "x": 582.44,
+        "y": 823.61
+      },
+      "uv": {
+        "u": 0.242683,
+        "v": 0.549073
+      }
+    },
+    {
+      "id": "2F_A0047",
+      "kind": "store",
+      "pixel": {
+        "x": 971.09,
+        "y": 535.8
+      },
+      "uv": {
+        "u": 0.404621,
+        "v": 0.3572
+      }
+    },
+    {
+      "id": "2F_A0048",
+      "kind": "restroom",
+      "pixel": {
+        "x": 193.78,
+        "y": 1149.24
+      },
+      "uv": {
+        "u": 0.080742,
+        "v": 0.76616
+      }
+    },
+    {
+      "id": "2F_A0049",
+      "kind": "restroom",
+      "pixel": {
+        "x": 2284.12,
+        "y": 1145.04
+      },
+      "uv": {
+        "u": 0.951717,
+        "v": 0.76336
+      }
+    },
+    {
+      "id": "2F_A0050",
+      "kind": "elevator",
+      "pixel": {
+        "x": 408.07,
+        "y": 290
+      },
+      "uv": {
+        "u": 0.170029,
+        "v": 0.193333
+      }
+    },
+    {
+      "id": "2F_A0051",
+      "kind": "elevator",
+      "pixel": {
+        "x": 2010.4,
+        "y": 332
+      },
+      "uv": {
+        "u": 0.837667,
+        "v": 0.221333
+      }
+    },
+    {
+      "id": "2F_A0052",
+      "kind": "elevator",
+      "pixel": {
+        "x": 407.1,
+        "y": 1336.9
+      },
+      "uv": {
+        "u": 0.169625,
+        "v": 0.891267
+      }
+    },
+    {
+      "id": "2F_A0053",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1545.3,
+        "y": 1309.3
+      },
+      "uv": {
+        "u": 0.643875,
+        "v": 0.872867
+      }
+    },
+    {
+      "id": "2F_A0054",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1992.7,
+        "y": 1322.6
+      },
+      "uv": {
+        "u": 0.830292,
+        "v": 0.881733
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "2F_E0001",
+      "from": "2F_N0001",
+      "to": "2F_N0002",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 97.7506
+    },
+    {
+      "id": "2F_E0002",
+      "from": "2F_N0001",
+      "to": "2F_N0003",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 95.292
+    },
+    {
+      "id": "2F_E0003",
+      "from": "2F_N0004",
+      "to": "2F_N0005",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 301.2612
+    },
+    {
+      "id": "2F_E0004",
+      "from": "2F_N0005",
+      "to": "2F_N0006",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 105.04
+    },
+    {
+      "id": "2F_E0005",
+      "from": "2F_N0006",
+      "to": "2F_N0007",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 72.5899
+    },
+    {
+      "id": "2F_E0006",
+      "from": "2F_N0008",
+      "to": "2F_N0009",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 343.2411
+    },
+    {
+      "id": "2F_E0007",
+      "from": "2F_N0009",
+      "to": "2F_N0010",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 151.4627
+    },
+    {
+      "id": "2F_E0008",
+      "from": "2F_N0003",
+      "to": "2F_N0002",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 134.45
+    },
+    {
+      "id": "2F_E0009",
+      "from": "2F_N0002",
+      "to": "2F_N0011",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 63.98
+    },
+    {
+      "id": "2F_E0010",
+      "from": "2F_N0011",
+      "to": "2F_N0012",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 208.4
+    },
+    {
+      "id": "2F_E0011",
+      "from": "2F_N0012",
+      "to": "2F_N0013",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.5
+    },
+    {
+      "id": "2F_E0012",
+      "from": "2F_N0013",
+      "to": "2F_N0004",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 88.46
+    },
+    {
+      "id": "2F_E0013",
+      "from": "2F_N0004",
+      "to": "2F_N0008",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 134.91
+    },
+    {
+      "id": "2F_E0014",
+      "from": "2F_N0008",
+      "to": "2F_N0014",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 88.9332
+    },
+    {
+      "id": "2F_E0015",
+      "from": "2F_N0014",
+      "to": "2F_N0015",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.0293
+    },
+    {
+      "id": "2F_E0016",
+      "from": "2F_N0015",
+      "to": "2F_N0016",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 208.4983
+    },
+    {
+      "id": "2F_E0017",
+      "from": "2F_N0016",
+      "to": "2F_N0017",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.071
+    },
+    {
+      "id": "2F_E0018",
+      "from": "2F_N0017",
+      "to": "2F_N0003",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 63.8486
+    },
+    {
+      "id": "2F_E0019",
+      "from": "2F_N0001",
+      "to": "2F_N0018",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 359.3121
+    },
+    {
+      "id": "2F_E0020",
+      "from": "2F_N0018",
+      "to": "2F_N0019",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 141.3042
+    },
+    {
+      "id": "2F_E0021",
+      "from": "2F_N0019",
+      "to": "2F_N0020",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 183.2244
+    },
+    {
+      "id": "2F_E0022",
+      "from": "2F_N0020",
+      "to": "2F_N0021",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 15.2533
+    },
+    {
+      "id": "2F_E0023",
+      "from": "2F_N0021",
+      "to": "2F_N0022",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 249.7223
+    },
+    {
+      "id": "2F_E0024",
+      "from": "2F_N0022",
+      "to": "2F_N0023",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 137.2964
+    },
+    {
+      "id": "2F_E0025",
+      "from": "2F_N0023",
+      "to": "2F_N0024",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 32.3
+    },
+    {
+      "id": "2F_E0026",
+      "from": "2F_N0024",
+      "to": "2F_N0025",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.2
+    },
+    {
+      "id": "2F_E0027",
+      "from": "2F_N0025",
+      "to": "2F_N0026",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 199.8
+    },
+    {
+      "id": "2F_E0028",
+      "from": "2F_N0026",
+      "to": "2F_N0027",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.3
+    },
+    {
+      "id": "2F_E0029",
+      "from": "2F_N0027",
+      "to": "2F_N0028",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 34.69
+    },
+    {
+      "id": "2F_E0030",
+      "from": "2F_N0028",
+      "to": "2F_N0029",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 177.58
+    },
+    {
+      "id": "2F_E0031",
+      "from": "2F_N0029",
+      "to": "2F_N0030",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 41.26
+    },
+    {
+      "id": "2F_E0032",
+      "from": "2F_N0030",
+      "to": "2F_N0031",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 43.06
+    },
+    {
+      "id": "2F_E0033",
+      "from": "2F_N0031",
+      "to": "2F_N0007",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 403.61
+    },
+    {
+      "id": "2F_E0034",
+      "from": "2F_N0007",
+      "to": "2F_N0032",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 97.7076
+    },
+    {
+      "id": "2F_E0035",
+      "from": "2F_N0032",
+      "to": "2F_N0033",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 259.9105
+    },
+    {
+      "id": "2F_E0036",
+      "from": "2F_N0033",
+      "to": "2F_N0034",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 358.5028
+    },
+    {
+      "id": "2F_E0037",
+      "from": "2F_N0034",
+      "to": "2F_N0010",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 105.5602
+    },
+    {
+      "id": "2F_E0038",
+      "from": "2F_N0010",
+      "to": "2F_N0035",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 282.21
+    },
+    {
+      "id": "2F_E0039",
+      "from": "2F_N0035",
+      "to": "2F_N0036",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 116.02
+    },
+    {
+      "id": "2F_E0040",
+      "from": "2F_N0036",
+      "to": "2F_N0037",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 90.0731
+    },
+    {
+      "id": "2F_E0041",
+      "from": "2F_N0037",
+      "to": "2F_N0038",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 136.2502
+    },
+    {
+      "id": "2F_E0042",
+      "from": "2F_N0038",
+      "to": "2F_N0039",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 167.88
+    },
+    {
+      "id": "2F_E0043",
+      "from": "2F_N0039",
+      "to": "2F_N0040",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 85.07
+    },
+    {
+      "id": "2F_E0044",
+      "from": "2F_N0040",
+      "to": "2F_N0041",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 25.09
+    },
+    {
+      "id": "2F_E0045",
+      "from": "2F_N0041",
+      "to": "2F_N0042",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 116.5974
+    },
+    {
+      "id": "2F_E0046",
+      "from": "2F_N0042",
+      "to": "2F_N0043",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 103.8096
+    },
+    {
+      "id": "2F_E0047",
+      "from": "2F_N0043",
+      "to": "2F_N0044",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 127.6642
+    },
+    {
+      "id": "2F_E0048",
+      "from": "2F_N0044",
+      "to": "2F_N0045",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 108.2982
+    },
+    {
+      "id": "2F_E0049",
+      "from": "2F_N0045",
+      "to": "2F_N0046",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 104.9448
+    },
+    {
+      "id": "2F_E0050",
+      "from": "2F_N0046",
+      "to": "2F_N0047",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 202.0603
+    },
+    {
+      "id": "2F_E0051",
+      "from": "2F_N0047",
+      "to": "2F_N0048",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 58.8
+    },
+    {
+      "id": "2F_E0052",
+      "from": "2F_N0048",
+      "to": "2F_N0049",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 167.23
+    },
+    {
+      "id": "2F_E0053",
+      "from": "2F_N0049",
+      "to": "2F_N0001",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 147.1984
+    },
+    {
+      "id": "2F_E0054",
+      "from": "2F_N0037",
+      "to": "2F_N0050",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 110.3236
+    },
+    {
+      "id": "2F_E0055",
+      "from": "2F_N0050",
+      "to": "2F_N0051",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 120.74
+    },
+    {
+      "id": "2F_E0056",
+      "from": "2F_N0051",
+      "to": "2F_N0052",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 6.62
+    },
+    {
+      "id": "2F_E0057",
+      "from": "2F_N0043",
+      "to": "2F_N0053",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 181.634
+    },
+    {
+      "id": "2F_E0058",
+      "from": "2F_N0053",
+      "to": "2F_N0054",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 2.2382
+    },
+    {
+      "id": "2F_E0059",
+      "from": "2F_N0022",
+      "to": "2F_N0055",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 31.085
+    },
+    {
+      "id": "2F_E0060",
+      "from": "2F_N0055",
+      "to": "2F_N0056",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 98.968
+    },
+    {
+      "id": "2F_E0061",
+      "from": "2F_N0029",
+      "to": "2F_N0057",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 35.3911
+    },
+    {
+      "id": "2F_E0062",
+      "from": "2F_N0057",
+      "to": "2F_N0058",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 135.9402
+    },
+    {
+      "id": "2F_E0063",
+      "from": "2F_N0058",
+      "to": "2F_N0059",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 78.87
+    },
+    {
+      "id": "2F_E0064",
+      "from": "2F_N0059",
+      "to": "2F_N0060",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.05
+    },
+    {
+      "id": "2F_E0065",
+      "from": "2F_N0031",
+      "to": "2F_N0061",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 215.9861
+    },
+    {
+      "id": "2F_E0066",
+      "from": "2F_N0061",
+      "to": "2F_N0062",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.1658
+    },
+    {
+      "id": "2F_E0067",
+      "from": "2F_N0007",
+      "to": "2F_N0063",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 169.5124
+    },
+    {
+      "id": "2F_E0068",
+      "from": "2F_N0036",
+      "to": "2F_N0064",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 242.8758
+    },
+    {
+      "id": "2F_E0069",
+      "from": "2F_N0064",
+      "to": "2F_N0065",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.6355
+    },
+    {
+      "id": "2F_E0070",
+      "from": "2F_N0019",
+      "to": "2F_N0066",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 199.2772
+    },
+    {
+      "id": "2F_E0071",
+      "from": "2F_N0066",
+      "to": "2F_N0067",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 114.1341
+    },
+    {
+      "id": "2F_E0072",
+      "from": "2F_N0067",
+      "to": "2F_N0049",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 72.418
+    },
+    {
+      "id": "2F_E0073",
+      "from": "2F_N0038",
+      "to": "2F_N0068",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 24.7455
+    },
+    {
+      "id": "2F_E0074",
+      "from": "2F_N0068",
+      "to": "2F_N0069",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 22.4008
+    },
+    {
+      "id": "2F_E0075",
+      "from": "2F_N0069",
+      "to": "2F_N0070",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 45.8059
+    },
+    {
+      "id": "2F_E0076",
+      "from": "2F_N0070",
+      "to": "2F_N0071",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 277.318
+    },
+    {
+      "id": "2F_E0077",
+      "from": "2F_N0071",
+      "to": "2F_N0072",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 47.5487
+    },
+    {
+      "id": "2F_E0078",
+      "from": "2F_N0072",
+      "to": "2F_N0041",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 47.5013
+    },
+    {
+      "id": "2F_E0079",
+      "from": "2F_N0023",
+      "to": "2F_N0073",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 176.6704
+    },
+    {
+      "id": "2F_E0080",
+      "from": "2F_N0073",
+      "to": "2F_N0074",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 264.71
+    },
+    {
+      "id": "2F_E0081",
+      "from": "2F_N0074",
+      "to": "2F_N0028",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 176.6836
+    },
+    {
+      "id": "2F_E0082",
+      "from": "2F_N0001",
+      "to": "2F_N0075",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 225.247
+    },
+    {
+      "id": "2F_E0083",
+      "from": "2F_N0075",
+      "to": "2F_N0076",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 1.1461
+    },
+    {
+      "id": "2F_E0084",
+      "from": "2F_N0038",
+      "to": "2F_N0077",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 70.2299
+    },
+    {
+      "id": "2F_E0085",
+      "from": "2F_N0077",
+      "to": "2F_N0078",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 221.85
+    },
+    {
+      "id": "2F_E0086",
+      "from": "2F_N0078",
+      "to": "2F_N0079",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.84
+    },
+    {
+      "id": "2F_E0087",
+      "from": "2F_A0000",
+      "to": "2F_N0068",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 23.5775
+    },
+    {
+      "id": "2F_E0088",
+      "from": "2F_A0001",
+      "to": "2F_N0069",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 23.6209
+    },
+    {
+      "id": "2F_E0089",
+      "from": "2F_A0002",
+      "to": "2F_N0015",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 48.9868
+    },
+    {
+      "id": "2F_E0090",
+      "from": "2F_A0003",
+      "to": "2F_N0014",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.9868
+    },
+    {
+      "id": "2F_E0091",
+      "from": "2F_A0004",
+      "to": "2F_N0013",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 22.41
+    },
+    {
+      "id": "2F_E0092",
+      "from": "2F_A0005",
+      "to": "2F_N0012",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 45.51
+    },
+    {
+      "id": "2F_E0093",
+      "from": "2F_A0006",
+      "to": "2F_N0026",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 44.37
+    },
+    {
+      "id": "2F_E0094",
+      "from": "2F_A0007",
+      "to": "2F_N0027",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 66.57
+    },
+    {
+      "id": "2F_E0095",
+      "from": "2F_A0008",
+      "to": "2F_N0040",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 24.18
+    },
+    {
+      "id": "2F_E0096",
+      "from": "2F_A0009",
+      "to": "2F_N0072",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.25
+    },
+    {
+      "id": "2F_E0097",
+      "from": "2F_A0010",
+      "to": "2F_N0017",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 24.7213
+    },
+    {
+      "id": "2F_E0098",
+      "from": "2F_A0011",
+      "to": "2F_N0016",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 47.5214
+    },
+    {
+      "id": "2F_E0099",
+      "from": "2F_A0012",
+      "to": "2F_N0011",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 45.41
+    },
+    {
+      "id": "2F_E0100",
+      "from": "2F_A0013",
+      "to": "2F_N0011",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 22.51
+    },
+    {
+      "id": "2F_E0101",
+      "from": "2F_A0014",
+      "to": "2F_N0025",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 67.37
+    },
+    {
+      "id": "2F_E0102",
+      "from": "2F_A0015",
+      "to": "2F_N0024",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 44.67
+    },
+    {
+      "id": "2F_E0103",
+      "from": "2F_A0034",
+      "to": "2F_N0045",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 34.8675
+    },
+    {
+      "id": "2F_E0104",
+      "from": "2F_A0035",
+      "to": "2F_N0048",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.25
+    },
+    {
+      "id": "2F_E0105",
+      "from": "2F_A0036",
+      "to": "2F_N0067",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.2087
+    },
+    {
+      "id": "2F_E0106",
+      "from": "2F_A0037",
+      "to": "2F_N0020",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 33.7014
+    },
+    {
+      "id": "2F_E0107",
+      "from": "2F_A0038",
+      "to": "2F_N0055",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 87.0448
+    },
+    {
+      "id": "2F_E0108",
+      "from": "2F_A0039",
+      "to": "2F_N0057",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 20.0948
+    },
+    {
+      "id": "2F_E0109",
+      "from": "2F_A0040",
+      "to": "2F_N0032",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 30.5858
+    },
+    {
+      "id": "2F_E0110",
+      "from": "2F_A0041",
+      "to": "2F_N0034",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 41.3294
+    },
+    {
+      "id": "2F_E0111",
+      "from": "2F_A0042",
+      "to": "2F_N0035",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 65.78
+    },
+    {
+      "id": "2F_E0112",
+      "from": "2F_A0043",
+      "to": "2F_N0039",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 17.55
+    },
+    {
+      "id": "2F_E0113",
+      "from": "2F_A0046",
+      "to": "2F_N0078",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 26.47
+    },
+    {
+      "id": "2F_E0114",
+      "from": "2F_A0047",
+      "to": "2F_N0075",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 21.8563
+    },
+    {
+      "id": "2F_E0115",
+      "from": "2F_A0048",
+      "to": "2F_N0051",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 23.9
+    },
+    {
+      "id": "2F_E0116",
+      "from": "2F_A0049",
+      "to": "2F_N0059",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 59.14
+    },
+    {
+      "id": "2F_E0117",
+      "from": "2F_A0050",
+      "to": "2F_N0053",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 24.8813
+    },
+    {
+      "id": "2F_E0118",
+      "from": "2F_A0051",
+      "to": "2F_N0056",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.6245
+    },
+    {
+      "id": "2F_E0119",
+      "from": "2F_A0052",
+      "to": "2F_N0064",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 17.098
+    },
+    {
+      "id": "2F_E0120",
+      "from": "2F_A0053",
+      "to": "2F_N0063",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 70.8871
+    },
+    {
+      "id": "2F_E0121",
+      "from": "2F_A0054",
+      "to": "2F_N0061",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 20.6095
+    }
+  ],
+  "places": [
+    {
+      "id": "2F_ESC_W_DOWN_2F_1F",
+      "navigationKey": "2F_ESC_W_DOWN_2F_1F",
+      "name": "서측 에스컬레이터",
+      "nodeId": "2F_A0001",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "2F_ESC_C1_DOWN_2F_1F",
+      "navigationKey": "2F_ESC_C1_DOWN_2F_1F",
+      "name": "중앙 1 에스컬레이터",
+      "nodeId": "2F_A0003",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "2F_ESC_C2_DOWN_2F_1F",
+      "navigationKey": "2F_ESC_C2_DOWN_2F_1F",
+      "name": "중앙 2 에스컬레이터",
+      "nodeId": "2F_A0005",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 5
+    },
+    {
+      "id": "2F_ESC_E_DOWN_2F_1F",
+      "navigationKey": "2F_ESC_E_DOWN_2F_1F",
+      "name": "동측 에스컬레이터",
+      "nodeId": "2F_A0007",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "2F_ESC_W_UP_2F_3F",
+      "navigationKey": "2F_ESC_W_UP_2F_3F",
+      "name": "서측 에스컬레이터",
+      "nodeId": "2F_A0009",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 9
+    },
+    {
+      "id": "2F_ESC_C1_UP_2F_3F",
+      "navigationKey": "2F_ESC_C1_UP_2F_3F",
+      "name": "중앙 1 에스컬레이터",
+      "nodeId": "2F_A0010",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 10
+    },
+    {
+      "id": "2F_ESC_C2_UP_2F_3F",
+      "navigationKey": "2F_ESC_C2_UP_2F_3F",
+      "name": "중앙 2 에스컬레이터",
+      "nodeId": "2F_A0012",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "2F_ESC_E_UP_2F_3F",
+      "navigationKey": "2F_ESC_E_UP_2F_3F",
+      "name": "동측 에스컬레이터",
+      "nodeId": "2F_A0014",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "2F_STORE_0034",
+      "navigationKey": "2F_STORE_0034",
+      "name": "아크네 스튜디오",
+      "nodeId": "2F_A0034",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 34
+    },
+    {
+      "id": "2F_STORE_0035",
+      "navigationKey": "2F_STORE_0035",
+      "name": "랑방",
+      "nodeId": "2F_A0035",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 35
+    },
+    {
+      "id": "2F_STORE_0036",
+      "navigationKey": "2F_STORE_0036",
+      "name": "메종 마르지엘라",
+      "nodeId": "2F_A0036",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 36
+    },
+    {
+      "id": "2F_STORE_0037",
+      "navigationKey": "2F_STORE_0037",
+      "name": "아워레가시",
+      "nodeId": "2F_A0037",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 37
+    },
+    {
+      "id": "2F_STORE_0038",
+      "navigationKey": "2F_STORE_0038",
+      "name": "몽블랑",
+      "nodeId": "2F_A0038",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 38
+    },
+    {
+      "id": "2F_STORE_0039",
+      "navigationKey": "2F_STORE_0039",
+      "name": "태그호이어",
+      "nodeId": "2F_A0039",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 39
+    },
+    {
+      "id": "2F_STORE_0040",
+      "navigationKey": "2F_STORE_0040",
+      "name": "크롬하츠",
+      "nodeId": "2F_A0040",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 40
+    },
+    {
+      "id": "2F_STORE_0041",
+      "navigationKey": "2F_STORE_0041",
+      "name": "겐조",
+      "nodeId": "2F_A0041",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 41
+    },
+    {
+      "id": "2F_STORE_0042",
+      "navigationKey": "2F_STORE_0042",
+      "name": "꼼데가르송",
+      "nodeId": "2F_A0042",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 42
+    },
+    {
+      "id": "2F_STORE_0043",
+      "navigationKey": "2F_STORE_0043",
+      "name": "스와로브스키",
+      "nodeId": "2F_A0043",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 43
+    },
+    {
+      "id": "2F_STORE_0046",
+      "navigationKey": "2F_STORE_0046",
+      "name": "스톤아일랜드",
+      "nodeId": "2F_A0046",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 46
+    },
+    {
+      "id": "2F_RESTROOM_0048",
+      "navigationKey": "2F_RESTROOM_0048",
+      "name": "2층 서쪽 화장실",
+      "nodeId": "2F_A0048",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 48
+    },
+    {
+      "id": "2F_RESTROOM_0049",
+      "navigationKey": "2F_RESTROOM_0049",
+      "name": "2층 동쪽 화장실",
+      "nodeId": "2F_A0049",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 49
+    },
+    {
+      "id": "2F_EV_NW",
+      "navigationKey": "2F_EV_NW",
+      "name": "북서 엘리베이터",
+      "nodeId": "2F_A0050",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 50
+    },
+    {
+      "id": "2F_EV_NE",
+      "navigationKey": "2F_EV_NE",
+      "name": "북동 엘리베이터",
+      "nodeId": "2F_A0051",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 51
+    },
+    {
+      "id": "2F_EV_SW",
+      "navigationKey": "2F_EV_SW",
+      "name": "남서 엘리베이터",
+      "nodeId": "2F_A0052",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 52
+    },
+    {
+      "id": "2F_EV_STROLLER",
+      "navigationKey": "2F_EV_STROLLER",
+      "name": "유아차 전용 엘리베이터",
+      "nodeId": "2F_A0053",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 53
+    },
+    {
+      "id": "2F_EV_SE",
+      "navigationKey": "2F_EV_SE",
+      "name": "남동 엘리베이터",
+      "nodeId": "2F_A0054",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 54
+    }
+  ],
+  "connectors": [
+    {
+      "id": "ESC_W_DOWN_3F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0000",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 0
+    },
+    {
+      "id": "ESC_W_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "2F_A0001",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "ESC_C1_DOWN_3F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0002",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 2
+    },
+    {
+      "id": "ESC_C1_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "2F_A0003",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "ESC_C2_DOWN_3F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0004",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 4
+    },
+    {
+      "id": "ESC_C2_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "2F_A0005",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 5
+    },
+    {
+      "id": "ESC_E_DOWN_3F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0006",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 6
+    },
+    {
+      "id": "ESC_E_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "2F_A0007",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "ESC_W_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0008",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 8
+    },
+    {
+      "id": "ESC_W_UP_2F_3F",
+      "type": "escalator",
+      "nodeId": "2F_A0009",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 9
+    },
+    {
+      "id": "ESC_C1_UP_2F_3F",
+      "type": "escalator",
+      "nodeId": "2F_A0010",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 10
+    },
+    {
+      "id": "ESC_C1_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0011",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 11
+    },
+    {
+      "id": "ESC_C2_UP_2F_3F",
+      "type": "escalator",
+      "nodeId": "2F_A0012",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "ESC_C2_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0013",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 13
+    },
+    {
+      "id": "ESC_E_UP_2F_3F",
+      "type": "escalator",
+      "nodeId": "2F_A0014",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "ESC_E_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "2F_A0015",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 15
+    },
+    {
+      "id": "EV_NW",
+      "type": "elevator",
+      "nodeId": "2F_A0050",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북서 엘리베이터",
+      "sourceCvatId": 50
+    },
+    {
+      "id": "EV_NE",
+      "type": "elevator",
+      "nodeId": "2F_A0051",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북동 엘리베이터",
+      "sourceCvatId": 51
+    },
+    {
+      "id": "EV_SW",
+      "type": "elevator",
+      "nodeId": "2F_A0052",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남서 엘리베이터",
+      "sourceCvatId": 52
+    },
+    {
+      "id": "EV_STROLLER",
+      "type": "elevator",
+      "nodeId": "2F_A0053",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "유아차 전용 엘리베이터",
+      "sourceCvatId": 53
+    },
+    {
+      "id": "EV_SE",
+      "type": "elevator",
+      "nodeId": "2F_A0054",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남동 엘리베이터",
+      "sourceCvatId": 54
+    }
+  ]
+}

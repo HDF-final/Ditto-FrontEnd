@@ -1,0 +1,2600 @@
+{
+  "schemaVersion": 2,
+  "floorId": "1F",
+  "source": {
+    "format": "CVAT for images 1.1",
+    "imageName": "floor-1f.png",
+    "width": 2400,
+    "height": 1500
+  },
+  "stats": {
+    "polylineCount": 12,
+    "rawSegmentCount": 31,
+    "uniqueSegmentCount": 31,
+    "removedDuplicateSegments": 0,
+    "zeroLengthSegmentCount": 0,
+    "splitCorridorSegmentCount": 63,
+    "corridorComponentCount": 1,
+    "attachmentCount": 40,
+    "maximumAccessDistancePixels": 143.75
+  },
+  "nodes": [
+    {
+      "id": "1F_N0001",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1252.6,
+        "y": 426.55
+      },
+      "uv": {
+        "u": 0.521917,
+        "v": 0.284367
+      }
+    },
+    {
+      "id": "1F_N0002",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1103.44,
+        "y": 426.55
+      },
+      "uv": {
+        "u": 0.459767,
+        "v": 0.284367
+      }
+    },
+    {
+      "id": "1F_N0003",
+      "kind": "corridor",
+      "pixel": {
+        "x": 978.6776,
+        "y": 444.7283
+      },
+      "uv": {
+        "u": 0.407782,
+        "v": 0.296486
+      }
+    },
+    {
+      "id": "1F_N0004",
+      "kind": "corridor",
+      "pixel": {
+        "x": 795.4151,
+        "y": 471.4302
+      },
+      "uv": {
+        "u": 0.331423,
+        "v": 0.314287
+      }
+    },
+    {
+      "id": "1F_N0005",
+      "kind": "corridor",
+      "pixel": {
+        "x": 786.22,
+        "y": 472.77
+      },
+      "uv": {
+        "u": 0.327592,
+        "v": 0.31518
+      }
+    },
+    {
+      "id": "1F_N0006",
+      "kind": "corridor",
+      "pixel": {
+        "x": 450.08,
+        "y": 548.4
+      },
+      "uv": {
+        "u": 0.187533,
+        "v": 0.3656
+      }
+    },
+    {
+      "id": "1F_N0007",
+      "kind": "corridor",
+      "pixel": {
+        "x": 334.54,
+        "y": 600.92
+      },
+      "uv": {
+        "u": 0.139392,
+        "v": 0.400613
+      }
+    },
+    {
+      "id": "1F_N0008",
+      "kind": "corridor",
+      "pixel": {
+        "x": 334.54,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.139392,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_N0009",
+      "kind": "corridor",
+      "pixel": {
+        "x": 334.54,
+        "y": 849.3
+      },
+      "uv": {
+        "u": 0.139392,
+        "v": 0.5662
+      }
+    },
+    {
+      "id": "1F_N0010",
+      "kind": "corridor",
+      "pixel": {
+        "x": 334.54,
+        "y": 849.4
+      },
+      "uv": {
+        "u": 0.139392,
+        "v": 0.566267
+      }
+    },
+    {
+      "id": "1F_N0011",
+      "kind": "corridor",
+      "pixel": {
+        "x": 334.54,
+        "y": 899.24
+      },
+      "uv": {
+        "u": 0.139392,
+        "v": 0.599493
+      }
+    },
+    {
+      "id": "1F_N0012",
+      "kind": "corridor",
+      "pixel": {
+        "x": 366.6131,
+        "y": 908.3198
+      },
+      "uv": {
+        "u": 0.152755,
+        "v": 0.605547
+      }
+    },
+    {
+      "id": "1F_N0013",
+      "kind": "corridor",
+      "pixel": {
+        "x": 445.88,
+        "y": 930.76
+      },
+      "uv": {
+        "u": 0.185783,
+        "v": 0.620507
+      }
+    },
+    {
+      "id": "1F_N0014",
+      "kind": "corridor",
+      "pixel": {
+        "x": 546.1301,
+        "y": 953.543
+      },
+      "uv": {
+        "u": 0.227554,
+        "v": 0.635695
+      }
+    },
+    {
+      "id": "1F_N0015",
+      "kind": "corridor",
+      "pixel": {
+        "x": 815.63,
+        "y": 1014.79
+      },
+      "uv": {
+        "u": 0.339846,
+        "v": 0.676527
+      }
+    },
+    {
+      "id": "1F_N0016",
+      "kind": "corridor",
+      "pixel": {
+        "x": 911.9545,
+        "y": 1020.8958
+      },
+      "uv": {
+        "u": 0.379981,
+        "v": 0.680597
+      }
+    },
+    {
+      "id": "1F_N0017",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1025.0632,
+        "y": 1028.0656
+      },
+      "uv": {
+        "u": 0.42711,
+        "v": 0.685377
+      }
+    },
+    {
+      "id": "1F_N0018",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1113.95,
+        "y": 1033.7
+      },
+      "uv": {
+        "u": 0.464146,
+        "v": 0.689133
+      }
+    },
+    {
+      "id": "1F_N0019",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1183.28,
+        "y": 1033.7
+      },
+      "uv": {
+        "u": 0.493033,
+        "v": 0.689133
+      }
+    },
+    {
+      "id": "1F_N0020",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1256.81,
+        "y": 1033.7
+      },
+      "uv": {
+        "u": 0.523671,
+        "v": 0.689133
+      }
+    },
+    {
+      "id": "1F_N0021",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1363.3574,
+        "y": 1024.696
+      },
+      "uv": {
+        "u": 0.568066,
+        "v": 0.683131
+      }
+    },
+    {
+      "id": "1F_N0022",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1555.13,
+        "y": 1008.49
+      },
+      "uv": {
+        "u": 0.647971,
+        "v": 0.672327
+      }
+    },
+    {
+      "id": "1F_N0023",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1721.3984,
+        "y": 968.9462
+      },
+      "uv": {
+        "u": 0.717249,
+        "v": 0.645964
+      }
+    },
+    {
+      "id": "1F_N0024",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1899.66,
+        "y": 926.55
+      },
+      "uv": {
+        "u": 0.791525,
+        "v": 0.6177
+      }
+    },
+    {
+      "id": "1F_N0025",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1940.5,
+        "y": 926.55
+      },
+      "uv": {
+        "u": 0.808542,
+        "v": 0.6177
+      }
+    },
+    {
+      "id": "1F_N0026",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1962.99,
+        "y": 926.55
+      },
+      "uv": {
+        "u": 0.817913,
+        "v": 0.6177
+      }
+    },
+    {
+      "id": "1F_N0027",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2151.76,
+        "y": 926.55
+      },
+      "uv": {
+        "u": 0.896567,
+        "v": 0.6177
+      }
+    },
+    {
+      "id": "1F_N0028",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2151.76,
+        "y": 918.15
+      },
+      "uv": {
+        "u": 0.896567,
+        "v": 0.6121
+      }
+    },
+    {
+      "id": "1F_N0029",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2151.76,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.896567,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0030",
+      "kind": "corridor",
+      "pixel": {
+        "x": 2044.62,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.851925,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0031",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1964.1,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.818375,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0032",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1962.69,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.817788,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0033",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1940.3,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.808458,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0034",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1903.87,
+        "y": 563.11
+      },
+      "uv": {
+        "u": 0.793279,
+        "v": 0.375407
+      }
+    },
+    {
+      "id": "1F_N0035",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1739.2656,
+        "y": 517.1747
+      },
+      "uv": {
+        "u": 0.724694,
+        "v": 0.344783
+      }
+    },
+    {
+      "id": "1F_N0036",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1576.2917,
+        "y": 471.6945
+      },
+      "uv": {
+        "u": 0.656788,
+        "v": 0.314463
+      }
+    },
+    {
+      "id": "1F_N0037",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1542.52,
+        "y": 462.27
+      },
+      "uv": {
+        "u": 0.642717,
+        "v": 0.30818
+      }
+    },
+    {
+      "id": "1F_N0038",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1961.43,
+        "y": 305.97
+      },
+      "uv": {
+        "u": 0.817263,
+        "v": 0.20398
+      }
+    },
+    {
+      "id": "1F_N0039",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1900.5,
+        "y": 1249.24
+      },
+      "uv": {
+        "u": 0.791875,
+        "v": 0.832827
+      }
+    },
+    {
+      "id": "1F_N0040",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1251.3832,
+        "y": 93.0091
+      },
+      "uv": {
+        "u": 0.52141,
+        "v": 0.062006
+      }
+    },
+    {
+      "id": "1F_N0041",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1251.34,
+        "y": 81.18
+      },
+      "uv": {
+        "u": 0.521392,
+        "v": 0.05412
+      }
+    },
+    {
+      "id": "1F_N0042",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1555.97,
+        "y": 1316.47
+      },
+      "uv": {
+        "u": 0.648321,
+        "v": 0.877647
+      }
+    },
+    {
+      "id": "1F_N0043",
+      "kind": "corridor",
+      "pixel": {
+        "x": 444.62,
+        "y": 1247.14
+      },
+      "uv": {
+        "u": 0.185258,
+        "v": 0.831427
+      }
+    },
+    {
+      "id": "1F_N0044",
+      "kind": "corridor",
+      "pixel": {
+        "x": 450.92,
+        "y": 356.39
+      },
+      "uv": {
+        "u": 0.187883,
+        "v": 0.237593
+      }
+    },
+    {
+      "id": "1F_N0045",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1102.8266,
+        "y": 508.9856
+      },
+      "uv": {
+        "u": 0.459511,
+        "v": 0.339324
+      }
+    },
+    {
+      "id": "1F_N0046",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1102.18,
+        "y": 595.88
+      },
+      "uv": {
+        "u": 0.459242,
+        "v": 0.397253
+      }
+    },
+    {
+      "id": "1F_N0047",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1100.08,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.458367,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "1F_N0048",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1106.1823,
+        "y": 949.695
+      },
+      "uv": {
+        "u": 0.460909,
+        "v": 0.63313
+      }
+    },
+    {
+      "id": "1F_N0049",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1253.44,
+        "y": 597.98
+      },
+      "uv": {
+        "u": 0.522267,
+        "v": 0.398653
+      }
+    },
+    {
+      "id": "1F_N0050",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1253.2192,
+        "y": 628.0167
+      },
+      "uv": {
+        "u": 0.522175,
+        "v": 0.418678
+      }
+    },
+    {
+      "id": "1F_N0051",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1251.5929,
+        "y": 849.2852
+      },
+      "uv": {
+        "u": 0.521497,
+        "v": 0.56619
+      }
+    },
+    {
+      "id": "1F_N0052",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1251.34,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.521392,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "1F_N0053",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1141.0857,
+        "y": 596.4201
+      },
+      "uv": {
+        "u": 0.475452,
+        "v": 0.397613
+      }
+    },
+    {
+      "id": "1F_N0054",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1162.9328,
+        "y": 596.7235
+      },
+      "uv": {
+        "u": 0.484555,
+        "v": 0.397816
+      }
+    },
+    {
+      "id": "1F_N0055",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1203.8936,
+        "y": 597.2921
+      },
+      "uv": {
+        "u": 0.501622,
+        "v": 0.398195
+      }
+    },
+    {
+      "id": "1F_N0056",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1140.09,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.475037,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "1F_N0057",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1161.9,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.484125,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "1F_N0058",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1203,
+        "y": 883.7
+      },
+      "uv": {
+        "u": 0.50125,
+        "v": 0.589133
+      }
+    },
+    {
+      "id": "1F_N0059",
+      "kind": "corridor",
+      "pixel": {
+        "x": 1349.7052,
+        "y": 438.514
+      },
+      "uv": {
+        "u": 0.562377,
+        "v": 0.292343
+      }
+    },
+    {
+      "id": "1F_A0000",
+      "kind": "escalator",
+      "pixel": {
+        "x": 283.3,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.118042,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_A0001",
+      "kind": "escalator",
+      "pixel": {
+        "x": 305.8,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.127417,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_A0002",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1140.65,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.475271,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_A0003",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1162.5,
+        "y": 627.9
+      },
+      "uv": {
+        "u": 0.484375,
+        "v": 0.4186
+      }
+    },
+    {
+      "id": "1F_A0004",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1203.47,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.501446,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_A0005",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1223.73,
+        "y": 627.8
+      },
+      "uv": {
+        "u": 0.509888,
+        "v": 0.418533
+      }
+    },
+    {
+      "id": "1F_A0006",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1940.3,
+        "y": 628.1
+      },
+      "uv": {
+        "u": 0.808458,
+        "v": 0.418733
+      }
+    },
+    {
+      "id": "1F_A0007",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1964.1,
+        "y": 628.1
+      },
+      "uv": {
+        "u": 0.818375,
+        "v": 0.418733
+      }
+    },
+    {
+      "id": "1F_A0008",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1962.99,
+        "y": 849.53
+      },
+      "uv": {
+        "u": 0.817913,
+        "v": 0.566353
+      }
+    },
+    {
+      "id": "1F_A0009",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1940.5,
+        "y": 849.3
+      },
+      "uv": {
+        "u": 0.808542,
+        "v": 0.5662
+      }
+    },
+    {
+      "id": "1F_A0010",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1226.4,
+        "y": 849.1
+      },
+      "uv": {
+        "u": 0.511,
+        "v": 0.566067
+      }
+    },
+    {
+      "id": "1F_A0011",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1203,
+        "y": 848.8
+      },
+      "uv": {
+        "u": 0.50125,
+        "v": 0.565867
+      }
+    },
+    {
+      "id": "1F_A0012",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1161.9,
+        "y": 848.6
+      },
+      "uv": {
+        "u": 0.484125,
+        "v": 0.565733
+      }
+    },
+    {
+      "id": "1F_A0013",
+      "kind": "escalator",
+      "pixel": {
+        "x": 1140.09,
+        "y": 848.62
+      },
+      "uv": {
+        "u": 0.475037,
+        "v": 0.565747
+      }
+    },
+    {
+      "id": "1F_A0014",
+      "kind": "escalator",
+      "pixel": {
+        "x": 306.1,
+        "y": 849.4
+      },
+      "uv": {
+        "u": 0.127542,
+        "v": 0.566267
+      }
+    },
+    {
+      "id": "1F_A0015",
+      "kind": "escalator",
+      "pixel": {
+        "x": 283.2,
+        "y": 849.3
+      },
+      "uv": {
+        "u": 0.118,
+        "v": 0.5662
+      }
+    },
+    {
+      "id": "1F_A0028",
+      "kind": "store",
+      "pixel": {
+        "x": 279.92,
+        "y": 504.29
+      },
+      "uv": {
+        "u": 0.116633,
+        "v": 0.336193
+      }
+    },
+    {
+      "id": "1F_A0029",
+      "kind": "store",
+      "pixel": {
+        "x": 968.99,
+        "y": 378.24
+      },
+      "uv": {
+        "u": 0.403746,
+        "v": 0.25216
+      }
+    },
+    {
+      "id": "1F_A0030",
+      "kind": "store",
+      "pixel": {
+        "x": 1357.65,
+        "y": 374.03
+      },
+      "uv": {
+        "u": 0.565688,
+        "v": 0.249353
+      }
+    },
+    {
+      "id": "1F_A0031",
+      "kind": "store",
+      "pixel": {
+        "x": 1763.9,
+        "y": 428.9
+      },
+      "uv": {
+        "u": 0.734958,
+        "v": 0.285933
+      }
+    },
+    {
+      "id": "1F_A0032",
+      "kind": "store",
+      "pixel": {
+        "x": 2044.62,
+        "y": 504.29
+      },
+      "uv": {
+        "u": 0.851925,
+        "v": 0.336193
+      }
+    },
+    {
+      "id": "1F_A0033",
+      "kind": "store",
+      "pixel": {
+        "x": 2225.29,
+        "y": 918.15
+      },
+      "uv": {
+        "u": 0.927204,
+        "v": 0.6121
+      }
+    },
+    {
+      "id": "1F_A0034",
+      "kind": "store",
+      "pixel": {
+        "x": 1735.8,
+        "y": 1029.5
+      },
+      "uv": {
+        "u": 0.72325,
+        "v": 0.686333
+      }
+    },
+    {
+      "id": "1F_A0035",
+      "kind": "store",
+      "pixel": {
+        "x": 1368.2,
+        "y": 1082
+      },
+      "uv": {
+        "u": 0.570083,
+        "v": 0.721333
+      }
+    },
+    {
+      "id": "1F_A0036",
+      "kind": "store",
+      "pixel": {
+        "x": 1021.51,
+        "y": 1084.12
+      },
+      "uv": {
+        "u": 0.425629,
+        "v": 0.722747
+      }
+    },
+    {
+      "id": "1F_A0037",
+      "kind": "store",
+      "pixel": {
+        "x": 534.12,
+        "y": 1006.39
+      },
+      "uv": {
+        "u": 0.22255,
+        "v": 0.670927
+      }
+    },
+    {
+      "id": "1F_A0038",
+      "kind": "store",
+      "pixel": {
+        "x": 351.34,
+        "y": 962.27
+      },
+      "uv": {
+        "u": 0.146392,
+        "v": 0.641513
+      }
+    },
+    {
+      "id": "1F_A0039",
+      "kind": "store",
+      "pixel": {
+        "x": 206.39,
+        "y": 964.37
+      },
+      "uv": {
+        "u": 0.085996,
+        "v": 0.642913
+      }
+    },
+    {
+      "id": "1F_A0040",
+      "kind": "store",
+      "pixel": {
+        "x": 1183.28,
+        "y": 974.87
+      },
+      "uv": {
+        "u": 0.493033,
+        "v": 0.649913
+      }
+    },
+    {
+      "id": "1F_A0041",
+      "kind": "store",
+      "pixel": {
+        "x": 1557.23,
+        "y": 540
+      },
+      "uv": {
+        "u": 0.648846,
+        "v": 0.36
+      }
+    },
+    {
+      "id": "1F_A0042",
+      "kind": "store",
+      "pixel": {
+        "x": 1036.22,
+        "y": 508.49
+      },
+      "uv": {
+        "u": 0.431758,
+        "v": 0.338993
+      }
+    },
+    {
+      "id": "1F_A0043",
+      "kind": "store",
+      "pixel": {
+        "x": 1038.32,
+        "y": 955.97
+      },
+      "uv": {
+        "u": 0.432633,
+        "v": 0.637313
+      }
+    },
+    {
+      "id": "1F_A0044",
+      "kind": "store",
+      "pixel": {
+        "x": 916.47,
+        "y": 949.66
+      },
+      "uv": {
+        "u": 0.381863,
+        "v": 0.633107
+      }
+    },
+    {
+      "id": "1F_A0045",
+      "kind": "store",
+      "pixel": {
+        "x": 805.1,
+        "y": 537.9
+      },
+      "uv": {
+        "u": 0.335458,
+        "v": 0.3586
+      }
+    },
+    {
+      "id": "1F_A0046",
+      "kind": "elevator",
+      "pixel": {
+        "x": 443.78,
+        "y": 290
+      },
+      "uv": {
+        "u": 0.184908,
+        "v": 0.193333
+      }
+    },
+    {
+      "id": "1F_A0047",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1927.4,
+        "y": 305.4
+      },
+      "uv": {
+        "u": 0.803083,
+        "v": 0.2036
+      }
+    },
+    {
+      "id": "1F_A0048",
+      "kind": "elevator",
+      "pixel": {
+        "x": 445.3,
+        "y": 1284.3
+      },
+      "uv": {
+        "u": 0.185542,
+        "v": 0.8562
+      }
+    },
+    {
+      "id": "1F_A0049",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1486.8,
+        "y": 1319.7
+      },
+      "uv": {
+        "u": 0.6195,
+        "v": 0.8798
+      }
+    },
+    {
+      "id": "1F_A0050",
+      "kind": "elevator",
+      "pixel": {
+        "x": 1900.6,
+        "y": 1289.9
+      },
+      "uv": {
+        "u": 0.791917,
+        "v": 0.859933
+      }
+    },
+    {
+      "id": "1F_A0051",
+      "kind": "restroom",
+      "pixel": {
+        "x": 1281.3,
+        "y": 92.9
+      },
+      "uv": {
+        "u": 0.533875,
+        "v": 0.061933
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "1F_E0001",
+      "from": "1F_N0001",
+      "to": "1F_N0002",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 149.16
+    },
+    {
+      "id": "1F_E0002",
+      "from": "1F_N0002",
+      "to": "1F_N0003",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 126.0798
+    },
+    {
+      "id": "1F_E0003",
+      "from": "1F_N0003",
+      "to": "1F_N0004",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 185.1976
+    },
+    {
+      "id": "1F_E0004",
+      "from": "1F_N0004",
+      "to": "1F_N0005",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 9.2922
+    },
+    {
+      "id": "1F_E0005",
+      "from": "1F_N0005",
+      "to": "1F_N0006",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 344.5432
+    },
+    {
+      "id": "1F_E0006",
+      "from": "1F_N0006",
+      "to": "1F_N0007",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 126.9167
+    },
+    {
+      "id": "1F_E0007",
+      "from": "1F_N0007",
+      "to": "1F_N0008",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 26.88
+    },
+    {
+      "id": "1F_E0008",
+      "from": "1F_N0008",
+      "to": "1F_N0009",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 221.5
+    },
+    {
+      "id": "1F_E0009",
+      "from": "1F_N0009",
+      "to": "1F_N0010",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 0.1
+    },
+    {
+      "id": "1F_E0010",
+      "from": "1F_N0010",
+      "to": "1F_N0011",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 49.84
+    },
+    {
+      "id": "1F_E0011",
+      "from": "1F_N0011",
+      "to": "1F_N0012",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 33.3336
+    },
+    {
+      "id": "1F_E0012",
+      "from": "1F_N0012",
+      "to": "1F_N0013",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 82.3821
+    },
+    {
+      "id": "1F_E0013",
+      "from": "1F_N0013",
+      "to": "1F_N0014",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 102.8064
+    },
+    {
+      "id": "1F_E0014",
+      "from": "1F_N0014",
+      "to": "1F_N0015",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 276.3718
+    },
+    {
+      "id": "1F_E0015",
+      "from": "1F_N0015",
+      "to": "1F_N0016",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 96.5178
+    },
+    {
+      "id": "1F_E0016",
+      "from": "1F_N0016",
+      "to": "1F_N0017",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 113.3357
+    },
+    {
+      "id": "1F_E0017",
+      "from": "1F_N0017",
+      "to": "1F_N0018",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 89.0652
+    },
+    {
+      "id": "1F_E0018",
+      "from": "1F_N0018",
+      "to": "1F_N0019",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 69.33
+    },
+    {
+      "id": "1F_E0019",
+      "from": "1F_N0019",
+      "to": "1F_N0020",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 73.53
+    },
+    {
+      "id": "1F_E0020",
+      "from": "1F_N0020",
+      "to": "1F_N0021",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 106.9272
+    },
+    {
+      "id": "1F_E0021",
+      "from": "1F_N0021",
+      "to": "1F_N0022",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 192.4561
+    },
+    {
+      "id": "1F_E0022",
+      "from": "1F_N0022",
+      "to": "1F_N0023",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 170.9061
+    },
+    {
+      "id": "1F_E0023",
+      "from": "1F_N0023",
+      "to": "1F_N0024",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 183.2338
+    },
+    {
+      "id": "1F_E0024",
+      "from": "1F_N0024",
+      "to": "1F_N0025",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 40.84
+    },
+    {
+      "id": "1F_E0025",
+      "from": "1F_N0025",
+      "to": "1F_N0026",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 22.49
+    },
+    {
+      "id": "1F_E0026",
+      "from": "1F_N0026",
+      "to": "1F_N0027",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 188.77
+    },
+    {
+      "id": "1F_E0027",
+      "from": "1F_N0027",
+      "to": "1F_N0028",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 8.4
+    },
+    {
+      "id": "1F_E0028",
+      "from": "1F_N0028",
+      "to": "1F_N0029",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 355.04
+    },
+    {
+      "id": "1F_E0029",
+      "from": "1F_N0029",
+      "to": "1F_N0030",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 107.14
+    },
+    {
+      "id": "1F_E0030",
+      "from": "1F_N0030",
+      "to": "1F_N0031",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 80.52
+    },
+    {
+      "id": "1F_E0031",
+      "from": "1F_N0031",
+      "to": "1F_N0032",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 1.41
+    },
+    {
+      "id": "1F_E0032",
+      "from": "1F_N0032",
+      "to": "1F_N0033",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 22.39
+    },
+    {
+      "id": "1F_E0033",
+      "from": "1F_N0033",
+      "to": "1F_N0034",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 36.43
+    },
+    {
+      "id": "1F_E0034",
+      "from": "1F_N0034",
+      "to": "1F_N0035",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 170.8937
+    },
+    {
+      "id": "1F_E0035",
+      "from": "1F_N0035",
+      "to": "1F_N0036",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 169.2009
+    },
+    {
+      "id": "1F_E0036",
+      "from": "1F_N0036",
+      "to": "1F_N0037",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 35.0621
+    },
+    {
+      "id": "1F_E0037",
+      "from": "1F_N0032",
+      "to": "1F_N0038",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 257.1431
+    },
+    {
+      "id": "1F_E0038",
+      "from": "1F_N0024",
+      "to": "1F_N0039",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 322.6911
+    },
+    {
+      "id": "1F_E0039",
+      "from": "1F_N0001",
+      "to": "1F_N0040",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 333.5431
+    },
+    {
+      "id": "1F_E0040",
+      "from": "1F_N0040",
+      "to": "1F_N0041",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 11.8292
+    },
+    {
+      "id": "1F_E0041",
+      "from": "1F_N0022",
+      "to": "1F_N0042",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 307.9811
+    },
+    {
+      "id": "1F_E0042",
+      "from": "1F_N0013",
+      "to": "1F_N0043",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 316.3825
+    },
+    {
+      "id": "1F_E0043",
+      "from": "1F_N0006",
+      "to": "1F_N0044",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 192.0118
+    },
+    {
+      "id": "1F_E0044",
+      "from": "1F_N0002",
+      "to": "1F_N0045",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 82.4379
+    },
+    {
+      "id": "1F_E0045",
+      "from": "1F_N0045",
+      "to": "1F_N0046",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 86.8968
+    },
+    {
+      "id": "1F_E0046",
+      "from": "1F_N0046",
+      "to": "1F_N0047",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 287.8277
+    },
+    {
+      "id": "1F_E0047",
+      "from": "1F_N0047",
+      "to": "1F_N0048",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 66.2765
+    },
+    {
+      "id": "1F_E0048",
+      "from": "1F_N0048",
+      "to": "1F_N0018",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 84.3634
+    },
+    {
+      "id": "1F_E0049",
+      "from": "1F_N0001",
+      "to": "1F_N0049",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 171.4321
+    },
+    {
+      "id": "1F_E0050",
+      "from": "1F_N0049",
+      "to": "1F_N0050",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 30.0375
+    },
+    {
+      "id": "1F_E0051",
+      "from": "1F_N0050",
+      "to": "1F_N0051",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 221.2745
+    },
+    {
+      "id": "1F_E0052",
+      "from": "1F_N0051",
+      "to": "1F_N0052",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 34.4157
+    },
+    {
+      "id": "1F_E0053",
+      "from": "1F_N0052",
+      "to": "1F_N0020",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 150.0997
+    },
+    {
+      "id": "1F_E0054",
+      "from": "1F_N0046",
+      "to": "1F_N0053",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 38.9094
+    },
+    {
+      "id": "1F_E0055",
+      "from": "1F_N0053",
+      "to": "1F_N0054",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 21.8492
+    },
+    {
+      "id": "1F_E0056",
+      "from": "1F_N0054",
+      "to": "1F_N0055",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 40.9647
+    },
+    {
+      "id": "1F_E0057",
+      "from": "1F_N0055",
+      "to": "1F_N0049",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 49.5512
+    },
+    {
+      "id": "1F_E0058",
+      "from": "1F_N0047",
+      "to": "1F_N0056",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 40.01
+    },
+    {
+      "id": "1F_E0059",
+      "from": "1F_N0056",
+      "to": "1F_N0057",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 21.81
+    },
+    {
+      "id": "1F_E0060",
+      "from": "1F_N0057",
+      "to": "1F_N0058",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 41.1
+    },
+    {
+      "id": "1F_E0061",
+      "from": "1F_N0058",
+      "to": "1F_N0052",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 48.34
+    },
+    {
+      "id": "1F_E0062",
+      "from": "1F_N0037",
+      "to": "1F_N0059",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 194.2727
+    },
+    {
+      "id": "1F_E0063",
+      "from": "1F_N0059",
+      "to": "1F_N0001",
+      "kind": "corridor",
+      "bidirectional": true,
+      "weightPixels": 97.8394
+    },
+    {
+      "id": "1F_E0064",
+      "from": "1F_A0000",
+      "to": "1F_N0008",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 51.24
+    },
+    {
+      "id": "1F_E0065",
+      "from": "1F_A0001",
+      "to": "1F_N0008",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 28.74
+    },
+    {
+      "id": "1F_E0066",
+      "from": "1F_A0002",
+      "to": "1F_N0053",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.3829
+    },
+    {
+      "id": "1F_E0067",
+      "from": "1F_A0003",
+      "to": "1F_N0054",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 31.1795
+    },
+    {
+      "id": "1F_E0068",
+      "from": "1F_A0004",
+      "to": "1F_N0055",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 30.5108
+    },
+    {
+      "id": "1F_E0069",
+      "from": "1F_A0005",
+      "to": "1F_N0050",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 29.49
+    },
+    {
+      "id": "1F_E0070",
+      "from": "1F_A0006",
+      "to": "1F_N0033",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 64.99
+    },
+    {
+      "id": "1F_E0071",
+      "from": "1F_A0007",
+      "to": "1F_N0031",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 64.99
+    },
+    {
+      "id": "1F_E0072",
+      "from": "1F_A0008",
+      "to": "1F_N0026",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 77.02
+    },
+    {
+      "id": "1F_E0073",
+      "from": "1F_A0009",
+      "to": "1F_N0025",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 77.25
+    },
+    {
+      "id": "1F_E0074",
+      "from": "1F_A0010",
+      "to": "1F_N0051",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 25.1936
+    },
+    {
+      "id": "1F_E0075",
+      "from": "1F_A0011",
+      "to": "1F_N0058",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 34.9
+    },
+    {
+      "id": "1F_E0076",
+      "from": "1F_A0012",
+      "to": "1F_N0057",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 35.1
+    },
+    {
+      "id": "1F_E0077",
+      "from": "1F_A0013",
+      "to": "1F_N0056",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 35.08
+    },
+    {
+      "id": "1F_E0078",
+      "from": "1F_A0014",
+      "to": "1F_N0010",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 28.44
+    },
+    {
+      "id": "1F_E0079",
+      "from": "1F_A0015",
+      "to": "1F_N0009",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 51.34
+    },
+    {
+      "id": "1F_E0080",
+      "from": "1F_A0028",
+      "to": "1F_N0007",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 110.9987
+    },
+    {
+      "id": "1F_E0081",
+      "from": "1F_A0029",
+      "to": "1F_N0003",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 67.1903
+    },
+    {
+      "id": "1F_E0082",
+      "from": "1F_A0030",
+      "to": "1F_N0059",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 64.9716
+    },
+    {
+      "id": "1F_E0083",
+      "from": "1F_A0031",
+      "to": "1F_N0035",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 91.6476
+    },
+    {
+      "id": "1F_E0084",
+      "from": "1F_A0032",
+      "to": "1F_N0030",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 58.82
+    },
+    {
+      "id": "1F_E0085",
+      "from": "1F_A0033",
+      "to": "1F_N0028",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 73.53
+    },
+    {
+      "id": "1F_E0086",
+      "from": "1F_A0034",
+      "to": "1F_N0023",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 62.2428
+    },
+    {
+      "id": "1F_E0087",
+      "from": "1F_A0035",
+      "to": "1F_N0021",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 57.5082
+    },
+    {
+      "id": "1F_E0088",
+      "from": "1F_A0036",
+      "to": "1F_N0017",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 56.1669
+    },
+    {
+      "id": "1F_E0089",
+      "from": "1F_A0037",
+      "to": "1F_N0014",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 54.1945
+    },
+    {
+      "id": "1F_E0090",
+      "from": "1F_A0038",
+      "to": "1F_N0012",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 56.0704
+    },
+    {
+      "id": "1F_E0091",
+      "from": "1F_A0039",
+      "to": "1F_N0011",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 143.751
+    },
+    {
+      "id": "1F_E0092",
+      "from": "1F_A0040",
+      "to": "1F_N0019",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 58.83
+    },
+    {
+      "id": "1F_E0093",
+      "from": "1F_A0041",
+      "to": "1F_N0036",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 70.9154
+    },
+    {
+      "id": "1F_E0094",
+      "from": "1F_A0042",
+      "to": "1F_N0045",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 66.6084
+    },
+    {
+      "id": "1F_E0095",
+      "from": "1F_A0043",
+      "to": "1F_N0048",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 68.1518
+    },
+    {
+      "id": "1F_E0096",
+      "from": "1F_A0044",
+      "to": "1F_N0016",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 71.3788
+    },
+    {
+      "id": "1F_E0097",
+      "from": "1F_A0045",
+      "to": "1F_N0004",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 67.1716
+    },
+    {
+      "id": "1F_E0098",
+      "from": "1F_A0046",
+      "to": "1F_N0044",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 66.7728
+    },
+    {
+      "id": "1F_E0099",
+      "from": "1F_A0047",
+      "to": "1F_N0038",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 34.0348
+    },
+    {
+      "id": "1F_E0100",
+      "from": "1F_A0048",
+      "to": "1F_N0043",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 37.1662
+    },
+    {
+      "id": "1F_E0101",
+      "from": "1F_A0049",
+      "to": "1F_N0042",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 69.2454
+    },
+    {
+      "id": "1F_E0102",
+      "from": "1F_A0050",
+      "to": "1F_N0039",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 40.6601
+    },
+    {
+      "id": "1F_E0103",
+      "from": "1F_A0051",
+      "to": "1F_N0040",
+      "kind": "access",
+      "bidirectional": true,
+      "weightPixels": 29.917
+    }
+  ],
+  "places": [
+    {
+      "id": "1F_ESC_W_DOWN_1F_B1",
+      "navigationKey": "1F_ESC_W_DOWN_1F_B1",
+      "name": "서측 에스컬레이터",
+      "nodeId": "1F_A0001",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "1F_ESC_C1_DOWN_1F_B1",
+      "navigationKey": "1F_ESC_C1_DOWN_1F_B1",
+      "name": "중앙 1 에스컬레이터",
+      "nodeId": "1F_A0003",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "1F_ESC_C2_DOWN_1F_B1",
+      "navigationKey": "1F_ESC_C2_DOWN_1F_B1",
+      "name": "중앙 2 에스컬레이터",
+      "nodeId": "1F_A0005",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 5
+    },
+    {
+      "id": "1F_ESC_E_DOWN_1F_B1",
+      "navigationKey": "1F_ESC_E_DOWN_1F_B1",
+      "name": "동측 에스컬레이터",
+      "nodeId": "1F_A0007",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "1F_ESC_E_UP_1F_2F",
+      "navigationKey": "1F_ESC_E_UP_1F_2F",
+      "name": "동측 에스컬레이터",
+      "nodeId": "1F_A0008",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 8
+    },
+    {
+      "id": "1F_ESC_C2_UP_1F_2F",
+      "navigationKey": "1F_ESC_C2_UP_1F_2F",
+      "name": "중앙 2 에스컬레이터",
+      "nodeId": "1F_A0010",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 10
+    },
+    {
+      "id": "1F_ESC_C1_UP_1F_2F",
+      "navigationKey": "1F_ESC_C1_UP_1F_2F",
+      "name": "중앙 1 에스컬레이터",
+      "nodeId": "1F_A0012",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "1F_ESC_W_UP_1F_2F",
+      "navigationKey": "1F_ESC_W_UP_1F_2F",
+      "name": "서측 에스컬레이터",
+      "nodeId": "1F_A0014",
+      "verified": "cvat",
+      "placeType": "ESCALATOR",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "1F_STORE_0028",
+      "navigationKey": "1F_STORE_0028",
+      "name": "발렌시아가",
+      "nodeId": "1F_A0028",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 28
+    },
+    {
+      "id": "1F_STORE_0029",
+      "navigationKey": "1F_STORE_0029",
+      "name": "티파니앤코",
+      "nodeId": "1F_A0029",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 29
+    },
+    {
+      "id": "1F_STORE_0030",
+      "navigationKey": "1F_STORE_0030",
+      "name": "로에베",
+      "nodeId": "1F_A0030",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 30
+    },
+    {
+      "id": "1F_STORE_0031",
+      "navigationKey": "1F_STORE_0031",
+      "name": "구찌",
+      "nodeId": "1F_A0031",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 31
+    },
+    {
+      "id": "1F_STORE_0032",
+      "navigationKey": "1F_STORE_0032",
+      "name": "셀린느",
+      "nodeId": "1F_A0032",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 32
+    },
+    {
+      "id": "1F_STORE_0033",
+      "navigationKey": "1F_STORE_0033",
+      "name": "몽클레르",
+      "nodeId": "1F_A0033",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 33
+    },
+    {
+      "id": "1F_STORE_0034",
+      "navigationKey": "1F_STORE_0034",
+      "name": "크리스챤 티올",
+      "nodeId": "1F_A0034",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 34
+    },
+    {
+      "id": "1F_STORE_0035",
+      "navigationKey": "1F_STORE_0035",
+      "name": "프라다",
+      "nodeId": "1F_A0035",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 35
+    },
+    {
+      "id": "1F_STORE_0036",
+      "navigationKey": "1F_STORE_0036",
+      "name": "버버리",
+      "nodeId": "1F_A0036",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 36
+    },
+    {
+      "id": "1F_STORE_0037",
+      "navigationKey": "1F_STORE_0037",
+      "name": "불가리",
+      "nodeId": "1F_A0037",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 37
+    },
+    {
+      "id": "1F_STORE_0038",
+      "navigationKey": "1F_STORE_0038",
+      "name": "펜디",
+      "nodeId": "1F_A0038",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 38
+    },
+    {
+      "id": "1F_STORE_0039",
+      "navigationKey": "1F_STORE_0039",
+      "name": "보테가베네타",
+      "nodeId": "1F_A0039",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 39
+    },
+    {
+      "id": "1F_STORE_0040",
+      "navigationKey": "1F_STORE_0040",
+      "name": "안내데스크",
+      "nodeId": "1F_A0040",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 40
+    },
+    {
+      "id": "1F_STORE_0041",
+      "navigationKey": "1F_STORE_0041",
+      "name": "루이비통",
+      "nodeId": "1F_A0041",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 41
+    },
+    {
+      "id": "1F_STORE_0042",
+      "navigationKey": "1F_STORE_0042",
+      "name": "MAC",
+      "nodeId": "1F_A0042",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 42
+    },
+    {
+      "id": "1F_STORE_0043",
+      "navigationKey": "1F_STORE_0043",
+      "name": "이솝",
+      "nodeId": "1F_A0043",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 43
+    },
+    {
+      "id": "1F_STORE_0044",
+      "navigationKey": "1F_STORE_0044",
+      "name": "설화수",
+      "nodeId": "1F_A0044",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 44
+    },
+    {
+      "id": "1F_STORE_0045",
+      "navigationKey": "1F_STORE_0045",
+      "name": "템버린즈",
+      "nodeId": "1F_A0045",
+      "verified": "cvat",
+      "placeType": "STORE",
+      "sourceCvatId": 45
+    },
+    {
+      "id": "1F_EV_NW",
+      "navigationKey": "1F_EV_NW",
+      "name": "북서 엘리베이터",
+      "nodeId": "1F_A0046",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 46
+    },
+    {
+      "id": "1F_EV_NE",
+      "navigationKey": "1F_EV_NE",
+      "name": "북동 엘리베이터",
+      "nodeId": "1F_A0047",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 47
+    },
+    {
+      "id": "1F_EV_SW",
+      "navigationKey": "1F_EV_SW",
+      "name": "남서 엘리베이터",
+      "nodeId": "1F_A0048",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 48
+    },
+    {
+      "id": "1F_EV_STROLLER",
+      "navigationKey": "1F_EV_STROLLER",
+      "name": "유아차 전용 엘리베이터",
+      "nodeId": "1F_A0049",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 49
+    },
+    {
+      "id": "1F_EV_SE",
+      "navigationKey": "1F_EV_SE",
+      "name": "남동 엘리베이터",
+      "nodeId": "1F_A0050",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 50
+    },
+    {
+      "id": "1F_RESTROOM_0051",
+      "navigationKey": "1F_RESTROOM_0051",
+      "name": "1층 북측 화장실",
+      "nodeId": "1F_A0051",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 51
+    }
+  ],
+  "connectors": [
+    {
+      "id": "ESC_W_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0000",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 0
+    },
+    {
+      "id": "ESC_W_DOWN_1F_B1",
+      "type": "escalator",
+      "nodeId": "1F_A0001",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 1
+    },
+    {
+      "id": "ESC_C1_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0002",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 2
+    },
+    {
+      "id": "ESC_C1_DOWN_1F_B1",
+      "type": "escalator",
+      "nodeId": "1F_A0003",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 3
+    },
+    {
+      "id": "ESC_C2_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0004",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 4
+    },
+    {
+      "id": "ESC_C2_DOWN_1F_B1",
+      "type": "escalator",
+      "nodeId": "1F_A0005",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 5
+    },
+    {
+      "id": "ESC_E_DOWN_2F_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0006",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 6
+    },
+    {
+      "id": "ESC_E_DOWN_1F_B1",
+      "type": "escalator",
+      "nodeId": "1F_A0007",
+      "direction": "down",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 7
+    },
+    {
+      "id": "ESC_E_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "1F_A0008",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 8
+    },
+    {
+      "id": "ESC_E_UP_B1_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0009",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "동측 에스컬레이터",
+      "sourceCvatId": 9
+    },
+    {
+      "id": "ESC_C2_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "1F_A0010",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 10
+    },
+    {
+      "id": "ESC_C2_UP_B1_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0011",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 2 에스컬레이터",
+      "sourceCvatId": 11
+    },
+    {
+      "id": "ESC_C1_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "1F_A0012",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 12
+    },
+    {
+      "id": "ESC_C1_UP_B1_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0013",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "중앙 1 에스컬레이터",
+      "sourceCvatId": 13
+    },
+    {
+      "id": "ESC_W_UP_1F_2F",
+      "type": "escalator",
+      "nodeId": "1F_A0014",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "boarding",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 14
+    },
+    {
+      "id": "ESC_W_UP_B1_1F",
+      "type": "escalator",
+      "nodeId": "1F_A0015",
+      "direction": "up",
+      "servedFloors": [],
+      "verified": "cvat",
+      "endpointRole": "arrival",
+      "name": "서측 에스컬레이터",
+      "sourceCvatId": 15
+    },
+    {
+      "id": "EV_NW",
+      "type": "elevator",
+      "nodeId": "1F_A0046",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북서 엘리베이터",
+      "sourceCvatId": 46
+    },
+    {
+      "id": "EV_NE",
+      "type": "elevator",
+      "nodeId": "1F_A0047",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북동 엘리베이터",
+      "sourceCvatId": 47
+    },
+    {
+      "id": "EV_SW",
+      "type": "elevator",
+      "nodeId": "1F_A0048",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남서 엘리베이터",
+      "sourceCvatId": 48
+    },
+    {
+      "id": "EV_STROLLER",
+      "type": "elevator",
+      "nodeId": "1F_A0049",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "유아차 전용 엘리베이터",
+      "sourceCvatId": 49
+    },
+    {
+      "id": "EV_SE",
+      "type": "elevator",
+      "nodeId": "1F_A0050",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "남동 엘리베이터",
+      "sourceCvatId": 50
+    }
+  ]
+}
