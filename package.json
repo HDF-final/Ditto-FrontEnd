@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --port 3000",
     "lint": "eslint .",
+    "test:navigation": "node --test tests/navigation-routing.test.mjs",
     "check": "pnpm lint && pnpm build"
   },
   "dependencies": {
