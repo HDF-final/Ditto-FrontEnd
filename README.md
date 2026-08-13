@@ -240,6 +240,14 @@ const { data } = await apiClient.get("/courses");
 
 백엔드 주소가 다르면 `.env.local`의 `API_PROXY_TARGET`만 바꿉니다. `NEXT_PUBLIC_` 접두사가 없으므로 브라우저 번들에 노출되지 않습니다.
 
+> **⚠️ rewrite 프록시 기본 타임아웃은 30초입니다**
+>
+> 30초를 넘기는 API는 프록시가 먼저 소켓을 닫아버립니다. 그러면 백엔드에는 `Broken pipe`(ClientAbortException)가 찍히고, 브라우저는 Spring이 준 적 없는 `Internal Server Error` 문자열을 받습니다. 응답 봉투(`{"success":false,...}`) 형태가 아니면 이 경우를 의심하세요.
+>
+> AI 코스 추천이 40~50초 걸리므로 `next.config.mjs`에서 `experimental.proxyTimeout`을 150초로 늘려두었습니다. 클라이언트(axios) 타임아웃 120초보다 길게 잡아, 시간 초과 판단은 항상 axios가 먼저 하고 화면에 우리가 만든 안내가 뜨도록 했습니다.
+>
+> 타임아웃 계층은 세 곳입니다 — **axios 120초 < 프록시 150초**, 그리고 백엔드. 새 장기 API를 붙일 때 이 순서를 유지하세요.
+
 ### AI 코스 추천 (`lib/api/ai-course.js`)
 
 `POST /api/v1/ai/course-recommendations/chat` 하나로 **생성·다듬기·재추천**을 모두 처리합니다.
@@ -249,14 +257,7 @@ const { data } = await apiClient.get("/courses");
 | 맞춤 코스 생성 (첫 요청) | `sessionId` 없이 `message`만 |
 | 대화로 다듬기 / 재추천 | 직전 응답의 `sessionId` + `message` |
 
-> **⚠️ 현재 코드는 위 표와 다르게 동작합니다 (임시 조치, 2026-08-14~)**
->
-> 백엔드 로그인 API가 없어 이 엔드포인트가 403을 돌려주는 동안, `sessionId`를 프론트에서 만들어 첫 턴부터 실어 보냅니다. 정식 규격(서버 발급) 코드는 지워지지 않고 `[원본]` 주석으로 남아 있습니다.
->
-> 되돌릴 위치는 두 곳입니다 — `lib/api/ai-course.js` 상단 `[임시]` 블록에 순서가 적혀 있습니다.
->
-> 이 조치로 403이 풀리지는 않습니다. 403은 로그인 세션(`JSESSIONID`) 부재 때문이며, `sessionId`와는 별개입니다.
-
+- `sessionId`는 **서버가 발급**합니다. 클라이언트가 만들지 않습니다.
 - 한 턴에 40초 안팎 걸리므로 이 요청만 타임아웃을 120초로 넓혀 보냅니다(공통 인스턴스 기본값은 15초).
 - 응답의 `places[].navigationKey`를 `lib/navigation/course-routing-service.js`의 `resolveCoursePlace()`로 실내 지도 장소에 매핑합니다. 매칭되지 않는 키는 길찾기가 불가능하므로 코스에서 제외합니다.
 - 로그인 세션이 필요한 엔드포인트입니다. 미인증 상태에서는 403이 오고 화면에 로그인 안내가 표시됩니다.

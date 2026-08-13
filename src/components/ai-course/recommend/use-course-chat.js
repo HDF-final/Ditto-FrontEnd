@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   COURSE_CHAT_MAX_MESSAGE_LENGTH,
-  createCourseSessionId, // [임시] 서버 발급으로 되돌릴 때 이 import도 삭제
   sendCourseChatMessage,
 } from "@/lib/api/ai-course";
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
@@ -12,11 +11,8 @@ import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
  * Boni 코스 추천 대화 한 세션.
  *
  * 프롬프트 화면의 첫 요청과 결과 화면의 후속 대화가 같은 엔드포인트를 씁니다.
- * 하나의 대화는 sessionId 하나를 계속 재사용해야 "다듬기 / 재추천"이 앞 대화
- * 조건을 이어받습니다.
- *
- * sessionId 발급 주체는 지금 [임시] 상태입니다. 자세한 배경과 되돌리는 방법은
- * `lib/api/ai-course.js` 상단의 [임시] 블록을 참고하세요.
+ * 첫 요청은 sessionId 없이 보내고, 서버가 발급한 sessionId를 이후 turn에 계속
+ * 실어 보내야 "다듬기 / 재추천"이 앞 대화 조건을 이어받습니다.
  *
  * 요청 한 건이 40초 안팎 걸리므로 `pending`을 화면 전체 버퍼링 오버레이의 단일
  * 트리거로 쓰고, 응답이 오면 자동으로 풀립니다.
@@ -87,12 +83,6 @@ export function useCourseChat() {
     if (controllerRef.current) return; // 한 번에 한 turn만 보냅니다.
 
     const message = raw.slice(0, COURSE_CHAT_MAX_MESSAGE_LENGTH);
-
-    // [임시] 첫 turn 전에 프론트에서 sessionId를 만들어 대화 내내 고정합니다.
-    // [원본] 서버 발급 규격에서는 이 줄이 필요 없습니다 — 첫 turn은 null로
-    //        나가고, 아래 응답 처리에서 서버가 준 값을 받아 씁니다.
-    sessionIdRef.current ??= createCourseSessionId();
-
     const controller = new AbortController();
     controllerRef.current = controller;
 
@@ -108,9 +98,8 @@ export function useCourseChat() {
         signal: controller.signal,
       });
 
-      // [임시] 프론트가 만든 sessionId를 대화 내내 그대로 유지합니다.
-      // [원본] 서버 발급 규격 — 되돌릴 때 아래 줄을 되살립니다:
-      // if (data?.sessionId) sessionIdRef.current = data.sessionId;
+      // 서버가 발급한 sessionId를 이후 turn에 계속 씁니다.
+      if (data?.sessionId) sessionIdRef.current = data.sessionId;
 
       const places = await toCoursePlaces(data?.places);
       if (controller.signal.aborted) return;
