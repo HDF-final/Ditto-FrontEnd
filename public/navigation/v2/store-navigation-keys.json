@@ -1,0 +1,746 @@
+[
+  {
+    "floor_code": "B2",
+    "place_name": "아디다스 스타디움",
+    "navigation_key": "B2_STORE_0020",
+    "cvat_object_id": 20
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "나이키 라이즈",
+    "navigation_key": "B2_STORE_0021",
+    "cvat_object_id": 21
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "팝마트",
+    "navigation_key": "B2_STORE_0022",
+    "cvat_object_id": 22
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "지하 2층 팝업 동쪽",
+    "navigation_key": "B2_STORE_0023",
+    "cvat_object_id": 23
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "지하 2층 팝업 서쪽",
+    "navigation_key": "B2_STORE_0024",
+    "cvat_object_id": 24
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "노메뉴얼",
+    "navigation_key": "B2_STORE_0025",
+    "cvat_object_id": 51
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "산산기어",
+    "navigation_key": "B2_STORE_0026",
+    "cvat_object_id": 25
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "포인트 오브 뷰",
+    "navigation_key": "B2_STORE_0027",
+    "cvat_object_id": 26
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "스타벅스 리저브",
+    "navigation_key": "B2_STORE_0028",
+    "cvat_object_id": 27
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "29CM HOME",
+    "navigation_key": "B2_STORE_0029",
+    "cvat_object_id": 28
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "틸아이다이",
+    "navigation_key": "B2_STORE_0030",
+    "cvat_object_id": 29
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "뉴발란스",
+    "navigation_key": "B2_STORE_0031",
+    "cvat_object_id": 30
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "MLB",
+    "navigation_key": "B2_STORE_0032",
+    "cvat_object_id": 31
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "LMC",
+    "navigation_key": "B2_STORE_0033",
+    "cvat_object_id": 32
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "지하 2층 팝업 아이코닉",
+    "navigation_key": "B2_STORE_0041",
+    "cvat_object_id": 40
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "시에",
+    "navigation_key": "B2_STORE_0042",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "ETF 베이커리",
+    "navigation_key": "B2_STORE_0051",
+    "cvat_object_id": 49
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "Wine Works",
+    "navigation_key": "B1_STORE_0012",
+    "cvat_object_id": 12
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "도조커피",
+    "navigation_key": "B1_STORE_0013",
+    "cvat_object_id": 13
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "오크베리",
+    "navigation_key": "B1_STORE_0014",
+    "cvat_object_id": 14
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "코코밥",
+    "navigation_key": "B1_STORE_0015",
+    "cvat_object_id": 15
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "지하 1층 팝업 아이코닉",
+    "navigation_key": "B1_STORE_0016",
+    "cvat_object_id": 16
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "파이브가이즈",
+    "navigation_key": "B1_STORE_0017",
+    "cvat_object_id": 17
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "본가스시",
+    "navigation_key": "B1_STORE_0018",
+    "cvat_object_id": 18
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "비틀스타코",
+    "navigation_key": "B1_STORE_0019",
+    "cvat_object_id": 19
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "마유유마라탕",
+    "navigation_key": "B1_STORE_0020",
+    "cvat_object_id": 20
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "더라멘워",
+    "navigation_key": "B1_STORE_0021",
+    "cvat_object_id": 21
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "강호연파 밥굽남",
+    "navigation_key": "B1_STORE_0022",
+    "cvat_object_id": 22
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "돈까스 1985",
+    "navigation_key": "B1_STORE_0023",
+    "cvat_object_id": 23
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "호우섬",
+    "navigation_key": "B1_STORE_0026",
+    "cvat_object_id": 26
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "아티스트베이커리",
+    "navigation_key": "B1_STORE_0027",
+    "cvat_object_id": 27
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "고디바 베이커리",
+    "navigation_key": "B1_STORE_0028",
+    "cvat_object_id": 28
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "서울만두",
+    "navigation_key": "B1_STORE_0029",
+    "cvat_object_id": 29
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "파리크라상",
+    "navigation_key": "B1_STORE_0030",
+    "cvat_object_id": 30
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "핑크스 핫도그",
+    "navigation_key": "B1_STORE_0031",
+    "cvat_object_id": 31
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "런던베이글뮤지엄",
+    "navigation_key": "B1_STORE_0032",
+    "cvat_object_id": 32
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "22 푸드 트럭 피자",
+    "navigation_key": "B1_STORE_0033",
+    "cvat_object_id": 33
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "골든치즈",
+    "navigation_key": "B1_STORE_0037",
+    "cvat_object_id": 37
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "발렌시아가",
+    "navigation_key": "1F_STORE_0028",
+    "cvat_object_id": 28
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "티파니앤코",
+    "navigation_key": "1F_STORE_0029",
+    "cvat_object_id": 29
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "로에베",
+    "navigation_key": "1F_STORE_0030",
+    "cvat_object_id": 30
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "구찌",
+    "navigation_key": "1F_STORE_0031",
+    "cvat_object_id": 31
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "셀린느",
+    "navigation_key": "1F_STORE_0032",
+    "cvat_object_id": 32
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "몽클레르",
+    "navigation_key": "1F_STORE_0033",
+    "cvat_object_id": 33
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "크리스챤 티올",
+    "navigation_key": "1F_STORE_0034",
+    "cvat_object_id": 34
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "프라다",
+    "navigation_key": "1F_STORE_0035",
+    "cvat_object_id": 35
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "버버리",
+    "navigation_key": "1F_STORE_0036",
+    "cvat_object_id": 36
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "불가리",
+    "navigation_key": "1F_STORE_0037",
+    "cvat_object_id": 37
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "펜디",
+    "navigation_key": "1F_STORE_0038",
+    "cvat_object_id": 38
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "보테가베네타",
+    "navigation_key": "1F_STORE_0039",
+    "cvat_object_id": 39
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "안내데스크",
+    "navigation_key": "1F_STORE_0040",
+    "cvat_object_id": 40
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "루이비통",
+    "navigation_key": "1F_STORE_0041",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "MAC",
+    "navigation_key": "1F_STORE_0042",
+    "cvat_object_id": 42
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "이솝",
+    "navigation_key": "1F_STORE_0043",
+    "cvat_object_id": 43
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "설화수",
+    "navigation_key": "1F_STORE_0044",
+    "cvat_object_id": 44
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "템버린즈",
+    "navigation_key": "1F_STORE_0045",
+    "cvat_object_id": 45
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "아크네 스튜디오",
+    "navigation_key": "2F_STORE_0034",
+    "cvat_object_id": 34
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "랑방",
+    "navigation_key": "2F_STORE_0035",
+    "cvat_object_id": 35
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "메종 마르지엘라",
+    "navigation_key": "2F_STORE_0036",
+    "cvat_object_id": 36
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "아워레가시",
+    "navigation_key": "2F_STORE_0037",
+    "cvat_object_id": 37
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "몽블랑",
+    "navigation_key": "2F_STORE_0038",
+    "cvat_object_id": 38
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "태그호이어",
+    "navigation_key": "2F_STORE_0039",
+    "cvat_object_id": 39
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "크롬하츠",
+    "navigation_key": "2F_STORE_0040",
+    "cvat_object_id": 40
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "겐조",
+    "navigation_key": "2F_STORE_0041",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "꼼데가르송",
+    "navigation_key": "2F_STORE_0042",
+    "cvat_object_id": 42
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "스와로브스키",
+    "navigation_key": "2F_STORE_0043",
+    "cvat_object_id": 43
+  },
+  {
+    "floor_code": "2F",
+    "place_name": "스톤아일랜드",
+    "navigation_key": "2F_STORE_0046",
+    "cvat_object_id": 46
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "시스템 옴므",
+    "navigation_key": "3F_STORE_0029",
+    "cvat_object_id": 29
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "폴로",
+    "navigation_key": "3F_STORE_0030",
+    "cvat_object_id": 30
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "3층 팝업 스튜디오 A",
+    "navigation_key": "3F_STORE_0031",
+    "cvat_object_id": 31
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "3층 팝업 스튜디오 B",
+    "navigation_key": "3F_STORE_0032",
+    "cvat_object_id": 32
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "타임",
+    "navigation_key": "3F_STORE_0033",
+    "cvat_object_id": 33
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "마인",
+    "navigation_key": "3F_STORE_0034",
+    "cvat_object_id": 34
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "시스템",
+    "navigation_key": "3F_STORE_0035",
+    "cvat_object_id": 35
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "메종키츠네",
+    "navigation_key": "3F_STORE_0036",
+    "cvat_object_id": 36
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "온",
+    "navigation_key": "3F_STORE_0037",
+    "cvat_object_id": 37
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "룰루레몬",
+    "navigation_key": "3F_STORE_0038",
+    "cvat_object_id": 38
+  },
+  {
+    "floor_code": "3F",
+    "place_name": "노이스",
+    "navigation_key": "3F_STORE_0041",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "만다리나덕",
+    "navigation_key": "4F_STORE_0040",
+    "cvat_object_id": 40
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "헤지스",
+    "navigation_key": "4F_STORE_0041",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "라코스테",
+    "navigation_key": "4F_STORE_0042",
+    "cvat_object_id": 42
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "살로몬",
+    "navigation_key": "4F_STORE_0043",
+    "cvat_object_id": 43
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "아크테릭스",
+    "navigation_key": "4F_STORE_0044",
+    "cvat_object_id": 44
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "파타고니아",
+    "navigation_key": "4F_STORE_0045",
+    "cvat_object_id": 45
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "노스페이스",
+    "navigation_key": "4F_STORE_0046",
+    "cvat_object_id": 46
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "지누스",
+    "navigation_key": "4F_STORE_0047",
+    "cvat_object_id": 47
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "윌리엄스소노마",
+    "navigation_key": "4F_STORE_0048",
+    "cvat_object_id": 48
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "리바트",
+    "navigation_key": "4F_STORE_0049",
+    "cvat_object_id": 49
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "시다스",
+    "navigation_key": "4F_STORE_0050",
+    "cvat_object_id": 50
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "윌슨",
+    "navigation_key": "4F_STORE_0051",
+    "cvat_object_id": 51
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "아레나",
+    "navigation_key": "4F_STORE_0052",
+    "cvat_object_id": 52
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "4층 팝업 스튜디오 A",
+    "navigation_key": "4F_STORE_0053",
+    "cvat_object_id": 53
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "4층 팝업 스튜디오 B",
+    "navigation_key": "4F_STORE_0054",
+    "cvat_object_id": 54
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "허먼밀러",
+    "navigation_key": "4F_STORE_0055",
+    "cvat_object_id": 55
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "PXG",
+    "navigation_key": "4F_STORE_0056",
+    "cvat_object_id": 56
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "가민",
+    "navigation_key": "4F_STORE_0057",
+    "cvat_object_id": 57
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "굿러너컴퍼니",
+    "navigation_key": "4F_STORE_0058",
+    "cvat_object_id": 58
+  },
+  {
+    "floor_code": "4F",
+    "place_name": "스노우피크",
+    "navigation_key": "4F_STORE_0059",
+    "cvat_object_id": 59
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "We,pet",
+    "navigation_key": "5F_STORE_0038",
+    "cvat_object_id": 38
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "더현대 수비니어",
+    "navigation_key": "5F_STORE_0039",
+    "cvat_object_id": 39
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "플레이 인더박스",
+    "navigation_key": "5F_STORE_0040",
+    "cvat_object_id": 40
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "레고 LCS",
+    "navigation_key": "5F_STORE_0041",
+    "cvat_object_id": 41
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "디즈니스토어",
+    "navigation_key": "5F_STORE_0042",
+    "cvat_object_id": 42
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "LG 메가스토어",
+    "navigation_key": "5F_STORE_0043",
+    "cvat_object_id": 43
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "다이슨",
+    "navigation_key": "5F_STORE_0044",
+    "cvat_object_id": 44
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "애플스토어",
+    "navigation_key": "5F_STORE_0045",
+    "cvat_object_id": 45
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "삼성스토어",
+    "navigation_key": "5F_STORE_0046",
+    "cvat_object_id": 46
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "에픽서울",
+    "navigation_key": "5F_STORE_0047",
+    "cvat_object_id": 47
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "블루보틀",
+    "navigation_key": "5F_STORE_0048",
+    "cvat_object_id": 48
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "번패티번",
+    "navigation_key": "5F_STORE_0049",
+    "cvat_object_id": 49
+  },
+  {
+    "floor_code": "5F",
+    "place_name": "사운즈포레스트",
+    "navigation_key": "5F_STORE_0050",
+    "cvat_object_id": 50
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "ALT. 1",
+    "navigation_key": "6F_STORE_0024",
+    "cvat_object_id": 24
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "CH 1985",
+    "navigation_key": "6F_STORE_0025",
+    "cvat_object_id": 25
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "카페 H",
+    "navigation_key": "6F_STORE_0026",
+    "cvat_object_id": 26
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "도원 스타일",
+    "navigation_key": "6F_STORE_0027",
+    "cvat_object_id": 27
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "로바",
+    "navigation_key": "6F_STORE_0028",
+    "cvat_object_id": 28
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "송",
+    "navigation_key": "6F_STORE_0029",
+    "cvat_object_id": 29
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "정돈 프리미엄",
+    "navigation_key": "6F_STORE_0030",
+    "cvat_object_id": 30
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "리스토란테 에오",
+    "navigation_key": "6F_STORE_0031",
+    "cvat_object_id": 31
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "이탈리 마켓",
+    "navigation_key": "6F_STORE_0032",
+    "cvat_object_id": 32
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "SMT 라운지",
+    "navigation_key": "6F_STORE_0033",
+    "cvat_object_id": 33
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "이탈리",
+    "navigation_key": "6F_STORE_0034",
+    "cvat_object_id": 34
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "나의 가야",
+    "navigation_key": "6F_STORE_0035",
+    "cvat_object_id": 35
+  },
+  {
+    "floor_code": "6F",
+    "place_name": "6층 TAX REFUND",
+    "navigation_key": "6F_STORE_0036",
+    "cvat_object_id": 36
+  }
+]
