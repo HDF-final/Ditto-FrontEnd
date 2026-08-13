@@ -507,12 +507,4 @@ export const suggestions = [
   "K-뷰티 쇼핑 루트 추천해줘",
 ];
 
-export const boniReplies = [
-  "좋아요! 그 장소도 코스에 넣어볼게요 🐾",
-  "오, 그거 진짜 핫플이에요! 요즘 MZ들 사이에서 인기 폭발 중이에요 ✨",
-  "조금 더 알려주시면 딱 맞는 코스 만들어 드릴 수 있어요 🗺️",
-  "좋은 선택이에요! 코스 최적화도 같이 해드릴까요? 🚀",
-  "그 근처에 숨은 맛집도 제가 알고 있어요, 추가해드릴까요? 🍜",
-];
-
 export const BONI_IMAGE = "/assets/ai-course/boni-profile.png";

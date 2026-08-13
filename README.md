@@ -230,6 +230,37 @@ const { data } = await apiClient.get("/courses");
 - 인증 방식이 확정되면 공통 인터셉터도 같은 파일에서 관리합니다.
 - 현재 인스턴스는 브라우저 통신용입니다. Server Component의 서버 통신은 백엔드 구조 확정 후 별도 서버 모듈로 분리합니다.
 
+### 백엔드 프록시
+
+브라우저는 항상 같은 오리진의 `/api/*`로 요청하고, `next.config.mjs`의 rewrite가 백엔드로 넘깁니다. CORS 설정 없이 개발할 수 있고, 세션 쿠키(`JSESSIONID`)도 같은 오리진으로 오갑니다.
+
+```text
+브라우저  /api/v1/...  →  Next rewrite  →  ${API_PROXY_TARGET}/api/v1/...
+```
+
+백엔드 주소가 다르면 `.env.local`의 `API_PROXY_TARGET`만 바꿉니다. `NEXT_PUBLIC_` 접두사가 없으므로 브라우저 번들에 노출되지 않습니다.
+
+### AI 코스 추천 (`lib/api/ai-course.js`)
+
+`POST /api/v1/ai/course-recommendations/chat` 하나로 **생성·다듬기·재추천**을 모두 처리합니다.
+
+| 하고 싶은 것 | 보내는 값 |
+| --- | --- |
+| 맞춤 코스 생성 (첫 요청) | `sessionId` 없이 `message`만 |
+| 대화로 다듬기 / 재추천 | 직전 응답의 `sessionId` + `message` |
+
+> **⚠️ 현재 코드는 위 표와 다르게 동작합니다 (임시 조치, 2026-08-14~)**
+>
+> 백엔드 로그인 API가 없어 이 엔드포인트가 403을 돌려주는 동안, `sessionId`를 프론트에서 만들어 첫 턴부터 실어 보냅니다. 정식 규격(서버 발급) 코드는 지워지지 않고 `[원본]` 주석으로 남아 있습니다.
+>
+> 되돌릴 위치는 두 곳입니다 — `lib/api/ai-course.js` 상단 `[임시]` 블록에 순서가 적혀 있습니다.
+>
+> 이 조치로 403이 풀리지는 않습니다. 403은 로그인 세션(`JSESSIONID`) 부재 때문이며, `sessionId`와는 별개입니다.
+
+- 한 턴에 40초 안팎 걸리므로 이 요청만 타임아웃을 120초로 넓혀 보냅니다(공통 인스턴스 기본값은 15초).
+- 응답의 `places[].navigationKey`를 `lib/navigation/course-routing-service.js`의 `resolveCoursePlace()`로 실내 지도 장소에 매핑합니다. 매칭되지 않는 키는 길찾기가 불가능하므로 코스에서 제외합니다.
+- 로그인 세션이 필요한 엔드포인트입니다. 미인증 상태에서는 403이 오고 화면에 로그인 안내가 표시됩니다.
+
 ## Zustand 사용법
 
 Zustand는 국가·언어, 다단계 코스 작성 상태, 전역 모달처럼 여러 Client Component가 공유해야 하는 상태에만 사용합니다.
@@ -261,7 +292,13 @@ Tailwind CSS 4를 사용하며 전역 디자인 토큰은 `src/app/globals.css`�
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=/api
+API_PROXY_TARGET=http://localhost:8080
 ```
+
+| 키 | 설명 |
+| --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | 브라우저가 호출할 기준 경로. 프록시를 쓰므로 `/api` 그대로 둡니다. |
+| `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값 `http://localhost:8080`. |
 
 `NEXT_PUBLIC_` 접두사가 붙은 값은 브라우저 번들에 포함되므로 비밀 키를 넣으면 안 됩니다.
 

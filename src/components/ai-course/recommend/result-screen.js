@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
+import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import {
   calculateCourseRoute,
@@ -19,7 +20,14 @@ function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
 }
 
-export function ResultScreen({ startEmpty = false, onPlaceClick }) {
+/**
+ * 코스 편집 화면.
+ *
+ * 코스는 항상 빈 상태로 시작합니다. 자동 모드는 Boni 추천 응답(`chat.course`)이,
+ * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
+ * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
+ */
+export function ResultScreen({ chat, onPlaceClick }) {
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
   const [datasetStatus, setDatasetStatus] = useState("loading");
@@ -40,9 +48,13 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
   const [courseTitle, setCourseTitle] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
+  const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
+
+  const aiCourse = chat?.course ?? null;
+  const chatPending = chat?.pending ?? null;
 
   useEffect(() => {
     let active = true;
@@ -50,7 +62,6 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
       .then((dataset) => {
         if (!active) return;
         setPlaceCatalog(dataset.places);
-        setItems(startEmpty ? [] : dataset.defaults);
         setDatasetStatus("ready");
       })
       .catch(() => {
@@ -59,7 +70,19 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
     return () => {
       active = false;
     };
-  }, [startEmpty]);
+  }, []);
+
+  // Boni가 새 코스를 내려줄 때마다 목록을 통째로 교체합니다. 되돌리기 스택과
+  // 방문 체크는 이전 코스 기준이라 함께 비웁니다.
+  // effect 대신 렌더 중 조정 패턴을 쓰는 이유: 응답 직후 한 번에 반영돼야
+  // 버퍼링이 풀리는 프레임에서 이전 코스가 잠깐 비쳐 보이지 않습니다.
+  if (aiCourse && aiCourse !== appliedCourse) {
+    setAppliedCourse(aiCourse);
+    setItems(aiCourse.places);
+    setHistory([]);
+    setVisited(new Set());
+    setNotice("");
+  }
 
   useEffect(() => {
     let active = true;
@@ -281,6 +304,23 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
           ) : null}
         </div>
 
+        {chat?.error ? (
+          <div className="rounded-[10px] border border-[#f3ccc4] bg-[#fef5f3] px-3 py-2.5">
+            <p className="text-[11px] font-medium leading-relaxed text-[#c0392b]">
+              {chat.error}
+            </p>
+            {chat.canRetry ? (
+              <button
+                type="button"
+                onClick={chat.retry}
+                className="mt-2 rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5]"
+              >
+                다시 시도
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
         {notice ? (
           <p className="rounded-[10px] bg-[#f0ecfa] px-3 py-2 text-[11px] font-medium text-[#5c2ef5]">
             {notice}
@@ -461,13 +501,21 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
 
         {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead) */}
         <div className="hidden md:flex absolute bottom-5 left-0 right-0 justify-center px-6">
-          <PanelChat />
+          <PanelChat
+            messages={chat?.messages}
+            pending={chatPending}
+            onSend={chat?.send}
+          />
         </div>
       </div>
 
       {/* Mobile-only PanelChat — below the map */}
       <div className="md:hidden order-3 w-full">
-        <PanelChat />
+        <PanelChat
+          messages={chat?.messages}
+          pending={chatPending}
+          onSend={chat?.send}
+        />
       </div>
     </main>
 
@@ -477,6 +525,14 @@ export function ResultScreen({ startEmpty = false, onPlaceClick }) {
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
     />
+
+    {chatPending ? (
+      <CourseLoadingOverlay
+        message={chatPending.message}
+        isFirstTurn={chatPending.isFirstTurn}
+        onCancel={chat?.cancel}
+      />
+    ) : null}
     </>
   );
 }

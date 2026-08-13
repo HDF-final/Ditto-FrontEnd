@@ -34,6 +34,23 @@ function StarRating({ rating }) {
 export function PlaceModal({ place, onClose }) {
   const [liked, setLiked] = useState(false);
 
+  // 장소는 두 갈래로 들어옵니다. 데모 픽스처는 평점·태그·상품까지 갖췄지만,
+  // Boni 추천과 '장소 추가'로 담기는 실내 지도 매장은 길찾기에 필요한 최소
+  // 필드만 갖고 있습니다. 없는 값은 렌더하지 않고 안전한 기본값으로 대체합니다.
+  const accent = place.accentColor ?? "#5c2ef5";
+  const gradientFrom = place.gradientFrom ?? accent;
+  const gradientTo = place.gradientTo ?? "#1a142e";
+  const heroImage = place.heroImage ?? place.image ?? null;
+  const tags = place.tags ?? [];
+  // AI 장소는 desc 자리에 추천 이유가 들어가므로, 아래 전용 블록과 겹치지 않게 합니다.
+  const description = place.longDesc ?? (place.aiReason ? "" : place.desc ?? "");
+  const hasRating = typeof place.rating === "number";
+  const infoTiles = [
+    { icon: <Clock size={13} />, label: "운영 시간", value: place.hours },
+    { icon: <span className="text-sm">💰</span>, label: "가격대", value: place.price },
+    { icon: <MapPin size={13} />, label: "위치", value: place.location },
+  ].filter((tile) => Boolean(tile.value));
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-5"
@@ -46,17 +63,22 @@ export function PlaceModal({ place, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Hero */}
-        <div className="relative h-[240px] shrink-0 overflow-hidden">
-          <img
-            src={place.heroImage}
-            alt={place.name}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: "brightness(0.82)" }}
-          />
+        <div
+          className="relative h-[240px] shrink-0 overflow-hidden"
+          style={{ background: `linear-gradient(135deg,${gradientFrom},${gradientTo})` }}
+        >
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={place.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: "brightness(0.82)" }}
+            />
+          ) : null}
           <div
             className="absolute inset-0"
             style={{
-              background: `linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0) 30%,${place.gradientFrom}cc 80%,${place.gradientTo} 100%)`,
+              background: `linear-gradient(180deg,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0) 30%,${gradientFrom}cc 80%,${gradientTo} 100%)`,
             }}
           />
           <div className="absolute top-4 left-5 right-5 flex items-center justify-between">
@@ -97,16 +119,22 @@ export function PlaceModal({ place, onClose }) {
               {place.name}
             </h2>
             <div className="flex items-center gap-3 mt-2">
-              <div className="flex items-center gap-1">
-                <StarRating rating={place.rating} />
-                <span className="text-white text-[11px] font-semibold">
-                  {place.rating}
-                </span>
-                <span className="text-white/60 text-[10px]">
-                  ({place.reviews.toLocaleString()})
-                </span>
-              </div>
-              <span className="text-white/40">·</span>
+              {hasRating && (
+                <>
+                  <div className="flex items-center gap-1">
+                    <StarRating rating={place.rating} />
+                    <span className="text-white text-[11px] font-semibold">
+                      {place.rating}
+                    </span>
+                    {typeof place.reviews === "number" && (
+                      <span className="text-white/60 text-[10px]">
+                        ({place.reviews.toLocaleString()})
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-white/40">·</span>
+                </>
+              )}
               <div className="flex items-center gap-1 text-white/80 text-[11px]">
                 <MapPin size={11} className="shrink-0" />
                 {place.location}
@@ -119,34 +147,50 @@ export function PlaceModal({ place, onClose }) {
         <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-white">
           <div className="px-6 pt-5 pb-6">
             {/* Tags */}
-            <div className="flex flex-wrap gap-[6px] mb-4">
-              {place.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[10px] font-medium px-3 py-1 rounded-full"
-                  style={{
-                    backgroundColor: `${place.accentColor}14`,
-                    color: place.accentColor,
-                    border: `1px solid ${place.accentColor}30`,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-[6px] mb-4">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] font-medium px-3 py-1 rounded-full"
+                    style={{
+                      backgroundColor: `${accent}14`,
+                      color: accent,
+                      border: `1px solid ${accent}30`,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Boni 추천 이유 — AI가 담은 장소에만 있습니다. */}
+            {place.aiReason ? (
+              <div
+                className="mb-4 rounded-[12px] px-4 py-3"
+                style={{ backgroundColor: "#f7f5ff", border: "1px solid #e0d9f8" }}
+              >
+                <p className="mb-1 text-[10px] font-bold tracking-wide text-[#5c2ef5]">
+                  BONI 추천 이유
+                </p>
+                <p className="text-[12px] leading-relaxed text-[#1a142e]">
+                  {place.aiReason}
+                </p>
+              </div>
+            ) : null}
+
             {/* Description */}
-            <p className="text-[#1a142e] text-[13px] leading-relaxed mb-5 break-words">
-              {place.longDesc}
-            </p>
+            {description ? (
+              <p className="text-[#1a142e] text-[13px] leading-relaxed mb-5 break-words">
+                {description}
+              </p>
+            ) : null}
 
             {/* Info tiles — 패션 제외 */}
-            {place.category !== "패션" && (
+            {place.category !== "패션" && infoTiles.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-5">
-                {[
-                  { icon: <Clock size={13} />, label: "운영 시간", value: place.hours },
-                  { icon: <span className="text-sm">💰</span>, label: "가격대", value: place.price },
-                  { icon: <MapPin size={13} />, label: "위치", value: place.location },
-                ].map(({ icon, label, value }) => (
+                {infoTiles.map(({ icon, label, value }) => (
                   <div
                     key={label}
                     className="rounded-[12px] px-3 py-3"
@@ -154,7 +198,7 @@ export function PlaceModal({ place, onClose }) {
                   >
                     <div
                       className="flex items-center gap-1 mb-1"
-                      style={{ color: place.accentColor }}
+                      style={{ color: accent }}
                     >
                       {icon}
                       <span className="text-[9px] font-bold tracking-wide uppercase opacity-80">
@@ -176,7 +220,7 @@ export function PlaceModal({ place, onClose }) {
                   <p className="text-[12px] font-bold text-[#1a142e]">인기 상품</p>
                   <span
                     className="text-[11px] font-medium cursor-pointer"
-                    style={{ color: place.accentColor }}
+                    style={{ color: accent }}
                   >
                     전체 보기 →
                   </span>
@@ -207,7 +251,7 @@ export function PlaceModal({ place, onClose }) {
                         </p>
                         <p
                           className="text-[11px] font-bold"
-                          style={{ color: place.accentColor }}
+                          style={{ color: accent }}
                         >
                           {product.price}
                         </p>
@@ -233,12 +277,10 @@ export function PlaceModal({ place, onClose }) {
             <button
               className="w-full rounded-full py-[14px] text-[14px] font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               style={{
-                background: `linear-gradient(135deg, ${place.accentColor}, ${
-                  place.gradientTo === "#1a142e"
-                    ? place.accentColor + "bb"
-                    : place.gradientTo
+                background: `linear-gradient(135deg, ${accent}, ${
+                  gradientTo === "#1a142e" ? accent + "bb" : gradientTo
                 })`,
-                boxShadow: `0 8px 24px ${place.accentColor}44`,
+                boxShadow: `0 8px 24px ${accent}44`,
               }}
             >
               {place.booking ? "캐치테이블에서 예약" : "지금 바로 방문하기"}
