@@ -7,7 +7,7 @@ import {
   OrthographicCamera,
   useTexture,
 } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Component,
   Suspense,
@@ -27,7 +27,12 @@ import {
 const FLOOR_WIDTH = 100;
 const DEFAULT_ASPECT_RATIO = 1500 / 2400;
 const ROUTE_COLOR = "#10b981";
-const ROUTE_LINE_WIDTH = 3.5;
+const ROUTE_PULSE_COLOR = "#ecfdf5";
+const ROUTE_GLOW_LINE_WIDTH = 10;
+const ROUTE_CORE_LINE_WIDTH = 5.5;
+const ROUTE_PULSE_LINE_WIDTH = 2;
+const ROUTE_PULSE_SPEED = 1.35;
+const OVERVIEW_ZOOM_MULTIPLIER = 1.15;
 
 class MapErrorBoundary extends Component {
   constructor(props) {
@@ -165,6 +170,31 @@ function RouteMarker({ position, label, destination = false }) {
 }
 
 function RouteOverlay({ graph, itinerary, visibleFloors, flatView }) {
+  const pulseLineRefs = useRef(new Map());
+  const [motionAllowed, setMotionAllowed] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = () => setMotionAllowed(!query.matches);
+
+    query.addEventListener("change", handleChange);
+    return () => query.removeEventListener("change", handleChange);
+  }, []);
+
+  useFrame((_, delta) => {
+    if (!motionAllowed) return;
+
+    pulseLineRefs.current.forEach((line) => {
+      if (line?.material) {
+        line.material.dashOffset -= delta * ROUTE_PULSE_SPEED;
+      }
+    });
+  });
+
   const routeGeometry = useMemo(() => {
     if (!graph || !itinerary) return null;
     const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
@@ -231,14 +261,49 @@ function RouteOverlay({ graph, itinerary, visibleFloors, flatView }) {
   return (
     <>
       {[...routeGeometry.segments, ...routeGeometry.connectors].map((line) => (
-        <Line
-          key={line.key}
-          points={line.points}
-          color={ROUTE_COLOR}
-          lineWidth={ROUTE_LINE_WIDTH}
-          depthTest={false}
-          renderOrder={12}
-        />
+        <group key={line.key}>
+          <Line
+            points={line.points}
+            color={ROUTE_COLOR}
+            lineWidth={ROUTE_GLOW_LINE_WIDTH}
+            transparent
+            opacity={0.16}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+            renderOrder={12}
+          />
+          <Line
+            points={line.points}
+            color={ROUTE_COLOR}
+            lineWidth={ROUTE_CORE_LINE_WIDTH}
+            transparent
+            opacity={0.92}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+            renderOrder={13}
+          />
+          <Line
+            ref={(value) => {
+              if (value) pulseLineRefs.current.set(line.key, value);
+              else pulseLineRefs.current.delete(line.key);
+            }}
+            points={line.points}
+            color={ROUTE_PULSE_COLOR}
+            lineWidth={ROUTE_PULSE_LINE_WIDTH}
+            dashed
+            dashScale={1}
+            dashSize={1.35}
+            gapSize={2.25}
+            transparent
+            opacity={0.94}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+            renderOrder={14}
+          />
+        </group>
       ))}
       {routeGeometry.markers.map(({ key, ...marker }) => (
         <RouteMarker key={key} {...marker} />
@@ -264,7 +329,8 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
           (size.height * 0.84) / (FLOOR_WIDTH * singleFloorAspectRatio),
         ),
       )
-    : Math.max(2.2, Math.min(size.width / 150, size.height / 120));
+    : Math.max(2.2, Math.min(size.width / 150, size.height / 120)) *
+      OVERVIEW_ZOOM_MULTIPLIER;
 
   useEffect(() => {
     const camera = cameraRef.current;
