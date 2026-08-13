@@ -320,7 +320,7 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
   const firstFloor = visibleFloors[0];
   const lastFloor = visibleFloors.at(-1);
   const focusY = singleFloor?.y ??
-    ((firstFloor?.y ?? 0) + (lastFloor?.y ?? 0)) / 2 + 16;
+    ((firstFloor?.y ?? 0) + (lastFloor?.y ?? 0)) / 2;
   const targetZoom = singleFloor
     ? Math.max(
         2.4,
@@ -337,11 +337,7 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
     const controls = controlsRef.current;
     if (!camera || !controls) return;
 
-    const target = new THREE.Vector3(
-      singleFloor ? 0 : (singleFloor?.offsetX ?? 0),
-      focusY,
-      singleFloor ? 0 : (singleFloor?.offsetZ ?? 0),
-    );
+    const target = new THREE.Vector3(0, focusY, 0);
     const offset = singleFloor
       ? new THREE.Vector3(0, 118, 0.001)
       : new THREE.Vector3(94, 104, 126);
@@ -354,16 +350,6 @@ function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
     camera.up.copy(up);
     camera.zoom = targetZoom;
     camera.clearViewOffset();
-    if (!singleFloor) {
-      camera.setViewOffset(
-        size.width,
-        size.height,
-        0,
-        -Math.round(size.height * 0.14),
-        size.width,
-        size.height,
-      );
-    }
     camera.updateProjectionMatrix();
     controls.target.copy(target);
     controls.update();
