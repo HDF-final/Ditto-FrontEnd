@@ -6,8 +6,15 @@ import {
   OrthographicCamera,
   useTexture,
 } from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Component, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import * as THREE from "three";
 import {
   FLOOR_DEFINITIONS,
@@ -49,12 +56,9 @@ class MapErrorBoundary extends Component {
   }
 }
 
-function FloorTexture({ floor, focusedFloorId }) {
+function FloorTexture({ floor, flatView = false, onAspectRatioChange }) {
   const gl = useThree((state) => state.gl);
   const sourceTexture = useTexture(floor.imageUrl);
-  const focusActive = focusedFloorId !== null;
-  const focused = focusedFloorId === floor.id;
-  const dimmed = focusActive && !focused;
   const texture = useMemo(() => {
     const configuredTexture = sourceTexture.clone();
     configuredTexture.colorSpace = THREE.SRGBColorSpace;
@@ -70,22 +74,27 @@ function FloorTexture({ floor, focusedFloorId }) {
 
   useEffect(() => () => texture.dispose(), [texture]);
 
-  const depth = useMemo(() => {
+  const aspectRatio = useMemo(() => {
     const image = texture.image;
     const width = image?.naturalWidth || image?.width || 0;
     const height = image?.naturalHeight || image?.height || 0;
-    return FLOOR_WIDTH * (width > 0 ? height / width : DEFAULT_ASPECT_RATIO);
+    return width > 0 ? height / width : DEFAULT_ASPECT_RATIO;
   }, [texture]);
+  const depth = FLOOR_WIDTH * aspectRatio;
+
+  useEffect(() => {
+    onAspectRatioChange?.(aspectRatio);
+  }, [aspectRatio, onAspectRatioChange]);
 
   return (
     <group
-      position={[floor.offsetX, floor.y, floor.offsetZ]}
-      scale={[floor.scale, 1, floor.scale]}
+      position={flatView ? [0, floor.y, 0] : [floor.offsetX, floor.y, floor.offsetZ]}
+      scale={flatView ? [1, 1, 1] : [floor.scale, 1, floor.scale]}
     >
       <mesh
         position={[0, 0.04, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
-        renderOrder={focused ? 10 : dimmed ? 1 : 2}
+        renderOrder={2}
       >
         <planeGeometry args={[FLOOR_WIDTH, depth]} />
         <meshBasicMaterial
@@ -93,34 +102,27 @@ function FloorTexture({ floor, focusedFloorId }) {
           color="#ffffff"
           toneMapped={false}
           side={THREE.FrontSide}
-          transparent={dimmed || floor.cutout}
+          transparent={floor.cutout}
           alphaTest={floor.cutout ? 0.03 : 0}
-          opacity={dimmed ? 0.055 : 1}
-          depthTest={!focused}
-          depthWrite={!dimmed && !floor.cutout}
+          opacity={1}
+          depthWrite={!floor.cutout}
         />
       </mesh>
     </group>
   );
 }
 
-function FloorLabel({ floor, focusedFloorId }) {
-  const dimmed = focusedFloorId !== null && focusedFloorId !== floor.id;
-
+function FloorLabel({ floor }) {
   return (
     <Html
-      position={[-53, floor.y + 1.2, -31]}
+      position={[53, floor.y + 1.2, -31]}
       center
       sprite
       style={{ pointerEvents: "none" }}
       zIndexRange={[20, 0]}
     >
       <div
-        className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-bold shadow-md transition-opacity duration-300 ${
-          dimmed
-            ? "bg-[#d8d4e4] text-white opacity-20"
-            : "bg-[#2f2458] text-white"
-        }`}
+        className="whitespace-nowrap rounded-full bg-[#2f2458] px-2.5 py-1 text-[10px] font-bold text-white shadow-md"
       >
         {floor.id}
       </div>
@@ -128,60 +130,61 @@ function FloorLabel({ floor, focusedFloorId }) {
   );
 }
 
-function MapCamera({ focusedFloorId, resetSignal }) {
+function MapCamera({ viewMode, visibleFloors, singleFloorAspectRatio }) {
   const { size } = useThree();
   const cameraRef = useRef(null);
   const controlsRef = useRef(null);
-  const transitionRef = useRef(true);
-  const focusedFloor = FLOOR_DEFINITIONS.find(
-    (floor) => floor.id === focusedFloorId,
-  );
-  const focusY = focusedFloor?.y ??
-    (FLOOR_DEFINITIONS[0].y + FLOOR_DEFINITIONS.at(-1).y) / 2;
-  const targetZoom = focusedFloor
-    ? Math.max(2.15, Math.min(size.width / 132, size.height / 82))
-    : Math.max(1.85, Math.min(size.width / 154, size.height / 112));
+  const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
+  const firstFloor = visibleFloors[0];
+  const lastFloor = visibleFloors.at(-1);
+  const focusY = singleFloor?.y ??
+    ((firstFloor?.y ?? 0) + (lastFloor?.y ?? 0)) / 2 + 16;
+  const targetZoom = singleFloor
+    ? Math.max(
+        2.4,
+        Math.min(
+          (size.width * 0.86) / FLOOR_WIDTH,
+          (size.height * 0.84) / (FLOOR_WIDTH * singleFloorAspectRatio),
+        ),
+      )
+    : Math.max(2.2, Math.min(size.width / 150, size.height / 120));
 
   useEffect(() => {
-    transitionRef.current = true;
-  }, [focusedFloorId, resetSignal, size.height, size.width]);
-
-  useFrame((_, delta) => {
     const camera = cameraRef.current;
     const controls = controlsRef.current;
-    if (!camera || !controls || !transitionRef.current) return;
+    if (!camera || !controls) return;
 
-    const target = new THREE.Vector3(0, focusY, 0);
-    const offset = focusedFloor
-      ? new THREE.Vector3(78, 82, 104)
+    const target = new THREE.Vector3(
+      singleFloor ? 0 : (singleFloor?.offsetX ?? 0),
+      focusY,
+      singleFloor ? 0 : (singleFloor?.offsetZ ?? 0),
+    );
+    const offset = singleFloor
+      ? new THREE.Vector3(0, 118, 0.001)
       : new THREE.Vector3(94, 104, 126);
     const position = target.clone().add(offset);
-    const smoothing = 7;
-    const alpha = 1 - Math.exp(-smoothing * delta);
+    const up = singleFloor
+      ? new THREE.Vector3(0, 0, -1)
+      : new THREE.Vector3(0, 1, 0);
 
-    controls.target.lerp(target, alpha);
-    camera.position.lerp(position, alpha);
-    camera.zoom = THREE.MathUtils.damp(
-      camera.zoom,
-      targetZoom,
-      smoothing,
-      delta,
-    );
-    camera.updateProjectionMatrix();
-    controls.update();
-
-    if (
-      camera.position.distanceTo(position) < 0.03 &&
-      controls.target.distanceTo(target) < 0.02 &&
-      Math.abs(camera.zoom - targetZoom) < 0.01
-    ) {
-      camera.position.copy(position);
-      controls.target.copy(target);
-      camera.zoom = targetZoom;
-      camera.updateProjectionMatrix();
-      transitionRef.current = false;
+    camera.position.copy(position);
+    camera.up.copy(up);
+    camera.zoom = targetZoom;
+    camera.clearViewOffset();
+    if (!singleFloor) {
+      camera.setViewOffset(
+        size.width,
+        size.height,
+        0,
+        -Math.round(size.height * 0.14),
+        size.width,
+        size.height,
+      );
     }
-  });
+    camera.updateProjectionMatrix();
+    controls.target.copy(target);
+    controls.update();
+  }, [focusY, singleFloor, size.height, size.width, targetZoom]);
 
   return (
     <>
@@ -198,39 +201,174 @@ function MapCamera({ focusedFloorId, resetSignal }) {
         makeDefault
         enableDamping
         dampingFactor={0.08}
-        enablePan={false}
-        enableRotate
+        enablePan={Boolean(singleFloor)}
+        enableRotate={!singleFloor}
         enableZoom
-        minPolarAngle={0.22}
-        maxPolarAngle={Math.PI * 0.47}
+        minPolarAngle={singleFloor ? 0 : 0.14}
+        maxPolarAngle={singleFloor ? Math.PI : Math.PI * 0.47}
+        minAzimuthAngle={singleFloor ? -Infinity : -Math.PI * 0.48}
+        maxAzimuthAngle={singleFloor ? Infinity : Math.PI * 0.48}
         minZoom={1.5}
         maxZoom={14}
         rotateSpeed={0.62}
         zoomSpeed={0.72}
+        mouseButtons={
+          singleFloor
+            ? {
+                LEFT: THREE.MOUSE.PAN,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.PAN,
+              }
+            : undefined
+        }
       />
     </>
   );
 }
 
-function FloorStack({ focusedFloorId, resetSignal }) {
+function FloorStack({ viewMode, visibleFloors, resetSignal }) {
+  const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
+    DEFAULT_ASPECT_RATIO,
+  );
+
   return (
     <>
       <ambientLight intensity={1.4} />
-      {FLOOR_DEFINITIONS.map((floor) => (
+      {visibleFloors.map((floor) => (
         <group key={floor.id}>
-          <FloorTexture floor={floor} focusedFloorId={focusedFloorId} />
-          <FloorLabel floor={floor} focusedFloorId={focusedFloorId} />
+          <FloorTexture
+            floor={floor}
+            flatView={viewMode === "floor"}
+            onAspectRatioChange={
+              viewMode === "floor" ? setSingleFloorAspectRatio : undefined
+            }
+          />
+          {viewMode !== "floor" ? <FloorLabel floor={floor} /> : null}
         </group>
       ))}
-      <MapCamera focusedFloorId={focusedFloorId} resetSignal={resetSignal} />
+      <MapCamera
+        key={`${viewMode}-${visibleFloors.map((floor) => floor.id).join("-")}-${resetSignal}`}
+        viewMode={viewMode}
+        visibleFloors={visibleFloors}
+        singleFloorAspectRatio={singleFloorAspectRatio}
+      />
     </>
   );
 }
 
-export function IndoorMap() {
-  const [focusedFloorId, setFocusedFloorId] = useState(null);
+function FloorSelector({ selectedView, onSelect }) {
+  const [expanded, setExpanded] = useState(false);
+  const selectedFloor = FLOOR_DEFINITIONS.find(
+    (floor) => floor.id === selectedView,
+  );
+  const currentLabel =
+    selectedView === "route"
+      ? "경로층"
+      : selectedView === "all"
+        ? "전체층"
+        : `${selectedFloor?.id} · ${selectedFloor?.title}`;
+
+  const selectView = (view) => {
+    onSelect(view);
+    setExpanded(false);
+  };
+
+  return (
+    <div className="absolute right-3 top-3 z-10 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(46,29,101,0.14)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#f7f5fb]"
+      >
+        <span className="min-w-0">
+          <span className="block text-[10px] font-bold tracking-[0.22em] text-[#9994ad]">
+            FLOOR
+          </span>
+          <span className="mt-1 block truncate text-[14px] font-bold text-[#251c46]">
+            {currentLabel}
+          </span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={`ml-2 text-[14px] text-[#6b6685] transition-transform ${expanded ? "rotate-180" : ""}`}
+        >
+          ▾
+        </span>
+      </button>
+
+      {expanded ? (
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-[#eeeaf6] pt-2.5">
+          {[
+            { id: "route", label: "경로층" },
+            { id: "all", label: "전체층" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={selectedView === item.id}
+              onClick={() => selectView(item.id)}
+              className={`rounded-xl px-2.5 py-2.5 text-[12px] font-bold transition-colors ${
+                selectedView === item.id
+                  ? "bg-[#2f7f70] text-white"
+                  : "bg-[#f4f5f2] text-[#5f655f] hover:bg-[#e9eee9]"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          {[...FLOOR_DEFINITIONS].reverse().map((floor) => (
+            <button
+              key={floor.id}
+              type="button"
+              aria-label={`${floor.id} ${floor.title} 단면 지도 보기`}
+              aria-pressed={selectedView === floor.id}
+              onClick={() => selectView(floor.id)}
+              className={`rounded-xl px-2 py-2 text-center transition-colors ${
+                selectedView === floor.id
+                  ? "bg-[#2f7f70] text-white"
+                  : "bg-[#f4f5f2] text-[#626762] hover:bg-[#e9eee9]"
+              }`}
+            >
+              <span className="block text-[12px] font-extrabold leading-tight">
+                {floor.id}
+              </span>
+              <span className="mt-1 block truncate text-[10px] font-semibold leading-tight opacity-85">
+                {floor.title}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function IndoorMap({ routeFloorIds = FLOOR_ORDER }) {
+  const [selectedView, setSelectedView] = useState("all");
   const [resetSignal, setResetSignal] = useState(0);
   const [datasetStatus, setDatasetStatus] = useState("loading");
+  const routeFloorIdSet = useMemo(
+    () =>
+      new Set(
+        routeFloorIds.filter((floorId) => FLOOR_ORDER.includes(floorId)),
+      ),
+    [routeFloorIds],
+  );
+  const viewMode = FLOOR_ORDER.includes(selectedView) ? "floor" : selectedView;
+  const visibleFloors = useMemo(() => {
+    const floors =
+      viewMode === "floor"
+        ? FLOOR_DEFINITIONS.filter((floor) => floor.id === selectedView)
+        : viewMode === "route"
+          ? FLOOR_DEFINITIONS.filter((floor) => routeFloorIdSet.has(floor.id))
+          : FLOOR_DEFINITIONS;
+
+    if (viewMode !== "route") return floors;
+
+    return floors.map((floor, index) => ({ ...floor, y: index * 8.7 }));
+  }, [routeFloorIdSet, selectedView, viewMode]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -294,55 +432,33 @@ export function IndoorMap() {
   return (
     <MapErrorBoundary>
       <div className="relative h-full min-h-[260px] w-full bg-[radial-gradient(circle_at_center,#ffffff_0%,#f7f5ff_52%,#f0ecfa_100%)]">
-        <Canvas
-          dpr={[1, 1.75]}
-          gl={{ antialias: true, alpha: true }}
+        <div
+          className={
+            viewMode === "floor"
+              ? "absolute bottom-[82px] left-0 right-0 top-0 cursor-grab active:cursor-grabbing md:bottom-[92px] md:right-[252px]"
+              : "absolute inset-0"
+          }
         >
-          <Suspense fallback={null}>
-            <FloorStack
-              focusedFloorId={focusedFloorId}
-              resetSignal={resetSignal}
-            />
-          </Suspense>
-        </Canvas>
-
-        <div className="absolute right-3 top-3 z-10 flex max-h-[calc(100%-24px)] flex-col gap-1 overflow-y-auto rounded-2xl border border-white/70 bg-white/90 p-2 shadow-[0_12px_35px_rgba(46,29,101,0.12)] backdrop-blur-md md:right-5 md:top-5">
-          <span className="px-2 pb-1 text-[8px] font-bold tracking-[0.22em] text-[#9994ad]">
-            FLOOR
-          </span>
-          <button
-            type="button"
-            aria-pressed={focusedFloorId === null}
-            onClick={() => setFocusedFloorId(null)}
-            className={`rounded-full px-3 py-1.5 text-[10px] font-bold transition-colors ${
-              focusedFloorId === null
-                ? "bg-[#5c2ef5] text-white"
-                : "bg-[#f4f1fb] text-[#6b6685] hover:bg-[#ebe6f8]"
-            }`}
+          <Canvas
+            dpr={[1, 1.75]}
+            gl={{ antialias: true, alpha: true }}
           >
-            전체
-          </button>
-          {[...FLOOR_ORDER].reverse().map((floorId) => (
-            <button
-              key={floorId}
-              type="button"
-              aria-label={`${floorId} ${FLOOR_DEFINITIONS.find((floor) => floor.id === floorId)?.title} 집중 보기`}
-              aria-pressed={focusedFloorId === floorId}
-              onClick={() => setFocusedFloorId(floorId)}
-              className={`rounded-full px-3 py-1.5 text-[10px] font-bold transition-colors ${
-                focusedFloorId === floorId
-                  ? "bg-[#5c2ef5] text-white"
-                  : "bg-[#f4f1fb] text-[#6b6685] hover:bg-[#ebe6f8]"
-              }`}
-              title={FLOOR_DEFINITIONS.find((floor) => floor.id === floorId)?.title}
-            >
-              {floorId}
-            </button>
-          ))}
+            <Suspense fallback={null}>
+              <FloorStack
+                viewMode={viewMode}
+                visibleFloors={visibleFloors}
+                resetSignal={resetSignal}
+              />
+            </Suspense>
+          </Canvas>
         </div>
 
+        <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[9px] font-medium text-[#6b6685] shadow-sm backdrop-blur-md md:bottom-5 md:text-[10px]">
-          드래그 회전 · 스크롤 확대/축소
+          {viewMode === "floor"
+            ? "드래그 이동 · 스크롤 확대/축소"
+            : "드래그 회전 · 스크롤 확대/축소"}
         </div>
 
         <button
