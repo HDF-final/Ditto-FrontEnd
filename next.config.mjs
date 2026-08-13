@@ -15,13 +15,11 @@ const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";
 const API_PROXY_TIMEOUT_MS = 150_000;
 
 const nextConfig = {
-
   images: {
     // Place hero/product photos are served from Unsplash in the sample data.
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
   },
   allowedDevOrigins: ["127.0.0.1", "192.168.2.181"],
-
   experimental: {
     proxyTimeout: API_PROXY_TIMEOUT_MS,
   },

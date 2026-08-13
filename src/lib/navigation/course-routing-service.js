@@ -79,6 +79,37 @@ export function loadCourseRoutingDataset(options) {
   return datasetPromise;
 }
 
+export function attachPlaceIdsToCourseDataset(dataset, navigationPlaces) {
+  const placeIdByNavigationKey = new Map(
+    navigationPlaces
+      .filter((place) => place.navigationKey && place.placeId !== null)
+      .map((place) => [place.navigationKey, place.placeId]),
+  );
+  const places = dataset.places.map((place) => ({
+    ...place,
+    placeId: placeIdByNavigationKey.get(place.navigationKey) ?? null,
+  }));
+  const placesByNavigationKey = new Map(
+    places.map((place) => [place.navigationKey, place]),
+  );
+  const placesByPlaceId = new Map(
+    places
+      .filter((place) => place.placeId !== null)
+      .map((place) => [String(place.placeId), place]),
+  );
+
+  return {
+    ...dataset,
+    places,
+    defaults: dataset.defaults
+      .map((place) => placesByNavigationKey.get(place.navigationKey))
+      .filter(Boolean),
+    placesByNavigationKey,
+    placesByPlaceId,
+    unmappedPlaceCount: places.filter((place) => place.placeId === null).length,
+  };
+}
+
 /** Backend/Boni integration boundary: place_id -> navigation_key. */
 export async function resolveCoursePlace({ placeId, navigationKey }) {
   const dataset = await loadCourseRoutingDataset();
@@ -109,6 +140,9 @@ export async function calculateCourseRoute(places, preferences) {
 
 export async function optimizeCourseRoute(places, preferences) {
   const dataset = await loadCourseRoutingDataset();
+  const inputPlacesByNavigationKey = new Map(
+    places.map((place) => [place.navigationKey, place]),
+  );
   const optimized = optimizeOpenItinerary(
     dataset.graph,
     places.map((place) => place.navigationKey),
@@ -118,7 +152,11 @@ export async function optimizeCourseRoute(places, preferences) {
   return {
     itinerary: optimized.itinerary,
     places: optimized.stopPlaceIds
-      .map((key) => dataset.placesByNavigationKey.get(key))
+      .map(
+        (key) =>
+          inputPlacesByNavigationKey.get(key) ??
+          dataset.placesByNavigationKey.get(key),
+      )
       .filter(Boolean),
   };
 }

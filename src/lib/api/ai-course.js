@@ -5,13 +5,13 @@ import { apiClient } from "./client";
 /**
  * AI 코스 추천 API.
  *
- * `POST /v1/ai/course-recommendations/chat` 한 번은 LLM 플래닝을 통째로 돌기
+ * `POST /api/v1/ai/course-recommendations/chat` 한 번은 LLM 플래닝을 통째로 돌기
  * 때문에 응답까지 40초 안팎이 걸립니다. 공통 인스턴스의 15초 기본 타임아웃으로는
  * 항상 끊기므로, 기능 전용 Axios 인스턴스를 새로 만들지 않고 이 요청에만
  * 타임아웃을 넓혀서 보냅니다.
  */
 
-const CHAT_ENDPOINT = "/v1/ai/course-recommendations/chat";
+const CHAT_ENDPOINT = "/ai/course-recommendations/chat";
 
 /** 40초 응답 + 서버 지연 여유. */
 export const COURSE_CHAT_TIMEOUT_MS = 120_000;
