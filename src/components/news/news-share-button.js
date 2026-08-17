@@ -36,7 +36,7 @@ export function NewsShareButton() {
         onClick={handleShare}
         className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-7 text-sm font-black transition cursor-pointer ${
           copied
-            ? "bg-emerald-600 text-white shadow-lg scale-105"
+            ? "bg-brand-dark text-white shadow-lg scale-105"
             : "bg-brand text-white shadow-control hover:bg-brand-dark"
         }`}
       >
@@ -81,8 +81,8 @@ export function NewsShareButton() {
 
       {/* Floating Toast Notification */}
       {copied ? (
-        <div className="fixed bottom-10 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-emerald-500/30 bg-[#161324]/95 px-6 py-3.5 text-sm font-bold text-white shadow-2xl backdrop-blur-md transition-all animate-bounce">
-          <span className="flex size-6 items-center justify-center rounded-full bg-emerald-500 text-white">
+        <div className="fixed bottom-10 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-brand/40 bg-[#161324]/95 px-6 py-3.5 text-sm font-bold text-white shadow-2xl backdrop-blur-md transition-all animate-bounce">
+          <span className="flex size-6 items-center justify-center rounded-full bg-brand text-white">
             <svg
               aria-hidden="true"
               className="size-3.5"
