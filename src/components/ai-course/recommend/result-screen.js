@@ -103,7 +103,10 @@ export function ResultScreen({ chat, onPlaceClick }) {
       const catalogPlace = placeCatalog.find(
         (candidate) => candidate.navigationKey === place.navigationKey,
       );
-      return catalogPlace ? { ...place, placeId: catalogPlace.placeId } : place;
+      // placeId와 함께 장소 사진(장소 목록 API 제공)도 카탈로그에서 가져와 채운다.
+      return catalogPlace
+        ? { ...place, placeId: catalogPlace.placeId, image: catalogPlace.image }
+        : place;
     });
     setAppliedCourse(aiCourse);
     setItems(hydratedPlaces);
