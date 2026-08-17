@@ -5,15 +5,20 @@ import { HomeHero } from "@/components/home/home-hero";
 import { KeywordSection } from "@/components/home/keyword-section";
 import { NewsletterPreviewSection } from "@/components/home/newsletter-preview-section";
 import { heroSlides } from "@/lib/fixtures/home";
+import { fetchNewsFeedsServer } from "@/lib/api/news.server";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const newsList = await fetchNewsFeedsServer({ page: 0, size: 3 });
+
   return (
     <main className="bg-background">
       <HomeHero slides={heroSlides} />
       <DittoPicksSection />
       <CommunityPreviewSection />
       <KeywordSection />
-      <NewsletterPreviewSection />
+      <NewsletterPreviewSection items={newsList} />
       <AppBanner />
     </main>
   );

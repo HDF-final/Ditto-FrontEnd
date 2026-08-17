@@ -1,10 +1,16 @@
 import { NewsFeaturedCard } from "@/components/news/news-featured-card";
 import { NewsFeed } from "@/components/news/news-feed";
-import { featuredNews, newsItems, newsTabs } from "@/lib/fixtures/news";
+import { fetchNewsFeedsServer } from "@/lib/api/news.server";
+import { newsTabs } from "@/lib/fixtures/news";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "뉴스피드" };
 
-export default function NewsPage() {
+export default async function NewsPage() {
+  const feeds = await fetchNewsFeedsServer({ page: 0, size: 20 });
+  const featured = feeds[0] || null;
+  const feedItems = feeds.length > 1 ? feeds.slice(1) : feeds;
+
   return (
     <main className="bg-background">
       <section className="bg-white px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
@@ -19,9 +25,9 @@ export default function NewsPage() {
             K-컬처와 브랜드, 그리고 우리 사회에 선한 변화를 만드는 소식.
           </p>
         </div>
-        <NewsFeaturedCard news={featuredNews} />
+        {featured ? <NewsFeaturedCard news={featured} /> : null}
       </section>
-      <NewsFeed tabs={newsTabs} items={newsItems} />
+      <NewsFeed tabs={newsTabs} items={feedItems} />
     </main>
   );
 }
