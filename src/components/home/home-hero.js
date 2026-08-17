@@ -3,6 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+function ArrowRightIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+      <path d="m13 5 7 7-7 7" />
+    </svg>
+  );
+}
+
 export function HomeHero({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -15,51 +33,74 @@ export function HomeHero({ slides }) {
   }, [slides.length]);
 
   const activeSlide = slides[activeIndex];
+  const heroMinHeight = "clamp(480px, 44vw, 640px)";
 
   return (
-    <section className="px-10 sm:px-14 py-6 lg:px-52 xl:px-60 2xl:px-72">
-      <div className="grid min-h-[520px] overflow-hidden rounded-[32px] bg-surface-soft lg:grid-cols-[0.88fr_1.12fr]">
-        <div className="flex flex-col justify-center gap-7 p-8 sm:p-14 lg:p-[70px]">
-          <h1 className="text-3xl font-black leading-tight text-ink sm:text-5xl">
-            {activeSlide.title}
-            <br />
-            <span className="text-brand">{activeSlide.accent}</span>{" "}
-            {activeSlide.suffix}
+    <section className="relative w-full overflow-hidden">
+      <div className="relative" style={{ minHeight: heroMinHeight }}>
+        {/* 배경: 흰색 폴백 위에 슬라이드 이미지(파일을 넣기 전에는 흰 배경이 노출) */}
+        <div className="absolute inset-0 bg-white" />
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url("${activeSlide.image}")` }}
+          role="img"
+          aria-label={activeSlide.alt}
+        />
+        {/* 좌측 가독성 확보용 화이트 그라데이션 오버레이 */}
+        <div className="absolute inset-0 bg-linear-to-r from-white via-white/85 to-transparent" />
+
+        {/* 콘텐츠 */}
+        <div
+          className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-5 px-8 sm:px-14 lg:px-16"
+          style={{ minHeight: heroMinHeight }}
+        >
+          <p className="text-sm font-black tracking-wide text-brand">
+            {activeSlide.eyebrow}
+          </p>
+          <h1 className="text-3xl font-black leading-snug text-ink sm:text-4xl lg:text-5xl">
+            <span className="block">{activeSlide.titleLine}</span>
+            <span className="block whitespace-nowrap">
+              <span className="text-brand">{activeSlide.accent}</span>
+              {activeSlide.suffix}
+            </span>
           </h1>
-          <p className="max-w-xl text-sm leading-7 text-ink-muted sm:text-base">
+          <p className="max-w-xl whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
             {activeSlide.description}
           </p>
-          <div>
+          <div className="flex flex-wrap gap-3">
             <Link
-              href={activeSlide.href}
-              className="inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-black text-white transition hover:bg-brand-dark"
+              href={activeSlide.primaryCta.href}
+              className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-brand px-6 py-3 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
             >
-              {activeSlide.ctaLabel}
+              {activeSlide.primaryCta.label}
+              <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href={activeSlide.secondaryCta.href}
+              className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-white px-6 py-3 text-sm font-black text-ink transition hover:border-brand hover:text-brand"
+            >
+              {activeSlide.secondaryCta.label}
+              <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </Link>
           </div>
-          <div className="flex gap-2" aria-label="hero slide controls">
+
+          {/* 슬라이드 인디케이터 (현재 위치 표시) */}
+          <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
             {slides.map((slide, index) => (
               <button
-                key={slide.visualTitle}
+                key={slide.titleLine}
                 type="button"
                 aria-label={`${index + 1}번째 배너 보기`}
+                aria-current={activeIndex === index}
                 onClick={() => setActiveIndex(index)}
-                className={`h-2 rounded-full transition ${
+                className={`h-2.5 rounded-full transition-all ${
                   activeIndex === index
-                    ? "w-5 bg-brand"
-                    : "w-2 bg-[#d9d5e8] hover:bg-brand/50"
+                    ? "w-7 bg-brand"
+                    : "w-2.5 bg-line-strong hover:bg-brand/50"
                 }`}
               />
             ))}
           </div>
-        </div>
-        <div
-          className={`relative flex min-h-[300px] flex-col items-center justify-center bg-linear-to-r ${activeSlide.gradient} px-10 text-center text-white`}
-        >
-          <p className="text-4xl font-black tracking-tight">
-            {activeSlide.visualTitle}
-          </p>
-          <p className="mt-2 text-xs text-white/80">{activeSlide.visualNote}</p>
         </div>
       </div>
     </section>
