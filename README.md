@@ -153,7 +153,8 @@ Next.js App Router는 `src/app` 아래의 폴더를 URL 경로로 사용하고, 
 | `/ai-course` | `src/app/ai-course/page.js` | AI 코스 만들기 |
 | `/courses` | `src/app/courses/page.js` | 코스 리스트 |
 | `/community` | `src/app/community/page.js` | 여행자 커뮤니티 |
-| `/news` | `src/app/news/page.js` | 뉴스피드 |
+| `/news` | `src/app/news/page.js` | 뉴스피드 목록 |
+| `/news/[slug]` | `src/app/news/[slug]/page.js` | 뉴스피드 상세 (슬러그 조회) |
 | `/mypage` | `src/app/mypage/page.js` | 마이페이지 |
 
 예를 들어 `/about` 페이지를 추가하려면 다음 파일을 만듭니다.
@@ -261,6 +262,20 @@ const { data } = await apiClient.get("/courses");
 - 한 턴에 40초 안팎 걸리므로 이 요청만 타임아웃을 120초로 넓혀 보냅니다(공통 인스턴스 기본값은 15초).
 - 응답의 `places[].navigationKey`를 `lib/navigation/course-routing-service.js`의 `resolveCoursePlace()`로 실내 지도 장소에 매핑합니다. 매칭되지 않는 키는 길찾기가 불가능하므로 코스에서 제외합니다.
 - 로그인 세션이 필요한 엔드포인트입니다. 미인증 상태에서는 403이 오고 화면에 로그인 안내가 표시됩니다.
+
+### 뉴스피드 (`lib/api/news.js`, `lib/api/news.server.js`)
+
+K-컬처 트렌드 뉴스피드 조회 API 엔드포인트:
+
+| 용도 | 메서드 | 엔드포인트 | 클라이언트 함수 | 서버 함수 |
+| --- | --- | --- | --- | --- |
+| 뉴스피드 목록 조회 | `GET` | `/api/v1/news?page={page}&size={size}` | `getNewsFeeds()` | `fetchNewsFeedsServer()` |
+| 뉴스피드 상세 조회 | `GET` | `/api/v1/news/{newsId}` | `getNewsFeedById(id)` | `getNewsDetailById(id)` |
+| 검색 유입 슬러그 조회 | `GET` | `/api/v1/news/slug/{slug}` | `getNewsFeedBySlug(slug)` | `getNewsDetailBySlug(slug)` |
+| 사이트맵 목록 조회 | `GET` | `/api/v1/news/sitemap` | `getNewsFeedsForSitemap()` | `getNewsSitemap()` |
+
+- **서버 컴포넌트(`src/app/news/page.js`, `src/app/news/[slug]/page.js`, `src/app/sitemap.js`)**: `lib/api/news.server.js`를 통해 SSR/SSG 및 백엔드 미가동 시 안전한 폴백(fixtures) 처리를 지원합니다.
+- **클라이언트 컴포넌트**: `lib/api/news.js`를 통해 브라우저 공통 Axios 인스턴스로 API 통신을 수행합니다.
 
 ## Zustand 사용법
 

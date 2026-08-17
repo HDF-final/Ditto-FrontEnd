@@ -1,16 +1,117 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { ViewCount } from "@/components/news/view-count";
-import { allNews, getNewsBySlug, getRelatedNews } from "@/lib/fixtures/news";
+import { NewsShareButton } from "@/components/news/news-share-button";
+import {
+  getNewsDetailBySlug,
+  getNewsSitemap,
+  getRelatedNewsList,
+} from "@/lib/api/news.server";
 
-export function generateStaticParams() {
-  return allNews.map((news) => ({ slug: news.slug }));
+export const dynamic = "force-dynamic";
+
+function FormattedParagraph({ text }) {
+  if (!text) return null;
+
+  // 1. Markdown link pattern: [연합뉴스](https://...)
+  const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
+  if (markdownLinkRegex.test(text)) {
+    markdownLinkRegex.lastIndex = 0;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = markdownLinkRegex.exec(text)) !== null) {
+      const [fullMatch, label, url] = match;
+      const matchIndex = match.index;
+
+      if (matchIndex > lastIndex) {
+        parts.push(text.slice(lastIndex, matchIndex));
+      }
+
+      parts.push(
+        <a
+          key={matchIndex}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
+        >
+          {label}
+          <svg
+            aria-hidden="true"
+            className="inline size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>,
+      );
+
+      lastIndex = matchIndex + fullMatch.length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts;
+  }
+
+  // 2. Plain source link pattern: 출처: 연합뉴스 (https://...)
+  const sourceWithUrlRegex = /^(출처:\s*)([^\s(]+)?\s*\((https?:\/\/[^\s)]+)\)$/;
+  const sourceMatch = text.match(sourceWithUrlRegex);
+  if (sourceMatch) {
+    const [, prefix, label = "원문 기사", url] = sourceMatch;
+    return (
+      <>
+        {prefix}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
+        >
+          {label}
+          <svg
+            aria-hidden="true"
+            className="inline size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+      </>
+    );
+  }
+
+  return text;
+}
+
+export async function generateStaticParams() {
+  const sitemapItems = await getNewsSitemap();
+  return sitemapItems.map((news) => ({ slug: news.slug }));
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const news = getNewsBySlug(slug);
+  const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
     return { title: "뉴스 상세" };
@@ -24,79 +125,76 @@ export async function generateMetadata({ params }) {
 
 export default async function NewsDetailPage({ params }) {
   const { slug } = await params;
-  const news = getNewsBySlug(slug);
+  const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
     notFound();
   }
 
-  const relatedNews = getRelatedNews(news.slug);
+  const relatedNews = await getRelatedNewsList(news.slug);
   const categoryLabel = news.label ?? news.category;
-  const body = news.body ?? [
-    news.summary,
-    "K-컬처 트렌드는 콘텐츠 소비와 실제 여행 동선을 함께 바꾸고 있습니다. 브랜드 경험, 팬덤 이벤트, 쇼핑 스팟이 연결되며 여행자는 더 촘촘한 코스를 기대하게 되었어요.",
-    "DITTO는 뉴스 관심사를 실제 방문 가능한 코스와 연결해 여행자가 지금 가장 주목받는 장소를 쉽게 발견하도록 돕습니다.",
-  ];
-  const summaryPoints =
-    news.summaryPoints ??
-    [
-      `${categoryLabel} 흐름이 빠르게 확산`,
-      "여행 동선과 브랜드 경험의 연결 강화",
-      "저장한 관심사를 코스 추천에 활용",
-    ];
+  const body = news.body;
+  const summaryPoints = news.summaryPoints;
+  const tags = news.tags || news.keywords || [];
 
   return (
     <main className="bg-surface-soft">
       <section className="bg-white px-10 sm:px-14 pb-10 pt-8 lg:px-52 xl:px-60 2xl:px-72 lg:pb-14">
         <div
-          className={`mx-auto grid max-w-7xl gap-10 rounded-[32px] bg-linear-to-br ${news.gradient} px-6 py-10 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-10 lg:grid-cols-[1fr_330px] lg:px-14 lg:py-16`}
+          className={`relative mx-auto max-w-7xl min-h-[400px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
+            news.representativeImageUrl ? "" : `bg-linear-to-br ${news.gradient}`
+          }`}
         >
-          <div className="flex min-h-[360px] flex-col justify-center">
-            <p className="text-xs font-black uppercase tracking-[0.04em]">
+          {news.representativeImageUrl ? (
+            <>
+              <Image
+                src={news.representativeImageUrl}
+                alt={news.title}
+                fill
+                unoptimized
+                priority
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-linear-to-r from-black/90 via-black/65 to-black/35" />
+            </>
+          ) : null}
+
+          <div className="relative z-10 flex max-w-3xl flex-col justify-center">
+            <p className="text-xs font-black uppercase tracking-[0.04em] text-white/80">
               DITTO NEWSLETTER
             </p>
-            <span className="mt-7 w-fit rounded-full bg-white/90 px-7 py-3 text-xs font-black text-brand">
+            <span className="mt-5 w-fit rounded-full bg-white/95 px-5 py-2 text-xs font-black text-brand shadow-sm">
               {categoryLabel}
             </span>
-            <h1 className="mt-8 max-w-3xl whitespace-pre-line text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-[52px]">
+            <h1 className="mt-6 whitespace-pre-line text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-[46px]">
               {news.title}
             </h1>
-            <p className="mt-7 max-w-2xl text-base font-medium leading-8 text-white/88">
+            <p className="mt-5 text-base font-medium leading-relaxed text-white/90">
               {news.summary}
             </p>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/news"
-                className="inline-flex min-h-12 items-center justify-center rounded-control border border-white px-7 text-sm font-black text-white transition hover:bg-white/10"
+                className="inline-flex min-h-12 items-center justify-center rounded-control border border-white/80 bg-black/20 backdrop-blur-xs px-7 text-sm font-black text-white transition hover:bg-white/20"
               >
                 뉴스피드로 돌아가기
               </Link>
-              <button
-                type="button"
-                className="inline-flex min-h-12 items-center justify-center rounded-control bg-brand px-7 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
-              >
-                기사 공유
-              </button>
+              <NewsShareButton
+                title={news.title}
+                summary={news.summary}
+              />
             </div>
           </div>
-
-          <aside className="self-center rounded-[24px] bg-white/92 p-8 text-ink shadow-card">
-            <p className="text-xs font-black uppercase text-brand">
-              Article Insight
-            </p>
-            <p className="mt-6 text-3xl font-black">{news.views}</p>
-            <p className="mt-3 text-sm font-semibold text-ink-muted">
-              {news.insight ?? `${news.tags[0]} 키워드`}
-            </p>
-          </aside>
         </div>
       </section>
 
       <section className="px-10 sm:px-14 py-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
-            {body.slice(0, 2).map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {body.slice(0, 2).map((paragraph, index) => (
+              <p key={index}>
+                <FormattedParagraph text={paragraph} />
+              </p>
             ))}
 
             {news.quote ? (
@@ -104,53 +202,61 @@ export default async function NewsDetailPage({ params }) {
                 <p className="text-2xl font-black leading-snug text-ink">
                   “{news.quote}”
                 </p>
-                <cite className="mt-3 block text-sm font-black not-italic text-brand">
-                  {news.quoteSource}
-                </cite>
+                {news.quoteSource ? (
+                  <cite className="mt-3 block text-sm font-black not-italic text-brand">
+                    - {news.quoteSource}
+                  </cite>
+                ) : null}
               </blockquote>
             ) : null}
 
-            {body.slice(2).map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {body.slice(2).map((paragraph, index) => (
+              <p key={index}>
+                <FormattedParagraph text={paragraph} />
+              </p>
             ))}
 
-            <div className="flex flex-wrap gap-3 pt-4">
-              {news.tags.map((tag, index) => (
-                <span
-                  key={tag}
-                  className={[
-                    "rounded-control px-5 py-2 text-xs font-black",
-                    index === 0
-                      ? "bg-brand text-white"
-                      : "bg-brand-soft text-brand",
-                  ].join(" ")}
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-3 pt-4">
+                {tags.map((tag, index) => (
+                  <span
+                    key={tag}
+                    className={[
+                      "rounded-control px-5 py-2 text-xs font-black",
+                      index === 0
+                        ? "bg-brand text-white"
+                        : "bg-brand-soft text-brand",
+                    ].join(" ")}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </article>
 
-          <aside className="h-fit rounded-[28px] bg-white p-7 shadow-card">
-            <h2 className="text-2xl font-black text-ink">기사 요약</h2>
-            <ol className="mt-7 flex flex-col gap-7">
+          <aside className="h-fit rounded-[28px] border border-line bg-white p-8 shadow-card">
+            <div className="flex items-center justify-between gap-3 border-b border-line pb-5">
+              <div className="flex items-center gap-3">
+                <span className="size-3 rounded-full bg-brand" />
+                <h2 className="text-2xl font-black text-ink">기사 요약</h2>
+              </div>
+              <span className="rounded-full bg-brand-soft px-3.5 py-1 text-xs font-black text-brand">
+                KEY POINTS
+              </span>
+            </div>
+            <ol className="mt-6 flex flex-col gap-6">
               {summaryPoints.map((point, index) => (
-                <li key={point} className="flex items-center gap-4">
-                  <span className="flex size-7 flex-none items-center justify-center rounded-full bg-brand-soft text-xs font-black text-brand">
+                <li key={index} className="flex items-start gap-4">
+                  <span className="flex size-8 flex-none items-center justify-center rounded-full bg-brand text-sm font-black text-white">
                     {index + 1}
                   </span>
-                  <span className="text-sm font-semibold leading-6 text-ink">
+                  <p className="text-[19px] font-bold leading-snug text-ink">
                     {point}
-                  </span>
+                  </p>
                 </li>
               ))}
             </ol>
-            <button
-              type="button"
-              className="mt-9 w-full rounded-control bg-brand px-5 py-4 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
-            >
-              뉴스 저장하기
-            </button>
           </aside>
         </div>
       </section>
@@ -170,9 +276,21 @@ export default async function NewsDetailPage({ params }) {
                 href={`/news/${item.slug}`}
                 className="grid grid-cols-[108px_1fr] gap-5 rounded-[20px] border border-line bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-line-strong"
               >
-                <div
-                  className={`min-h-24 rounded-[18px] bg-linear-to-br ${item.gradient}`}
-                />
+                <div className="relative min-h-24 overflow-hidden rounded-[18px]">
+                  {item.representativeImageUrl ? (
+                    <Image
+                      src={item.representativeImageUrl}
+                      alt={item.title}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`h-full w-full bg-linear-to-br ${item.gradient}`}
+                    />
+                  )}
+                </div>
                 <div className="min-w-0">
                   <p className="text-xs font-black text-brand">
                     {item.label ?? item.category}
@@ -182,7 +300,6 @@ export default async function NewsDetailPage({ params }) {
                   </h3>
                   <div className="mt-4 flex items-center gap-3 text-xs font-semibold text-ink-muted">
                     <span>{item.date}</span>
-                    <ViewCount value={item.views} />
                   </div>
                 </div>
               </Link>

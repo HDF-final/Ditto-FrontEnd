@@ -1,9 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 
-import { newsletters } from "@/lib/fixtures/home";
 import { SectionHeading } from "@/components/home/section-heading";
+import { newsletters as defaultNewsletters } from "@/lib/fixtures/home";
 
-export function NewsletterPreviewSection() {
+export function NewsletterPreviewSection({ items = [] }) {
+  const displayItems = items.length > 0 ? items.slice(0, 3) : defaultNewsletters;
+
   return (
     <section
       id="newsletter"
@@ -11,44 +14,61 @@ export function NewsletterPreviewSection() {
     >
       <SectionHeading
         eyebrow="DITTO NEWSLETTER"
-        title="차근차근 나아가는 임팩트 소식"
+        title="DITTO 임팩트 소식"
         description="K-컬처와 브랜드, 그리고 우리 사회에 선한 변화를 만드는 소식을 전해드려요."
         href="/news"
         linkLabel="뉴스 전체보기"
       />
-      <div className="grid gap-5 lg:grid-cols-3">
-        {newsletters.map((news) => (
-          <Link
-            key={news.title}
-            href="/news"
-            className="overflow-hidden rounded-[20px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.08)] transition hover:-translate-y-1 hover:shadow-[0_18px_32px_rgba(43,28,89,0.14)]"
-          >
-            <div
-              className={`h-[170px] bg-linear-to-br ${news.gradient} p-4`}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {displayItems.map((news) => {
+          const category = news.label || news.category || (news.keywords?.[0] ? `${news.keywords[0]}` : null);
+          const slug = news.slug || "";
+          const href = slug ? `/news/${slug}` : "/news";
+
+          return (
+            <Link
+              key={news.slug || news.title}
+              href={href}
+              className="group flex flex-col overflow-hidden rounded-[24px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
             >
-              {news.category ? (
-                <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-black text-accent">
-                  {news.category}
-                </span>
-              ) : null}
-            </div>
-            <div className="p-5">
-              <h3 className="min-h-12 text-base font-black leading-snug text-ink">
-                {news.title}
-              </h3>
-              <div className="mt-4 flex justify-between text-xs text-ink-muted">
-                <span>{news.date}</span>
-                <span>{news.readTime}</span>
+              <div className="relative h-[210px] w-full overflow-hidden bg-surface-muted">
+                {news.representativeImageUrl ? (
+                  <Image
+                    src={news.representativeImageUrl}
+                    alt={news.title}
+                    fill
+                    unoptimized
+                    className="object-cover transition duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div
+                    className={`h-full w-full bg-linear-to-br ${news.gradient || "from-[#2d1b8e] to-[#5c2ef5]"}`}
+                  />
+                )}
+                {category ? (
+                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3.5 py-1 text-xs font-black text-brand shadow-sm">
+                    {category}
+                  </span>
+                ) : null}
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-      <div className="mt-7 flex justify-center gap-2" aria-hidden="true">
-        <span className="h-2 w-5 rounded-full bg-brand" />
-        <span className="h-2 w-2 rounded-full bg-[#d9d5e8]" />
-        <span className="h-2 w-2 rounded-full bg-[#d9d5e8]" />
-        <span className="h-2 w-2 rounded-full bg-[#d9d5e8]" />
+              <div className="flex flex-1 flex-col justify-between p-6">
+                <div>
+                  <h3 className="line-clamp-2 text-lg font-black leading-snug text-ink group-hover:text-brand transition-colors">
+                    {news.title}
+                  </h3>
+                  {news.summary ? (
+                    <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-ink-muted">
+                      {news.summary}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-line/60 pt-4 text-xs font-semibold text-ink-muted">
+                  <span>{news.date}</span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
