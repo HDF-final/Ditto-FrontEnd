@@ -85,9 +85,17 @@ export function attachPlaceIdsToCourseDataset(dataset, navigationPlaces) {
       .filter((place) => place.navigationKey && place.placeId !== null)
       .map((place) => [place.navigationKey, place.placeId]),
   );
+  // 장소 사진(presigned URL)은 로컬 원장에 없고 장소 목록 API에만 있으므로
+  // navigationKey로 이어 붙인다. 사진이 없는 장소는 기존 값(null)을 유지한다.
+  const imageUrlByNavigationKey = new Map(
+    navigationPlaces
+      .filter((place) => place.navigationKey && place.imageUrl)
+      .map((place) => [place.navigationKey, place.imageUrl]),
+  );
   const places = dataset.places.map((place) => ({
     ...place,
     placeId: placeIdByNavigationKey.get(place.navigationKey) ?? null,
+    image: imageUrlByNavigationKey.get(place.navigationKey) ?? place.image,
   }));
   const placesByNavigationKey = new Map(
     places.map((place) => [place.navigationKey, place]),
