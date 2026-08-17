@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { NewsShareButton } from "@/components/news/news-share-button";
 import {
   getNewsDetailBySlug,
   getNewsSitemap,
@@ -85,12 +86,10 @@ export default async function NewsDetailPage({ params }) {
               >
                 뉴스피드로 돌아가기
               </Link>
-              <button
-                type="button"
-                className="inline-flex min-h-12 items-center justify-center rounded-control bg-brand px-7 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
-              >
-                기사 공유
-              </button>
+              <NewsShareButton
+                title={news.title}
+                summary={news.summary}
+              />
             </div>
           </div>
         </div>
