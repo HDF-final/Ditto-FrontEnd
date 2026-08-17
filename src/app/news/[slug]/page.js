@@ -11,6 +11,99 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function FormattedParagraph({ text }) {
+  if (!text) return null;
+
+  // 1. Markdown link pattern: [연합뉴스](https://...)
+  const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
+  if (markdownLinkRegex.test(text)) {
+    markdownLinkRegex.lastIndex = 0;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = markdownLinkRegex.exec(text)) !== null) {
+      const [fullMatch, label, url] = match;
+      const matchIndex = match.index;
+
+      if (matchIndex > lastIndex) {
+        parts.push(text.slice(lastIndex, matchIndex));
+      }
+
+      parts.push(
+        <a
+          key={matchIndex}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
+        >
+          {label}
+          <svg
+            aria-hidden="true"
+            className="inline size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>,
+      );
+
+      lastIndex = matchIndex + fullMatch.length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts;
+  }
+
+  // 2. Plain source link pattern: 출처: 연합뉴스 (https://...)
+  const sourceWithUrlRegex = /^(출처:\s*)([^\s(]+)?\s*\((https?:\/\/[^\s)]+)\)$/;
+  const sourceMatch = text.match(sourceWithUrlRegex);
+  if (sourceMatch) {
+    const [, prefix, label = "원문 기사", url] = sourceMatch;
+    return (
+      <>
+        {prefix}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
+        >
+          {label}
+          <svg
+            aria-hidden="true"
+            className="inline size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+      </>
+    );
+  }
+
+  return text;
+}
+
 export async function generateStaticParams() {
   const sitemapItems = await getNewsSitemap();
   return sitemapItems.map((news) => ({ slug: news.slug }));
@@ -99,7 +192,9 @@ export default async function NewsDetailPage({ params }) {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
             {body.slice(0, 2).map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
+              <p key={index}>
+                <FormattedParagraph text={paragraph} />
+              </p>
             ))}
 
             {news.quote ? (
@@ -116,7 +211,9 @@ export default async function NewsDetailPage({ params }) {
             ) : null}
 
             {body.slice(2).map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
+              <p key={index}>
+                <FormattedParagraph text={paragraph} />
+              </p>
             ))}
 
             {tags.length > 0 ? (
