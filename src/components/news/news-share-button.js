@@ -5,7 +5,7 @@ import { Modal } from "@/components/common/modal";
 
 export function NewsShareButton({ title, summary }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState("");
 
   const getShareUrl = () => {
     if (typeof window !== "undefined") {
@@ -14,7 +14,7 @@ export function NewsShareButton({ title, summary }) {
     return "";
   };
 
-  const handleCopyLink = async () => {
+  const copyToClipboard = async (customMessage = "✓ 링크가 클립보드에 복사되었습니다!") => {
     const url = getShareUrl();
     try {
       if (navigator?.clipboard?.writeText) {
@@ -27,22 +27,59 @@ export function NewsShareButton({ title, summary }) {
         document.execCommand("copy");
         document.body.removeChild(textarea);
       }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setCopiedMessage(customMessage);
+      setTimeout(() => setCopiedMessage(""), 2800);
     } catch {
       // Fallback
     }
   };
 
-  const handleShareKakao = () => {
+  const handleCopyLink = () => {
+    copyToClipboard("✓ 링크가 클립보드에 복사되었습니다!");
+  };
+
+  const handleShareKakao = async () => {
     const url = getShareUrl();
-    const shareText = `${title || "DITTO 뉴스"} | DITTO\n${url}`;
-    
-    // Try Web Share API or Kakao Web Sharer
-    if (typeof window !== "undefined") {
-      const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`;
-      window.open(kakaoUrl, "_blank", "width=480,height=600,noopener,noreferrer");
+    const shareTitle = title || "DITTO 트렌드 뉴스";
+    const shareText = summary || `${shareTitle} 소식을 확인해보세요!`;
+
+    // 1. Mobile & Web Share API support (opens native share sheet with KakaoTalk)
+    if (typeof navigator !== "undefined" && navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share({
+          title: `${shareTitle} | DITTO`,
+          text: shareText,
+          url,
+        });
+        return;
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          // Fallback to clipboard
+        } else {
+          return;
+        }
+      }
     }
+
+    // 2. Kakao JS SDK check (if window.Kakao is loaded with key)
+    if (typeof window !== "undefined" && window.Kakao?.isInitialized()) {
+      window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: shareTitle,
+          description: shareText,
+          imageUrl: "https://ditto-frontend.vercel.app/assets/common/ditto-og.png",
+          link: {
+            mobileWebUrl: url,
+            webUrl: url,
+          },
+        },
+      });
+      return;
+    }
+
+    // 3. Fallback for localhost / desktop without registered Kakao key
+    await copyToClipboard("✓ 카카오톡에 바로 공유할 수 있도록 링크가 복사되었습니다!");
   };
 
   const handleShareTwitter = () => {
@@ -53,8 +90,7 @@ export function NewsShareButton({ title, summary }) {
   };
 
   const handleShareInstagram = async () => {
-    // Copy URL and open Instagram
-    await handleCopyLink();
+    await copyToClipboard("✓ 인스타그램에 공유할 수 있도록 링크가 복사되었습니다!");
     window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
   };
 
@@ -218,19 +254,19 @@ export function NewsShareButton({ title, summary }) {
               type="button"
               onClick={handleCopyLink}
               className={`rounded-control px-4 py-2 text-xs font-black transition cursor-pointer ${
-                copied
+                copiedMessage
                   ? "bg-success text-white"
                   : "bg-brand text-white hover:bg-brand-dark shadow-sm"
               }`}
             >
-              {copied ? "복사 완료!" : "복사하기"}
+              {copiedMessage ? "복사 완료!" : "복사하기"}
             </button>
           </div>
 
           {/* Copied Feedback Toast */}
-          {copied ? (
+          {copiedMessage ? (
             <p className="text-center text-xs font-black text-success animate-fade-in">
-              ✓ 링크가 클립보드에 복사되었습니다!
+              {copiedMessage}
             </p>
           ) : null}
         </div>
