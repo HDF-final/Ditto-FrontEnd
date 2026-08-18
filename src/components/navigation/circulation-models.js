@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import * as THREE from "three";
 
 // Same registered floor space as indoor-map.js so models sit on the plan.
@@ -15,9 +15,8 @@ const ELEVATOR_HEIGHT = 2.15;
 const ESCALATOR_LEAVE_FLUSH = 0.05;
 const ESCALATOR_ARRIVE_UNDER = 0.08;
 
-const ELEVATOR_BODY = "#948b84";
+const ELEVATOR_BODY = "#5DA889";
 const ELEVATOR_DOOR = "#2F2C29";
-const ELEVATOR_GLASS = "#2F6B56";
 const ELEVATOR_LIGHT = "#00815a";
 
 const ESCALATOR_DECK = "#E6E8EA";
@@ -27,13 +26,6 @@ const ESCALATOR_GLASS = "#F4F6F7";
 const ESCALATOR_HANDRAIL = "#3A3E42";
 const ESCALATOR_CAP = "#D5D8DB";
 const ESCALATOR_UP = "#2F6B56";
-
-// Schematic wedge: triangular sides read as the floor-to-floor diagram.
-const ESCALATOR_FACE = "#C7C0B5";
-const ESCALATOR_WEDGE = "#A89F93";
-const ESCALATOR_EDGE = "#6F6A64";
-const ESCALATOR_ACCENT = "#00815a";
-const ESCALATOR_WIDTH = 2.6;
 
 function nodeWorldPoint(node, floor, yLift = LANDING_LIFT) {
   return [
@@ -169,27 +161,6 @@ function ElevatorCabin({ point }) {
   );
 }
 
-function ElevatorShaft({ from, to }) {
-  const midY = (from[1] + to[1]) / 2;
-  const height = Math.abs(to[1] - from[1]);
-  if (height < 1.2) return null;
-  return (
-    <mesh
-      position={[(from[0] + to[0]) / 2, midY, (from[2] + to[2]) / 2]}
-      renderOrder={5}
-    >
-      <boxGeometry args={[1.45, height, 1.45]} />
-      <meshBasicMaterial
-        color={ELEVATOR_GLASS}
-        transparent
-        opacity={0.42}
-        depthWrite={false}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
-
 function EscalatorBand({ start, end }) {
   const layout = useMemo(() => {
     const a = new THREE.Vector3(...start);
@@ -271,104 +242,11 @@ function EscalatorBand({ start, end }) {
   );
 }
 
-function EscalatorWedge({ start, end, goingUp }) {
-  const layout = useMemo(() => {
-    const a = new THREE.Vector3(...start);
-    const b = new THREE.Vector3(...end);
-    const run = new THREE.Vector3(b.x - a.x, 0, b.z - a.z);
-    const runH = run.length();
-    const rise = b.y - a.y;
-    if (runH < 0.001 && Math.abs(rise) < 0.001) return null;
-
-    const safeRun = Math.max(runH, 1.2);
-    const dir =
-      runH >= 0.001
-        ? run.clone().multiplyScalar(1 / runH)
-        : new THREE.Vector3(1, 0, 0);
-
-    // Right triangle in local XY: base on the lower plate, vertical at the
-    // upper landing, hypotenuse as the floor-to-floor connection.
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(safeRun, 0);
-    shape.lineTo(safeRun, rise);
-    shape.closePath();
-
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: ESCALATOR_WIDTH,
-      bevelEnabled: false,
-    });
-    geometry.translate(0, 0, -ESCALATOR_WIDTH / 2);
-
-    // Nudge marks off the slope so they do not z-fight the wedge face.
-    const outward = new THREE.Vector3(-rise, safeRun, 0).normalize();
-    const mark = (t) =>
-      new THREE.Vector3(safeRun * t, rise * t, 0).addScaledVector(outward, 0.08);
-    const toT = goingUp ? 0.92 : 0.08;
-    const travel = new THREE.Vector3(safeRun, rise, 0);
-    if (!goingUp) travel.negate();
-    travel.normalize();
-    const arrowQuat = new THREE.Quaternion().setFromUnitVectors(
-      new THREE.Vector3(0, 1, 0),
-      travel,
-    );
-
-    return {
-      position: [a.x, a.y, a.z],
-      rotation: [0, Math.atan2(-dir.z, dir.x), 0],
-      geometry,
-      arrowPos: mark(toT).toArray(),
-      arrowQuat,
-    };
-  }, [end, goingUp, start]);
-
-  useEffect(
-    () => () => {
-      layout?.geometry.dispose();
-    },
-    [layout],
-  );
-
-  if (!layout) return null;
-
-  return (
-    <group position={layout.position} rotation={layout.rotation}>
-      <mesh geometry={layout.geometry} renderOrder={6}>
-        <meshBasicMaterial
-          attach="material-0"
-          color={ESCALATOR_FACE}
-          side={THREE.DoubleSide}
-          toneMapped={false}
-        />
-        <meshBasicMaterial
-          attach="material-1"
-          color={ESCALATOR_WEDGE}
-          side={THREE.DoubleSide}
-          toneMapped={false}
-        />
-      </mesh>
-      <lineSegments renderOrder={7}>
-        <edgesGeometry args={[layout.geometry]} />
-        <lineBasicMaterial color={ESCALATOR_EDGE} toneMapped={false} />
-      </lineSegments>
-      <mesh
-        position={layout.arrowPos}
-        quaternion={layout.arrowQuat}
-        renderOrder={8}
-      >
-        <coneGeometry args={[0.42, 0.95, 3]} />
-        <meshBasicMaterial color={ESCALATOR_ACCENT} toneMapped={false} />
-      </mesh>
-    </group>
-  );
-}
-
 export function CirculationModels({
   visibleFloors,
   floorDatasets,
   itinerary,
   flatView = false,
-  wedgeEscalators = false,
 }) {
   const fixtures = useMemo(
     () => collectConnectors(visibleFloors, floorDatasets, itinerary),
@@ -384,30 +262,12 @@ export function CirculationModels({
           {elevator.landings.map((landing) => (
             <ElevatorCabin key={landing.floorId} point={landing.point} />
           ))}
-          {!flatView
-            ? elevator.landings.slice(0, -1).map((landing, index) => {
-                const next = elevator.landings[index + 1];
-                const from = [
-                  landing.point[0],
-                  landing.point[1] + ELEVATOR_HEIGHT,
-                  landing.point[2],
-                ];
-                return (
-                  <ElevatorShaft
-                    key={`${landing.floorId}-${next.floorId}`}
-                    from={from}
-                    to={next.point}
-                  />
-                );
-              })
-            : null}
         </group>
       ))}
       {fixtures.escalators.map((escalator) => {
         if (flatView) return null;
-        const Model = wedgeEscalators ? EscalatorWedge : EscalatorBand;
         return (
-          <Model
+          <EscalatorBand
             key={escalator.id}
             start={escalator.start}
             end={escalator.end}

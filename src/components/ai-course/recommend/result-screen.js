@@ -62,6 +62,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
+  const chatOccluderRef = useRef(null);
 
   const aiCourse = chat?.course ?? null;
   const chatPending = chat?.pending ?? null;
@@ -602,16 +603,20 @@ export function ResultScreen({ chat, onPlaceClick }) {
             route={routeState.itinerary}
             routeFloorIds={routeState.itinerary?.floorIds}
             routeGraph={routeState.graph}
+            overlayOccluderRef={chatOccluderRef}
           />
         </div>
 
-        {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead) */}
-        <div className="hidden md:flex absolute bottom-5 left-0 right-0 justify-center px-6">
-          <PanelChat
-            messages={chat?.messages}
-            pending={chatPending}
-            onSend={chat?.send}
-          />
+        {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead).
+            Opaque + z-30 covers the map; floor / 출발 / 도착 labels hide when they overlap. */}
+        <div className="hidden md:flex absolute bottom-5 left-0 right-0 z-30 isolate justify-center px-6">
+          <div ref={chatOccluderRef} className="w-full max-w-[640px]">
+            <PanelChat
+              messages={chat?.messages}
+              pending={chatPending}
+              onSend={chat?.send}
+            />
+          </div>
         </div>
       </div>
 

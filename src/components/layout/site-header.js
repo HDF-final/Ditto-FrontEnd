@@ -1,14 +1,22 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navigation = [
-  { href: "/", label: "홈", active: true },
+  { href: "/", label: "홈" },
   { href: "/ai-course", label: "코스 만들기", badge: "NEW" },
-  { href: "/#picks", label: "코스 추천" },
-  { href: "/#community", label: "커뮤니티" },
-  { href: "/#newsletter", label: "뉴스피드" },
+  { href: "/courses", label: "코스 추천" },
+  { href: "/community", label: "커뮤니티" },
+  { href: "/news", label: "뉴스피드" },
   { href: "/mypage", label: "마이페이지" },
 ];
+
+function isNavActive(href, pathname) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function GlobeIcon() {
   return (
@@ -45,6 +53,8 @@ function HeartIcon() {
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
       <div className="flex h-[94px] items-center justify-between gap-6 px-10 sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
@@ -65,22 +75,41 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-base font-black lg:flex">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`inline-flex items-center gap-2 transition hover:text-brand ${
-                item.active ? "text-brand" : "text-ink"
-              }`}
-            >
-              {item.label}
-              {item.badge ? (
-                <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
-                  {item.badge}
-                </span>
-              ) : null}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const active = isNavActive(item.href, pathname);
+            const className = `inline-flex items-center gap-2 transition hover:text-brand ${
+              active ? "text-brand" : "text-ink"
+            }`;
+            const content = (
+              <>
+                {item.label}
+                {item.badge ? (
+                  <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
+              </>
+            );
+
+            if (active) {
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  aria-current="page"
+                  className={className}
+                >
+                  {content}
+                </a>
+              );
+            }
+
+            return (
+              <Link key={item.href} href={item.href} className={className}>
+                {content}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-6 text-ink">

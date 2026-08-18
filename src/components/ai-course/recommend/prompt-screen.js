@@ -88,12 +88,19 @@ export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
     >
       {/* Boni */}
       <div className="relative mb-6 md:mb-8">
-        <img
-          src={boniSrc}
-          alt="Boni"
-          className="w-[100px] h-[100px] md:w-[150px] md:h-[150px] object-contain"
-          style={{ filter: "drop-shadow(0 12px 32px rgba(92,46,245,0.2))" }}
-        />
+        {boniSrc ? (
+          <img
+            src={boniSrc}
+            alt="Boni"
+            className="w-[100px] h-[100px] md:w-[150px] md:h-[150px] object-contain"
+            style={{ filter: "drop-shadow(0 12px 32px rgba(92,46,245,0.2))" }}
+          />
+        ) : (
+          <div
+            className="w-[100px] h-[100px] md:w-[150px] md:h-[150px]"
+            aria-hidden="true"
+          />
+        )}
       </div>
 
       <h1 className="text-[24px] md:text-[36px] font-bold text-[#1a142e] mb-2 md:mb-3 text-center">

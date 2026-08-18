@@ -80,7 +80,9 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
           style={{ height: "64px", background: "#fdfcff" }}
         >
           <div className="w-[40px] h-[40px] rounded-full overflow-hidden bg-[#f0ecfa] flex items-center justify-center shrink-0">
-            <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+            {boniSrc ? (
+              <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+            ) : null}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-bold text-[#1a142e] leading-tight">Boni</p>
@@ -130,7 +132,9 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
             >
               {msg.role === "boni" && (
                 <div className="shrink-0 w-[32px] h-[32px] rounded-full overflow-hidden bg-[#f0ecfa] flex items-center justify-center">
-                  <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+                  {boniSrc ? (
+                    <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+                  ) : null}
                 </div>
               )}
               <div
@@ -149,7 +153,9 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
           {isPending && (
             <div className="flex items-end gap-2">
               <div className="shrink-0 w-[32px] h-[32px] rounded-full overflow-hidden bg-[#f0ecfa] flex items-center justify-center">
-                <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+                {boniSrc ? (
+                  <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+                ) : null}
               </div>
               <div
                 className="rounded-[18px] px-5 py-[11px]"
@@ -173,7 +179,9 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
       >
         {!open && (
           <div className="w-[34px] h-[34px] rounded-full overflow-hidden bg-[#f0ecfa] flex items-center justify-center shrink-0">
-            <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+            {boniSrc ? (
+              <img src={boniSrc} alt="Boni" className="w-full h-full object-contain scale-110" />
+            ) : null}
           </div>
         )}
         <input
