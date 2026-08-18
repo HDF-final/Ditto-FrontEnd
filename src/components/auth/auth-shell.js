@@ -33,7 +33,7 @@ export function AuthShell({
             width={140}
             height={44}
             priority
-            className="h-11 w-auto"
+            style={{ width: "auto", height: "auto" }}
           />
           <span className="text-[10px] font-semibold tracking-[0.4px] text-ink-muted">
             K-CULTURE SHOPPING MATE

@@ -16,9 +16,10 @@ import {
   validateRequiredTerms,
 } from "@/lib/utils/auth-validation";
 
+import { useSignupStore } from "@/stores/use-signup-store";
+
 /**
- * Temporary success policy (UI-only, no real auth):
- * valid signup form → country selection (`/country`) → persona → home.
+ * Valid signup form → country selection (`/country`) → persona (`/persona`) → complete signup.
  */
 const SIGNUP_SUCCESS_HREF = "/country";
 
@@ -31,11 +32,14 @@ const initialErrors = {
 
 export function SignupForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(true);
-  const [marketingAccepted, setMarketingAccepted] = useState(false);
+  const draft = useSignupStore((state) => state.draft);
+  const setDraft = useSignupStore((state) => state.setDraft);
+
+  const [email, setEmail] = useState(draft.email || "");
+  const [password, setPassword] = useState(draft.password || "");
+  const [nickname, setNickname] = useState(draft.nickname || "");
+  const [termsAccepted, setTermsAccepted] = useState(draft.termsAccepted ?? true);
+  const [marketingAccepted, setMarketingAccepted] = useState(draft.marketingAccepted ?? false);
   const [errors, setErrors] = useState(initialErrors);
 
   function clearError(field) {
@@ -65,8 +69,14 @@ export function SignupForm() {
       return;
     }
 
-    // Front-end validation only — no tokens, session, or storage.
-    // marketingAccepted remains form UI state until API contracts exist.
+    setDraft({
+      email,
+      password,
+      nickname,
+      termsAccepted,
+      marketingAccepted,
+    });
+
     router.push(SIGNUP_SUCCESS_HREF);
   }
 

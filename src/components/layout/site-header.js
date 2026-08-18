@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { HeaderAuthNav } from "./header-auth-nav";
+
 const navigation = [
   { href: "/", label: "홈", active: true },
   { href: "/ai-course", label: "코스 만들기", badge: "NEW" },
@@ -98,12 +100,7 @@ export function SiteHeader() {
           >
             <HeartIcon />
           </Link>
-          <Link
-            href="/login"
-            className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
-          >
-            로그인
-          </Link>
+          <HeaderAuthNav />
         </div>
       </div>
     </header>

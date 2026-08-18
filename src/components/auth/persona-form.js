@@ -5,20 +5,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import { DEFAULT_PERSONA_ID } from "@/lib/fixtures/personas";
+import { signup, login } from "@/lib/api/auth";
+import { useSignupStore } from "@/stores/use-signup-store";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 /**
- * Temporary success policy (UI-only):
- * selected shopping type → navigate to home (`/`).
- * Selection is not written to browser storage or a fake session.
+ * Valid shopping type selection → triggers final signup API → login session → home (`/`).
  */
 const PERSONA_SUCCESS_HREF = "/";
 
 export function PersonaForm({ copy }) {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState(DEFAULT_PERSONA_ID);
-  const [error, setError] = useState("");
+  const draft = useSignupStore((state) => state.draft);
+  const resetDraft = useSignupStore((state) => state.resetDraft);
+  const setUser = useAuthStore((state) => state.setUser);
 
-  function handleSubmit(event) {
+  const [selectedId, setSelectedId] = useState(draft.persona || DEFAULT_PERSONA_ID);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const selected = copy.personas.find((persona) => persona.id === selectedId);
@@ -29,7 +35,52 @@ export function PersonaForm({ copy }) {
     }
 
     setError("");
-    router.push(PERSONA_SUCCESS_HREF);
+
+    // If signup draft has credentials, perform real signup API call
+    if (draft.email && draft.password) {
+      setIsLoading(true);
+      try {
+        const signupPayload = {
+          email: draft.email,
+          password: draft.password,
+          nickname: draft.nickname || "디또러버",
+          country: draft.country || "KR",
+          persona: selectedId,
+          marketingAgreed: Boolean(draft.marketingAccepted),
+        };
+
+        const signupResult = await signup(signupPayload);
+
+        // Auto-login after signup if token or session is needed
+        try {
+          const loginResult = await login({
+            email: draft.email,
+            password: draft.password,
+          });
+          if (loginResult) {
+            setUser(loginResult);
+          }
+        } catch {
+          // If login call fails but signup succeeded, use signup result
+          if (signupResult) {
+            setUser(signupResult);
+          }
+        }
+
+        resetDraft();
+        router.push(PERSONA_SUCCESS_HREF);
+      } catch (err) {
+        setError(
+          err?.message || "회원가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // If no draft exists (e.g. refreshed page or direct entry), inform user
+    setError("회원가입 정보가 비어 있습니다. 회원가입 페이지에서 정보를 먼저 입력해주세요.");
   }
 
   return (
@@ -48,16 +99,17 @@ export function PersonaForm({ copy }) {
               type="button"
               role="radio"
               aria-checked={selected}
+              disabled={isLoading}
               onClick={() => {
                 setSelectedId(persona.id);
                 setError("");
               }}
               className={[
-                "flex items-center gap-3.5 overflow-visible rounded-2xl border-0 p-4 text-left",
+                "flex items-center gap-3.5 overflow-visible rounded-2xl border-0 p-4 text-left cursor-pointer",
                 "font-sans transition-[background,transform] duration-150",
                 "hover:-translate-y-0.5",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-                selected ? "bg-brand-soft" : "bg-white",
+                selected ? "bg-brand-soft ring-2 ring-brand" : "bg-white",
               ].join(" ")}
             >
               <span className="relative flex size-[72px] shrink-0 items-center justify-center overflow-visible">
@@ -87,15 +139,31 @@ export function PersonaForm({ copy }) {
       </div>
 
       {error ? (
-        <p className="text-center text-xs font-medium text-danger" role="alert">
+        <div
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-xs font-medium text-red-600 animate-in fade-in"
+          role="alert"
+        >
           {error}
-        </p>
+        </div>
       ) : null}
 
       <p className="-mt-1 text-center text-xs text-ink-subtle">{copy.hint}</p>
 
-      <button type="submit" className={authButtonClassName()}>
-        {copy.start} <span aria-hidden="true">→</span>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className={authButtonClassName()}
+      >
+        {isLoading ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            가입 완료하는 중...
+          </span>
+        ) : (
+          <>
+            {copy.start} <span aria-hidden="true">→</span>
+          </>
+        )}
       </button>
     </form>
   );

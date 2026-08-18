@@ -380,23 +380,13 @@ function CompactPlaceModalContent({ place, onClose }) {
 /**
  * PlaceModal Entry Component
  * - 장소 추가 목록에서 클릭 시: CompactPlaceModalContent (사진 없는 원본 모달)
- * - 코스 타임라인에서 클릭 시: 상단 스위처로 [✨ AI 추천 모달 버전]과 [일반 매장 상세 모달]을 자유롭게 선택 및 전환 가능
+ * - 코스 타임라인에서 AI 추천 장소 클릭 시: AiPlaceModalContent (2컬럼 앰버서더 뷰)
+ * - 코스 타임라인에서 일반 매장 클릭 시: StandardPlaceModalContent (2컬럼 일반 매장 상세 뷰, place 테이블 이미지 반영)
  */
 export function PlaceModal({ place, onClose }) {
-  const isRecommended = Boolean(
-    place?.aiReason || place?.isAiRecommended || place?.isAiVersion,
-  );
-  const [overrideMode, setOverrideMode] = useState(null);
-  const [prevPlace, setPrevPlace] = useState(place);
-
-  if (place !== prevPlace) {
-    setPrevPlace(place);
-    setOverrideMode(null);
-  }
-
   if (!place) return null;
 
-  // 1. 장소 추가 목록에서 매장 클릭 시 -> 원래 사진 없는 컴팩트 모달 표시 (스위처 없이 깔끔하게 표시)
+  // 1. 장소 추가 목록에서 매장 클릭 시 -> 원래 사진 없는 컴팩트 모달 표시 (z-index 105)
   if (place.modalMode === "compact") {
     return (
       <div
@@ -409,45 +399,18 @@ export function PlaceModal({ place, onClose }) {
     );
   }
 
-  // 2. 코스 타임라인에서 클릭 시 -> 상단 스위처로 [✨ AI 추천 모달 버전]과 [일반 매장 상세 모달]을 자유롭게 전환 가능
-  const isAiMode = overrideMode !== null ? overrideMode : isRecommended;
+  // 2. 코스에 담긴 장소 중 AI 추천 장소 -> AI 추천 2컬럼 모달
+  const isAiMode = Boolean(
+    place.aiReason || place.isAiRecommended || place.isAiVersion,
+  );
 
+  // 3. 코스에 담긴 일반 매장 -> 일반 매장 상세 2컬럼 모달 (우측에 place 테이블 이미지 반영)
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 sm:p-5 animate-in fade-in duration-150"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-5 animate-in fade-in duration-150"
       style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(6px)" }}
       onClick={onClose}
     >
-      {/* Top Preview Mode Switcher */}
-      <div
-        className="mb-3.5 flex items-center gap-1 rounded-full bg-[#18132b]/90 p-1.5 backdrop-blur-md border border-white/20 shadow-2xl z-10"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={() => setOverrideMode(true)}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-black transition cursor-pointer ${
-            isAiMode
-              ? "bg-[#5c2ef5] text-white shadow-sm scale-102"
-              : "text-white/70 hover:text-white"
-          }`}
-        >
-          <span>✨</span>
-          <span>AI 추천 모달 버전</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setOverrideMode(false)}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-black transition cursor-pointer ${
-            !isAiMode
-              ? "bg-white text-[#1a142e] shadow-sm scale-102"
-              : "text-white/70 hover:text-white"
-          }`}
-        >
-          <span>일반 매장 상세 모달</span>
-        </button>
-      </div>
-
       {isAiMode ? (
         <AiPlaceModalContent place={place} onClose={onClose} />
       ) : (
