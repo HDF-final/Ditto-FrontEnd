@@ -33,7 +33,7 @@ function FilterChip({ label, active, onClick }) {
  * narrowed by category (팝업, 음식점 …) and floor (B2 → 6F) to make picking easy.
  * Already-added places are filtered out by the caller before they reach here.
  */
-export function AddPlaceModal({ open, places, onAdd, onClose }) {
+export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
   const [category, setCategory] = useState(ALL);
   const [floor, setFloor] = useState(ALL);
   const [query, setQuery] = useState("");
@@ -156,23 +156,33 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
             filtered.map((place) => (
               <div
                 key={place.id}
-                className="flex items-center gap-[12px] rounded-[14px] p-[12px] border-2 border-transparent hover:border-[#e0d9f8] hover:bg-[#faf8ff] transition-all"
+                onClick={() => {
+                  onPlaceClick?.({
+                    ...place,
+                    modalMode: "compact",
+                    isAiRecommended: false,
+                    aiReason: null,
+                    isAiVersion: false,
+                  });
+                }}
+                className="flex items-center gap-[12px] rounded-[14px] p-[12px] border-2 border-transparent hover:border-[#e0d9f8] hover:bg-[#faf8ff] transition-all cursor-pointer group"
+                title="클릭하여 매장 상세 정보 보기"
               >
                 {place.image ? (
                   <img
                     src={place.image}
                     alt={place.name}
-                    className="w-[60px] h-[60px] rounded-[10px] object-cover shrink-0"
+                    className="w-[60px] h-[60px] rounded-[10px] object-cover shrink-0 pointer-events-none"
                   />
                 ) : (
                   <div
-                    className="w-[60px] h-[60px] rounded-[10px] shrink-0"
+                    className="w-[60px] h-[60px] rounded-[10px] shrink-0 pointer-events-none"
                     style={{
                       background: `linear-gradient(135deg,${place.accentColor}22,${place.accentColor}0a)`,
                     }}
                   />
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pointer-events-none">
                   <div className="flex items-center gap-[5px] mb-[5px]">
                     <span
                       className={`inline-block text-[10px] font-medium px-[8px] py-[2px] rounded-full ${place.categoryStyle}`}
@@ -185,7 +195,7 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-[13px] font-bold text-[#1a142e] truncate">
+                  <h3 className="text-[13px] font-bold text-[#1a142e] truncate group-hover:text-[#5c2ef5] transition-colors">
                     {place.name}
                   </h3>
                   <p className="text-[11px] text-[#6b6685] leading-[1.4] line-clamp-2">
@@ -193,8 +203,12 @@ export function AddPlaceModal({ open, places, onAdd, onClose }) {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleAdd(place)}
-                  className="shrink-0 flex items-center gap-[4px] rounded-full px-[13px] py-[7px] text-[12px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAdd(place);
+                  }}
+                  className="shrink-0 flex items-center gap-[4px] rounded-full px-[13px] py-[7px] text-[12px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer z-10"
                 >
                   <Plus size={13} /> 추가
                 </button>

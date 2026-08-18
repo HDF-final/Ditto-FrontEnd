@@ -68,15 +68,24 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadCourseRoutingDataset(), getNavigablePlaces()])
+    Promise.all([
+      loadCourseRoutingDataset(),
+      getNavigablePlaces().catch((err) => {
+        console.warn(
+          "[ResultScreen] Backend places/navigation unavailable, using local dataset:",
+          err?.message || err,
+        );
+        return [];
+      }),
+    ])
       .then(([dataset, navigationPlaces]) => {
         if (!active) return;
         const hydratedDataset = attachPlaceIdsToCourseDataset(
           dataset,
-          navigationPlaces,
+          navigationPlaces || [],
         );
         setPlaceCatalog(hydratedDataset.places);
-        if (hydratedDataset.unmappedPlaceCount > 0) {
+        if (hydratedDataset.unmappedPlaceCount > 0 && (navigationPlaces?.length ?? 0) > 0) {
           setNotice(
             `${hydratedDataset.unmappedPlaceCount}개 매장의 DB 연결 정보가 없어 저장에서 제외됩니다.`,
           );
@@ -103,10 +112,17 @@ export function ResultScreen({ chat, onPlaceClick }) {
       const catalogPlace = placeCatalog.find(
         (candidate) => candidate.navigationKey === place.navigationKey,
       );
-      // placeId와 함께 장소 사진(장소 목록 API 제공)도 카탈로그에서 가져와 채운다.
+      // placeId와 함께 장소 사진 및 AI 추천 플래그를 보존한다.
       return catalogPlace
-        ? { ...place, placeId: catalogPlace.placeId, image: catalogPlace.image }
-        : place;
+        ? {
+            ...catalogPlace,
+            ...place,
+            placeId: catalogPlace.placeId,
+            image: catalogPlace.image || place.image,
+            aiReason: place.aiReason || catalogPlace.aiReason,
+            isAiRecommended: true,
+          }
+        : { ...place, isAiRecommended: true };
     });
     setAppliedCourse(aiCourse);
     setItems(hydratedPlaces);
@@ -212,6 +228,62 @@ export function ResultScreen({ chat, onPlaceClick }) {
     } catch {
       setNotice("코스 최적화 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.");
     }
+  };
+
+  const handleLoadSampleAiCourse = () => {
+    const samplePlaces = [
+      {
+        id: "1F_PRADA_001",
+        navigationKey: "1F_STORE_0031",
+        name: "프라다 (PRADA)",
+        floor: "1F",
+        category: "패션",
+        categoryStyle: "bg-[#1a142e] text-white",
+        desc: "에스파 카리나가 글로벌 앰버서더로 활약 중인 프라다 매장으로, 최신 컬렉션과 인기 아이템을 만나보실 수 있습니다.",
+        aiReason: "에스파 카리나가 프라다 글로벌 앰버서더로 활약 중이며, 최근 착용한 인기 컬렉션과 아이템을 직접 만나볼 수 있는 대표 매장입니다.",
+        celebrityName: "카리나 (Karina)",
+        celebrityRole: "PRADA 글로벌 앰버서더",
+        ambassadorImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+        isAiRecommended: true,
+        image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop",
+        location: "더현대서울 1F",
+      },
+      {
+        id: "B2_ADIDAS_002",
+        navigationKey: "B2_STORE_0032",
+        name: "아디다스 스타디움",
+        floor: "B2",
+        category: "패션",
+        categoryStyle: "bg-[#ede9f8] text-[#5c2ef5]",
+        desc: "블랙핑크 제니와 손흥민이 착용한 아디다스 오리지널스 및 스타디움 익스클루시브 라인업을 체험할 수 있는 공간입니다.",
+        aiReason: "블랙핑크 제니와 손흥민이 착용한 아디다스 오리지널스 및 스타디움 익스클루시브 라인업을 체험할 수 있는 공간입니다.",
+        celebrityName: "손흥민 & 제니",
+        celebrityRole: "Adidas 글로벌 앰버서더",
+        ambassadorImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
+        isAiRecommended: true,
+        image: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=400&auto=format&fit=crop",
+        location: "더현대서울 B2",
+      },
+      {
+        id: "5F_SOUNDS_003",
+        navigationKey: "5F_STORE_0044",
+        name: "사운즈 포레스트",
+        floor: "5F",
+        category: "휴식",
+        categoryStyle: "bg-[#e8f5e9] text-[#2e7d32]",
+        desc: "자연 채광과 그리너리 감성이 가득한 실내 정원으로, 여유로운 힐링과 사진 촬영을 즐기기 좋은 핫플레이스입니다.",
+        aiReason: "자연 채광과 그리너리 감성이 가득한 실내 정원으로, 여유로운 힐링과 인증샷을 남기기 가장 좋은 핫플레이스입니다.",
+        celebrityName: "NewJeans & 아이브",
+        celebrityRole: "K-컬처 핫플레이스",
+        ambassadorImage: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop",
+        isAiRecommended: true,
+        image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=400&auto=format&fit=crop",
+        location: "더현대서울 5F",
+      },
+    ];
+    setItems(samplePlaces);
+    setCourseTitle("K-POP 앰버서더 핫플 투어");
+    setNotice("✨ AI 추천 샘플 코스를 불러왔습니다. 장소를 클릭해 AI 설명 모달을 확인해보세요!");
   };
 
   const handleSave = async () => {
@@ -411,19 +483,28 @@ export function ResultScreen({ chat, onPlaceClick }) {
         </div>
 
         {chat?.error ? (
-          <div className="rounded-[10px] border border-[#f3ccc4] bg-[#fef5f3] px-3 py-2.5">
+          <div className="rounded-[12px] border border-[#f3ccc4] bg-[#fef5f3] p-3.5">
             <p className="text-[11px] font-medium leading-relaxed text-[#c0392b]">
               {chat.error}
             </p>
-            {chat.canRetry ? (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {chat.canRetry ? (
+                <button
+                  type="button"
+                  onClick={chat.retry}
+                  className="rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5] cursor-pointer"
+                >
+                  다시 시도
+                </button>
+              ) : null}
               <button
                 type="button"
-                onClick={chat.retry}
-                className="mt-2 rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5]"
+                onClick={handleLoadSampleAiCourse}
+                className="rounded-full bg-[#5c2ef5] px-3.5 py-1 text-[11px] font-bold text-white shadow-xs transition hover:bg-[#4a22d4] cursor-pointer"
               >
-                다시 시도
+                ✨ AI 추천 샘플 코스로 체험하기
               </button>
-            ) : null}
+            </div>
           </div>
         ) : null}
 
@@ -465,12 +546,21 @@ export function ResultScreen({ chat, onPlaceClick }) {
               <br />
               카테고리·층별로 골라 담아보세요
             </p>
-            <button
-              onClick={() => setAddOpen(true)}
-              className="mt-1 flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95"
-            >
-              <Plus size={13} /> 장소 추가
-            </button>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={() => setAddOpen(true)}
+                className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer"
+              >
+                <Plus size={13} /> 장소 추가
+              </button>
+              <button
+                type="button"
+                onClick={handleLoadSampleAiCourse}
+                className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-[#5c2ef5] bg-[#f0ecfa] hover:bg-[#e0d9f8] transition-colors cursor-pointer border border-[#e0d9f8]"
+              >
+                ✨ AI 추천 코스 불러오기
+              </button>
+            </div>
           </div>
         )}
 
@@ -630,6 +720,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
       places={availablePlaces}
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
+      onPlaceClick={onPlaceClick}
     />
 
     {chatPending ? (

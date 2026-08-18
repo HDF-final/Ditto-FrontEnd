@@ -58,7 +58,12 @@ async function toCoursePlaces(apiPlaces) {
       if (!place) return null;
       const reason = item?.reason?.trim() || "";
       // 추천 이유가 카드 설명보다 훨씬 유용해서 있으면 그걸 보여줍니다.
-      return { ...place, desc: reason || place.desc, aiReason: reason || null };
+      return {
+        ...place,
+        desc: reason || place.desc,
+        aiReason: reason || null,
+        isAiRecommended: true,
+      };
     }),
   );
 
