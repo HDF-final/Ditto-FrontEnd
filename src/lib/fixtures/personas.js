@@ -151,6 +151,17 @@ export function normalizePersonaId(rawId) {
   return DEFAULT_PERSONA_ID;
 }
 
+export function toBackendPersonaEnum(rawId) {
+  const normalized = normalizePersonaId(rawId);
+  const map = {
+    openrun: "OPEN_RUN_LOVER",
+    flex: "FLEX_SPENDER",
+    sohwak: "LITTLE_JOY",
+    choae: "ULTIMATE_STAN",
+  };
+  return map[normalized] || "OPEN_RUN_LOVER";
+}
+
 export function resolvePersonaLang(lang) {
   return PERSONA_I18N[lang] ? lang : "ko";
 }

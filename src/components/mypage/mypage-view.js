@@ -8,6 +8,7 @@ import { getMyProfile, getMyCourses, getMyBookmarks } from "@/lib/api/users";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
+import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
 import {
   mypageCourses as fixtureCourses,
   mypageStats as fixtureStats,
@@ -25,6 +26,7 @@ export function MypageView() {
   const [courses, setCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [activeTab, setActiveTab] = useState("내 코스");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,7 +143,11 @@ export function MypageView() {
 
   return (
     <main className="bg-background">
-      <MypageProfile profile={displayProfile} stats={displayStats} />
+      <MypageProfile
+        profile={displayProfile}
+        stats={displayStats}
+        onEditClick={() => setIsEditModalOpen(true)}
+      />
       <section className="px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
         {/* Custom Tab Navigation */}
         <div className="mb-[60px] flex gap-[22px] border-b border-line">
@@ -197,6 +203,14 @@ export function MypageView() {
           </div>
         )}
       </section>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentProfile={displayProfile}
+        onProfileUpdated={(updated) => setProfile(updated)}
+      />
     </main>
   );
 }
