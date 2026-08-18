@@ -67,12 +67,14 @@ export function CourseLoadingOverlay({ message, isFirstTurn = true, onCancel }) 
               animationDuration: "1.1s",
             }}
           />
-          <img
-            src={boniSrc}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-[10px] h-[76px] w-[76px] animate-pulse object-contain"
-          />
+          {boniSrc ? (
+            <img
+              src={boniSrc}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-[10px] h-[76px] w-[76px] animate-pulse object-contain"
+            />
+          ) : null}
         </div>
 
         <h2 className="text-[19px] font-bold text-[#1a142e]">

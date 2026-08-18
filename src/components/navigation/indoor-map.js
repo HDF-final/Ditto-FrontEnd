@@ -11,8 +11,12 @@ import {
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Component,
+  createContext,
   Suspense,
+  useCallback,
+  useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -32,30 +36,89 @@ const DEFAULT_ASPECT_RATIO = 1500 / 2400;
 // The course path is a bright white halo under a green core with a pale moving
 // dash, so it reads clearly across the stacked floor tiers. A vivid, white-haloed
 // marker travels the route. "경로 항상 위" keeps them above the floor stack.
-const ROUTE_LINE_COLOR = "#00815a"; // bright green route line
-const ROUTE_DASH_COLOR = "#EEFAF3"; // pale dashes flowing over the green line
+const ROUTE_LINE_COLOR = "#BC7C22"; // ochre (황토) route line — earthy, reads on light map
+const ROUTE_DASH_COLOR = "#FFF6E6"; // warm pale dashes flowing over the ochre line
 const ROUTE_DASH_SPEED = 1.4; // moving-dash animation speed
-const ROUTE_MARKER_COLOR = "#00815a"; // travelling marker (white halo, green core)
-// Stop-chip badge gradient: 출발 mid-green → 도착 deep green.
-const MARKER_START_COLOR = "#3AA378";
-const MARKER_END_COLOR = "#00563A";
+// Travelling marker speed in world units per second — constant absolute speed
+// regardless of route length (short and long courses move at the same pace).
+const ROUTE_MARKER_SPEED = 18;
+const ROUTE_MARKER_COLOR = "#BC7C22"; // travelling marker (white halo, ochre core)
+// Stop-chip badge gradient: 출발 light ochre → 도착 deep earth-brown.
+const MARKER_START_COLOR = "#D6A44C";
+const MARKER_END_COLOR = "#7E4E12";
 
 // Rooms are lifted off each floor plan by COLOUR GROUP (segmented from the PNG):
 // grey stores sit low, green vertical-circulation rises to a middle band, and the
 // pink special zones pop highest — the "colour-group explosion" stacked on top of
 // the plan. `height` is the extrude depth (the tier), `color` the top face.
 const FLOOR_ROOMS_URL = "/navigation/v2/floor-rooms.json";
+
+function normalizeRoomsByFloor(data) {
+  if (!data) return null;
+  const normalized = {};
+  for (const [floorId, entry] of Object.entries(data)) {
+    normalized[floorId] = {
+      rooms: entry.rooms ?? [],
+      aspect: entry.w > 0 ? entry.h / entry.w : DEFAULT_ASPECT_RATIO,
+    };
+  }
+  return normalized;
+}
+
+// Room volumes are optional: a missing or failed asset must not block the
+// floor plans. Abort still propagates so unmount cancels the whole wave.
+function loadFloorRooms(options) {
+  return fetch(FLOOR_ROOMS_URL, {
+    cache: "no-cache",
+    signal: options?.signal,
+  })
+    .then((response) => (response.ok ? response.json() : null))
+    .then(normalizeRoomsByFloor)
+    .catch((error) => {
+      if (error.name === "AbortError") throw error;
+      return null;
+    });
+}
+
+function preloadFloorTextures() {
+  return Promise.all(
+    FLOOR_DEFINITIONS.map((floor) =>
+      Promise.resolve(useTexture.preload(floor.imageUrl)).catch(() => null),
+    ),
+  );
+}
+
+function MapLoadingNotice({
+  className = "",
+  message = "지도 원장 데이터를 확인하는 중",
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center bg-[#F7F3EF] ${className}`}
+    >
+      <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#8C817A] shadow-sm">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-[#00815a]" />
+        {message}
+      </div>
+    </div>
+  );
+}
+
 // Modest, near-uniform room heights differentiated mainly by COLOUR (like the
 // 2.5D reference), so the stack reads at a glance rather than as tall towers.
+// Top faces now show the plan artwork; each pillar side wall takes a deep,
+// hue-matched tint of its colour group so the column reads the same colour as
+// the cell painted on top — dark green for circulation, dark grey for stores.
 const ROOM_GROUP_STYLE = {
-  store: { color: "#EBE1D2", height: 1.7 }, // retail rooms — bright champagne
-  green: { color: "#C7C0B5", height: 1.85 }, // escalators / vertical circ — soft taupe
-  pink: { color: "#CDA7C6", height: 1.95 }, // lounges / special — muted mauve accent
+  store: { color: "#EBE1D2", side: "#DDD4C5", height: 1.7 }, // grey retail cells (warm beige)
+  green: { color: "#C7C0B5", side: "#70C0A0", height: 1.85 }, // green circulation (matches top)
+  pink: { color: "#CDA7C6", side: "#CCBACC", height: 1.95 }, // pink special zones (matches top)
 };
 const MIN_ROOM_AREA = 0.00022; // skip sliver traces that read as dirt
 const ROOM_BASE_LIFT = 0.12; // sit just above the plan surface
-// Route runs at corridor height so it weaves into the building, not over the roof.
-const ROUTE_HEIGHT = 0.9;
+// Route floats just above most room blocks so the line reads on top of the floor
+// instead of being hidden behind the extruded rooms.
+const ROUTE_HEIGHT = 1.5;
 const ROUTE_MARKER_LIFT = 0.3; // travelling / stop markers sit just above the path
 // Thin neutral plate framing each plan (the "paper" base, no bulky slab).
 const PLATE_THICKNESS = 0.5;
@@ -71,9 +134,58 @@ const CAMERA_EPSILON = 0.0001;
 const OVERVIEW_MIN_POLAR_ANGLE = 0.55;
 const OVERVIEW_MAX_POLAR_ANGLE = 1.42;
 const OVERVIEW_ROOM_LIFT = 2.3;
-const OVERVIEW_MIN_ZOOM = 0.55;
+// Small vertical trim so the deck sits dead-centre. Now that the camera refits to
+// the true canvas size each frame, centroid framing is already near-centred; a
+// slight negative value lifts the deck so the bottom tier clears the chat bar.
+// Fraction of the deck height (negative = shift the stack up on screen).
+const OVERVIEW_VERTICAL_BIAS = -0.1;
+const OVERVIEW_MIN_ZOOM = 0.32;
 const OVERVIEW_MAX_ZOOM = 12;
-const OVERVIEW_DEFAULT_FOCUS_Y = ((FLOOR_ORDER.length - 1) * TIER_GAP) / 2;
+
+// Chat (and similar HUD) sits above the canvas. Floor / 출발 / 도착 HTML
+// labels hide themselves when they overlap that opaque overlay.
+const OverlayOccluderContext = createContext(null);
+
+function rectsOverlap(a, b) {
+  return (
+    a.width > 0 &&
+    a.height > 0 &&
+    b.width > 0 &&
+    b.height > 0 &&
+    a.right > b.left &&
+    a.left < b.right &&
+    a.bottom > b.top &&
+    a.top < b.bottom
+  );
+}
+
+function OccludingHtml({ children, ...htmlProps }) {
+  const occluderRef = useContext(OverlayOccluderContext);
+  const nodeRef = useRef(null);
+  const hiddenRef = useRef(false);
+
+  useFrame(() => {
+    const node = nodeRef.current;
+    const clip = occluderRef?.current;
+    if (!node) return;
+
+    const nextHidden = Boolean(
+      clip && clip.offsetParent !== null && rectsOverlap(
+        node.getBoundingClientRect(),
+        clip.getBoundingClientRect(),
+      ),
+    );
+    if (hiddenRef.current === nextHidden) return;
+    hiddenRef.current = nextHidden;
+    node.style.visibility = nextHidden ? "hidden" : "visible";
+  });
+
+  return (
+    <Html {...htmlProps}>
+      <div ref={nodeRef}>{children}</div>
+    </Html>
+  );
+}
 
 function collectFloorBounds(floors) {
   const min = new THREE.Vector3(Infinity, Infinity, Infinity);
@@ -89,7 +201,13 @@ function collectFloorBounds(floors) {
     min.min(
       new THREE.Vector3(x - halfW, floor.y - PLATE_THICKNESS, z - halfD),
     );
-    max.max(new THREE.Vector3(x + halfW, floor.y + OVERVIEW_ROOM_LIFT, z + halfD));
+    max.max(
+      new THREE.Vector3(
+        x + halfW,
+        floor.y + OVERVIEW_ROOM_LIFT + 6,
+        z + halfD,
+      ),
+    );
   }
 
   return { min, max, center: min.clone().add(max).multiplyScalar(0.5) };
@@ -104,7 +222,7 @@ function overviewViewBasis() {
   return { forward, right, up };
 }
 
-function fitOverviewCamera(floors, viewport, viewMode = "all") {
+function fitOverviewCamera(floors, viewport) {
   const bounds = collectFloorBounds(floors);
   const { min, max, center } = bounds;
   const position = center.clone().add(OVERVIEW_CAMERA_OFFSET);
@@ -124,17 +242,14 @@ function fitOverviewCamera(floors, viewport, viewMode = "all") {
     }
   }
 
-  const padL = 28;
-  const padR = 72;
-  const padT = 28;
-  const padB = 56;
-  const fitW = Math.max(160, viewport.width - padL - padR);
-  const fitH = Math.max(160, viewport.height - padT - padB);
-  // More floors need more air so the whole stack stays in view at a glance.
-  // Route view nudges in a little; still framed to keep every floor visible.
+  const pad = 24;
+  const fitW = Math.max(160, viewport.width - pad * 2);
+  const fitH = Math.max(160, viewport.height - pad * 2);
+  // Fill the frame with the whole stack (6F included), centered on the deck's
+  // centroid. A tall isometric deck is bound by height, so keep the margin thin
+  // — just enough that the top/bottom tiers and their labels never clip.
   const fill =
-    (floors.length >= 6 ? 0.76 : floors.length >= 3 ? 0.84 : 0.92) *
-    (viewMode === "route" ? 1.06 : 1);
+    floors.length >= 8 ? 0.86 : floors.length >= 6 ? 0.9 : floors.length >= 3 ? 0.92 : 0.94;
   const zoom = THREE.MathUtils.clamp(
     Math.min(
       fitW / (2 * Math.max(maxX, 0.01)),
@@ -144,26 +259,16 @@ function fitOverviewCamera(floors, viewport, viewMode = "all") {
     OVERVIEW_MAX_ZOOM,
   );
 
-  // Nudge slightly left so the stack sits in the open map, not under FLOOR.
-  const shift = right
-    .clone()
-    .multiplyScalar((padR - padL) / (2 * zoom))
-    .add(up.clone().multiplyScalar((padT - padB) / (2 * zoom)));
+  // Re-centre vertically: nudge the framing point up the Y axis so the deck sits
+  // dead-centre instead of riding high with empty space beneath it.
+  const framedCenter = center.clone();
+  framedCenter.y += (max.y - min.y) * OVERVIEW_VERTICAL_BIAS;
 
   return {
-    target: center.clone().add(shift),
-    position: position.add(shift),
+    target: framedCenter,
+    position: framedCenter.clone().add(OVERVIEW_CAMERA_OFFSET),
     zoom,
   };
-}
-
-// Lighten/darken a hex colour by factor `f` for the two-tone flat shading.
-function shade(hex, f) {
-  const value = parseInt(hex.slice(1), 16);
-  const r = Math.min(255, Math.round(((value >> 16) & 255) * f));
-  const g = Math.min(255, Math.round(((value >> 8) & 255) * f));
-  const b = Math.min(255, Math.round((value & 255) * f));
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 class MapErrorBoundary extends Component {
@@ -278,28 +383,6 @@ function roomArea(points) {
   return Math.abs(area) / 2;
 }
 
-function pointInPolygon(u, v, points) {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
-    const [ui, vi] = points[i];
-    const [uj, vj] = points[j];
-    const crosses = vi > v !== vj > v;
-    if (
-      crosses &&
-      u < ((uj - ui) * (v - vi)) / (vj - vi || Number.EPSILON) + ui
-    ) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-function uvDistance(a, b) {
-  const du = a.u - b.u;
-  const dv = a.v - b.v;
-  return Math.hypot(du, dv);
-}
-
 function polygonCentroid(points) {
   let area = 0;
   let cx = 0;
@@ -323,168 +406,84 @@ function polygonCentroid(points) {
   return { u: cx / (6 * area), v: cy / (6 * area) };
 }
 
-const ROOF_LABEL_WRAPS = {
-  "ALT. 1": ["ALT. 1"],
-  "정돈 프리미엄": ["정돈", "프리미엄"],
-  "포인트 오브 뷰": ["포인트", "오브", "뷰"],
-  "6층 TAX REFUND": ["6층", "TAX", "REFUND"],
-  "아티스트베이커리": ["아티스트", "베이커리"],
-  "런던베이글뮤지엄": ["런던", "베이글", "뮤지엄"],
-  "마유유마라탕": ["마유", "마라탕"],
-  "도조커피": ["도조", "커피"],
-  "비틀스타코": ["비틀스", "타코"],
-  "보테가베네타": ["보테가", "베네타"],
-  "안내데스크": ["안내", "데스크"],
-  "3층 팝업 스튜디오 A": ["3층", "팝업", "스튜디오", "A"],
-  "3층 팝업 스튜디오 B": ["3층", "팝업", "스튜디오", "B"],
-  "스와로브스키": ["스", "와", "로", "브", "스", "키"],
-  "아크테릭스": ["아크", "테릭스"],
-  "노스페이스": ["노스", "페이스"],
-  "파타고니아": ["파타", "고니아"],
-  "윌리엄스소노마": ["윌리엄스", "소노마"],
-  "사운즈포레스트": ["사운즈", "포레스트"],
-};
-const ROOF_LABEL_MATCH_LIMIT = 0.08;
-
-function wrapRoofLabel(name) {
-  if (ROOF_LABEL_WRAPS[name]) return ROOF_LABEL_WRAPS[name];
-  const words = name.split(/\s+/).filter(Boolean);
-  if (words.length >= 3) {
-    const mid = Math.ceil(words.length / 2);
-    return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
-  }
-  if (words.length === 2 && name.length >= 6) return words;
-  return [name];
-}
-
-function makeNameTexture(name) {
-  const lines = wrapRoofLabel(name);
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-  const font = "700 36px sans-serif";
-  const lineHeight = 42;
-  context.font = font;
-  const textWidth = Math.ceil(
-    Math.max(...lines.map((line) => context.measureText(line).width)),
-  );
-  canvas.width = Math.max(32, textWidth + 12);
-  canvas.height = lineHeight * lines.length + 6;
-  context.font = font;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillStyle = "#111111";
-  lines.forEach((line, index) => {
-    context.fillText(
-      line,
-      canvas.width / 2,
-      3 + lineHeight * index + lineHeight / 2,
-    );
-  });
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-  const worldHeight = 1.12 * lines.length;
-  return {
-    texture,
-    width: worldHeight * (canvas.width / canvas.height),
-    height: worldHeight,
-  };
-}
-
-function RoomRoofLabels({ floor, rooms, aspect, dataset }) {
-  const labels = useMemo(() => {
-    if (!rooms?.length || !dataset) return [];
-    const nodesById = new Map(dataset.nodes.map((node) => [node.id, node]));
-    const stores = dataset.places.filter(
-      (place) => place.placeType === "STORE" && place.name,
-    );
-    const usableRooms = rooms.filter(
-      (room) => room.points?.length >= 3 && roomArea(room.points) >= MIN_ROOM_AREA,
-    );
-    const namesByRoom = new Map();
-
-    stores.forEach((place) => {
-      const node = nodesById.get(place.nodeId);
-      const uv = node?.uv;
-      if (!uv) return;
-      const containing = usableRooms.find((item) =>
-        pointInPolygon(uv.u, uv.v, item.points),
-      );
-      const nearest = usableRooms.reduce((best, item) => {
-        const centroid = polygonCentroid(item.points);
-        const distance = uvDistance(uv, centroid);
-        if (!best || distance < best.distance) return { item, distance };
-        return best;
-      }, null);
-      const room =
-        containing ??
-        (nearest && nearest.distance <= ROOF_LABEL_MATCH_LIMIT
-          ? nearest.item
-          : null);
-      if (!room) return;
-      const current = namesByRoom.get(room) ?? [];
-      current.push(place.name);
-      namesByRoom.set(room, current);
-    });
-
-    return [...namesByRoom.entries()].map(([room, names], index) => {
-      const style = ROOM_GROUP_STYLE[room.g] ?? ROOM_GROUP_STYLE.store;
-      const centroid = polygonCentroid(room.points);
-      const x = (centroid.u - 0.5) * FLOOR_WIDTH;
-      const z = (centroid.v - 0.5) * FLOOR_WIDTH * aspect;
-      const { texture, width, height } = makeNameTexture(names[0]);
-      return {
-        id: `${floor.id}-roof-${index}`,
-        texture,
-        width,
-        height,
-        position: [x, ROOM_BASE_LIFT + style.height + 0.04, z],
-      };
-    });
-  }, [aspect, dataset, floor.id, rooms]);
-
-  useEffect(
-    () => () => labels.forEach((label) => label.texture.dispose()),
-    [labels],
-  );
-
-  if (!labels.length) return null;
-
-  return (
-    <group
-      position={[floor.offsetX, floor.y, floor.offsetZ]}
-      scale={[floor.scale, 1, floor.scale]}
-    >
-      {labels.map((label) => (
-        <mesh
-          key={label.id}
-          position={label.position}
-          rotation={[-Math.PI / 2, 0, 0]}
-          renderOrder={8}
-        >
-          <planeGeometry args={[label.width, label.height]} />
-          <meshBasicMaterial
-            map={label.texture}
-            transparent
-            depthWrite={false}
-            toneMapped={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 function RoomPrisms({ floor, rooms, aspect }) {
+  // The plan PNG carries every store name as baked-in artwork (far more than the
+  // navigation dataset lists), so we texture each room's roof with the matching
+  // slice of the plan — names end up printed on the 3D block tops.
+  const sourcePlan = useTexture(floor.imageUrl);
+  const planTexture = useMemo(() => {
+    const configured = sourcePlan.clone();
+    configured.colorSpace = THREE.SRGBColorSpace;
+    configured.needsUpdate = true;
+    return configured;
+  }, [sourcePlan]);
+  useEffect(() => () => planTexture.dispose(), [planTexture]);
+
+  // Read back the plan pixels once so we can spot the few near-white cells (big
+  // open areas like 이탈리 옆 zones) and tint just those down to the shared cell
+  // grey — every other cell keeps its own artwork untouched.
+  const sampler = useMemo(() => {
+    const image = sourcePlan?.image;
+    const iw = image?.naturalWidth || image?.width || 0;
+    const ih = image?.naturalHeight || image?.height || 0;
+    if (!iw || !ih) return null;
+    const scale = Math.min(1, 600 / Math.max(iw, ih));
+    const cw = Math.max(1, Math.round(iw * scale));
+    const ch = Math.max(1, Math.round(ih * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(image, 0, 0, cw, ch);
+    try {
+      return ctx.getImageData(0, 0, cw, ch);
+    } catch {
+      return null;
+    }
+  }, [sourcePlan]);
+
   const built = useMemo(() => {
     if (!rooms?.length) return [];
+    // Only 6F's big open cell (이탈리 옆 흰색 구역) gets the grey fix; every other
+    // floor keeps its white cells as-is.
+    const fixWhiteCells = floor.id === "6F";
+    // Average a small cluster at the room centre; a near-white result means an
+    // untinted open cell. Multiply tint chosen from 6F pixels so the ~245 white
+    // lands on the neighbouring grey cells' ~219 (245 × E4/FF ≈ 219).
+    const WHITE_CELL_GREY = "#E4E3E5";
+    const isWhiteCell = (points) => {
+      if (!sampler || !fixWhiteCells) return false;
+      const c = polygonCentroid(points);
+      let sr = 0;
+      let sg = 0;
+      let sb = 0;
+      let n = 0;
+      for (const du of [-0.012, 0, 0.012]) {
+        for (const dv of [-0.012, 0, 0.012]) {
+          const x = Math.min(
+            sampler.width - 1,
+            Math.max(0, Math.round((c.u + du) * sampler.width)),
+          );
+          const y = Math.min(
+            sampler.height - 1,
+            Math.max(0, Math.round((c.v + dv) * sampler.height)),
+          );
+          const i = (y * sampler.width + x) * 4;
+          sr += sampler.data[i];
+          sg += sampler.data[i + 1];
+          sb += sampler.data[i + 2];
+          n += 1;
+        }
+      }
+      return Math.min(sr, sg, sb) / n >= 238;
+    };
     return rooms
       .map((room) => {
         const points = room.points;
         if (!points || points.length < 3) return null;
         if (roomArea(points) < MIN_ROOM_AREA) return null;
         const style = ROOM_GROUP_STYLE[room.g] ?? ROOM_GROUP_STYLE.store;
+        const top = isWhiteCell(points) ? WHITE_CELL_GREY : "#ffffff";
         const shape = new THREE.Shape();
         points.forEach(([u, v], i) => {
           const x = (u - 0.5) * FLOOR_WIDTH;
@@ -499,10 +498,24 @@ function RoomPrisms({ floor, rooms, aspect }) {
           depth: style.height,
           bevelEnabled: false,
         });
-        return { geometry, style, side: shade(style.color, 0.94) };
+        // Re-map the extrude-cap UVs so the top face samples the same texel of the
+        // floor plan that sits directly beneath it: u = x/W + 0.5, v = y/D + 0.5
+        // (derived to match the base plane's mapping). Side walls use material-1
+        // (untextured) so their UVs are irrelevant.
+        const position = geometry.attributes.position;
+        const uv = geometry.attributes.uv;
+        for (let i = 0; i < position.count; i += 1) {
+          uv.setXY(
+            i,
+            position.getX(i) / FLOOR_WIDTH + 0.5,
+            position.getY(i) / (FLOOR_WIDTH * aspect) + 0.5,
+          );
+        }
+        uv.needsUpdate = true;
+        return { geometry, side: style.side, top };
       })
       .filter(Boolean);
-  }, [rooms, aspect]);
+  }, [rooms, aspect, sampler, floor.id]);
 
   useEffect(() => () => built.forEach((item) => item.geometry.dispose()), [built]);
 
@@ -512,7 +525,7 @@ function RoomPrisms({ floor, rooms, aspect }) {
       position={[floor.offsetX, floor.y, floor.offsetZ]}
       scale={[floor.scale, 1, floor.scale]}
     >
-      {built.map(({ geometry, style, side }, index) => (
+      {built.map(({ geometry, side, top }, index) => (
         <mesh
           key={index}
           geometry={geometry}
@@ -520,10 +533,12 @@ function RoomPrisms({ floor, rooms, aspect }) {
           position={[0, ROOM_BASE_LIFT, 0]}
           renderOrder={3}
         >
-          {/* material 0 = extrude caps (top/bottom), material 1 = side walls */}
+          {/* material 0 = extrude caps (top/bottom): plan artwork with names.
+              material 1 = side walls: flat colour-group tier tint. */}
           <meshBasicMaterial
             attach="material-0"
-            color={style.color}
+            map={planTexture}
+            color={top}
             side={THREE.DoubleSide}
             toneMapped={false}
           />
@@ -541,17 +556,17 @@ function RoomPrisms({ floor, rooms, aspect }) {
 
 function FloorLabel({ floor }) {
   return (
-    <Html
+    <OccludingHtml
       position={[53, floor.y + 1.2, -31]}
       center
       sprite
       style={{ pointerEvents: "none" }}
-      zIndexRange={[20, 0]}
+      zIndexRange={[4, 0]}
     >
       <div className="whitespace-nowrap rounded-full bg-[#3A342F] px-3 py-1 text-[11px] font-bold tracking-wide text-white shadow-[0_3px_10px_rgba(60,45,35,0.22)]">
         {floor.id}
       </div>
-    </Html>
+    </OccludingHtml>
   );
 }
 
@@ -587,16 +602,22 @@ function toWorldPoint(node, floor, flatView, yLift = 0) {
   ];
 }
 
-function RouteMarker({ position, label, name, badgeColor = "#00815a" }) {
+function RouteMarker({ position, label, name, badgeColor = "#BC7C22" }) {
   return (
-    <Html
+    <OccludingHtml
       position={position}
       center
       sprite
       style={{ pointerEvents: "none" }}
-      zIndexRange={[8, 1]}
+      zIndexRange={[5, 1]}
     >
-      <div className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/95 py-1 pl-1 pr-2.5 shadow-[0_4px_12px_rgba(0,70,48,0.22)] ring-1 ring-[#00815a]/25 backdrop-blur-[1px]">
+      <div
+        className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/95 py-1 pl-1 pr-2.5 backdrop-blur-[1px]"
+        style={{
+          boxShadow:
+            "0 4px 12px rgba(90,55,15,0.22), 0 0 0 1px rgba(188,124,34,0.32)",
+        }}
+      >
         <span
           className="rounded-full px-2 py-[3px] text-[9px] font-black leading-none text-white"
           style={{ backgroundColor: badgeColor }}
@@ -604,12 +625,15 @@ function RouteMarker({ position, label, name, badgeColor = "#00815a" }) {
           {label}
         </span>
         {name ? (
-          <span className="text-[10px] font-bold leading-none text-[#1f3a30]">
+          <span
+            className="text-[10px] font-bold leading-none"
+            style={{ color: "#5A3E10" }}
+          >
             {name}
           </span>
         ) : null}
       </div>
-    </Html>
+    </OccludingHtml>
   );
 }
 
@@ -740,7 +764,9 @@ function RouteOverlay({
     const geo = routeGeometry;
     const marker = markerRef.current;
     if (!marker || !geo || geo.path.length < 2 || geo.totalLen <= 0) return;
-    progressRef.current += delta * 0.12;
+    // Advance by a fixed world-distance per second so the marker keeps the same
+    // absolute speed on every course, long or short.
+    progressRef.current += (delta * ROUTE_MARKER_SPEED) / geo.totalLen;
     if (progressRef.current > 1) progressRef.current -= 1;
     const target = progressRef.current * geo.totalLen;
     let acc = 0;
@@ -778,10 +804,15 @@ function RouteOverlay({
             points={line.points}
             color={ROUTE_LINE_COLOR}
             lineWidth={ROUTE_CORE_LINE_WIDTH}
+            // Draw in the transparent pass so it sorts AFTER translucent white
+            // faces (roof labels, cut-out floors); otherwise those paint over the
+            // opaque line and hide the course.
+            transparent
+            opacity={1}
             depthTest={!overlayOnTop}
             depthWrite={false}
             toneMapped={false}
-            renderOrder={overlayOnTop ? 80 : 12}
+            renderOrder={overlayOnTop ? 990 : 12}
             onUpdate={(self) => {
               if (self.material) {
                 self.material.depthTest = !overlayOnTop;
@@ -806,7 +837,7 @@ function RouteOverlay({
             depthTest={!overlayOnTop}
             depthWrite={false}
             toneMapped={false}
-            renderOrder={overlayOnTop ? 81 : 13}
+            renderOrder={overlayOnTop ? 991 : 13}
             onUpdate={(self) => {
               if (self.material) {
                 self.material.depthTest = !overlayOnTop;
@@ -822,7 +853,7 @@ function RouteOverlay({
       {routeGeometry.path.length > 1 ? (
         <group ref={markerRef}>
           <Billboard follow>
-            <mesh renderOrder={overlayOnTop ? 200 : 14}>
+            <mesh renderOrder={overlayOnTop ? 994 : 14}>
               <circleGeometry args={[1.5, 32]} />
               <meshBasicMaterial
                 color="#FFFFFF"
@@ -834,7 +865,7 @@ function RouteOverlay({
                 toneMapped={false}
               />
             </mesh>
-            <mesh position={[0, 0, 0.02]} renderOrder={overlayOnTop ? 201 : 15}>
+            <mesh position={[0, 0, 0.02]} renderOrder={overlayOnTop ? 995 : 15}>
               <circleGeometry args={[0.95, 32]} />
               <meshBasicMaterial
                 color={ROUTE_MARKER_COLOR}
@@ -858,16 +889,24 @@ function MapCamera({
   visibleFloors,
   singleFloorAspectRatio,
   resetSignal,
+  onReady,
 }) {
-  const { size } = useThree();
+  const { size, gl } = useThree();
   const cameraRef = useRef(null);
   const controlsRef = useRef(null);
   const appliedPresetRef = useRef("");
+  const readySentRef = useRef(false);
+  // Once the user drags/zooms the overview we stop auto-refitting; until then we
+  // keep the stack fitted to the *live* canvas size every frame, so a late layout
+  // settle (side panel, header, flex) can't leave it small or riding high.
+  const interactedRef = useRef(false);
   const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
   const focusY = singleFloor?.y ?? 0;
-  const overviewFit = !singleFloor && visibleFloors.length
-    ? fitOverviewCamera(visibleFloors, size, viewMode)
-    : null;
+  const viewportReady = size.width >= 8 && size.height >= 8;
+  const overviewFit =
+    !singleFloor && visibleFloors.length && viewportReady
+      ? fitOverviewCamera(visibleFloors, size)
+      : null;
   const targetZoom = singleFloor
     ? Math.max(
         2.4,
@@ -881,76 +920,148 @@ function MapCamera({
     .map((floor) => `${floor.id}@${floor.y}`)
     .join(",")}:${size.width}x${size.height}:${targetZoom.toFixed(4)}:${resetSignal}`;
 
+  const applyPreset = () => {
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    if (!camera || !controls || !viewportReady) return false;
+    if (!singleFloor && !overviewFit) return false;
+
+    const target =
+      singleFloor || !overviewFit
+        ? new THREE.Vector3(0, focusY, 0)
+        : overviewFit.target.clone();
+    const position =
+      singleFloor || !overviewFit
+        ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
+        : overviewFit.position.clone();
+
+    controls.enabled = false;
+    controls.enableDamping = false;
+    // Both modes pan on drag (Naver-map style) so every place stays reachable
+    // when zoomed in; overview keeps rotate as a secondary gesture.
+    controls.enablePan = true;
+    controls.enableRotate = !singleFloor;
+    controls.minPolarAngle = singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE;
+    controls.maxPolarAngle = singleFloor
+      ? Math.PI
+      : OVERVIEW_MAX_POLAR_ANGLE;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    controls.screenSpacePanning = true;
+    // LEFT drag / one finger = pan (move the map). In overview, RIGHT drag /
+    // two-finger twist = rotate the 3D stack. Wheel / pinch = zoom.
+    controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+    controls.mouseButtons.RIGHT = singleFloor
+      ? THREE.MOUSE.PAN
+      : THREE.MOUSE.ROTATE;
+    controls.touches.ONE = THREE.TOUCH.PAN;
+    controls.touches.TWO = singleFloor
+      ? THREE.TOUCH.DOLLY_PAN
+      : THREE.TOUCH.DOLLY_ROTATE;
+
+    camera.up.set(0, singleFloor ? 0 : 1, singleFloor ? -1 : 0);
+    camera.position.copy(position);
+    camera.zoom = targetZoom;
+    camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+    controls.target.copy(target);
+    controls.update();
+    controls.saveState();
+    controls.enableDamping = !singleFloor;
+    controls.enabled = true;
+    interactedRef.current = false;
+    appliedPresetRef.current = presetKey;
+    if (!readySentRef.current) {
+      readySentRef.current = true;
+      onReady?.();
+    }
+    return true;
+  };
+
+  // Apply before the browser paints so the default close-up (6F crop) never
+  // flashes. Camera pose is set here, not via JSX props — those would reset
+  // on every parent re-render and replay the wrong angle.
+  useLayoutEffect(() => {
+    if (appliedPresetRef.current === presetKey) return;
+    applyPreset();
+  });
+
   useFrame(() => {
+    if (appliedPresetRef.current !== presetKey) {
+      applyPreset();
+      return;
+    }
+
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     if (!camera || !controls) return;
 
-    if (appliedPresetRef.current !== presetKey) {
-      const target = singleFloor || !overviewFit
-        ? new THREE.Vector3(0, focusY, 0)
-        : overviewFit.target.clone();
-      const position = singleFloor || !overviewFit
-        ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
-        : overviewFit.position.clone();
-
-      controls.enabled = false;
-      controls.enableDamping = false;
-      controls.enablePan = Boolean(singleFloor);
-      controls.enableRotate = !singleFloor;
-      controls.minPolarAngle = singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE;
-      controls.maxPolarAngle = singleFloor
-        ? Math.PI
-        : OVERVIEW_MAX_POLAR_ANGLE;
-      controls.minAzimuthAngle = -Infinity;
-      controls.maxAzimuthAngle = Infinity;
-      controls.screenSpacePanning = Boolean(singleFloor);
-      controls.mouseButtons.LEFT = singleFloor
-        ? THREE.MOUSE.PAN
-        : THREE.MOUSE.ROTATE;
-      controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
-      controls.mouseButtons.RIGHT = singleFloor
-        ? THREE.MOUSE.PAN
-        : THREE.MOUSE.ROTATE;
-      controls.touches.ONE = singleFloor ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
-      controls.touches.TWO = singleFloor
-        ? THREE.TOUCH.DOLLY_PAN
-        : THREE.TOUCH.DOLLY_ROTATE;
-
-      camera.up.set(0, singleFloor ? 0 : 1, singleFloor ? -1 : 0);
-      camera.position.copy(position);
-      camera.zoom = targetZoom;
-      camera.clearViewOffset();
-      camera.updateProjectionMatrix();
-      controls.target.copy(target);
-      controls.update();
-      controls.saveState();
-      controls.enableDamping = !singleFloor;
-      controls.enabled = true;
-      appliedPresetRef.current = presetKey;
+    // Overview: keep the stack fitted to the live canvas size until the user
+    // grabs it. We read the real DOM canvas rect each frame (not React's `size`,
+    // which can lag a late layout settle) and refit, so the deck can't stay small
+    // or ride high when the side panel / header / flex resolve after first paint.
+    if (!singleFloor) {
+      if (interactedRef.current || !visibleFloors.length) return;
+      const el = gl.domElement;
+      const liveW = el.clientWidth;
+      const liveH = el.clientHeight;
+      if (liveW < 8 || liveH < 8) return;
+      const fit = fitOverviewCamera(visibleFloors, { width: liveW, height: liveH });
+      const needsRefit =
+        Math.abs(camera.zoom - fit.zoom) > 1e-3 ||
+        camera.position.distanceTo(fit.position) > CAMERA_EPSILON ||
+        controls.target.distanceTo(fit.target) > CAMERA_EPSILON;
+      if (needsRefit) {
+        camera.position.copy(fit.position);
+        camera.zoom = fit.zoom;
+        camera.updateProjectionMatrix();
+        controls.target.copy(fit.target);
+        controls.update();
+      }
       return;
     }
 
-    if (!singleFloor) return;
-
-    const panLimit = FLOOR_WIDTH * singleFloorAspectRatio * 0.45;
+    // Zoom-aware pan clamp so every edge store stays reachable. The orthographic
+    // camera looks straight down (up = -Z), so screen X → world X and screen Y →
+    // world Z; the visible half-extents shrink as the user zooms in.
+    const halfViewX = size.width / (2 * camera.zoom);
+    const halfViewZ = size.height / (2 * camera.zoom);
+    const halfFloorX = FLOOR_WIDTH / 2;
+    const halfFloorZ = (FLOOR_WIDTH * singleFloorAspectRatio) / 2;
+    // Always allow at least a half-floor of pan in every direction so the map can
+    // be dragged up/down/left/right freely — even when the whole floor already
+    // fits — instead of snapping back to centre. Zoomed in, the range grows so far
+    // edges stay reachable; the cap keeps the floor from being flung off-screen.
+    const panMargin = FLOOR_WIDTH * 0.12;
+    const maxPanX = Math.max(halfFloorX + panMargin - halfViewX, halfFloorX);
+    const maxPanZ = Math.max(halfFloorZ + panMargin - halfViewZ, halfFloorZ);
+    const constrainedX = THREE.MathUtils.clamp(
+      controls.target.x,
+      -maxPanX,
+      maxPanX,
+    );
     const constrainedZ = THREE.MathUtils.clamp(
       controls.target.z,
-      -panLimit,
-      panLimit,
+      -maxPanZ,
+      maxPanZ,
     );
     const needsConstraint =
-      Math.abs(controls.target.x) > CAMERA_EPSILON ||
+      Math.abs(controls.target.x - constrainedX) > CAMERA_EPSILON ||
       Math.abs(controls.target.y - focusY) > CAMERA_EPSILON ||
       Math.abs(controls.target.z - constrainedZ) > CAMERA_EPSILON ||
-      Math.abs(camera.position.x) > CAMERA_EPSILON ||
+      Math.abs(camera.position.x - constrainedX) > CAMERA_EPSILON ||
       Math.abs(camera.position.y - (focusY + FLOOR_CAMERA_HEIGHT)) >
         CAMERA_EPSILON ||
       Math.abs(camera.position.z - (constrainedZ + 0.001)) > CAMERA_EPSILON;
 
     if (needsConstraint) {
-      controls.target.set(0, focusY, constrainedZ);
-      camera.position.set(0, focusY + FLOOR_CAMERA_HEIGHT, constrainedZ + 0.001);
+      controls.target.set(constrainedX, focusY, constrainedZ);
+      camera.position.set(
+        constrainedX,
+        focusY + FLOOR_CAMERA_HEIGHT,
+        constrainedZ + 0.001,
+      );
       camera.up.set(0, 0, -1);
       controls.update();
     }
@@ -961,31 +1072,27 @@ function MapCamera({
       <OrthographicCamera
         ref={cameraRef}
         makeDefault
-        position={[
-          OVERVIEW_CAMERA_OFFSET.x,
-          OVERVIEW_DEFAULT_FOCUS_Y + OVERVIEW_CAMERA_OFFSET.y,
-          OVERVIEW_CAMERA_OFFSET.z,
-        ]}
         near={0.1}
         far={800}
-        zoom={1.1}
       />
       <OrbitControls
         ref={controlsRef}
         makeDefault
-        target={[0, OVERVIEW_DEFAULT_FOCUS_Y, 0]}
+        onStart={() => {
+          interactedRef.current = true;
+        }}
         enableDamping={!singleFloor}
         dampingFactor={0.08}
-        enablePan={Boolean(singleFloor)}
+        enablePan
         enableRotate={!singleFloor}
         enableZoom
-        screenSpacePanning={Boolean(singleFloor)}
+        screenSpacePanning
         minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
         maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
         minAzimuthAngle={-Infinity}
         maxAzimuthAngle={Infinity}
         minZoom={OVERVIEW_MIN_ZOOM}
-        maxZoom={14}
+        maxZoom={34}
         rotateSpeed={0.62}
         zoomSpeed={0.72}
         mouseButtons={
@@ -996,7 +1103,7 @@ function MapCamera({
                 RIGHT: THREE.MOUSE.PAN,
               }
             : {
-                LEFT: THREE.MOUSE.ROTATE,
+                LEFT: THREE.MOUSE.PAN,
                 MIDDLE: THREE.MOUSE.DOLLY,
                 RIGHT: THREE.MOUSE.ROTATE,
               }
@@ -1008,7 +1115,7 @@ function MapCamera({
                 TWO: THREE.TOUCH.DOLLY_PAN,
               }
             : {
-                ONE: THREE.TOUCH.ROTATE,
+                ONE: THREE.TOUCH.PAN,
                 TWO: THREE.TOUCH.DOLLY_ROTATE,
               }
         }
@@ -1026,7 +1133,7 @@ function FloorStack({
   roomsByFloor,
   floorDatasets,
   overlayOnTop,
-  wedgeEscalators,
+  onCameraReady,
 }) {
   const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
     DEFAULT_ASPECT_RATIO,
@@ -1059,21 +1166,11 @@ function FloorStack({
               }
             />
             {viewMode !== "floor" && floorRooms ? (
-              <>
-                <RoomPrisms
-                  floor={mappedFloor}
-                  rooms={floorRooms.rooms}
-                  aspect={floorRooms.aspect}
-                />
-                <RoomRoofLabels
-                  floor={mappedFloor}
-                  rooms={floorRooms.rooms}
-                  aspect={floorRooms.aspect}
-                  dataset={floorDatasets?.find(
-                    (entry) => entry.floorId === floor.id,
-                  )}
-                />
-              </>
+              <RoomPrisms
+                floor={mappedFloor}
+                rooms={floorRooms.rooms}
+                aspect={floorRooms.aspect}
+              />
             ) : null}
             {viewMode !== "floor" ? <FloorLabel floor={mappedFloor} /> : null}
           </group>
@@ -1084,7 +1181,6 @@ function FloorStack({
         floorDatasets={floorDatasets}
         itinerary={route}
         flatView={viewMode === "floor"}
-        wedgeEscalators={wedgeEscalators}
       />
       <RouteOverlay
         graph={routeGraph}
@@ -1098,6 +1194,7 @@ function FloorStack({
         visibleFloors={floorsWithAspect}
         singleFloorAspectRatio={singleFloorAspectRatio}
         resetSignal={resetSignal}
+        onReady={onCameraReady}
       />
     </>
   );
@@ -1121,7 +1218,7 @@ function FloorSelector({ selectedView, onSelect }) {
   };
 
   return (
-    <div className="absolute right-3 top-3 z-10 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
+    <div className="absolute right-3 top-3 z-20 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
       <button
         type="button"
         aria-expanded={expanded}
@@ -1196,17 +1293,21 @@ export function IndoorMap({
   route,
   routeFloorIds = FLOOR_ORDER,
   routeGraph,
+  overlayOccluderRef = null,
 }) {
   // Default to the "route floors" view: with no course it equals the full stack
   // (routeFloorIds falls back to every floor), and once a course exists it shows
   // only the relevant floors — cleaner at a glance. Users can pick 전체층/단면.
   const [selectedView, setSelectedView] = useState("route");
   const [overlayOnTop, setOverlayOnTop] = useState(true);
-  const [wedgeEscalators, setWedgeEscalators] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [datasetStatus, setDatasetStatus] = useState("loading");
+  const [viewReady, setViewReady] = useState(false);
   const [roomsByFloor, setRoomsByFloor] = useState(null);
   const [floorDatasets, setFloorDatasets] = useState(null);
+  const handleCameraReady = useCallback(() => {
+    setViewReady(true);
+  }, []);
   const routeFloorIdSet = useMemo(
     () =>
       new Set(
@@ -1235,14 +1336,18 @@ export function IndoorMap({
 
   useEffect(() => {
     const controller = new AbortController();
+    const { signal } = controller;
 
+    // One wave: floor graph + room prisms. Painting before rooms arrive
+    // shows only the flat PNG planes, then Suspense remounts RoomPrisms
+    // and the stack looks like it "loads twice".
     Promise.all([
-      loadNavigationManifest({ signal: controller.signal }),
-      ...FLOOR_ORDER.map((floorId) =>
-        loadFloorNavigation(floorId, { signal: controller.signal }),
-      ),
+      loadNavigationManifest({ signal }),
+      loadFloorRooms({ signal }),
+      preloadFloorTextures(),
+      ...FLOOR_ORDER.map((floorId) => loadFloorNavigation(floorId, { signal })),
     ])
-      .then(([manifest, ...floors]) => {
+      .then(([manifest, rooms, _textures, ...floors]) => {
         const storeCount = floors.reduce(
           (total, floor) =>
             total +
@@ -1257,6 +1362,7 @@ export function IndoorMap({
           throw new Error("Navigation dataset summary mismatch");
         }
 
+        setRoomsByFloor(rooms);
         setFloorDatasets(floors);
         setDatasetStatus("ready");
       })
@@ -1267,39 +1373,9 @@ export function IndoorMap({
     return () => controller.abort();
   }, []);
 
-  // Colour-group room boxes segmented from the floor PNGs (offline asset).
-  useEffect(() => {
-    const controller = new AbortController();
-
-    fetch(FLOOR_ROOMS_URL, { cache: "no-cache", signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (!data) return;
-        const normalized = {};
-        for (const [floorId, entry] of Object.entries(data)) {
-          normalized[floorId] = {
-            rooms: entry.rooms ?? [],
-            aspect: entry.w > 0 ? entry.h / entry.w : DEFAULT_ASPECT_RATIO,
-          };
-        }
-        setRoomsByFloor(normalized);
-      })
-      .catch((error) => {
-        // Non-fatal: the plan textures still render without the room volumes.
-        if (error.name !== "AbortError") setRoomsByFloor(null);
-      });
-
-    return () => controller.abort();
-  }, []);
-
   if (datasetStatus === "loading") {
     return (
-      <div className="flex h-full min-h-[260px] w-full items-center justify-center bg-[#F7F3EF]">
-        <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#8C817A] shadow-sm">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-[#00815a]" />
-          지도 원장 데이터를 확인하는 중
-        </div>
-      </div>
+      <MapLoadingNotice className="h-full min-h-[260px] w-full" />
     );
   }
 
@@ -1320,43 +1396,39 @@ export function IndoorMap({
 
   return (
     <MapErrorBoundary>
-      <div className="relative h-full min-h-[260px] w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)]">
+      <div className="relative isolate z-0 h-full min-h-[260px] w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)]">
         <div
           className={
             viewMode === "floor"
-              ? "absolute bottom-[82px] left-0 right-0 top-0 cursor-grab active:cursor-grabbing md:bottom-[92px] md:right-[252px]"
-              : "absolute inset-0"
+              ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
+              : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab active:cursor-grabbing [transform:translateZ(0)]"
           }
         >
           <Canvas
             dpr={[1, 1.75]}
             gl={{ antialias: true, alpha: true }}
           >
-            <Suspense fallback={null}>
-              <FloorStack
-                viewMode={viewMode}
-                visibleFloors={visibleFloors}
-                resetSignal={resetSignal}
-                route={route}
-                routeGraph={routeGraph}
-                roomsByFloor={roomsByFloor}
-                floorDatasets={floorDatasets}
-                overlayOnTop={overlayOnTop}
-                wedgeEscalators={wedgeEscalators}
-              />
-            </Suspense>
+            <OverlayOccluderContext.Provider value={overlayOccluderRef}>
+              <Suspense fallback={null}>
+                <FloorStack
+                  viewMode={viewMode}
+                  visibleFloors={visibleFloors}
+                  resetSignal={resetSignal}
+                  route={route}
+                  routeGraph={routeGraph}
+                  roomsByFloor={roomsByFloor}
+                  floorDatasets={floorDatasets}
+                  overlayOnTop={overlayOnTop}
+                  onCameraReady={handleCameraReady}
+                />
+              </Suspense>
+            </OverlayOccluderContext.Provider>
           </Canvas>
         </div>
 
         <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
 
-        <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[9px] font-medium text-[#8C817A] shadow-sm backdrop-blur-md md:bottom-5 md:text-[10px]">
-          {viewMode === "floor"
-            ? "드래그 이동 · 스크롤 확대/축소"
-            : "드래그 회전 · 스크롤 확대/축소"}
-        </div>
-
-        <div className="absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
+        <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
           <button
             type="button"
             aria-pressed={overlayOnTop}
@@ -1374,25 +1446,6 @@ export function IndoorMap({
           >
             경로 항상 위
           </button>
-          {viewMode !== "floor" ? (
-            <button
-              type="button"
-              aria-pressed={wedgeEscalators}
-              aria-label={
-                wedgeEscalators
-                  ? "에스컬레이터를 층 사이 삼각형 웨지로 표시 중. 끄면 기존 밴드로 돌아갑니다."
-                  : "에스컬레이터를 기존 밴드로 표시 중. 켜면 층과 층을 잇는 삼각형 웨지로 바꿉니다."
-              }
-              onClick={() => setWedgeEscalators((value) => !value)}
-              className={`rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
-                wedgeEscalators
-                  ? "border-[#00815a]/30 bg-[#00815a] text-white"
-                  : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
-              }`}
-            >
-              에스컬레이터 보기
-            </button>
-          ) : null}
           <button
             type="button"
             onClick={() => setResetSignal((value) => value + 1)}
@@ -1401,6 +1454,10 @@ export function IndoorMap({
             시점 초기화
           </button>
         </div>
+
+        {!viewReady ? (
+          <MapLoadingNotice className="absolute inset-0 z-30" />
+        ) : null}
       </div>
     </MapErrorBoundary>
   );

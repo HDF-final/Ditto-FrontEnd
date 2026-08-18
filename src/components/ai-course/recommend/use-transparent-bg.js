@@ -2,15 +2,37 @@
 
 import { useEffect, useState } from "react";
 
+const cache = new Map();
+
+function cacheKey(src, threshold) {
+  return `${src}:${threshold}`;
+}
+
 /**
  * The Boni source PNG ships with a near-black background. This strips those
  * dark pixels to transparent on the client via a canvas pass so the mascot can
- * sit on light surfaces. Returns the original src until the pass completes.
+ * sit on light surfaces.
+ *
+ * Returns null until the pass finishes so the raw black plate never flashes.
+ * Processed images are cached for later mounts (prompt, overlay, chat).
  */
 export function useTransparentBg(src, threshold = 30) {
-  const [result, setResult] = useState(src);
+  const key = cacheKey(src, threshold);
+  const [result, setResult] = useState(() => cache.get(key) ?? null);
+  const [renderedKey, setRenderedKey] = useState(key);
+
+  // When src/threshold change, adopt a newly cached value during render (a
+  // React-supported state update) rather than syncing it from an effect. If the
+  // new key isn't cached yet we keep the previous image until the pass finishes.
+  if (key !== renderedKey) {
+    setRenderedKey(key);
+    const cached = cache.get(key);
+    if (cached) setResult(cached);
+  }
 
   useEffect(() => {
+    if (cache.has(key)) return;
+
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -27,10 +49,12 @@ export function useTransparentBg(src, threshold = 30) {
         }
       }
       ctx.putImageData(imageData, 0, 0);
-      setResult(canvas.toDataURL("image/png"));
+      const next = canvas.toDataURL("image/png");
+      cache.set(key, next);
+      setResult(next);
     };
     img.src = src;
-  }, [src, threshold]);
+  }, [key, src, threshold]);
 
   return result;
 }

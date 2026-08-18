@@ -26,16 +26,18 @@ export function CourseNavigationMap({
   route,
   routeFloorIds,
   routeGraph,
+  overlayOccluderRef,
 }) {
   return (
     <section
       aria-label="더현대 서울 층별 실내 지도"
-      className={`relative h-full min-h-[260px] w-full overflow-hidden bg-[#F7F3EF] ${className}`}
+      className={`relative z-0 h-full min-h-[260px] w-full overflow-hidden bg-[#F7F3EF] ${className}`}
     >
       <IndoorMap
         route={route}
         routeFloorIds={routeFloorIds}
         routeGraph={routeGraph}
+        overlayOccluderRef={overlayOccluderRef}
       />
     </section>
   );
