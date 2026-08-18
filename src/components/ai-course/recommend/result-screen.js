@@ -69,15 +69,24 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadCourseRoutingDataset(), getNavigablePlaces()])
+    Promise.all([
+      loadCourseRoutingDataset(),
+      getNavigablePlaces().catch((err) => {
+        console.warn(
+          "[ResultScreen] Backend places/navigation unavailable, using local dataset:",
+          err?.message || err,
+        );
+        return [];
+      }),
+    ])
       .then(([dataset, navigationPlaces]) => {
         if (!active) return;
         const hydratedDataset = attachPlaceIdsToCourseDataset(
           dataset,
-          navigationPlaces,
+          navigationPlaces || [],
         );
         setPlaceCatalog(hydratedDataset.places);
-        if (hydratedDataset.unmappedPlaceCount > 0) {
+        if (hydratedDataset.unmappedPlaceCount > 0 && (navigationPlaces?.length ?? 0) > 0) {
           setNotice(
             `${hydratedDataset.unmappedPlaceCount}개 매장의 DB 연결 정보가 없어 저장에서 제외됩니다.`,
           );
@@ -104,10 +113,17 @@ export function ResultScreen({ chat, onPlaceClick }) {
       const catalogPlace = placeCatalog.find(
         (candidate) => candidate.navigationKey === place.navigationKey,
       );
-      // placeId와 함께 장소 사진(장소 목록 API 제공)도 카탈로그에서 가져와 채운다.
+      // placeId와 함께 장소 사진 및 AI 추천 플래그를 보존한다.
       return catalogPlace
-        ? { ...place, placeId: catalogPlace.placeId, image: catalogPlace.image }
-        : place;
+        ? {
+            ...catalogPlace,
+            ...place,
+            placeId: catalogPlace.placeId,
+            image: catalogPlace.image || place.image,
+            aiReason: place.aiReason || catalogPlace.aiReason,
+            isAiRecommended: true,
+          }
+        : { ...place, isAiRecommended: true };
     });
     setAppliedCourse(aiCourse);
     setItems(hydratedPlaces);
@@ -214,6 +230,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
       setNotice("코스 최적화 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.");
     }
   };
+
+
 
   const handleSave = async () => {
     if (items.length === 0) {
@@ -412,18 +430,20 @@ export function ResultScreen({ chat, onPlaceClick }) {
         </div>
 
         {chat?.error ? (
-          <div className="rounded-[10px] border border-[#f3ccc4] bg-[#fef5f3] px-3 py-2.5">
+          <div className="rounded-[12px] border border-[#f3ccc4] bg-[#fef5f3] p-3.5">
             <p className="text-[11px] font-medium leading-relaxed text-[#c0392b]">
               {chat.error}
             </p>
             {chat.canRetry ? (
-              <button
-                type="button"
-                onClick={chat.retry}
-                className="mt-2 rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5]"
-              >
-                다시 시도
-              </button>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={chat.retry}
+                  className="rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5] cursor-pointer"
+                >
+                  다시 시도
+                </button>
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -466,12 +486,14 @@ export function ResultScreen({ chat, onPlaceClick }) {
               <br />
               카테고리·층별로 골라 담아보세요
             </p>
-            <button
-              onClick={() => setAddOpen(true)}
-              className="mt-1 flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95"
-            >
-              <Plus size={13} /> 장소 추가
-            </button>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={() => setAddOpen(true)}
+                className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer"
+              >
+                <Plus size={13} /> 장소 추가
+              </button>
+            </div>
           </div>
         )}
 
@@ -635,6 +657,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
       places={availablePlaces}
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
+      onPlaceClick={onPlaceClick}
     />
 
     {chatPending ? (

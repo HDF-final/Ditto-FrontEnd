@@ -123,6 +123,45 @@ const PERSONA_I18N = {
   },
 };
 
+export function normalizePersonaId(rawId) {
+  if (!rawId) return DEFAULT_PERSONA_ID;
+  const str = String(rawId).toLowerCase().replace(/[-_\s]/g, "");
+
+  if (str.includes("open") || str.includes("오픈런")) return "openrun";
+  if (str.includes("flex") || str.includes("플렉스")) return "flex";
+  if (
+    str.includes("sohwak") ||
+    str.includes("joy") ||
+    str.includes("소확행") ||
+    str.includes("small") ||
+    str.includes("happiness") ||
+    str.includes("pink")
+  )
+    return "sohwak";
+  if (
+    str.includes("choae") ||
+    str.includes("stan") ||
+    str.includes("최애") ||
+    str.includes("덕후") ||
+    str.includes("borangi") ||
+    str.includes("purple")
+  )
+    return "choae";
+
+  return DEFAULT_PERSONA_ID;
+}
+
+export function toBackendPersonaEnum(rawId) {
+  const normalized = normalizePersonaId(rawId);
+  const map = {
+    openrun: "OPEN_RUN_LOVER",
+    flex: "FLEX_SPENDER",
+    sohwak: "LITTLE_JOY",
+    choae: "ULTIMATE_STAN",
+  };
+  return map[normalized] || "OPEN_RUN_LOVER";
+}
+
 export function resolvePersonaLang(lang) {
   return PERSONA_I18N[lang] ? lang : "ko";
 }
@@ -147,6 +186,41 @@ export function getPersonaPageCopy(lang = "ko") {
 }
 
 export function getPersonaById(id = DEFAULT_PERSONA_ID, lang = "ko") {
+  const normalizedId = normalizePersonaId(id);
   const copy = getPersonaPageCopy(lang);
-  return copy.personas.find((persona) => persona.id === id) ?? copy.personas[0];
+  const matched =
+    copy.personas.find((persona) => persona.id === normalizedId) ??
+    copy.personas[0];
+
+  const themeMap = {
+    openrun: {
+      bgColor: "#fff1e6",
+      badgeBorder: "#fed7aa",
+      badgeBg: "#fff7ed",
+      badgeText: "#ea580c",
+    },
+    flex: {
+      bgColor: "#eafaf1",
+      badgeBorder: "#bbf7d0",
+      badgeBg: "#f0fdf4",
+      badgeText: "#16a34a",
+    },
+    sohwak: {
+      bgColor: "#fdebf6",
+      badgeBorder: "#fbcfe8",
+      badgeBg: "#fdf2f8",
+      badgeText: "#db2777",
+    },
+    choae: {
+      bgColor: "#f2edff",
+      badgeBorder: "#e0d8ff",
+      badgeBg: "#f5f3ff",
+      badgeText: "#7c3aed",
+    },
+  };
+
+  return {
+    ...matched,
+    theme: themeMap[matched.id] || themeMap.openrun,
+  };
 }
