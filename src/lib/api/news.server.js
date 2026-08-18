@@ -43,7 +43,7 @@ function getBaseUrl() {
   return (
     process.env.API_PROXY_TARGET ||
     process.env.INTERNAL_API_URL ||
-    "http://localhost:8080"
+    "http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com"
   );
 }
 

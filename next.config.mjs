@@ -3,7 +3,9 @@
 // 브라우저는 항상 같은 오리진의 `/api/*`로 요청하고, Next가 백엔드로 프록시합니다.
 // CORS 설정 없이 개발할 수 있고, 배포 환경별 백엔드 주소는 이 서버 전용
 // 환경변수 하나만 바꾸면 됩니다. (`NEXT_PUBLIC_`이 아니므로 번들에 노출되지 않음)
-const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8080";
+const apiProxyTarget =
+  process.env.API_PROXY_TARGET ??
+  "http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com";
 
 // AI 코스 추천은 한 턴에 40~50초가 걸립니다. rewrite 프록시의 기본 타임아웃은
 // 30초라(next/dist/server/lib/router-utils/proxy-request.js) 응답이 오기 전에
