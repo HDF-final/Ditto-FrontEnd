@@ -109,7 +109,7 @@ function StopList({ stops = [] }) {
 function AuthorNote({ course }) {
   return (
     <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
-      <div>
+      <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black text-brand">COURSE NOTE</p>
@@ -198,7 +198,7 @@ export default async function CommunityCourseDetailPage({ params }) {
   return (
     <main className="bg-background">
       <section className="px-10 sm:px-14 pb-16 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
+        <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
           <GradientBlock
             gradient={course.gradient || "from-[#2d1b8e] to-[#8c57fa]"}
             className="flex h-[230px] flex-col justify-between rounded-[28px] p-7 text-white lg:h-[250px]"
@@ -240,7 +240,7 @@ export default async function CommunityCourseDetailPage({ params }) {
       </section>
 
       <section className="px-10 sm:px-14 py-8 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+        <div className="mx-auto max-w-7xl grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
           <StopList stops={course.stops} />
           <GradientBlock
             gradient="from-[#2d1b8e] to-[#9b5cf6]"
@@ -254,32 +254,34 @@ export default async function CommunityCourseDetailPage({ params }) {
       <AuthorNote course={course} />
 
       <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black text-brand">REVIEWS</p>
-            <h2 className="mt-3 text-[30px] font-black text-ink">
-              이 코스 다녀온 사람들
-            </h2>
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black text-brand">REVIEWS</p>
+              <h2 className="mt-3 text-[30px] font-black text-ink">
+                이 코스 다녀온 사람들
+              </h2>
+            </div>
+            <Link
+              href="/community/share"
+              className="text-sm font-black text-brand transition hover:text-brand-dark"
+            >
+              후기 쓰기 →
+            </Link>
           </div>
-          <Link
-            href="/community/share"
-            className="text-sm font-black text-brand transition hover:text-brand-dark"
-          >
-            후기 쓰기 →
-          </Link>
-        </div>
-        <div className="mt-7 grid gap-5 lg:grid-cols-3">
-          {defaultReviewCards.map((review, idx) => (
-            <ReviewCard key={review.name || idx} review={review} />
-          ))}
-        </div>
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/community"
-            className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
-          >
-            코스 목록 전체보기 →
-          </Link>
+          <div className="mt-7 grid gap-5 lg:grid-cols-3">
+            {defaultReviewCards.map((review, idx) => (
+              <ReviewCard key={review.name || idx} review={review} />
+            ))}
+          </div>
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/community"
+              className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
+            >
+              코스 목록 전체보기 →
+            </Link>
+          </div>
         </div>
       </section>
     </main>
