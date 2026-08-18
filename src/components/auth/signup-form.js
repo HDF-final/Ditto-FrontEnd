@@ -17,9 +17,11 @@ import {
 } from "@/lib/utils/auth-validation";
 
 import { useSignupStore } from "@/stores/use-signup-store";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { signup, login } from "@/lib/api/auth";
 
 /**
- * Valid signup form → country selection (`/country`) → persona (`/persona`) → complete signup.
+ * Valid signup form → validates & signs up in RDS → country selection (`/country`) → persona (`/persona`) → finish.
  */
 const SIGNUP_SUCCESS_HREF = "/country";
 
@@ -34,6 +36,7 @@ export function SignupForm() {
   const router = useRouter();
   const draft = useSignupStore((state) => state.draft);
   const setDraft = useSignupStore((state) => state.setDraft);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const [email, setEmail] = useState(draft.email || "");
   const [password, setPassword] = useState(draft.password || "");
@@ -41,14 +44,17 @@ export function SignupForm() {
   const [termsAccepted, setTermsAccepted] = useState(draft.termsAccepted ?? true);
   const [marketingAccepted, setMarketingAccepted] = useState(draft.marketingAccepted ?? false);
   const [errors, setErrors] = useState(initialErrors);
+  const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function clearError(field) {
     setErrors((current) =>
       current[field] ? { ...current, [field]: "" } : current,
     );
+    setServerError("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = {
@@ -69,15 +75,61 @@ export function SignupForm() {
       return;
     }
 
-    setDraft({
-      email,
-      password,
-      nickname,
-      termsAccepted,
-      marketingAccepted,
-    });
+    setIsLoading(true);
+    setServerError("");
 
-    router.push(SIGNUP_SUCCESS_HREF);
+    try {
+      // 1. Call real backend signup API to validate email uniqueness and create user in RDS
+      const signupResult = await signup({
+        email,
+        password,
+        nickname: nickname || "디또러버",
+        country: draft.country || "KR",
+        persona: draft.persona || "openrun",
+        marketingAgreed: Boolean(marketingAccepted),
+      });
+
+      // 2. Establish login session
+      try {
+        const loginResult = await login({ email, password });
+        if (loginResult) {
+          setUser(loginResult);
+        }
+      } catch {
+        if (signupResult) {
+          setUser(signupResult);
+        }
+      }
+
+      // 3. Save draft marked as successfully signed up
+      setDraft({
+        email,
+        password,
+        nickname,
+        termsAccepted,
+        marketingAccepted,
+        isSignedUp: true,
+      });
+
+      router.push(SIGNUP_SUCCESS_HREF);
+    } catch (err) {
+      const errMsg = err?.message || "회원가입 처리 중 오류가 발생했습니다.";
+      if (
+        errMsg.includes("이메일") ||
+        errMsg.includes("email") ||
+        errMsg.includes("중복") ||
+        errMsg.includes("존재")
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          email: errMsg,
+        }));
+      } else {
+        setServerError(errMsg);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -183,8 +235,29 @@ export function SignupForm() {
             마케팅 정보 수신에 동의합니다 (선택)
           </TermsCheckbox>
         </div>
-        <button type="submit" className={authButtonClassName()}>
-          가입하고 시작하기 <span aria-hidden="true">→</span>
+        {serverError ? (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-xs font-medium text-red-600 animate-in fade-in"
+            role="alert"
+          >
+            {serverError}
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={authButtonClassName()}
+        >
+          {isLoading ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              가입 확인 중...
+            </span>
+          ) : (
+            <>
+              가입하고 시작하기 <span aria-hidden="true">→</span>
+            </>
+          )}
         </button>
       </form>
       <AuthAltLink

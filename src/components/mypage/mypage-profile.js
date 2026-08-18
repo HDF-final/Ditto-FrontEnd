@@ -1,18 +1,24 @@
 import Image from "next/image";
 
 export function MypageProfile({ profile, stats }) {
+  const persona = profile.persona;
+
   return (
     <section className="border-b border-line bg-white px-10 sm:px-14 pt-[60px] lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-10 pb-[60px]">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="flex items-center gap-5">
-            <div className="flex size-[78px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#fff1e6]">
+            <div
+              className="flex size-[78px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200"
+              style={{ backgroundColor: persona.bgColor || "#fff1e6" }}
+            >
               <Image
-                src={profile.persona.image}
-                alt={profile.persona.name}
+                src={persona.image}
+                alt={persona.name}
                 width={66}
                 height={66}
                 className="h-[66px] w-[66px] object-contain"
+                unoptimized
               />
             </div>
             <div>
@@ -20,19 +26,29 @@ export function MypageProfile({ profile, stats }) {
               <p className="mt-1 text-sm font-medium text-ink-muted">
                 {profile.description}
               </p>
-              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#e0d8ff] bg-brand-soft px-3.5 py-1.5">
+              <div
+                className="mt-3 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition-colors duration-200"
+                style={{
+                  backgroundColor: persona.badgeBg || "#f5f3ff",
+                  borderColor: persona.badgeBorder || "#e0d8ff",
+                }}
+              >
                 <Image
-                  src={profile.persona.image}
+                  src={persona.image}
                   alt=""
                   width={22}
                   height={22}
                   className="size-[22px] object-contain"
+                  unoptimized
                 />
-                <span className="text-sm font-black text-brand">
-                  {profile.persona.name}
+                <span
+                  className="text-sm font-black"
+                  style={{ color: persona.badgeText || "#5c2ef5" }}
+                >
+                  {persona.name}
                 </span>
                 <span className="text-xs font-medium text-ink-muted">
-                  {profile.persona.description}
+                  {persona.description}
                 </span>
               </div>
             </div>

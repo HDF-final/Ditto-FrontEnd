@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import { DEFAULT_PERSONA_ID } from "@/lib/fixtures/personas";
 import { signup, login } from "@/lib/api/auth";
+import { updateMyPreferences } from "@/lib/api/users";
 import { useSignupStore } from "@/stores/use-signup-store";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 /**
- * Valid shopping type selection → triggers final signup API → login session → home (`/`).
+ * Valid shopping type selection → updates preferences → home (`/`).
  */
 const PERSONA_SUCCESS_HREF = "/";
 
@@ -18,6 +19,7 @@ export function PersonaForm({ copy }) {
   const router = useRouter();
   const draft = useSignupStore((state) => state.draft);
   const resetDraft = useSignupStore((state) => state.resetDraft);
+  const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
 
   const [selectedId, setSelectedId] = useState(draft.persona || DEFAULT_PERSONA_ID);
@@ -35,11 +37,29 @@ export function PersonaForm({ copy }) {
     }
 
     setError("");
+    setIsLoading(true);
 
-    // If signup draft has credentials, perform real signup API call
-    if (draft.email && draft.password) {
-      setIsLoading(true);
-      try {
+    try {
+      // 1. If already signed up in step 1, update preference and finalize
+      if (draft.isSignedUp) {
+        try {
+          await updateMyPreferences({
+            countryCode: draft.country || "KR",
+            persona: selectedId,
+          });
+        } catch {
+          // Ignore preference update error if optional
+        }
+        if (user) {
+          setUser({ ...user, persona: selectedId, country: draft.country || user.country });
+        }
+        resetDraft();
+        router.push(PERSONA_SUCCESS_HREF);
+        return;
+      }
+
+      // 2. Fallback: If not signed up yet but has credentials
+      if (draft.email && draft.password) {
         const signupPayload = {
           email: draft.email,
           password: draft.password,
@@ -51,7 +71,6 @@ export function PersonaForm({ copy }) {
 
         const signupResult = await signup(signupPayload);
 
-        // Auto-login after signup if token or session is needed
         try {
           const loginResult = await login({
             email: draft.email,
@@ -61,7 +80,6 @@ export function PersonaForm({ copy }) {
             setUser(loginResult);
           }
         } catch {
-          // If login call fails but signup succeeded, use signup result
           if (signupResult) {
             setUser(signupResult);
           }
@@ -69,18 +87,19 @@ export function PersonaForm({ copy }) {
 
         resetDraft();
         router.push(PERSONA_SUCCESS_HREF);
-      } catch (err) {
-        setError(
-          err?.message || "회원가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
-        );
-      } finally {
-        setIsLoading(false);
+        return;
       }
-      return;
-    }
 
-    // If no draft exists (e.g. refreshed page or direct entry), inform user
-    setError("회원가입 정보가 비어 있습니다. 회원가입 페이지에서 정보를 먼저 입력해주세요.");
+      // 3. If direct access with no draft
+      resetDraft();
+      router.push(PERSONA_SUCCESS_HREF);
+    } catch (err) {
+      setError(
+        err?.message || "회원가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
