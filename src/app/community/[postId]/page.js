@@ -77,7 +77,7 @@ function StopList({ stops = [] }) {
       <div className="mt-4 flex flex-col gap-3">
         {stops.map((stop, index) => (
           <div
-            key={`${stop.floor || index}-${stop.name || index}`}
+            key={`stop-${stop.placeId || stop.name || index}-${index}`}
             className="flex items-center gap-4 rounded-[16px] bg-white px-4 py-3"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
@@ -271,7 +271,7 @@ export default async function CommunityCourseDetailPage({ params }) {
           </div>
           <div className="mt-7 grid gap-5 lg:grid-cols-3">
             {defaultReviewCards.map((review, idx) => (
-              <ReviewCard key={review.name || idx} review={review} />
+              <ReviewCard key={`review-card-${review.name || idx}-${idx}`} review={review} />
             ))}
           </div>
           <div className="mt-8 flex justify-center">

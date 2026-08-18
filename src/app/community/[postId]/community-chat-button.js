@@ -14,28 +14,39 @@ const fallbackChatMessages = [
     nickname: "Yuki_T",
     isAuthor: true,
     content: "워터폴 가든은 오전에 가면 사람이 적어서 사진 찍기 좋아요.",
-    createdAt: "2026-08-18T14:14:00",
+    createdAt: "2026-08-18T05:14:00Z",
   },
   {
     commentId: "fallback-2",
     nickname: "Chen_Li",
     isAuthor: false,
     content: "5F 사운즈 포레스트에서 쉬다가 B2로 내려가는 동선 괜찮았어요.",
-    createdAt: "2026-08-18T14:20:00",
+    createdAt: "2026-08-18T05:20:00Z",
   },
   {
     commentId: "fallback-3",
     nickname: "Emma_R",
     isAuthor: false,
     content: "B2 크리에이티브 그라운드는 팝업 일정 확인하고 가면 더 좋아요.",
-    createdAt: "2026-08-18T14:31:00",
+    createdAt: "2026-08-18T05:31:00Z",
   },
 ];
 
 function formatTime(dateStr) {
   if (!dateStr) return "";
   try {
-    const d = new Date(dateStr);
+    let d = new Date(dateStr);
+    if (
+      typeof dateStr === "string" &&
+      !dateStr.endsWith("Z") &&
+      !dateStr.includes("+") &&
+      !dateStr.includes("-", 10)
+    ) {
+      const utcDate = new Date(`${dateStr}Z`);
+      if (!Number.isNaN(utcDate.getTime())) {
+        d = utcDate;
+      }
+    }
     if (Number.isNaN(d.getTime())) return "";
     const hours = d.getHours();
     const minutes = String(d.getMinutes()).padStart(2, "0");
@@ -47,7 +58,18 @@ function formatTime(dateStr) {
   }
 }
 
-function ChatBubble({ message, isMine, onDelete, onUpdate }) {
+function deduplicateComments(list) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  return list.filter((item, idx) => {
+    const id = item?.commentId ?? `idx-${idx}`;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+function ChatBubble({ message, isMine, onRequestDelete, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.content || message.text || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +77,11 @@ function ChatBubble({ message, isMine, onDelete, onUpdate }) {
   const authorName = message.nickname || message.author || "여행자";
   const isAuthor = Boolean(message.isAuthor || message.badge === "작성자");
   const timeText = formatTime(message.createdAt) || message.time || "";
+
+  const handleStartEdit = () => {
+    setEditText(message.content || message.text || "");
+    setIsEditing(true);
+  };
 
   const handleSaveEdit = async (e) => {
     e?.preventDefault();
@@ -65,6 +92,8 @@ function ChatBubble({ message, isMine, onDelete, onUpdate }) {
     try {
       await onUpdate(message.commentId, content);
       setIsEditing(false);
+    } catch {
+      // Handled by parent
     } finally {
       setIsSubmitting(false);
     }
@@ -79,13 +108,13 @@ function ChatBubble({ message, isMine, onDelete, onUpdate }) {
     return (
       <div className="flex flex-col items-end">
         <div className="flex max-w-[85%] items-end gap-2.5">
-          {/* Action buttons (수정 | 삭제) and Time aligned horizontally with crisp contrast */}
+          {/* Action buttons (수정 | 삭제) and Time aligned horizontally */}
           <div className="flex items-center gap-1.5 shrink-0 select-none pb-1 text-[11px]">
             {message.commentId && !isEditing ? (
               <div className="flex items-center gap-1 font-bold text-ink/70">
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={handleStartEdit}
                   className="hover:text-brand transition cursor-pointer"
                   title="댓글 수정"
                 >
@@ -94,7 +123,7 @@ function ChatBubble({ message, isMine, onDelete, onUpdate }) {
                 <span className="text-ink/20 text-[9px]">|</span>
                 <button
                   type="button"
-                  onClick={() => onDelete(message.commentId)}
+                  onClick={() => onRequestDelete(message.commentId)}
                   className="hover:text-danger text-ink/70 transition cursor-pointer"
                   title="댓글 삭제"
                 >
@@ -176,6 +205,8 @@ export function CommunityChatButton({ course }) {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef(null);
 
   const postId =
@@ -194,25 +225,27 @@ export function CommunityChatButton({ course }) {
     }
   }, [isOpen, comments]);
 
+  const loadComments = async (id) => {
+    if (!id) {
+      setComments(fallbackChatMessages);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await getComments(id);
+      const list = Array.isArray(res) ? res : res?.data || [];
+      setComments(deduplicateComments(list));
+    } catch (err) {
+      console.warn("[CommunityChat] Failed to load comments:", err.message);
+      setComments(fallbackChatMessages);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleOpen = () => {
     setIsOpen(true);
-    if (postId) {
-      setIsLoading(true);
-      getComments(postId)
-        .then((res) => {
-          const list = Array.isArray(res) ? res : res?.data || [];
-          setComments(list);
-        })
-        .catch((err) => {
-          console.warn("[CommunityChat] Failed to load comments:", err.message);
-          setComments(fallbackChatMessages);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setComments(fallbackChatMessages);
-    }
+    loadComments(postId);
   };
 
   const handleSend = async (e) => {
@@ -227,7 +260,7 @@ export function CommunityChatButton({ course }) {
       try {
         const newComment = await createComment(postId, { content });
         if (newComment) {
-          setComments((prev) => [...prev, newComment]);
+          setComments((prev) => deduplicateComments([...prev, newComment]));
         }
       } catch (err) {
         console.error("[CommunityChat] Failed to post comment:", err.message);
@@ -244,7 +277,7 @@ export function CommunityChatButton({ course }) {
         createdAt: new Date().toISOString(),
         isMine: true,
       };
-      setComments((prev) => [...prev, mockComment]);
+      setComments((prev) => deduplicateComments([...prev, mockComment]));
       setIsSubmitting(false);
     }
   };
@@ -253,23 +286,30 @@ export function CommunityChatButton({ course }) {
     if (!postId || !commentId || !nextContent.trim()) return;
     try {
       const updated = await updateComment(postId, commentId, { content: nextContent.trim() });
-      if (updated) {
-        setComments((prev) =>
-          prev.map((c) => (c.commentId === commentId ? { ...c, content: updated.content } : c)),
-        );
-      }
+      setComments((prev) =>
+        prev.map((c) =>
+          c.commentId === commentId
+            ? { ...c, content: updated?.content || nextContent.trim() }
+            : c,
+        ),
+      );
     } catch (err) {
       console.error("[CommunityChat] Failed to update comment:", err.message);
+      throw err;
     }
   };
 
-  const handleDelete = async (commentId) => {
-    if (!postId || !commentId) return;
+  const handleConfirmDelete = async () => {
+    if (!postId || !deletingCommentId || isDeleting) return;
+    setIsDeleting(true);
     try {
-      await deleteComment(postId, commentId);
-      setComments((prev) => prev.filter((c) => c.commentId !== commentId));
+      await deleteComment(postId, deletingCommentId);
+      setComments((prev) => prev.filter((c) => c.commentId !== deletingCommentId));
+      setDeletingCommentId(null);
     } catch (err) {
       console.error("[CommunityChat] Failed to delete comment:", err.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -356,10 +396,16 @@ export function CommunityChatButton({ course }) {
               ) : (
                 comments.map((message, index) => (
                   <ChatBubble
-                    key={message.commentId || `${message.nickname}-${index}`}
+                    key={`chat-msg-${message.commentId ?? index}`}
                     message={message}
-                    isMine={message.isMine || message.userId === 1}
-                    onDelete={handleDelete}
+                    isMine={
+                      message.isMine ||
+                      message.userId === 1 ||
+                      String(message.userId) === "1" ||
+                      message.nickname === "나" ||
+                      message.nickname === "사토 유키"
+                    }
+                    onRequestDelete={(commentId) => setDeletingCommentId(commentId)}
                     onUpdate={handleUpdate}
                   />
                 ))
@@ -373,6 +419,12 @@ export function CommunityChatButton({ course }) {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
+                }}
                 className="h-12 min-w-0 flex-1 rounded-full border border-line bg-surface-soft px-5 text-sm font-medium text-ink outline-hidden transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 placeholder:text-ink-muted"
                 placeholder={
                   course.stops?.[0]?.name
@@ -406,6 +458,63 @@ export function CommunityChatButton({ course }) {
               </button>
             </form>
           </section>
+        </div>
+      ) : null}
+
+      {/* Custom Delete Confirmation Modal */}
+      {deletingCommentId ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#171324]/60 px-5 backdrop-blur-xs"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeleting) setDeletingCommentId(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-[0_20px_60px_rgba(20,16,42,0.25)] text-center animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-danger/10 text-danger">
+              <svg
+                aria-hidden="true"
+                className="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </div>
+            <h3 id="delete-dialog-title" className="text-lg font-black text-ink">
+              댓글 삭제
+            </h3>
+            <p className="mt-2 text-xs font-medium leading-relaxed text-ink-muted">
+              삭제한 댓글은 복구할 수 없습니다.<br />정말 삭제하시겠습니까?
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-2.5">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeletingCommentId(null)}
+                className="flex-1 rounded-full bg-surface-soft py-2.5 text-xs font-black text-ink hover:bg-line transition cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="flex-1 rounded-full bg-danger py-2.5 text-xs font-black text-white shadow-xs hover:bg-danger-dark transition cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </>
