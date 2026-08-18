@@ -1,19 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import {
-  communityCourses,
-  getCommunityCourse,
-} from "@/lib/fixtures/community-courses";
+import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { CommunityChatButton } from "./community-chat-button";
 
-export function generateStaticParams() {
-  return communityCourses.map((course) => ({ slug: course.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params;
-  const course = getCommunityCourse(slug);
+  const { postId } = await params;
+  const course = await fetchPublicCourseDetailServer(postId);
 
   if (!course) {
     return { title: "커뮤니티 코스" };
@@ -22,7 +17,7 @@ export async function generateMetadata({ params }) {
   return { title: course.title };
 }
 
-const reviewCards = [
+const defaultReviewCards = [
   {
     name: "Yuki_T",
     country: "JAPAN",
@@ -75,14 +70,14 @@ function GradientBlock({ className = "", children, gradient }) {
   );
 }
 
-function StopList({ stops }) {
+function StopList({ stops = [] }) {
   return (
     <section className="rounded-[28px] bg-surface-soft p-6 lg:p-7">
       <h2 className="text-lg font-black text-ink">코스 장소</h2>
       <div className="mt-4 flex flex-col gap-3">
         {stops.map((stop, index) => (
           <div
-            key={`${stop.floor}-${stop.name}`}
+            key={`${stop.floor || index}-${stop.name || index}`}
             className="flex items-center gap-4 rounded-[16px] bg-white px-4 py-3"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
@@ -90,11 +85,13 @@ function StopList({ stops }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-ink">
-                {stop.floor} {stop.name}
+                {stop.floor ? `${stop.floor} ` : ""}{stop.name}
               </p>
-              <p className="mt-1 text-xs font-medium text-ink-muted">
-                {stop.description}
-              </p>
+              {stop.description ? (
+                <p className="mt-1 text-xs font-medium text-ink-muted">
+                  {stop.description}
+                </p>
+              ) : null}
             </div>
             <Link
               href="/courses"
@@ -120,7 +117,7 @@ function AuthorNote({ course }) {
               작성자가 남긴 기록
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
-              이 코스를 만든 {course.name}가 직접 쓴 글이에요.
+              이 코스를 만든 {course.name || "여행자"}가 직접 쓴 글이에요.
             </p>
           </div>
           <Link
@@ -136,21 +133,21 @@ function AuthorNote({ course }) {
             <div>
               <div className="flex items-center gap-4">
                 <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
-                  {course.country}
+                  {course.country || "KR"}
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-ink">{course.name}</p>
+                    <p className="text-lg font-black text-ink">{course.name || "여행자"}</p>
                     <span className="font-black text-ink">·</span>
-                    <span className="text-sm font-black text-ink">JAPAN</span>
+                    <span className="text-sm font-black text-ink">{course.country || "KR"}</span>
                   </div>
                   <p className="mt-1 text-xs font-medium text-ink-muted">
-                    2026.03.02 작성 · 세 번 다녀옴
+                    {course.createdAt ? new Date(course.createdAt).toLocaleDateString("ko-KR") : "2026.03.02"} 작성
                   </p>
                 </div>
               </div>
               <GradientBlock
-                gradient={course.gradient}
+                gradient={course.gradient || "from-[#2d1b8e] to-[#8c57fa]"}
                 className="mt-6 flex h-[164px] items-center justify-center rounded-[18px] text-sm font-black text-white"
               >
                 사진
@@ -158,7 +155,7 @@ function AuthorNote({ course }) {
             </div>
 
             <div className="rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink">
-              <p>{course.note}</p>
+              <p>{course.note || course.description}</p>
               <p className="mt-5">
                 1층 워터폴 가든은 입구에서 바로 보여요. 사람이 몰리기 전인 오전
                 11시쯤이 가장 한산합니다. 사진은 물이 떨어지는 쪽을 등지고
@@ -178,19 +175,21 @@ function AuthorNote({ course }) {
 
 function ReviewCard({ review }) {
   return (
-    <article className="rounded-[20px] bg-white p-6">
+    <article className="rounded-[20px] bg-white p-6 shadow-sm">
       <h3 className="text-lg font-black text-ink">{review.name}</h3>
       <p className="mt-5 min-h-[54px] text-sm font-medium leading-6 text-ink">
         {review.text}
       </p>
-      <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
+      {review.tag ? (
+        <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
+      ) : null}
     </article>
   );
 }
 
 export default async function CommunityCourseDetailPage({ params }) {
-  const { slug } = await params;
-  const course = getCommunityCourse(slug);
+  const { postId } = await params;
+  const course = await fetchPublicCourseDetailServer(postId);
 
   if (!course) {
     notFound();
@@ -201,10 +200,10 @@ export default async function CommunityCourseDetailPage({ params }) {
       <section className="px-10 sm:px-14 pb-16 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
           <GradientBlock
-            gradient={course.gradient}
+            gradient={course.gradient || "from-[#2d1b8e] to-[#8c57fa]"}
             className="flex h-[230px] flex-col justify-between rounded-[28px] p-7 text-white lg:h-[250px]"
           >
-            <span className="text-xs font-black">{course.label}</span>
+            <span className="text-xs font-black">{course.label || "THE HYUNDAI SEOUL"}</span>
             <h1 className="max-w-[260px] text-[30px] font-black leading-tight">
               {course.title}
             </h1>
@@ -216,12 +215,12 @@ export default async function CommunityCourseDetailPage({ params }) {
                 1
               </span>
               <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-xs font-black text-brand">
-                {course.country}
+                {course.country || "KR"}
               </span>
               <div>
-                <p className="text-sm font-black text-ink">{course.name}</p>
+                <p className="text-sm font-black text-ink">{course.name || "여행자"}</p>
                 <p className="mt-1 text-[11px] font-black text-brand">
-                  {course.hash}
+                  {course.hash || "#공개코스"}
                 </p>
               </div>
             </div>
@@ -270,8 +269,8 @@ export default async function CommunityCourseDetailPage({ params }) {
           </Link>
         </div>
         <div className="mt-7 grid gap-5 lg:grid-cols-3">
-          {reviewCards.map((review) => (
-            <ReviewCard key={review.name} review={review} />
+          {defaultReviewCards.map((review, idx) => (
+            <ReviewCard key={review.name || idx} review={review} />
           ))}
         </div>
         <div className="mt-8 flex justify-center">
@@ -279,7 +278,7 @@ export default async function CommunityCourseDetailPage({ params }) {
             href="/community"
             className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
           >
-            후기 128개 모두 보기 →
+            코스 목록 전체보기 →
           </Link>
         </div>
       </section>
