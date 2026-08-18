@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { CommunityChatButton } from "./community-chat-button";
+import { CommunityShareButton } from "./community-share-button";
 
 export const dynamic = "force-dynamic";
 
@@ -232,7 +233,7 @@ export default async function CommunityCourseDetailPage({ params }) {
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <ActionButton>코스 저장</ActionButton>
-              <ActionButton variant="outline">공유하기</ActionButton>
+              <CommunityShareButton />
               <CommunityChatButton course={course} />
             </div>
           </div>
