@@ -24,19 +24,29 @@ const DEFAULT_COURSE_KEYS = [
 let datasetPromise;
 
 function toCoursePlace(record) {
-  const category = record.place_name.includes("팝업") ? "팝업" : "매장";
+  const category = record.place_name?.includes("팝업") ? "팝업" : (record.category ?? "매장");
+  const img =
+    record.image_url ??
+    record.imageUrl ??
+    record.img_url ??
+    record.place_img ??
+    record.placeImg ??
+    record.image ??
+    null;
   return {
-    id: record.navigation_key,
+    id: record.navigation_key ?? record.place_id ?? record.id,
     placeId: record.place_id ?? null,
     navigationKey: record.navigation_key,
-    floor: record.floor_code,
-    name: record.place_name,
+    floor: record.floor_code ?? record.floor,
+    name: record.place_name ?? record.name,
     category,
-    categoryStyle: CATEGORY_STYLES[category],
-    desc: `${record.floor_code} ${record.place_name} · 실내 길찾기 지원 매장`,
-    image: record.image_url ?? null,
+    categoryStyle: CATEGORY_STYLES[category] ?? "bg-[#f0ecfa] text-[#5c2ef5]",
+    desc: record.desc ?? `${record.floor_code ?? record.floor ?? ""} ${record.place_name ?? record.name} · 실내 길찾기 지원 매장`,
+    image: img,
+    imageUrl: img,
+    placeImg: img,
     accentColor: category === "팝업" ? "#1a142e" : "#5c2ef5",
-    location: `더현대서울 ${record.floor_code}`,
+    location: `더현대서울 ${record.floor_code ?? record.floor ?? ""}`.trim(),
   };
 }
 

@@ -720,6 +720,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
       places={availablePlaces}
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
+      onPlaceClick={onPlaceClick}
     />
 
     {chatPending ? (
