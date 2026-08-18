@@ -40,8 +40,8 @@ export function HeaderAuthNav() {
     return (
       <div className="flex items-center gap-6">
         <Link
-          href="/community"
-          aria-label="관심 코스"
+          href="/community/bookmarks"
+          aria-label="내가 좋아요한 커뮤니티 코스"
           className="text-ink transition hover:text-brand"
         >
           <HeartIcon />

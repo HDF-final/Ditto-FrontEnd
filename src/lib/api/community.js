@@ -97,3 +97,43 @@ export function deleteComment(postId, commentId) {
     apiClient.delete(`/community/courses/${postId}/comments/${commentId}`),
   );
 }
+
+/**
+ * 공개 코스 북마크(찜) 등록.
+ * POST /api/v1/community/courses/{postId}/bookmarks
+ */
+export function bookmarkCourse(postId) {
+  return requestData(
+    apiClient.post(`/community/courses/${postId}/bookmarks`),
+  );
+}
+
+/**
+ * 공개 코스 북마크(찜) 취소.
+ * DELETE /api/v1/community/courses/{postId}/bookmarks
+ */
+export function unbookmarkCourse(postId) {
+  return requestData(
+    apiClient.delete(`/community/courses/${postId}/bookmarks`),
+  );
+}
+
+/**
+ * 공개 코스 좋아요 등록.
+ * POST /api/v1/community/courses/{postId}/likes
+ */
+export function likeCourse(postId) {
+  return requestData(
+    apiClient.post(`/community/courses/${postId}/likes`),
+  );
+}
+
+/**
+ * 공개 코스 좋아요 취소.
+ * DELETE /api/v1/community/courses/{postId}/likes
+ */
+export function unlikeCourse(postId) {
+  return requestData(
+    apiClient.delete(`/community/courses/${postId}/likes`),
+  );
+}
