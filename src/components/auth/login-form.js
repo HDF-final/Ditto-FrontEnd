@@ -12,11 +12,9 @@ import {
   validateEmail,
   validatePassword,
 } from "@/lib/utils/auth-validation";
+import { login } from "@/lib/api/auth";
+import { useAuthStore } from "@/stores/use-auth-store";
 
-/**
- * Temporary success policy (UI-only, no real auth):
- * valid login form → navigate to home (`/`).
- */
 const LOGIN_SUCCESS_HREF = "/";
 
 const initialErrors = {
@@ -26,12 +24,16 @@ const initialErrors = {
 
 export function LoginForm() {
   const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState(initialErrors);
+  const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setServerError("");
 
     const nextErrors = {
       email: validateEmail(email),
@@ -44,8 +46,21 @@ export function LoginForm() {
       return;
     }
 
-    // Front-end validation only — no tokens, session, or storage.
-    router.push(LOGIN_SUCCESS_HREF);
+    setIsLoading(true);
+
+    try {
+      const userData = await login({ email, password });
+      if (userData) {
+        setUser(userData);
+      }
+      router.push(LOGIN_SUCCESS_HREF);
+    } catch (error) {
+      setServerError(
+        error?.message || "이메일 또는 비밀번호를 다시 확인해주세요.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -55,6 +70,15 @@ export function LoginForm() {
         onSubmit={handleSubmit}
         noValidate
       >
+        {serverError ? (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-xs font-medium text-red-600 animate-in fade-in"
+            role="alert"
+          >
+            {serverError}
+          </div>
+        ) : null}
+
         <div>
           <label htmlFor="login-email" className="sr-only">
             이메일
@@ -67,8 +91,10 @@ export function LoginForm() {
             autoComplete="email"
             placeholder="이메일을 입력하세요"
             value={email}
+            disabled={isLoading}
             onChange={(event) => {
               setEmail(event.target.value);
+              if (serverError) setServerError("");
               if (errors.email) {
                 setErrors((current) => ({ ...current, email: "" }));
               }
@@ -90,8 +116,10 @@ export function LoginForm() {
             autoComplete="current-password"
             placeholder="비밀번호를 입력하세요"
             value={password}
+            disabled={isLoading}
             onChange={(event) => {
               setPassword(event.target.value);
+              if (serverError) setServerError("");
               if (errors.password) {
                 setErrors((current) => ({ ...current, password: "" }));
               }
@@ -107,8 +135,21 @@ export function LoginForm() {
             message={errors.password}
           />
         </div>
-        <button type="submit" className={authButtonClassName()}>
-          로그인 <span aria-hidden="true">→</span>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={authButtonClassName()}
+        >
+          {isLoading ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              로그인 중...
+            </span>
+          ) : (
+            <>
+              로그인 <span aria-hidden="true">→</span>
+            </>
+          )}
         </button>
       </form>
       <AuthAltLink

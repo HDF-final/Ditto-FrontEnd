@@ -9,18 +9,17 @@ import {
   getCountryByCode,
 } from "@/lib/fixtures/countries";
 import { usePreferenceStore } from "@/stores/use-preference-store";
+import { useSignupStore } from "@/stores/use-signup-store";
 
-/**
- * Temporary success policy (UI-only):
- * selected country → `/persona?lang=…` (before shopping-type selection).
- * Country preference is kept in memory Zustand only — not browser storage.
- */
 export function CountryForm() {
   const router = useRouter();
   const storedCountryCode = usePreferenceStore((state) => state.countryCode);
   const setCountryCode = usePreferenceStore((state) => state.setCountryCode);
+  const setSignupDraft = useSignupStore((state) => state.setDraft);
+  const signupCountry = useSignupStore((state) => state.draft.country);
+
   const [selectedCode, setSelectedCode] = useState(
-    () => storedCountryCode || DEFAULT_COUNTRY_CODE,
+    () => signupCountry || storedCountryCode || DEFAULT_COUNTRY_CODE,
   );
   const [error, setError] = useState("");
 
@@ -36,6 +35,7 @@ export function CountryForm() {
 
     setError("");
     setCountryCode(selected.code);
+    setSignupDraft({ country: selected.code });
     router.push(`/persona?lang=${selected.lang}`);
   }
 

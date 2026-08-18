@@ -18,8 +18,13 @@ const API_PROXY_TIMEOUT_MS = 150_000;
 
 const nextConfig = {
   images: {
-    // Place hero/product photos are served from Unsplash in the sample data.
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    // Place hero/product photos and S3 uploaded assets
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "**.amazonaws.com" },
+      { protocol: "https", hostname: "**.s3.*.amazonaws.com" },
+      { protocol: "http", hostname: "**.amazonaws.com" },
+    ],
   },
   allowedDevOrigins: ["127.0.0.1", "192.168.2.181"],
   experimental: {

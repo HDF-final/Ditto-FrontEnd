@@ -230,61 +230,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     }
   };
 
-  const handleLoadSampleAiCourse = () => {
-    const samplePlaces = [
-      {
-        id: "1F_PRADA_001",
-        navigationKey: "1F_STORE_0031",
-        name: "프라다 (PRADA)",
-        floor: "1F",
-        category: "패션",
-        categoryStyle: "bg-[#1a142e] text-white",
-        desc: "에스파 카리나가 글로벌 앰버서더로 활약 중인 프라다 매장으로, 최신 컬렉션과 인기 아이템을 만나보실 수 있습니다.",
-        aiReason: "에스파 카리나가 프라다 글로벌 앰버서더로 활약 중이며, 최근 착용한 인기 컬렉션과 아이템을 직접 만나볼 수 있는 대표 매장입니다.",
-        celebrityName: "카리나 (Karina)",
-        celebrityRole: "PRADA 글로벌 앰버서더",
-        ambassadorImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
-        isAiRecommended: true,
-        image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop",
-        location: "더현대서울 1F",
-      },
-      {
-        id: "B2_ADIDAS_002",
-        navigationKey: "B2_STORE_0032",
-        name: "아디다스 스타디움",
-        floor: "B2",
-        category: "패션",
-        categoryStyle: "bg-[#ede9f8] text-[#5c2ef5]",
-        desc: "블랙핑크 제니와 손흥민이 착용한 아디다스 오리지널스 및 스타디움 익스클루시브 라인업을 체험할 수 있는 공간입니다.",
-        aiReason: "블랙핑크 제니와 손흥민이 착용한 아디다스 오리지널스 및 스타디움 익스클루시브 라인업을 체험할 수 있는 공간입니다.",
-        celebrityName: "손흥민 & 제니",
-        celebrityRole: "Adidas 글로벌 앰버서더",
-        ambassadorImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
-        isAiRecommended: true,
-        image: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=400&auto=format&fit=crop",
-        location: "더현대서울 B2",
-      },
-      {
-        id: "5F_SOUNDS_003",
-        navigationKey: "5F_STORE_0044",
-        name: "사운즈 포레스트",
-        floor: "5F",
-        category: "휴식",
-        categoryStyle: "bg-[#e8f5e9] text-[#2e7d32]",
-        desc: "자연 채광과 그리너리 감성이 가득한 실내 정원으로, 여유로운 힐링과 사진 촬영을 즐기기 좋은 핫플레이스입니다.",
-        aiReason: "자연 채광과 그리너리 감성이 가득한 실내 정원으로, 여유로운 힐링과 인증샷을 남기기 가장 좋은 핫플레이스입니다.",
-        celebrityName: "NewJeans & 아이브",
-        celebrityRole: "K-컬처 핫플레이스",
-        ambassadorImage: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop",
-        isAiRecommended: true,
-        image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=400&auto=format&fit=crop",
-        location: "더현대서울 5F",
-      },
-    ];
-    setItems(samplePlaces);
-    setCourseTitle("K-POP 앰버서더 핫플 투어");
-    setNotice("✨ AI 추천 샘플 코스를 불러왔습니다. 장소를 클릭해 AI 설명 모달을 확인해보세요!");
-  };
+
 
   const handleSave = async () => {
     if (items.length === 0) {
@@ -487,8 +433,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
             <p className="text-[11px] font-medium leading-relaxed text-[#c0392b]">
               {chat.error}
             </p>
-            <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              {chat.canRetry ? (
+            {chat.canRetry ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={chat.retry}
@@ -496,15 +442,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 >
                   다시 시도
                 </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={handleLoadSampleAiCourse}
-                className="rounded-full bg-[#5c2ef5] px-3.5 py-1 text-[11px] font-bold text-white shadow-xs transition hover:bg-[#4a22d4] cursor-pointer"
-              >
-                ✨ AI 추천 샘플 코스로 체험하기
-              </button>
-            </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -552,13 +491,6 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer"
               >
                 <Plus size={13} /> 장소 추가
-              </button>
-              <button
-                type="button"
-                onClick={handleLoadSampleAiCourse}
-                className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-[#5c2ef5] bg-[#f0ecfa] hover:bg-[#e0d9f8] transition-colors cursor-pointer border border-[#e0d9f8]"
-              >
-                ✨ AI 추천 코스 불러오기
               </button>
             </div>
           </div>
