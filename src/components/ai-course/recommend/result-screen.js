@@ -7,6 +7,7 @@ import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
+import { CourseSaveSuccessModal } from "./course-save-success-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import {
   attachPlaceIdsToCourseDataset,
@@ -59,6 +60,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
+  const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
@@ -131,6 +133,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     setItems(hydratedPlaces);
     setSavedCourse(null);
     setSaveStatus("idle");
+    setSaveSuccessOpen(false);
     setHistory([]);
     setVisited(new Set());
     setNotice("");
@@ -249,6 +252,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     const name = courseTitle.trim() || "이름 없는 코스";
     let reconciledPlaceIds = savedCourse?.placeIds.map(Number) ?? [];
     setSaveStatus("saving");
+    setSaveSuccessOpen(false);
     setNotice("코스를 저장하고 있어요.");
     try {
       if (!savedCourse) {
@@ -292,6 +296,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
       }
       setNotice("코스와 방문 순서를 저장했어요.");
       setSaveStatus("saved");
+      setSaveSuccessOpen(true);
     } catch (error) {
       if (savedCourse) {
         setSavedCourse({
@@ -663,6 +668,12 @@ export function ResultScreen({ chat, onPlaceClick }) {
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
       onPlaceClick={onPlaceClick}
+    />
+
+    <CourseSaveSuccessModal
+      open={saveSuccessOpen}
+      courseName={courseTitle.trim() || "이름 없는 코스"}
+      onClose={() => setSaveSuccessOpen(false)}
     />
 
     {chatPending ? (
