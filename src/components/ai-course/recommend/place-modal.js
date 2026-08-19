@@ -31,8 +31,9 @@ function AiPlaceModalContent({ place, onClose }) {
       ? "블랙핑크 제니와의 협업 컬렉션 및 감각적인 공간 디자인으로 K-패션 트렌드를 직접 경험할 수 있는 플래그십 스팟입니다."
       : place.desc || "K-컬처 트렌드와 방문자의 취향을 분석하여 추천한 맞춤 매장입니다. 트렌디한 아이템과 시그니처 공간을 경험해보세요.");
 
-  // 매장 / 브랜드 대표 사진 (placeImg / image 우선 반영)
+  // 매장 / 브랜드 대표 사진 (추천 응답이 준 사진 > placeImg / image 순)
   const rightImage =
+    place.aiImage ||
     place.placeImg ||
     place.image ||
     place.imageUrl ||
@@ -44,6 +45,12 @@ function AiPlaceModalContent({ place, onClose }) {
       : isAdidas
       ? "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop"
       : "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop");
+
+  // 지금 띄운 대표 사진이 추천 응답에서 온 것일 때만 캡션을 답니다.
+  // kind가 "evidence"면 매장 사진이 아니라 추천 근거가 된 뉴스 컷이라,
+  // 무엇을 찍은 사진인지 밝혀주지 않으면 매장 사진으로 오해합니다.
+  const rightImageCaption =
+    rightImage && rightImage === place.aiImage ? place.aiImageCaption : null;
 
   // 브랜드 상품/아이템 대표 사진 3장
   const brandImages =
@@ -166,6 +173,13 @@ function AiPlaceModalContent({ place, onClose }) {
             <X size={18} />
           </button>
         </div>
+
+        {/* 사진 캡션 */}
+        {rightImageCaption ? (
+          <div className="relative z-10 mt-auto max-w-full self-start rounded-[12px] bg-black/45 px-3 py-2 text-[12px] font-semibold leading-tight text-white backdrop-blur-md">
+            {rightImageCaption}
+          </div>
+        ) : null}
       </div>
     </div>
   );

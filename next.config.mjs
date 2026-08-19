@@ -7,10 +7,8 @@ const apiProxyTarget =
   process.env.API_PROXY_TARGET ??
   "http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com";
 
-// AI 코스 추천은 한 턴에 40~50초가 걸립니다. rewrite 프록시의 기본 타임아웃은
-// 30초라(next/dist/server/lib/router-utils/proxy-request.js) 응답이 오기 전에
-// 프록시가 소켓을 닫아버립니다. 그러면 백엔드에는 Broken pipe가 찍히고 브라우저는
-// Spring이 준 적 없는 "Internal Server Error"를 받습니다.
+// AI 코스 추천은 한 턴에 40~50초가 걸립니다. AI 코스 추천 응답이 완료되기 전에
+// 프록시가 연결을 끊지 않도록 타임아웃을 충분히 길게 설정합니다.
 //
 // 클라이언트(axios) 타임아웃 120초보다 길게 잡아, 시간 초과 판단은 항상 axios가
 // 먼저 하도록 둡니다. 그래야 화면에 우리가 만든 안내 문구가 뜹니다.
@@ -24,9 +22,15 @@ const nextConfig = {
       { protocol: "https", hostname: "**.amazonaws.com" },
       { protocol: "https", hostname: "**.s3.*.amazonaws.com" },
       { protocol: "http", hostname: "**.amazonaws.com" },
+      {
+        protocol: "https",
+        hostname: "hdf-ditto-images.s3.ap-northeast-2.amazonaws.com",
+      },
     ],
   },
+
   allowedDevOrigins: ["127.0.0.1", "192.168.2.181"],
+
   experimental: {
     proxyTimeout: API_PROXY_TIMEOUT_MS,
   },

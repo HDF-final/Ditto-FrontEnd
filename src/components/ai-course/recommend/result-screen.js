@@ -119,7 +119,9 @@ export function ResultScreen({ chat, onPlaceClick }) {
             ...catalogPlace,
             ...place,
             placeId: catalogPlace.placeId,
-            image: catalogPlace.image || place.image,
+            // 추천 응답이 준 사진이 우선입니다. 카탈로그 사진은 presigned URL이라
+            // 30분 뒤 만료되고, 브랜드와 무관한 기본 매장 컷인 경우가 많습니다.
+            image: place.image || catalogPlace.image,
             aiReason: place.aiReason || catalogPlace.aiReason,
             isAiRecommended: true,
           }
@@ -573,9 +575,12 @@ export function ResultScreen({ chat, onPlaceClick }) {
                     {place.desc}
                   </p>
                 </div>
-                {place.image ? (
+                {place.aiImage || place.image ? (
                   <img
-                    src={place.image}
+                    // 상세 모달의 대표 사진과 같은 그림을 씁니다. 카탈로그 사진은
+                    // presigned URL이라 30분 뒤 만료되고, 브랜드와 무관한 기본 컷인
+                    // 경우가 많아 추천 응답이 준 사진이 있으면 그쪽이 우선입니다.
+                    src={place.aiImage || place.image}
                     alt={place.name}
                     className="w-[68px] h-[68px] rounded-[10px] object-cover shrink-0 pointer-events-none"
                   />
