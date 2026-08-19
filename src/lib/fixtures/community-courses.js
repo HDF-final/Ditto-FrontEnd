@@ -2,6 +2,7 @@ export const communityCourses = [
   {
     slug: "first-timer-photo-route",
     country: "JP",
+    flag: "JP",
     name: "Yuki_T",
     hash: "#첫방문 #포토스팟",
     title: "처음이면 이 코스로 시작해",
@@ -10,24 +11,13 @@ export const communityCourses = [
     likes: 742,
     comments: 58,
     saves: 214,
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "THE HYUNDAI SEOUL",
     stops: [
-      {
-        floor: "1F",
-        name: "워터폴 가든",
-        description: "입구에서 바로 보이는 포토존",
-      },
-      {
-        floor: "5F",
-        name: "사운즈 포레스트",
-        description: "실내 정원에서 쉬기 좋은 구간",
-      },
-      {
-        floor: "B2",
-        name: "크리에이티브 그라운드",
-        description: "쇼핑 후 둘러보기 좋은 편집숍",
-      },
+      { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
+      { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
+      { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
     ],
     note:
       "작년 가을에 친구가 서울에 왔을 때 처음 이 순서로 돌았어요. 그때는 아무 계획 없이 갔다가 1층에서 한참 헤맸는데, 두 번째 방문부터 동선을 정해두고 가니까 훨씬 편하더라고요.",
@@ -35,6 +25,7 @@ export const communityCourses = [
   {
     slug: "hyundai-dessert-cafe-route",
     country: "CN",
+    flag: "CN",
     name: "Chen_Li",
     hash: "#디저트 #카페",
     title: "더현대 디저트만 골라 먹기",
@@ -43,6 +34,7 @@ export const communityCourses = [
     likes: 611,
     comments: 41,
     saves: 187,
+    image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=900&fit=crop",
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "DESSERT ROUTE",
     stops: [
@@ -56,14 +48,15 @@ export const communityCourses = [
   {
     slug: "k-beauty-shopping-finish",
     country: "US",
+    flag: "US",
     name: "Emma_R",
-    hash: "#K뷰티 #향수",
-    title: "K뷰티 쇼핑은 여기서 끝",
-    description:
-      "뷰티 편집숍과 향수 브랜드를 중심으로 K-뷰티 쇼핑을 한 번에 끝내는 코스입니다.",
+    hash: "#팝업 #푸드트럭",
+    title: "여기는 진짜 추천 맛도리 빈티지샵",
+    description: "빈티지 티셔츠부터 리바이스까지!",
     likes: 508,
     comments: 33,
     saves: 152,
+    image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&h=900&fit=crop",
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "K-BEAUTY TOUR",
     stops: [
@@ -77,6 +70,7 @@ export const communityCourses = [
   {
     slug: "mz-brand-select-shop",
     country: "JP",
+    flag: "JP",
     name: "Sakura_M",
     hash: "#패션 #편집숍",
     title: "MZ 브랜드 편집숍 투어",
@@ -85,6 +79,7 @@ export const communityCourses = [
     likes: 476,
     comments: 27,
     saves: 131,
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=900&fit=crop",
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "FASHION PICKS",
     stops: [
@@ -98,6 +93,7 @@ export const communityCourses = [
   {
     slug: "sunny-photo-route",
     country: "US",
+    flag: "US",
     name: "Noah_K",
     hash: "#루프탑 #인생샷",
     title: "햇살 좋은 날 사진 코스",
@@ -105,6 +101,7 @@ export const communityCourses = [
     likes: 455,
     comments: 24,
     saves: 126,
+    image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=900&fit=crop",
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "PHOTO ROUTE",
     stops: [
@@ -117,6 +114,7 @@ export const communityCourses = [
   {
     slug: "foodcourt-local-route",
     country: "CN",
+    flag: "CN",
     name: "Mina_Z",
     hash: "#푸드코트 #로컬맛",
     title: "점심부터 저녁까지 먹방 루트",
@@ -124,6 +122,7 @@ export const communityCourses = [
     likes: 438,
     comments: 22,
     saves: 118,
+    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=900&fit=crop",
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "SEOUL TABLE",
     stops: [
@@ -136,6 +135,7 @@ export const communityCourses = [
   {
     slug: "weekend-popup-run",
     country: "JP",
+    flag: "JP",
     name: "Riku_A",
     hash: "#팝업 #한정판",
     title: "오늘 열린 팝업 빠르게 돌기",
@@ -143,6 +143,7 @@ export const communityCourses = [
     likes: 421,
     comments: 20,
     saves: 109,
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=900&fit=crop",
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "POP-UP RUN",
     stops: [
@@ -155,6 +156,7 @@ export const communityCourses = [
   {
     slug: "gift-shopping-route",
     country: "US",
+    flag: "US",
     name: "Lily_P",
     hash: "#굿즈 #선물",
     title: "친구 선물 사기 좋은 코스",
@@ -162,6 +164,7 @@ export const communityCourses = [
     likes: 397,
     comments: 18,
     saves: 96,
+    image: "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=800&h=900&fit=crop",
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "GIFT PICKS",
     stops: [
@@ -170,6 +173,27 @@ export const communityCourses = [
       { floor: "1F", name: "패키지 매장", description: "포장 추천" },
     ],
     note: "부담 없는 가격대의 선물이 많아서 마지막 날 들르기 좋았습니다.",
+  },
+  {
+    slug: "kpop-goods-holy-land",
+    country: "US",
+    flag: "US",
+    name: "David_K",
+    hash: "#KPOP #음반",
+    title: "최애 아이돌 앨범 & 굿즈 성지",
+    description: "지하 2층 크리에이티브 그라운드 덕질 코스",
+    likes: 382,
+    comments: 16,
+    saves: 89,
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
+    gradient: "from-[#5c2ef5] to-[#8c57fa]",
+    label: "K-POP PARADISE",
+    stops: [
+      { floor: "B2", name: "K-POP 존", description: "아이돌 앨범 매장" },
+      { floor: "B2", name: "포토카드 스튜디오", description: "인증샷 촬영" },
+      { floor: "5F", name: "카페", description: "굿즈 언박싱" },
+    ],
+    note: "최신 K-POP 앨범과 한정판 포토카드를 모두 구할 수 있어서 만족스러웠습니다.",
   },
 ];
 

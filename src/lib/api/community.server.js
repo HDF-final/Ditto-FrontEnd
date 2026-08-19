@@ -24,9 +24,18 @@ export function getGradientForId(id = 0) {
 
 const getBaseUrl = getServerApiBaseUrl;
 
-/**
- * 백엔드 PublicCourseResponse -> UI 카드 데이터 정규화
- */
+const COURSE_IMAGES = [
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=800&h=900&fit=crop",
+  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
+];
+
 export function normalizePublicCourseCard(post, index = 0) {
   if (!post) return null;
 
@@ -34,6 +43,7 @@ export function normalizePublicCourseCard(post, index = 0) {
   const slug = String(postId);
   const country = COUNTRY_PRESETS[index % COUNTRY_PRESETS.length];
   const authorName = AUTHOR_NAMES[index % AUTHOR_NAMES.length];
+  const image = post.representativeImageUrl || COURSE_IMAGES[index % COURSE_IMAGES.length];
 
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
@@ -48,6 +58,7 @@ export function normalizePublicCourseCard(post, index = 0) {
     hash,
     title: post.title,
     description: post.content || `${post.title}에 연결된 맞춤형 추천 코스입니다.`,
+    image,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
     saves: post.bookmarkCount ?? 0,
