@@ -155,11 +155,24 @@ function AiPlaceModalContent({ place, onClose }) {
       <div className="relative min-h-[320px] md:min-h-[620px] bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] overflow-hidden flex flex-col p-6 md:p-7">
         {/* Representative Photo */}
         {rightImage ? (
-          <img
-            src={rightImage}
-            alt={place.name}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
+          <>
+            {/* 원본 비율이 제각각입니다. 뉴스 컷은 세로/가로가 섞여 오고 매장
+                사진도 규격이 없어서, object-cover로 채우면 인물 얼굴이 잘립니다.
+                그렇다고 object-contain만 쓰면 위아래로 빈 띠가 남습니다.
+                같은 사진을 크게 흐려서 배경으로 깔고 그 위에 원본을 비율 그대로
+                얹으면, 프레임은 꽉 차면서 잘리는 부분도 없습니다. */}
+            <img
+              src={rightImage}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full scale-110 object-cover blur-2xl"
+            />
+            <img
+              src={rightImage}
+              alt={place.name}
+              className="absolute inset-0 w-full h-full object-contain"
+            />
+          </>
         ) : null}
 
         {/* Top Close button on desktop */}
@@ -296,11 +309,24 @@ function StandardPlaceModalContent({ place, onClose }) {
       <div className="relative min-h-[320px] md:min-h-[620px] bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] overflow-hidden flex flex-col p-6 md:p-7">
         {/* Representative Photo */}
         {rightImage ? (
-          <img
-            src={rightImage}
-            alt={place.name}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
+          <>
+            {/* 원본 비율이 제각각입니다. 뉴스 컷은 세로/가로가 섞여 오고 매장
+                사진도 규격이 없어서, object-cover로 채우면 인물 얼굴이 잘립니다.
+                그렇다고 object-contain만 쓰면 위아래로 빈 띠가 남습니다.
+                같은 사진을 크게 흐려서 배경으로 깔고 그 위에 원본을 비율 그대로
+                얹으면, 프레임은 꽉 차면서 잘리는 부분도 없습니다. */}
+            <img
+              src={rightImage}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full scale-110 object-cover blur-2xl"
+            />
+            <img
+              src={rightImage}
+              alt={place.name}
+              className="absolute inset-0 w-full h-full object-contain"
+            />
+          </>
         ) : null}
 
         {/* Top Close button on desktop */}

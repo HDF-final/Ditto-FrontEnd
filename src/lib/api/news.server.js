@@ -5,6 +5,7 @@ import {
   getRelatedNews as getFixtureRelatedNews,
   newsItems,
 } from "@/lib/fixtures/news";
+import { getServerApiBaseUrl } from "./server-base-url";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -39,13 +40,7 @@ export function formatNewsDate(dateString) {
   }
 }
 
-function getBaseUrl() {
-  return (
-    process.env.API_PROXY_TARGET ||
-    process.env.INTERNAL_API_URL ||
-    "http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com"
-  );
-}
+const getBaseUrl = getServerApiBaseUrl;
 
 /**
  * 뉴스 요약 DTO -> UI 표준 객체 정규화

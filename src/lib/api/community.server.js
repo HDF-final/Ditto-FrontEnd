@@ -2,6 +2,7 @@ import {
   communityCourses as defaultCommunityCourses,
   getCommunityCourse as getDefaultCommunityCourse,
 } from "@/lib/fixtures/community-courses";
+import { getServerApiBaseUrl } from "./server-base-url";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -21,13 +22,7 @@ export function getGradientForId(id = 0) {
   return GRADIENT_PRESETS[num % GRADIENT_PRESETS.length];
 }
 
-function getBaseUrl() {
-  return (
-    process.env.API_PROXY_TARGET ||
-    process.env.INTERNAL_API_URL ||
-    "http://localhost:8080"
-  );
-}
+const getBaseUrl = getServerApiBaseUrl;
 
 /**
  * 백엔드 PublicCourseResponse -> UI 카드 데이터 정규화
