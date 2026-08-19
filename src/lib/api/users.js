@@ -11,14 +11,6 @@ export function getMyProfile() {
 }
 
 /**
- * 내 코스 목록 조회
- * GET /api/v1/users/me/courses
- */
-export function getMyCourses() {
-  return requestData(apiClient.get("/users/me/courses"));
-}
-
-/**
  * 내 찜한 코스 (북마크) 목록 조회
  * GET /api/v1/users/me/bookmarks
  */

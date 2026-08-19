@@ -4,16 +4,96 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { getMyProfile, getMyCourses, getMyBookmarks } from "@/lib/api/users";
+import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
+import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
-import {
-  mypageCourses as fixtureCourses,
-  mypageStats as fixtureStats,
-  mypageTabs,
-} from "@/lib/fixtures/mypage";
+import { mypageTabs } from "@/lib/fixtures/mypage";
+
+const COURSE_GRADIENTS = [
+  "from-[#5c2ef5] to-[#8c57fa]",
+  "from-[#2d1b8e] to-[#5c2ef5]",
+  "from-[#6d28d9] to-[#c084fc]",
+  "from-[#4a2fa8] to-[#7c5cf0]",
+];
+
+function normalizePage(data) {
+  if (Array.isArray(data)) {
+    return { content: data, totalElements: data.length };
+  }
+
+  const content = Array.isArray(data?.content) ? data.content : [];
+  const totalElements = Number(data?.totalElements);
+  return {
+    content,
+    totalElements: Number.isFinite(totalElements)
+      ? totalElements
+      : content.length,
+  };
+}
+
+async function hydrateMyCourses(data) {
+  const page = normalizePage(data);
+  const details = await Promise.allSettled(
+    page.content.map((course) => getCourseDetail(course.courseId)),
+  );
+
+  return {
+    totalElements: page.totalElements,
+    courses: page.content.map((course, index) => {
+      const detailResult = details[index];
+      const detail =
+        detailResult?.status === "fulfilled" ? detailResult.value : null;
+      const places = Array.isArray(detail?.places)
+        ? [...detail.places].sort(
+            (a, b) => Number(a.visitOrder) - Number(b.visitOrder),
+          )
+        : [];
+      const placeCount = Number(course.placeCount ?? places.length) || 0;
+
+      return {
+        id: course.courseId,
+        badge: "MY COURSE",
+        englishTitle: "My Course",
+        subtitle: `더현대 서울 · ${placeCount}개 스팟 코스`,
+        title: detail?.name || course.name || "나만의 코스",
+        spotCount: `${placeCount}개 스팟`,
+        gradient: COURSE_GRADIENTS[index % COURSE_GRADIENTS.length],
+        stops: places.map((place) => ({
+          floor: place.floorCode || "층 정보 없음",
+          name: place.name || "이름 없는 장소",
+        })),
+      };
+    }),
+  };
+}
+
+function normalizeBookmarks(data) {
+  const page = normalizePage(data);
+  return {
+    totalElements: page.totalElements,
+    bookmarks: page.content.map((bookmark, index) => ({
+      id: bookmark.postId || bookmark.courseId,
+      href: bookmark.postId ? `/community/${bookmark.postId}` : undefined,
+      badge: "BOOKMARK",
+      englishTitle: "Favorite Course",
+      subtitle: "찜한 커뮤니티 코스",
+      title: bookmark.title || "이름 없는 코스",
+      likes: Number(bookmark.likeCount) || 0,
+      bookmarkCount: Number(bookmark.bookmarkCount) || 0,
+      gradient: COURSE_GRADIENTS[index % COURSE_GRADIENTS.length],
+      stops: [],
+    })),
+  };
+}
+
+function formatOptionalCount(value) {
+  if (value === null || value === undefined) return "—";
+  const count = Number(value);
+  return Number.isFinite(count) ? count.toLocaleString("ko-KR") : "—";
+}
 
 export function MypageView() {
   const router = useRouter();
@@ -25,6 +105,9 @@ export function MypageView() {
   const [profile, setProfile] = useState(null);
   const [courses, setCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
+  const [courseTotal, setCourseTotal] = useState(0);
+  const [bookmarkTotal, setBookmarkTotal] = useState(0);
+  const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("내 코스");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -33,6 +116,7 @@ export function MypageView() {
 
     async function loadMypageData() {
       setLoading(true);
+      setLoadError("");
       try {
         const userProfile = await getMyProfile();
         if (isMounted && userProfile) {
@@ -44,21 +128,45 @@ export function MypageView() {
       }
 
       try {
-        const [myCoursesData, bookmarksData] = await Promise.allSettled([
+        const [myCoursesResult, bookmarksResult] = await Promise.allSettled([
           getMyCourses(),
           getMyBookmarks(),
         ]);
 
         if (isMounted) {
-          if (myCoursesData.status === "fulfilled" && Array.isArray(myCoursesData.value)) {
-            setCourses(myCoursesData.value);
+          const failures = [];
+
+          if (myCoursesResult.status === "fulfilled") {
+            const hydrated = await hydrateMyCourses(myCoursesResult.value);
+            if (!isMounted) return;
+            setCourses(hydrated.courses);
+            setCourseTotal(hydrated.totalElements);
+          } else {
+            setCourses([]);
+            setCourseTotal(0);
+            failures.push("내 코스");
           }
-          if (bookmarksData.status === "fulfilled" && Array.isArray(bookmarksData.value)) {
-            setBookmarks(bookmarksData.value);
+
+          if (bookmarksResult.status === "fulfilled") {
+            const normalized = normalizeBookmarks(bookmarksResult.value);
+            setBookmarks(normalized.bookmarks);
+            setBookmarkTotal(normalized.totalElements);
+          } else {
+            setBookmarks([]);
+            setBookmarkTotal(0);
+            failures.push("찜한 코스");
           }
+
+          setLoadError(
+            failures.length > 0
+              ? `${failures.join(", ")} 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.`
+              : "",
+          );
         }
       } catch {
-        // Ignore secondary data failure
+        if (isMounted) {
+          setLoadError("코스 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.");
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -130,16 +238,41 @@ export function MypageView() {
   };
 
   const displayStats = [
-    { value: String(courses.length > 0 ? courses.length : fixtureStats[0].value), label: "만든 코스" },
-    { value: String(bookmarks.length > 0 ? bookmarks.length : fixtureStats[1].value), label: "찜한 코스" },
-    { value: fixtureStats[2].value, label: "팔로워" },
-    { value: fixtureStats[3].value, label: "팔로잉" },
+    { value: courseTotal.toLocaleString("ko-KR"), label: "만든 코스" },
+    { value: bookmarkTotal.toLocaleString("ko-KR"), label: "찜한 코스" },
+    { value: formatOptionalCount(currentUser.followerCount), label: "팔로워" },
+    { value: formatOptionalCount(currentUser.followingCount), label: "팔로잉" },
   ];
 
   const displayedCourses =
     activeTab === "내 코스"
-      ? (courses.length > 0 ? courses : fixtureCourses)
-      : (bookmarks.length > 0 ? bookmarks : fixtureCourses.slice(0, 2));
+      ? courses
+      : activeTab === "찜한 코스"
+        ? bookmarks
+        : [];
+
+  const emptyState = {
+    "내 코스": {
+      title: "아직 저장한 코스가 없어요",
+      description: "AI 추천 또는 직접 추가로 나만의 첫 코스를 만들어보세요!",
+      actionLabel: "+ 코스 만들러 가기",
+      actionHref: "/ai-course",
+    },
+    "찜한 코스": {
+      title: "아직 찜한 코스가 없어요",
+      description: "커뮤니티에서 마음에 드는 코스를 찾아 저장해보세요.",
+      actionLabel: "커뮤니티 둘러보기",
+      actionHref: "/community",
+    },
+    후기: {
+      title: "아직 작성한 후기가 없어요",
+      description: "방문한 코스의 후기를 남기면 이곳에서 확인할 수 있어요.",
+    },
+    활동: {
+      title: "아직 표시할 활동이 없어요",
+      description: "DITTO에서 코스를 만들고 커뮤니티에 참여해보세요.",
+    },
+  }[activeTab];
 
   return (
     <main className="bg-background">
@@ -167,39 +300,34 @@ export function MypageView() {
           ))}
         </div>
 
+        {loadError ? (
+          <p className="mb-5 rounded-[14px] border border-[#f3ccc4] bg-[#fef5f3] px-4 py-3 text-sm font-medium text-[#c0392b]">
+            {loadError}
+          </p>
+        ) : null}
+
         {/* Courses Grid */}
         {displayedCourses.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {displayedCourses.map((course, idx) => (
               <MypageCourseCard
                 key={course.id || course.title || idx}
-                course={{
-                  badge: course.badge || "AI COURSE",
-                  englishTitle: course.englishTitle || course.name || "Custom Course",
-                  subtitle: course.subtitle || "더현대 서울 맞춤 코스",
-                  title: course.title || course.name || "나만의 코스",
-                  likes: course.likes || "0",
-                  spotCount: course.spotCount || `${course.places?.length || 3}개 스팟`,
-                  gradient: course.gradient || "from-[#5c2ef5] to-[#8c57fa]",
-                  stops: course.stops || [
-                    { floor: "B2", name: "나이키 라이즈" },
-                    { floor: "1F", name: "워터폴 가든" },
-                    { floor: "5F", name: "사운즈 포레스트" },
-                  ],
-                }}
+                course={course}
               />
             ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-[24px] border border-dashed border-line bg-white p-12 text-center">
-            <p className="text-base font-bold text-ink">아직 등록된 코스가 없어요</p>
-            <p className="mt-1 text-xs text-ink-muted">AI 추천을 통해 나만의 첫 번째 코스를 만들어보세요!</p>
-            <Link
-              href="/ai-course"
-              className="mt-5 rounded-full bg-brand px-6 py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
-            >
-              + 코스 만들러 가기
-            </Link>
+            <p className="text-base font-bold text-ink">{emptyState.title}</p>
+            <p className="mt-1 text-xs text-ink-muted">{emptyState.description}</p>
+            {emptyState.actionHref ? (
+              <Link
+                href={emptyState.actionHref}
+                className="mt-5 rounded-full bg-brand px-6 py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
+              >
+                {emptyState.actionLabel}
+              </Link>
+            ) : null}
           </div>
         )}
       </section>
