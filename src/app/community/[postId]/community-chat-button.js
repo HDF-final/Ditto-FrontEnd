@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/use-auth-store";
 import {
   createComment,
   getComments,
@@ -99,12 +101,16 @@ function getAvatarColor(name = "") {
 }
 
 export function CommunityChatButton({ course = {} }) {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const [isOpen, setIsOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Likes and Bookmarks state
   const [isLiked, setIsLiked] = useState(false);
@@ -169,6 +175,11 @@ export function CommunityChatButton({ course = {} }) {
   };
 
   const handleLikeToggle = async () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     const nextState = !isLiked;
     setIsLiked(nextState);
     setLikesCount((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
@@ -187,6 +198,11 @@ export function CommunityChatButton({ course = {} }) {
   };
 
   const handleBookmarkToggle = async () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     const nextState = !isBookmarked;
     setIsBookmarked(nextState);
 
@@ -204,14 +220,32 @@ export function CommunityChatButton({ course = {} }) {
   };
 
   const handleCommentLikeToggle = (commentId) => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     setLikedComments((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
   };
 
+  const handleFollowToggle = () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setIsFollowing((prev) => !prev);
+  };
+
   const handleSend = async (e) => {
     e?.preventDefault();
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     const content = inputText.trim();
     if (!content || isSubmitting) return;
 
@@ -388,7 +422,7 @@ export function CommunityChatButton({ course = {} }) {
                     <span className="text-ink/40 font-bold text-xs">·</span>
                     <button
                       type="button"
-                      onClick={() => setIsFollowing((prev) => !prev)}
+                      onClick={handleFollowToggle}
                       className={`text-xs font-black transition cursor-pointer ${
                         isFollowing ? "text-ink-muted hover:text-danger" : "text-brand hover:text-brand-dark"
                       }`}
@@ -671,12 +705,25 @@ export function CommunityChatButton({ course = {} }) {
                 </div>
 
                 <form
-                  onSubmit={handleSend}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!isAuthenticated) {
+                      setIsLoginModalOpen(true);
+                      return;
+                    }
+                    handleSend(e);
+                  }}
                   className="flex items-center gap-2 border-t border-line px-4 py-2.5 bg-white"
                 >
                   <button
                     type="button"
-                    onClick={() => setInputText((prev) => `${prev}😊`)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        setIsLoginModalOpen(true);
+                        return;
+                      }
+                      setInputText((prev) => `${prev}😊`);
+                    }}
                     className="text-ink-muted hover:text-ink transition cursor-pointer p-1"
                     aria-label="이모지 추가"
                   >
@@ -700,25 +747,102 @@ export function CommunityChatButton({ course = {} }) {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="댓글 달기..."
-                    className="min-w-0 flex-1 bg-transparent text-xs sm:text-sm font-medium text-ink placeholder:text-ink-muted outline-hidden"
+                    onFocus={() => {
+                      if (!isAuthenticated) {
+                        inputRef.current?.blur();
+                        setIsLoginModalOpen(true);
+                      }
+                    }}
+                    placeholder={
+                      isAuthenticated
+                        ? "댓글 달기..."
+                        : "로그인 후 댓글을 작성할 수 있습니다..."
+                    }
+                    className={`min-w-0 flex-1 bg-transparent text-xs sm:text-sm font-medium text-ink placeholder:text-ink-muted outline-hidden ${
+                      !isAuthenticated ? "cursor-pointer" : ""
+                    }`}
                   />
 
-                  <button
-                    type="submit"
-                    disabled={!inputText.trim() || isSubmitting}
-                    className={`text-xs sm:text-sm font-black transition cursor-pointer px-2 ${
-                      inputText.trim() && !isSubmitting
-                        ? "text-brand hover:text-brand-dark"
-                        : "text-brand/40 cursor-not-allowed"
-                    }`}
-                  >
-                    게시
-                  </button>
+                  {isAuthenticated ? (
+                    <button
+                      type="submit"
+                      disabled={!inputText.trim() || isSubmitting}
+                      className={`text-xs sm:text-sm font-black transition cursor-pointer px-2 ${
+                        inputText.trim() && !isSubmitting
+                          ? "text-brand hover:text-brand-dark"
+                          : "text-brand/40 cursor-not-allowed"
+                      }`}
+                    >
+                      게시
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsLoginModalOpen(true)}
+                      className="text-xs sm:text-sm font-black text-brand hover:text-brand-dark transition cursor-pointer px-2"
+                    >
+                      로그인
+                    </button>
+                  )}
                 </form>
               </div>
             </div>
           </section>
+        </div>
+      ) : null}
+
+      {/* 로그인 필요 알림 모달 */}
+      {isLoginModalOpen ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsLoginModalOpen(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand">
+              <svg
+                className="size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+              댓글 작성 및 좋아요·북마크 기능을 이용하시려면 먼저 로그인해주세요.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(false)}
+                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginModalOpen(false);
+                  router.push("/login");
+                }}
+                className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
+              >
+                로그인하기 →
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
