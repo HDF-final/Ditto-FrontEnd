@@ -44,6 +44,35 @@ function toErrorMessage(error) {
 }
 
 /**
+ * 응답이 준 장소 사진을 카드·모달이 읽는 필드로 펼칩니다.
+ *
+ * `image.kind`가 두 가지고, 성격이 전혀 다릅니다.
+ *
+ * - `place`   : hdf-ditto-images S3의 매장 실사진. 카탈로그 사진과 같은 성격이라
+ *               그대로 대체합니다. 카탈로그 쪽 URL은 presigned라 30분 뒤 만료되는데
+ *               이 URL은 서명이 없어서 그 문제도 같이 사라집니다.
+ * - `evidence`: "카리나가 프라다 앰배서더"를 입증하는 뉴스 사진. 매장 사진이 아니라
+ *               추천 이유를 그대로 보여주는 그림이라 대표 사진 칸에만 씁니다.
+ *               외부 CDN이라 next/image(remotePatterns 화이트리스트)로는 못 띄우므로
+ *               일반 <img>를 쓰는 곳만 읽도록 `image`/`placeImg`는 건드리지 않습니다.
+ */
+function toAiImageFields(item) {
+  const url = item?.imageUrl || item?.image?.url || null;
+  if (!url) return null;
+
+  const kind = item?.image?.kind ?? null;
+  const fields = {
+    aiImage: url,
+    aiImageKind: kind,
+    aiImageCaption: item?.image?.caption?.trim() || null,
+  };
+
+  return kind === "evidence"
+    ? fields
+    : { ...fields, image: url, imageUrl: url, placeImg: url };
+}
+
+/**
  * 서버가 준 navigationKey를 실내 지도 데이터셋의 장소로 바꿉니다.
  * 길찾기가 navigationKey 기준이라 매칭되지 않는 항목은 코스에 담지 않습니다.
  */
@@ -63,6 +92,7 @@ async function toCoursePlaces(apiPlaces) {
         desc: reason || place.desc,
         aiReason: reason || null,
         isAiRecommended: true,
+        ...toAiImageFields(item),
       };
     }),
   );

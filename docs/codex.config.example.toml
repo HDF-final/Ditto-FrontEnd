@@ -1,7 +1,0 @@
-# Codex CLI MCP 설정 예시 — 아래 내용을 홈의 전역 설정에 복사하세요.
-#   macOS / Linux : ~/.codex/config.toml
-#   Windows       : C:\Users\<사용자>\.codex\config.toml
-
-[mcp_servers.atlassian]
-command = "npx"
-args = ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/mcp"]
