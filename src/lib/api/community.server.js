@@ -100,6 +100,12 @@ export function normalizePublicCourseDetail(detail) {
     replies: 0,
   }));
 
+  const num = typeof postId === "number" ? postId : parseInt(String(postId).replace(/\D/g, ""), 10) || 0;
+  const image =
+    detail.course?.representativeImageUrl ||
+    detail.representativeImageUrl ||
+    COURSE_IMAGES[num % COURSE_IMAGES.length];
+
   return {
     postId,
     courseId: detail.course?.courseId,
@@ -109,6 +115,7 @@ export function normalizePublicCourseDetail(detail) {
     hash: "#공개코스 #더현대서울",
     title: detail.title,
     description: detail.content,
+    image,
     likes: 0,
     commentsCount: comments.length,
     saves: 0,
