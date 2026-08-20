@@ -25,27 +25,42 @@ export function getPublicCourse(postId) {
  * 코스 게시글 작성.
  * POST /api/v1/community/courses
  */
-export function createCoursePost({ courseId, title, content }) {
-  return requestData(
-    apiClient.post("/community/courses", {
-      courseId,
-      title,
-      content,
-    }),
-  );
+export function createCoursePost({
+  courseId,
+  title,
+  content,
+  representativeImageUrl,
+  imageUrl,
+}) {
+  const payload = {
+    courseId,
+    title,
+    content,
+  };
+  const img = representativeImageUrl || imageUrl;
+  if (img) {
+    payload.representativeImageUrl = img;
+  }
+  return requestData(apiClient.post("/community/courses", payload));
 }
 
 /**
  * 코스 게시글 수정.
  * PATCH /api/v1/community/courses/{postId}
  */
-export function updateCoursePost(postId, { title, content }) {
-  return requestData(
-    apiClient.patch(`/community/courses/${postId}`, {
-      title,
-      content,
-    }),
-  );
+export function updateCoursePost(
+  postId,
+  { title, content, representativeImageUrl, imageUrl },
+) {
+  const payload = {
+    title,
+    content,
+  };
+  const img = representativeImageUrl || imageUrl;
+  if (img) {
+    payload.representativeImageUrl = img;
+  }
+  return requestData(apiClient.patch(`/community/courses/${postId}`, payload));
 }
 
 /**

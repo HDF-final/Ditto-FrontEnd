@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
 import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
-import { getPublicCourses } from "@/lib/api/community";
+import {
+  deleteCoursePost,
+  getPublicCourses,
+  updateCoursePost,
+} from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { compressImage } from "@/lib/utils/image-compression";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
@@ -204,6 +210,38 @@ export function MypageView() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [postToEdit, setPostToEdit] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editPhotos, setEditPhotos] = useState([]);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const fileInputRef = useRef(null);
+  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
+  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
+
+  const handleEditFileChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          setEditPhotos((prev) => [...prev, compressed].slice(0, 10));
+        }
+      } catch (err) {
+        console.warn("[Edit Photo Compress] Error:", err);
+      }
+    }
+
+    e.target.value = "";
+  };
+
+  const handleRemoveEditPhoto = (indexToRemove) => {
+    setEditPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   const handleConfirmDeleteCourse = async () => {
     if (!courseToDelete) return;
@@ -218,6 +256,65 @@ export function MypageView() {
       alert(err.message || "코스를 삭제하지 못했습니다.");
     } finally {
       setIsDeletingCourse(false);
+    }
+  };
+
+  const handleConfirmDeletePost = async () => {
+    if (!postToDelete) return;
+    const targetId = postToDelete.postId || postToDelete.id;
+    setIsDeletingPost(true);
+    try {
+      await deleteCoursePost(targetId);
+      setSharedCourses((prev) =>
+        prev.filter((p) => (p.postId || p.id) !== targetId),
+      );
+      setPostToDelete(null);
+    } catch (err) {
+      alert(err.message || "공유한 코스 게시글을 삭제하지 못했습니다.");
+    } finally {
+      setIsDeletingPost(false);
+    }
+  };
+
+  const handleConfirmEditPost = async (e) => {
+    e?.preventDefault();
+    if (!postToEdit) return;
+    const targetId = postToEdit.postId || postToEdit.id;
+    if (!editTitle.trim()) {
+      alert("게시글 제목을 입력해주세요.");
+      return;
+    }
+    setIsEditingPost(true);
+    try {
+      await updateCoursePost(targetId, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        representativeImageUrl: editPhotos[0] || undefined,
+      });
+
+      // Update post images store
+      setPostImages(targetId, editPhotos);
+      if (postToEdit.courseId) {
+        setPostImages(postToEdit.courseId, editPhotos);
+      }
+
+      setSharedCourses((prev) =>
+        prev.map((p) =>
+          (p.postId || p.id) === targetId
+            ? {
+                ...p,
+                title: editTitle.trim(),
+                description: editContent.trim(),
+                image: editPhotos[0] || p.image,
+              }
+            : p,
+        ),
+      );
+      setPostToEdit(null);
+    } catch (err) {
+      alert(err.message || "게시글 수정에 실패했습니다.");
+    } finally {
+      setIsEditingPost(false);
     }
   };
 
@@ -571,6 +668,26 @@ export function MypageView() {
                       course={course}
                       onDelete={(c) => setCourseToDelete(c)}
                     />
+                  ) : activeTab === "공유한 코스" ? (
+                    <MypageCourseCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                      onEdit={(post) => {
+                        setPostToEdit(post);
+                        setEditTitle(post.title || "");
+                        setEditContent(post.description || "");
+                        const images = getPostImages(post.postId || post.id);
+                        if (images && images.length > 0) {
+                          setEditPhotos(images);
+                        } else if (post.image && !post.image.includes("unsplash.com")) {
+                          setEditPhotos([post.image]);
+                        } else {
+                          setEditPhotos([]);
+                        }
+                      }}
+                      onDelete={(post) => setPostToDelete(post)}
+                    />
                   ) : (
                     <MypageCourseCard
                       key={course.id || course.slug}
@@ -756,6 +873,192 @@ export function MypageView() {
                 {isDeletingCourse ? "삭제 중..." : "삭제하기"}
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Shared Post Delete Confirmation Modal */}
+      {postToDelete ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingPost) setPostToDelete(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" x2="10" y1="11" y2="17" />
+                <line x1="14" x2="14" y1="11" y2="17" />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-base font-black text-ink">공유한 코스 삭제</h3>
+            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+              <strong className="text-ink font-bold">{postToDelete.title || "이 게시글"}</strong>을 정말 삭제하시겠습니까?<br />
+              삭제 시 커뮤니티 공개 목록에서 사라집니다.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={() => setPostToDelete(null)}
+                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={handleConfirmDeletePost}
+                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingPost ? "삭제 중..." : "삭제하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Shared Post Edit Modal */}
+      {postToEdit ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isEditingPost) setPostToEdit(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-[28px] bg-white p-7 shadow-2xl animate-in zoom-in-95 duration-150 text-left"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-ink">공유한 코스 수정</h3>
+              <button
+                type="button"
+                onClick={() => setPostToEdit(null)}
+                className="text-ink-muted hover:text-ink transition text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmEditPost} className="mt-5 flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1.5">게시글 제목</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="코스 제목을 입력하세요"
+                  required
+                  className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-bold text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1.5">후기 및 코스 설명</label>
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  rows={3}
+                  placeholder="코스에 대한 후기나 팁을 작성하세요"
+                  className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-medium text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition resize-none"
+                />
+              </div>
+
+              {/* 첨부 사진 수정 및 추가 */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-ink">첨부 사진</label>
+                  <span className="text-[11px] font-medium text-ink-muted">
+                    {editPhotos.length}/10장
+                  </span>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleEditFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex gap-2.5 overflow-x-auto rounded-xl bg-surface-soft p-3">
+                  {/* 사진 추가 버튼 */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-line bg-white text-center hover:border-brand hover:bg-brand-soft/20 transition cursor-pointer"
+                  >
+                    <span className="text-xl font-black leading-none text-brand">+</span>
+                    <span className="mt-1 text-[11px] font-bold text-ink">사진 추가</span>
+                  </button>
+
+                  {/* 업로드된 사진 목록 */}
+                  {editPhotos.map((photoUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="group/photo relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-slate-950 shadow-xs"
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={`첨부 사진 ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      {idx === 0 && (
+                        <span className="absolute bottom-1 left-1 rounded bg-brand/90 px-1 py-0.5 text-[9px] font-black text-white pointer-events-none">
+                          대표
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditPhoto(idx)}
+                        aria-label="사진 삭제"
+                        className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-red-500 cursor-pointer shadow-sm text-xs font-bold leading-none"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isEditingPost}
+                  onClick={() => setPostToEdit(null)}
+                  className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingPost}
+                  className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
+                >
+                  {isEditingPost ? "저장 중..." : "수정 완료"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

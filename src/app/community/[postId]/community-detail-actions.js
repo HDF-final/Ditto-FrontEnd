@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import {
+  getPublicCourse,
   likeCourse,
   unlikeCourse,
   bookmarkCourse,
@@ -31,6 +32,30 @@ export function CommunityDetailActions({ course = {} }) {
 
   const postIdentifier = String(course.postId || course.slug || postId || "1");
 
+  const [liveLikes, setLiveLikes] = useState(
+    typeof course.likes === "number"
+      ? course.likes
+      : typeof course.likeCount === "number"
+        ? course.likeCount
+        : 0,
+  );
+
+  useEffect(() => {
+    if (postId) {
+      getPublicCourse(postId)
+        .then((detail) => {
+          const count =
+            typeof detail?.likeCount === "number"
+              ? detail.likeCount
+              : typeof detail?.likes === "number"
+                ? detail.likes
+                : null;
+          if (count !== null) setLiveLikes(count);
+        })
+        .catch(() => {});
+    }
+  }, [postId]);
+
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(postIdentifier),
   );
@@ -49,7 +74,7 @@ export function CommunityDetailActions({ course = {} }) {
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
-  const baseLikes = course.likes || 742;
+  const baseLikes = liveLikes;
   const likesCount = Math.max(0, baseLikes + likesDelta);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 

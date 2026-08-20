@@ -15,7 +15,7 @@ export default function ShareCoursePage() {
       setLoading(true);
       try {
         const [myRes, publicRes] = await Promise.allSettled([
-          getMyCourses(),
+          getMyCourses({ page: 0, size: 100 }),
           getPublicCourses({ page: 0, size: 100 }),
         ]);
 
@@ -43,7 +43,7 @@ export default function ShareCoursePage() {
         );
 
         if (isMounted) {
-          // 공유되지 않은 코스만 필터링
+          // 이미 공유되지 않은 내 코스만 필터링하여 노출
           const unshared = myContent.filter(
             (c) => !sharedCourseIds.has(Number(c.courseId)),
           );

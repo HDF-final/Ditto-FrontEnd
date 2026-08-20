@@ -90,8 +90,7 @@ export function MyCoursePrivateCard({ course, onDelete }) {
       </div>
 
       {/* Bottom Action Footer */}
-      <div className="mt-4 flex items-center justify-between border-t border-line/70 pt-3.5">
-        <span className="text-xs font-medium text-ink-muted">더현대 서울 맞춤 코스</span>
+      <div className="mt-4 flex items-center justify-end border-t border-line/70 pt-3.5">
         <div className="inline-flex items-center gap-1 text-xs font-black text-brand group-hover:translate-x-0.5 transition-transform">
           <span>지도에서 보기</span>
           <span>→</span>

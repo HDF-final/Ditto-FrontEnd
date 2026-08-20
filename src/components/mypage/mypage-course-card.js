@@ -23,7 +23,12 @@ function getFlagEmoji(countryCode = "") {
   return "🌐";
 }
 
-export function MypageCourseCard({ course, onAuthRequired }) {
+export function MypageCourseCard({
+  course,
+  onAuthRequired,
+  onEdit,
+  onDelete,
+}) {
   const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -147,6 +152,45 @@ export function MypageCourseCard({ course, onAuthRequired }) {
             <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
           </div>
         </div>
+
+        {(onEdit || onDelete) && (
+          <div className="flex items-center gap-1.5 z-20">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onEdit(course);
+                }}
+                title="게시글 수정"
+                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-brand border border-white/15 cursor-pointer shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(course);
+                }}
+                title="게시글 삭제"
+                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-red-500 border border-white/15 cursor-pointer shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom Content Area */}
