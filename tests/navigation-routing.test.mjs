@@ -91,3 +91,44 @@ test("open-course optimizer visits the same stops at no greater cost", () => {
   assert.deepEqual(new Set(optimized.stopPlaceIds), new Set(stops));
   assert.ok(optimized.itinerary.totalWeight <= original.totalWeight);
 });
+
+test("course optimizer preserves the departure and destination", () => {
+  const stops = [
+    "4F_STORE_0044",
+    "B2_STORE_0032",
+    "6F_STORE_0033",
+    "1F_STORE_0031",
+  ];
+  const original = buildItineraryRoute(graph, stops);
+  const optimized = optimizeOpenItinerary(graph, stops, {}, {
+    preserveEndpoints: true,
+  });
+
+  assert.ok(optimized);
+  assert.equal(optimized.stopPlaceIds[0], stops[0]);
+  assert.equal(optimized.stopPlaceIds.at(-1), stops.at(-1));
+  assert.deepEqual(new Set(optimized.stopPlaceIds), new Set(stops));
+  assert.ok(optimized.itinerary.totalWeight <= original.totalWeight);
+});
+
+test("course optimizer preserves every locked visit index", () => {
+  const stops = [
+    "4F_STORE_0044",
+    "B2_STORE_0032",
+    "6F_STORE_0033",
+    "1F_STORE_0031",
+    "B1_STORE_0028",
+  ];
+  const original = buildItineraryRoute(graph, stops);
+  const optimized = optimizeOpenItinerary(graph, stops, {}, {
+    preserveEndpoints: true,
+    lockedIndexes: [2],
+  });
+
+  assert.ok(optimized);
+  assert.equal(optimized.stopPlaceIds[0], stops[0]);
+  assert.equal(optimized.stopPlaceIds[2], stops[2]);
+  assert.equal(optimized.stopPlaceIds.at(-1), stops.at(-1));
+  assert.deepEqual(new Set(optimized.stopPlaceIds), new Set(stops));
+  assert.ok(optimized.itinerary.totalWeight <= original.totalWeight);
+});

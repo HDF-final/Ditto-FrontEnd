@@ -376,11 +376,36 @@ function pairKey(fromId, toId) {
   return `${fromId}\u0000${toId}`;
 }
 
-/** Finds the minimum-cost open course through every stop (start/end may change). */
-export function optimizeOpenItinerary(graph, stopPlaceIds, options = {}) {
+/**
+ * Finds the minimum-cost course through every stop.
+ *
+ * `lockedIndexes` pins the stop currently at each supplied visit index. When
+ * `preserveEndpoints` is enabled, the first and last stops are pinned as well.
+ */
+export function optimizeOpenItinerary(
+  graph,
+  stopPlaceIds,
+  options = {},
+  { lockedIndexes = [], preserveEndpoints = false } = {},
+) {
   const stops = [...new Set(stopPlaceIds)];
   if (stops.length < 2) return { stopPlaceIds: stops, itinerary: buildItineraryRoute(graph, stops, options) };
   if (stops.length > 8) throw new Error("A course supports up to 8 places.");
+
+  const pinnedIndexes = new Set(
+    lockedIndexes.filter(
+      (index) => Number.isInteger(index) && index >= 0 && index < stops.length,
+    ),
+  );
+  if (preserveEndpoints) {
+    pinnedIndexes.add(0);
+    pinnedIndexes.add(stops.length - 1);
+  }
+
+  const canPlaceAt = (stopIndex, position) => {
+    if (pinnedIndexes.has(position)) return stopIndex === position;
+    return !pinnedIndexes.has(stopIndex);
+  };
 
   const pairRoutes = new Map();
   for (const from of stops) {
@@ -393,13 +418,20 @@ export function optimizeOpenItinerary(graph, stopPlaceIds, options = {}) {
   const size = 1 << stops.length;
   const costs = Array.from({ length: size }, () => Array(stops.length).fill(Infinity));
   const previous = Array.from({ length: size }, () => Array(stops.length).fill(-1));
-  for (let index = 0; index < stops.length; index += 1) costs[1 << index][index] = 0;
+  const visitedCounts = Array(size).fill(0);
+  for (let mask = 1; mask < size; mask += 1) {
+    visitedCounts[mask] = visitedCounts[mask >> 1] + (mask & 1);
+  }
+  for (let index = 0; index < stops.length; index += 1) {
+    if (canPlaceAt(index, 0)) costs[1 << index][index] = 0;
+  }
 
   for (let mask = 1; mask < size; mask += 1) {
     for (let last = 0; last < stops.length; last += 1) {
       if (!(mask & (1 << last)) || !Number.isFinite(costs[mask][last])) continue;
       for (let next = 0; next < stops.length; next += 1) {
         if (mask & (1 << next)) continue;
+        if (!canPlaceAt(next, visitedCounts[mask])) continue;
         const route = pairRoutes.get(pairKey(stops[last], stops[next]));
         if (!route) continue;
         const nextMask = mask | (1 << next);
