@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { compressImage } from "@/lib/utils/image-compression";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
@@ -220,20 +221,20 @@ export function MypageView() {
   const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
   const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
 
-  const handleEditFileChange = (e) => {
+  const handleEditFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result;
-        if (dataUrl) {
-          setEditPhotos((prev) => [...prev, dataUrl].slice(0, 10));
+    for (const file of files) {
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          setEditPhotos((prev) => [...prev, compressed].slice(0, 10));
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        console.warn("[Edit Photo Compress] Error:", err);
+      }
+    }
 
     e.target.value = "";
   };

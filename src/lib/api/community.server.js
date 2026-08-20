@@ -79,9 +79,9 @@ export function normalizePublicCourseDetail(detail) {
 
   const places = (detail.course?.places || []).map((p, idx) => ({
     placeId: p.placeId,
-    floor: p.floor || `${idx + 1}F`,
-    name: p.name || `추천 장소 #${p.placeId || idx + 1}`,
-    description: p.description || "더현대 서울 내 추천 방문 스팟",
+    floor: p.floor || p.floorCode || `${idx + 1}F`,
+    name: p.name || p.placeName || `추천 장소 #${p.placeId || idx + 1}`,
+    description: p.description || p.desc || "더현대 서울 내 추천 방문 스팟",
   }));
 
   const comments = (detail.comments || []).map((c) => ({
@@ -101,19 +101,30 @@ export function normalizePublicCourseDetail(detail) {
     detail.representativeImageUrl ||
     COURSE_IMAGES[num % COURSE_IMAGES.length];
 
+  const authorName =
+    detail.writerNickname ||
+    detail.nickname ||
+    detail.userName ||
+    detail.author ||
+    detail.user?.nickname ||
+    detail.user?.name ||
+    detail.course?.userName ||
+    detail.course?.author ||
+    "사토 유키";
+
   return {
     postId,
-    courseId: detail.course?.courseId,
+    courseId: detail.course?.courseId || detail.courseId,
     slug,
-    country: "KR",
-    name: "DITTO 여행자",
+    country: detail.country || detail.user?.country || "KR",
+    name: authorName,
     hash: "#공개코스 #더현대서울",
     title: detail.title,
     description: detail.content,
     image,
-    likes: 0,
+    likes: detail.likeCount ?? detail.likes ?? 0,
     commentsCount: comments.length,
-    saves: 0,
+    saves: detail.bookmarkCount ?? detail.bookmarks ?? 0,
     gradient: getGradientForId(postId),
     label: "THE HYUNDAI SEOUL",
     stops: places.length > 0 ? places : [
@@ -190,7 +201,30 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
       if (response.ok) {
         const json = await response.json();
         if (json?.data) {
-          return normalizePublicCourseDetail(json.data);
+          const detail = json.data;
+          const courseId = detail.course?.courseId || detail.courseId;
+          if (courseId) {
+            try {
+              const courseRes = await fetch(`${baseUrl}/api/v1/courses/${courseId}`, {
+                method: "GET",
+                headers: { Accept: "application/json" },
+                cache: "no-store",
+              });
+              if (courseRes.ok) {
+                const cJson = await courseRes.json();
+                if (cJson?.data?.places && cJson.data.places.length > 0) {
+                  detail.course = {
+                    ...detail.course,
+                    ...cJson.data,
+                    places: cJson.data.places,
+                  };
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+          return normalizePublicCourseDetail(detail);
         }
       }
 

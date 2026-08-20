@@ -6,6 +6,7 @@ import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { CommunityDetailActions } from "./community-detail-actions";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
+import { CommunityStopList } from "@/components/community/community-stop-list";
 
 export const dynamic = "force-dynamic";
 
@@ -19,104 +20,6 @@ export async function generateMetadata({ params }) {
   }
 
   return { title: course.title };
-}
-
-const defaultReviewCards = [
-  {
-    name: "Yuki_T",
-    country: "JAPAN",
-    text: "친구가 처음 서울 왔을 때 이 순서 그대로 돌았어요. 사진 순서대로 따라가니까 길 찾느라 헤맬 일이 없더라고요.",
-    tag: "#1F워터폴가든 #5F사운즈포레스트",
-    likes: 42,
-    replies: 3,
-  },
-  {
-    name: "Chen_Li",
-    country: "CHINA",
-    text: "5층 정원에서 쉬는 구간이 있어서 좋았어요. 다만 주말 오후엔 사람이 많으니 오전에 가는 걸 추천해요.",
-    tag: "#5F사운즈포레스트",
-    likes: 31,
-    replies: 1,
-  },
-  {
-    name: "Emma_R",
-    country: "USA",
-    text: "B2 편집숍이 생각보다 볼 게 많아서 시간을 더 잡았어요. 2시간보다 3시간 정도가 여유로울 것 같아요.",
-    tag: "#B2크리에이티브그라운드",
-    likes: 28,
-    replies: 2,
-  },
-];
-
-function ActionButton({ children, variant = "primary" }) {
-  const className =
-    variant === "outline"
-      ? "border border-line bg-white text-brand"
-      : "bg-brand text-white";
-
-  return (
-    <button
-      type="button"
-      className={`inline-flex h-12 min-w-[142px] items-center justify-center rounded-full px-8 text-sm font-black transition hover:shadow-control ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function GradientBlock({ className = "", children, gradient }) {
-  return (
-    <div
-      className={`bg-linear-to-br ${gradient} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function StopList({ stops = [], courseId, t }) {
-  return (
-    <section className="flex flex-col justify-between rounded-[28px] bg-surface-soft p-6 lg:p-7">
-      <div>
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-black text-ink">
-            {t && t.has("coursePlaces") ? t("coursePlaces") : "코스 장소"}
-          </h2>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-ink-muted shadow-xs">
-            총 {stops.length}개 스팟
-          </span>
-        </div>
-        <div className="mt-4 flex flex-col gap-3">
-          {stops.map((stop, index) => (
-            <div
-              key={`stop-${stop.placeId || stop.name || index}-${index}`}
-              className="flex items-center gap-4 rounded-[16px] bg-white px-4 py-3 shadow-xs"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
-                {index + 1}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-ink">
-                  {stop.floor ? `${stop.floor} ` : ""}{stop.name}
-                </p>
-                {stop.description ? (
-                  <p className="mt-1 text-xs font-medium text-ink-muted line-clamp-1">
-                    {stop.description}
-                  </p>
-                ) : null}
-              </div>
-              <Link
-                href={courseId ? `/ai-course?courseId=${courseId}` : "/ai-course"}
-                className="text-sm font-black text-brand transition hover:text-brand-dark"
-              >
-                {t && t.has("view") ? t("view") : "보기"}
-              </Link>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
 }
 
 function AuthorNote({ course, t, locale }) {
@@ -194,20 +97,6 @@ function AuthorNote({ course, t, locale }) {
   );
 }
 
-function ReviewCard({ review }) {
-  return (
-    <article className="rounded-[20px] bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-black text-ink">{review.name}</h3>
-      <p className="mt-5 min-h-[54px] text-sm font-medium leading-6 text-ink">
-        {review.text}
-      </p>
-      {review.tag ? (
-        <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
-      ) : null}
-    </article>
-  );
-}
-
 export default async function CommunityCourseDetailPage({ params }) {
   const t = await getTranslations("community");
   const locale = await getLocale();
@@ -222,8 +111,6 @@ export default async function CommunityCourseDetailPage({ params }) {
   const breadcrumbHomeText = t.has("breadcrumbHome") ? t("breadcrumbHome") : "홈";
   const breadcrumbCommunityText = t.has("breadcrumbCommunity") ? t("breadcrumbCommunity") : "커뮤니티";
   const listText = t.has("list") ? t("list") : "목록";
-  const visitorsText = t.has("visitors") ? t("visitors") : "이 코스 다녀온 사람들";
-  const writeReviewText = t.has("writeReview") ? t("writeReview") : "후기 쓰기 →";
   const viewAllCoursesText = t.has("viewAllCourses") ? t("viewAllCourses") : "코스 목록 전체보기 →";
 
   return (
@@ -275,9 +162,6 @@ export default async function CommunityCourseDetailPage({ params }) {
               <h1 className="text-2xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 {course.title}
               </h1>
-              <p className="text-xs font-bold text-white/80">
-                {course.hash || "#공개코스"}
-              </p>
             </div>
           </div>
 
@@ -291,17 +175,11 @@ export default async function CommunityCourseDetailPage({ params }) {
               </span>
               <div>
                 <p className="text-sm font-black text-ink">{course.name || travelerText}</p>
-                <p className="mt-1 text-[11px] font-black text-brand">
-                  {course.hash || "#공개코스"}
-                </p>
               </div>
             </div>
             <h2 className="mt-6 text-[38px] font-black leading-tight text-ink">
               {course.title}
             </h2>
-            <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-ink-muted">
-              {course.description}
-            </p>
             <CommunityDetailActions course={course} />
           </div>
         </div>
@@ -309,7 +187,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <section className="px-10 sm:px-14 py-8 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
-          <StopList stops={course.stops} courseId={course.courseId} t={t} />
+          <CommunityStopList stops={course.stops} courseId={course.courseId} />
           <CommunityCourseDetailMap stops={course.stops} />
         </div>
       </section>
@@ -317,34 +195,13 @@ export default async function CommunityCourseDetailPage({ params }) {
       <AuthorNote course={course} t={t} locale={locale} />
 
       <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-black text-brand">REVIEWS</p>
-              <h2 className="mt-3 text-[30px] font-black text-ink">
-                {visitorsText}
-              </h2>
-            </div>
-            <Link
-              href="/community/share"
-              className="text-sm font-black text-brand transition hover:text-brand-dark"
-            >
-              {writeReviewText}
-            </Link>
-          </div>
-          <div className="mt-7 grid gap-5 lg:grid-cols-3">
-            {defaultReviewCards.map((review, idx) => (
-              <ReviewCard key={`review-card-${review.name || idx}-${idx}`} review={review} />
-            ))}
-          </div>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/community"
-              className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
-            >
-              {viewAllCoursesText}
-            </Link>
-          </div>
+        <div className="mx-auto max-w-7xl flex justify-center">
+          <Link
+            href="/community"
+            className="rounded-full border border-brand bg-white px-8 py-3 text-sm font-black text-brand shadow-xs transition hover:bg-brand hover:text-white cursor-pointer"
+          >
+            {viewAllCoursesText}
+          </Link>
         </div>
       </section>
     </main>

@@ -2,27 +2,48 @@
 
 import { create } from "zustand";
 
-// Clean up any previously bloated localStorage key to free browser quota
-if (typeof window !== "undefined") {
+const STORAGE_KEY = "ditto:community-post-images-v2";
+
+function loadInitialPostImages() {
+  if (typeof window === "undefined") return {};
   try {
-    localStorage.removeItem("ditto:community-post-images");
+    const raw = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
   } catch {
-    // Ignore storage clearance errors
+    return {};
+  }
+}
+
+function savePostImages(imagesMap) {
+  if (typeof window === "undefined") return;
+  try {
+    const serialized = JSON.stringify(imagesMap);
+    sessionStorage.setItem(STORAGE_KEY, serialized);
+    localStorage.setItem(STORAGE_KEY, serialized);
+  } catch {
+    // If storage full, keep in sessionStorage only or ignore
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(imagesMap));
+    } catch {
+      // Ignore
+    }
   }
 }
 
 export const useCommunityPostImagesStore = create((set, get) => ({
-  postImages: {}, // { [postIdOrCourseId]: string[] }
+  postImages: loadInitialPostImages(), // { [postIdOrCourseId]: string[] }
 
   setPostImages: (id, images) => {
     if (!id) return;
     const list = Array.isArray(images) ? images : [images].filter(Boolean);
-    set((state) => ({
-      postImages: {
+    set((state) => {
+      const nextMap = {
         ...state.postImages,
         [String(id)]: list,
-      },
-    }));
+      };
+      savePostImages(nextMap);
+      return { postImages: nextMap };
+    });
   },
 
   getPostImage: (id) => {

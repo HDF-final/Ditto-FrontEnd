@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createCoursePost } from "@/lib/api/community";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { compressImage } from "@/lib/utils/image-compression";
 
 function CourseOption({ course, selected, onSelect }) {
   return (
@@ -92,20 +93,20 @@ export function ShareCourseForm({ courses = [], loading = false }) {
 
   const shouldScroll = courses.length > 4;
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result;
-        if (dataUrl) {
-          setPhotos((prev) => [...prev, dataUrl].slice(0, 10));
+    for (const file of files) {
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          setPhotos((prev) => [...prev, compressed].slice(0, 10));
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        console.warn("[Photo Compress] Error:", err);
+      }
+    }
 
     e.target.value = "";
   };

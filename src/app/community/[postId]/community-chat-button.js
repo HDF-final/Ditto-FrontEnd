@@ -4,9 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 import {
   createComment,
   getComments,
+  getPublicCourse,
   updateComment,
   deleteComment,
   likeCourse,
@@ -14,6 +18,7 @@ import {
   bookmarkCourse,
   unbookmarkCourse,
 } from "@/lib/api/community";
+import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 
 const fallbackChatMessages = [
   {
@@ -106,6 +111,9 @@ export function CommunityChatButton({ course = {} }) {
   const locale = useLocale();
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
+  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
 
   const [isOpen, setIsOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -115,10 +123,45 @@ export function CommunityChatButton({ course = {} }) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  // Likes and Bookmarks state
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(course?.likes || 508);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const mounted = useIsMounted();
+  const postId =
+    course?.postId ||
+    (typeof course?.slug === "number" || /^\d+$/.test(course?.slug)
+      ? Number(course.slug)
+      : null);
+
+  const postIdentifier = String(course?.postId || course?.slug || postId || "1");
+
+  // Synchronized Likes and Bookmarks store
+  const isLikedStored = useCommunityInteractionsStore((state) =>
+    state.isLiked(postIdentifier),
+  );
+  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
+    state.isBookmarked(postIdentifier),
+  );
+  const likesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getLikesDelta(postIdentifier),
+  );
+  const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const setBookmarked = useCommunityInteractionsStore(
+    (state) => state.setBookmarked,
+  );
+
+  const [postLikes, setPostLikes] = useState(
+    typeof course?.likes === "number"
+      ? course.likes
+      : typeof course?.likeCount === "number"
+        ? course.likeCount
+        : 0,
+  );
+  const [postContent, setPostContent] = useState(
+    course?.description || course?.content || course?.note || "",
+  );
+
+  const isLiked = mounted ? isLikedStored : false;
+  const isBookmarked = mounted ? isBookmarkedStored : false;
+  const baseLikes = postLikes;
+  const likesCount = Math.max(0, baseLikes + (mounted ? likesDeltaStored : 0));
 
   // Edit / Delete states
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -132,17 +175,22 @@ export function CommunityChatButton({ course = {} }) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const postId =
-    course?.postId ||
-    (typeof course?.slug === "number" || /^\d+$/.test(course?.slug)
-      ? Number(course.slug)
-      : null);
+  const [postAuthor, setPostAuthor] = useState(
+    course?.name || course?.nickname || course?.author || "",
+  );
+
+  const authorName =
+    postAuthor ||
+    course?.name ||
+    course?.nickname ||
+    course?.author ||
+    user?.nickname ||
+    user?.name ||
+    "사토 유키";
 
   const courseImage =
     course?.image ||
     "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&h=1200&fit=crop";
-
-  const authorName = course?.name || "Yuki_T";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,17 +204,75 @@ export function CommunityChatButton({ course = {} }) {
 
   const loadComments = async (id) => {
     if (!id) {
-      setComments(fallbackChatMessages);
+      setComments([]);
       return;
     }
     setIsLoading(true);
     try {
-      const res = await getComments(id);
-      const list = Array.isArray(res) ? res : res?.data || [];
-      setComments(list.length > 0 ? deduplicateComments(list) : fallbackChatMessages);
+      const [res, postDetail] = await Promise.allSettled([
+        getComments(id),
+        getPublicCourse(id),
+      ]);
+      const commentData = res.status === "fulfilled" ? res.value : null;
+      const list = Array.isArray(commentData)
+        ? commentData
+        : Array.isArray(commentData?.content)
+          ? commentData.content
+          : Array.isArray(commentData?.data)
+            ? commentData.data
+            : [];
+      setComments(deduplicateComments(list));
+
+      if (postDetail.status === "fulfilled" && postDetail.value) {
+        const detail = postDetail.value;
+        const serverAuthor =
+          detail?.writerNickname ||
+          detail?.nickname ||
+          detail?.userName ||
+          detail?.author ||
+          detail?.user?.nickname ||
+          detail?.user?.name ||
+          detail?.course?.userName ||
+          detail?.course?.author;
+        if (serverAuthor) {
+          setPostAuthor(serverAuthor);
+        }
+
+        const serverContent =
+          detail?.content ||
+          detail?.description ||
+          detail?.note ||
+          detail?.course?.description;
+        if (serverContent) {
+          setPostContent(serverContent);
+        }
+
+        const serverLikes =
+          typeof detail?.likeCount === "number"
+            ? detail.likeCount
+            : typeof detail?.likes === "number"
+              ? detail.likes
+              : typeof detail?.course?.likeCount === "number"
+                ? detail.course.likeCount
+                : null;
+        if (serverLikes !== null) {
+          setPostLikes(serverLikes);
+        }
+
+        const serverImg =
+          detail?.representativeImageUrl ||
+          detail?.course?.representativeImageUrl ||
+          detail?.imageUrl;
+        if (serverImg) {
+          const current = getPostImages(id);
+          if (current.length === 0) {
+            setPostImages(id, [serverImg]);
+          }
+        }
+      }
     } catch (err) {
-      console.warn("[CommunityChat] Fallback comments:", err.message);
-      setComments(fallbackChatMessages);
+      console.warn("[CommunityChat] Error loading comments:", err.message);
+      setComments([]);
     } finally {
       setIsLoading(false);
     }
@@ -184,8 +290,7 @@ export function CommunityChatButton({ course = {} }) {
     }
 
     const nextState = !isLiked;
-    setIsLiked(nextState);
-    setLikesCount((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    setLiked(postIdentifier, nextState);
 
     if (postId) {
       try {
@@ -207,7 +312,7 @@ export function CommunityChatButton({ course = {} }) {
     }
 
     const nextState = !isBookmarked;
-    setIsBookmarked(nextState);
+    setBookmarked(postIdentifier, nextState);
 
     if (postId) {
       try {
@@ -257,16 +362,14 @@ export function CommunityChatButton({ course = {} }) {
 
     if (postId) {
       try {
-        const newComment = await createComment(postId, { content });
-        if (newComment) {
-          setComments((prev) => deduplicateComments([...prev, newComment]));
-        }
+        await createComment(postId, { content });
+        await loadComments(postId);
       } catch (err) {
         console.error("[CommunityChat] Failed to post:", err.message);
         // Optimistic fallback for immediate UX
         const fallbackObj = {
           commentId: `user-${Date.now()}`,
-          nickname: "나",
+          nickname: user?.nickname || user?.name || "나",
           isAuthor: false,
           content,
           createdAt: new Date().toISOString(),
@@ -279,7 +382,7 @@ export function CommunityChatButton({ course = {} }) {
     } else {
       const mockComment = {
         commentId: `local-${Date.now()}`,
-        nickname: "나",
+        nickname: user?.nickname || user?.name || "나",
         isAuthor: false,
         content,
         createdAt: new Date().toISOString(),
@@ -302,6 +405,7 @@ export function CommunityChatButton({ course = {} }) {
     if (postId) {
       try {
         await updateComment(postId, commentId, { content: nextContent });
+        await loadComments(postId);
       } catch (err) {
         console.warn("[Comment Update] Error:", err.message);
       }
@@ -322,6 +426,7 @@ export function CommunityChatButton({ course = {} }) {
     if (postId) {
       try {
         await deleteComment(postId, deletingCommentId);
+        await loadComments(postId);
       } catch (err) {
         console.warn("[Comment Delete] Error:", err.message);
       }
@@ -364,44 +469,27 @@ export function CommunityChatButton({ course = {} }) {
           <section
             role="dialog"
             aria-modal="true"
-            aria-labelledby="community-chat-title"
+            aria-label={course?.title || "코스 대화"}
             className="flex flex-col md:flex-row w-full max-w-[1020px] h-[92vh] max-h-[720px] rounded-[24px] bg-white shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150"
           >
-            {/* 좌측: 인스타그램 피드 포스트 비주얼 카드 (Full Photo) */}
+            {/* 좌측: 인스타그램 피드 포스트 비주얼 카드 (Full Photo Carousel) */}
             <div className="relative md:w-[56%] h-[280px] md:h-full bg-slate-950 flex flex-col justify-between p-6 overflow-hidden select-none">
-              <img
-                src={courseImage}
-                alt={course?.title || t("courseImage")}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              <div className="absolute inset-0">
+                <CommunityDetailHeroImage
+                  postId={postId}
+                  courseId={course?.courseId}
+                  fallbackImage={course?.image}
+                  alt={course?.title || t("courseImage")}
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none" />
-              <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
               {/* 상단 뱃지 */}
-              <div className="relative z-10 flex items-center justify-between">
+              <div className="relative z-10 flex items-center justify-between pointer-events-none">
                 <div className="flex items-center gap-2 rounded-full bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs border border-white/10">
                   <span className="flex size-2 rounded-full bg-brand animate-pulse" />
                   <span>DITTO COURSE</span>
-                </div>
-              </div>
-
-              {/* 하단 타이포그래피 오버레이 */}
-              <div className="relative z-10 flex flex-col gap-2">
-                <h2
-                  id="community-chat-title"
-                  className="text-2xl sm:text-[32px] font-black text-white leading-tight drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]"
-                >
-                  {course?.title || "처음이면 이 코스로 시작해"}
-                </h2>
-                <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-2">
-                  {course?.description || "더현대 서울 대표 스팟과 맞춤형 동선으로 즐기는 K-Culture 코스"}
-                </p>
-
-                <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
-                  <span className="size-2 rounded-full bg-white" />
-                  <span className="size-1.5 rounded-full bg-white/50" />
-                  <span className="size-1.5 rounded-full bg-white/50" />
-                  <span className="size-1.5 rounded-full bg-white/50" />
                 </div>
               </div>
             </div>
@@ -409,7 +497,7 @@ export function CommunityChatButton({ course = {} }) {
             {/* 우측: 인스타그램 피드 댓글 패널 */}
             <div className="flex flex-col md:w-[44%] h-full bg-white border-t md:border-t-0 md:border-l border-line min-w-0">
               {/* 1. 상단 프로필 헤더 */}
-              <div className="flex items-center justify-between border-b border-line px-5 py-3.5 bg-white shrink-0">
+              <div className="flex items-center justify-between px-5 pt-4 pb-2 bg-white shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={`flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-black shadow-xs ${getAvatarColor(
@@ -422,16 +510,6 @@ export function CommunityChatButton({ course = {} }) {
                     <span className="truncate text-sm font-black text-ink">
                       {authorName}
                     </span>
-                    <span className="text-ink/40 font-bold text-xs">·</span>
-                    <button
-                      type="button"
-                      onClick={handleFollowToggle}
-                      className={`text-xs font-black transition cursor-pointer ${
-                        isFollowing ? "text-ink-muted hover:text-danger" : "text-brand hover:text-brand-dark"
-                      }`}
-                    >
-                      {isFollowing ? t("following") : t("follow")}
-                    </button>
                   </div>
                 </div>
 
@@ -455,29 +533,18 @@ export function CommunityChatButton({ course = {} }) {
                 </button>
               </div>
 
-              {/* 2. 스크롤 본문 (작성자 포스트 캡션 + 댓글 피드 목록) */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-sm bg-white">
-                <div className="flex items-start gap-3 pb-3 border-b border-line/60">
-                  <div
-                    className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-black shadow-xs ${getAvatarColor(
-                      authorName,
-                    )}`}
-                  >
-                    {authorName.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0 leading-relaxed">
-                    <p className="text-ink">
-                      <span className="font-black text-ink mr-2">{authorName}</span>
-                      {course?.description || course?.title}
-                    </p>
-                    <p className="mt-1.5 text-xs font-bold text-brand">
-                      {course?.hash || "#DITTO #더현대서울 #K컬처"}
+              {/* 2. 스크롤 본문 (상단 게시물 본문 + 댓글 피드 목록) */}
+              <div className="flex-1 overflow-y-auto px-5 pt-1 pb-4 space-y-4 text-sm bg-white">
+                {postContent ? (
+                  <div className="pl-12 pb-3 border-b border-line/60">
+                    <p className="text-xs leading-relaxed text-ink/90 whitespace-pre-line break-words">
+                      {postContent}
                     </p>
                     <p className="mt-1 text-[11px] font-medium text-ink-muted">
                       {t("editedAgo")}
                     </p>
                   </div>
-                </div>
+                ) : null}
 
                 {isLoading ? (
                   <div className="flex h-36 items-center justify-center text-xs font-bold text-ink-muted">
@@ -494,10 +561,13 @@ export function CommunityChatButton({ course = {} }) {
                     const commenterName = message.nickname || message.author || t("traveler");
                     const isMine =
                       message.isMine ||
-                      message.userId === 1 ||
-                      String(message.userId) === "1" ||
+                      (user && (
+                        (message.userId && Number(message.userId) === Number(user.id || user.userId)) ||
+                        (user.nickname && message.nickname === user.nickname) ||
+                        (user.name && message.nickname === user.name)
+                      )) ||
                       commenterName === "나" ||
-                      commenterName === "사토 유키";
+                      commenterName === user?.nickname;
                     const isLikedComment = Boolean(likedComments[cId]);
 
                     return (
@@ -539,23 +609,15 @@ export function CommunityChatButton({ course = {} }) {
                                 </div>
                               </div>
                             ) : (
-                              <>
-                                <p className="text-xs leading-relaxed text-ink break-words">
-                                  <span className="font-black mr-1.5">{commenterName}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-bold text-xs text-ink">
+                                  {commenterName}
+                                </span>
+                                <p className="mt-0.5 text-xs leading-relaxed text-ink break-words">
                                   {message.content || message.text}
                                 </p>
                                 <div className="mt-1 flex items-center gap-3 text-[11px] font-medium text-ink-muted select-none">
                                   <span>{formatTimeAgo(message.createdAt, t)}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setInputText(`@${commenterName} `);
-                                      inputRef.current?.focus();
-                                    }}
-                                    className="font-bold hover:text-ink cursor-pointer"
-                                  >
-                                    {t("reply")}
-                                  </button>
                                   {isMine && (
                                     <>
                                       <button
@@ -575,32 +637,10 @@ export function CommunityChatButton({ course = {} }) {
                                     </>
                                   )}
                                 </div>
-                              </>
+                              </div>
                             )}
                           </div>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleCommentLikeToggle(cId)}
-                          className="pt-1 text-ink-muted hover:text-danger transition cursor-pointer shrink-0"
-                          aria-label={t("likeComment")}
-                        >
-                          <svg
-                            aria-hidden="true"
-                            className={`size-3.5 ${
-                              isLikedComment
-                                ? "text-danger fill-danger"
-                                : "text-ink-muted/60"
-                            }`}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                          </svg>
-                        </button>
                       </div>
                     );
                   })
@@ -629,50 +669,6 @@ export function CommunityChatButton({ course = {} }) {
                         strokeWidth="2"
                       >
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => inputRef.current?.focus()}
-                      className="transition hover:opacity-75 cursor-pointer text-ink"
-                      aria-label={t("writeComment")}
-                    >
-                      <svg
-                        aria-hidden="true"
-                        className="size-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (typeof navigator !== "undefined" && navigator.clipboard) {
-                          navigator.clipboard.writeText(window.location.href);
-                          alert(t("copyToast"));
-                        }
-                      }}
-                      className="transition hover:opacity-75 cursor-pointer text-ink"
-                      aria-label={t("shareCourse")}
-                    >
-                      <svg
-                        aria-hidden="true"
-                        className="size-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="22" y1="2" x2="11" y2="13" />
-                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
                       </svg>
                     </button>
                   </div>
