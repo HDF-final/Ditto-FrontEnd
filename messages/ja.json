@@ -133,8 +133,9 @@
     "viewAll": "ニュースをすべて見る",
     "copied": "リンクをコピーしました！",
     "share": "記事をシェア",
-    "copyToast": "記事のリンクをクリップボードにコピーしました！"
-    ,"originalArticle": "元の記事"
+    "copyToast": "記事のリンクをクリップボードにコピーしました！",
+    "originalArticle": "元の記事",
+    "viewLargePhoto": "写真を拡大"
   },
   "auth": {
     "welcomeBack": "おかえりなさい",

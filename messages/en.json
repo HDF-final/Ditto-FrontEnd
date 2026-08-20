@@ -133,8 +133,9 @@
     "viewAll": "View all news",
     "copied": "Link copied!",
     "share": "Share article",
-    "copyToast": "The article link was copied to your clipboard!"
-    ,"originalArticle": "Original article"
+    "copyToast": "The article link was copied to your clipboard!",
+    "originalArticle": "Original article",
+    "viewLargePhoto": "View Large Photo"
   },
   "auth": {
     "welcomeBack": "Welcome back",

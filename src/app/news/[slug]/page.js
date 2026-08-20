@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { NewsShareButton } from "@/components/news/news-share-button";
+import { NewsImageLightbox } from "@/components/news/news-image-lightbox";
 import {
   getNewsDetailBySlug,
   getNewsSitemap,
@@ -148,7 +149,7 @@ export default async function NewsDetailPage({ params }) {
     <main className="bg-surface-soft">
       <section className="bg-white px-10 sm:px-14 pb-10 pt-8 lg:px-52 xl:px-60 2xl:px-72 lg:pb-14">
         <div
-          className={`relative mx-auto max-w-7xl min-h-[400px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
+          className={`relative mx-auto max-w-7xl min-h-[460px] lg:min-h-[520px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
             news.representativeImageUrl ? "" : `bg-linear-to-br ${news.gradient}`
           }`}
         >
@@ -190,15 +191,35 @@ export default async function NewsDetailPage({ params }) {
                 title={news.title}
                 summary={news.summary}
               />
+              {news.representativeImageUrl ? (
+                <NewsImageLightbox
+                  src={news.representativeImageUrl}
+                  alt={news.title}
+                  caption={news.imageCaption || news.summary}
+                  mode="button"
+                />
+              ) : null}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-10 sm:px-14 py-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
-            {body.slice(0, 2).map((paragraph, index) => (
+      <section className="px-10 sm:px-14 py-10 lg:px-52 xl:px-60 2xl:px-72 lg:py-16">
+        <div className="mx-auto max-w-7xl">
+          {news.representativeImageUrl ? (
+            <div className="mb-10 w-full">
+              <NewsImageLightbox
+                src={news.representativeImageUrl}
+                alt={news.title}
+                caption={news.imageCaption || news.summary}
+                mode="card"
+              />
+            </div>
+          ) : null}
+
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
+              {body.slice(0, 2).map((paragraph, index) => (
               <p key={index}>
                 <FormattedParagraph
                   text={paragraph}
@@ -260,11 +281,11 @@ export default async function NewsDetailPage({ params }) {
             </div>
             <ol className="mt-6 flex flex-col gap-6">
               {summaryPoints.map((point, index) => (
-                <li key={index} className="flex items-start gap-4">
-                  <span className="flex size-8 flex-none items-center justify-center rounded-full bg-brand text-sm font-black text-white">
+                <li key={index} className="flex items-start gap-3.5">
+                  <span className="flex size-7 flex-none items-center justify-center rounded-full bg-brand text-xs font-black text-white mt-0.5">
                     {index + 1}
                   </span>
-                  <p className="text-[19px] font-bold leading-snug text-ink">
+                  <p className="text-[17px] font-bold leading-relaxed text-ink">
                     {point}
                   </p>
                 </li>
@@ -272,7 +293,8 @@ export default async function NewsDetailPage({ params }) {
             </ol>
           </aside>
         </div>
-      </section>
+      </div>
+    </section>
 
       <section className="bg-white px-10 sm:px-14 py-12 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl">

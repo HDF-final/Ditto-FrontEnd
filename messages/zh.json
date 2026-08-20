@@ -133,8 +133,9 @@
     "viewAll": "查看全部资讯",
     "copied": "链接已复制！",
     "share": "分享文章",
-    "copyToast": "文章链接已复制到剪贴板！"
-    ,"originalArticle": "原文"
+    "copyToast": "文章链接已复制到剪贴板！",
+    "originalArticle": "原文",
+    "viewLargePhoto": "查看大图"
   },
   "auth": {
     "welcomeBack": "欢迎回来",
