@@ -59,7 +59,7 @@ async function hydrateMyCourses(data, userName = "디또러버") {
       return {
         id: course.courseId,
         postId: course.courseId,
-        href: `/ai-course?courseId=${course.courseId}`,
+        href: `/community/${course.courseId}`,
         badge: "MY COURSE",
         name: userName,
         country: "KR",

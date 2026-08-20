@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createCoursePost } from "@/lib/api/community";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 
 function CourseOption({ course, selected, onSelect }) {
   return (
@@ -92,13 +93,27 @@ export function ShareCourseForm({ courses = [], loading = false }) {
   const [createdPostId, setCreatedPostId] = useState(null);
   const [alertModalMessage, setAlertModalMessage] = useState("");
 
+  const setPostImages = useCommunityPostImagesStore(
+    (state) => state.setPostImages,
+  );
+
   const shouldScroll = courses.length > 4;
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPhotos((prev) => [...prev, ...newPreviews].slice(0, 10));
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result;
+        if (dataUrl) {
+          setPhotos((prev) => [...prev, dataUrl].slice(0, 10));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
     e.target.value = "";
   };
 
@@ -123,6 +138,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         courseId,
         title: title.trim() || selectedCourse.title || "나만의 코스",
         content: caption.trim() || "더현대 서울 맞춤 코스입니다.",
+        representativeImageUrl: photos[0] || undefined,
       });
 
       const newPostId =
@@ -131,6 +147,12 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         result?.courseId ||
         (typeof result === "number" ? result : null) ||
         courseId;
+
+      if (photos.length > 0) {
+        setPostImages(newPostId, photos);
+        setPostImages(courseId, photos);
+        if (selectedCourse?.id) setPostImages(selectedCourse.id, photos);
+      }
 
       setCreatedPostId(newPostId);
       setIsSuccessModalOpen(true);
