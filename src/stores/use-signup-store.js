@@ -7,6 +7,7 @@ const initialDraft = {
   termsAccepted: true,
   marketingAccepted: false,
   country: "KR",
+  language: "ko",
   persona: "openrun",
 };
 

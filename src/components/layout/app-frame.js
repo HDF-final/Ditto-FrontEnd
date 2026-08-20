@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { usePreferenceStore } from "@/stores/use-preference-store";
 import { getMyProfile } from "@/lib/api/users";
 
 const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
@@ -17,15 +18,24 @@ export function AppFrame({ children }) {
   const isAuthRoute = AUTH_PATHS.has(pathname);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
+  const setPreferences = usePreferenceStore((state) => state.setPreferences);
 
   useEffect(() => {
     let isMounted = true;
 
     async function restoreSession() {
+      await usePreferenceStore.persist.rehydrate();
+      if (!isMounted) return;
+
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
           setUser(profile);
+          setPreferences({
+            countryCode: profile.countryCode,
+            languageCode:
+              profile.languageCode || profile.preferredLanguageCode,
+          });
         }
       } catch {
         if (isMounted) {
@@ -39,7 +49,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, clearUser]);
+  }, [setUser, clearUser, setPreferences]);
 
   if (isAuthRoute) {
     return children;

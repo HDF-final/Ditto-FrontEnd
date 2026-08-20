@@ -6,24 +6,42 @@ import { authButtonClassName } from "@/components/auth/auth-shell";
 import {
   COUNTRIES,
   DEFAULT_COUNTRY_CODE,
+  DEFAULT_LANGUAGE_CODE,
+  LANGUAGES,
+  getDefaultLanguageForCountry,
   getCountryByCode,
 } from "@/lib/fixtures/countries";
+import { updateMyPreferences } from "@/lib/api/users";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 import { useSignupStore } from "@/stores/use-signup-store";
 
 export function CountryForm() {
   const router = useRouter();
   const storedCountryCode = usePreferenceStore((state) => state.countryCode);
-  const setCountryCode = usePreferenceStore((state) => state.setCountryCode);
+  const storedLanguageCode = usePreferenceStore((state) => state.languageCode);
+  const setPreferences = usePreferenceStore((state) => state.setPreferences);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setSignupDraft = useSignupStore((state) => state.setDraft);
-  const signupCountry = useSignupStore((state) => state.draft.country);
+  const signupDraft = useSignupStore((state) => state.draft);
 
-  const [selectedCode, setSelectedCode] = useState(
-    () => signupCountry || storedCountryCode || DEFAULT_COUNTRY_CODE,
-  );
+  const [selectedCodeOverride, setSelectedCode] = useState(null);
+  const [selectedLanguageOverride, setSelectedLanguage] = useState(null);
+  const [languageWasManuallySelected, setLanguageWasManuallySelected] =
+    useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSubmit(event) {
+  const selectedCode =
+    selectedCodeOverride ||
+    (signupDraft.isSignedUp ? signupDraft.country : storedCountryCode) ||
+    DEFAULT_COUNTRY_CODE;
+  const selectedLanguage =
+    selectedLanguageOverride ||
+    (signupDraft.isSignedUp ? signupDraft.language : storedLanguageCode) ||
+    DEFAULT_LANGUAGE_CODE;
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const selected = getCountryByCode(selectedCode);
@@ -34,9 +52,33 @@ export function CountryForm() {
     }
 
     setError("");
-    setCountryCode(selected.code);
-    setSignupDraft({ country: selected.code });
-    router.push(`/persona?lang=${selected.lang}`);
+    setIsLoading(true);
+
+    try {
+      if (isAuthenticated) {
+        await updateMyPreferences({
+          countryCode: selected.code,
+          languageCode: selectedLanguage,
+        });
+      }
+
+      setPreferences({
+        countryCode: selected.code,
+        languageCode: selectedLanguage,
+      });
+      setSignupDraft({
+        country: selected.code,
+        language: selectedLanguage,
+      });
+      router.push(`/persona?lang=${selectedLanguage}`);
+    } catch (requestError) {
+      setError(
+        requestError?.message ||
+          "국가·언어 설정을 저장하지 못했습니다. 다시 시도해주세요.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -55,8 +97,14 @@ export function CountryForm() {
               type="button"
               role="radio"
               aria-checked={selected}
+              disabled={isLoading}
               onClick={() => {
                 setSelectedCode(country.code);
+                if (!languageWasManuallySelected) {
+                  setSelectedLanguage(
+                    getDefaultLanguageForCountry(country.code),
+                  );
+                }
                 setError("");
               }}
               className={[
@@ -86,14 +134,55 @@ export function CountryForm() {
         })}
       </div>
 
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-sm font-bold text-ink">
+          사용할 언어를 선택해 주세요
+        </legend>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {LANGUAGES.map((language) => {
+            const selected = language.code === selectedLanguage;
+            return (
+              <button
+                key={language.code}
+                type="button"
+                aria-pressed={selected}
+                disabled={isLoading}
+                onClick={() => {
+                  setSelectedLanguage(language.code);
+                  setLanguageWasManuallySelected(true);
+                  setError("");
+                }}
+                className={[
+                  "rounded-[14px] border-[1.5px] px-3 py-3 text-center text-sm font-bold transition",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+                  selected
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-line bg-white text-ink hover:border-line-hover",
+                ].join(" ")}
+              >
+                <span className="block">{language.nativeName}</span>
+                <span className="mt-0.5 block text-[10px] font-medium text-ink-muted">
+                  {language.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
       {error ? (
         <p className="text-center text-xs font-medium text-danger" role="alert">
           {error}
         </p>
       ) : null}
 
-      <button type="submit" className={authButtonClassName()}>
-        계속하기 <span aria-hidden="true">→</span>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className={authButtonClassName()}
+      >
+        {isLoading ? "저장 중..." : "계속하기"}{" "}
+        {!isLoading ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>
   );

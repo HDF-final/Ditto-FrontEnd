@@ -43,16 +43,14 @@ export async function updateMyProfile({ nickname, password, persona }) {
 }
 
 /**
- * 내 환경설정 (국가, 언어, 페르소나 등) 수정
+ * 내 환경설정 (국가, 언어) 수정
  * PATCH /api/v1/users/me/preferences
  */
-export function updateMyPreferences({ countryCode, language, persona, country }) {
+export function updateMyPreferences({ countryCode, languageCode }) {
   return requestData(
     apiClient.patch("/users/me/preferences", {
-      countryCode: countryCode || country,
-      country: country || countryCode,
-      language,
-      persona,
+      countryCode,
+      languageCode,
     }),
   );
 }
