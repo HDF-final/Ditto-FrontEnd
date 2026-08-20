@@ -362,9 +362,19 @@ export function ShareCourseForm({ courses = [], loading = false }) {
               {/* 하단 공유 미리보기 및 게시 버튼 */}
               <div className="mt-10 flex flex-col gap-5 rounded-[24px] bg-surface-soft p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-5">
-                  <div
-                    className={`size-[100px] rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
-                  />
+                  {photos.length > 0 ? (
+                    <div className="relative size-[100px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-slate-950 shadow-xs">
+                      <img
+                        src={photos[0]}
+                        alt="대표 사진 미리보기"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={`size-[100px] shrink-0 rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
+                    />
+                  )}
                   <div>
                     <p className="text-sm font-black text-brand">
                       공유 미리보기
