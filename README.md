@@ -219,6 +219,12 @@ Ditto-FrontEnd/
 
 전역 레이아웃이 요청 쿠키와 `Accept-Language`를 읽어 Zustand provider의 첫 상태와 `<html lang>`을 함께 초기화하므로, hydration 이후 언어가 뒤늦게 바뀌는 현상을 막습니다. 국가를 바꾸면 그 국가의 기본 언어를 함께 선택하되, 사용자가 언어를 직접 선택한 뒤에는 국가를 바꿔도 해당 언어를 유지합니다. 헤더에서는 국가와 화면 언어를 별도 선택기로 제공합니다.
 
+선택 언어는 Backend 동적 콘텐츠에도 동일하게 적용됩니다. 브라우저의 모든 Axios 요청은 공통
+`src/lib/api/client.js` 인터셉터가 `ditto-language` 쿠키를 읽어 `Accept-Language` 헤더에 넣습니다.
+뉴스처럼 Server Component가 직접 호출하는 요청은 `src/lib/api/server-language.js`가 요청 쿠키를 읽어
+같은 헤더를 전달합니다. 지원 값은 `ko`, `zh`, `ja`, `en`이며 값이 없거나 잘못되면 `ko`를 사용합니다.
+호출부가 `Accept-Language`를 직접 지정한 경우 공통 계층은 해당 값을 덮어쓰지 않습니다.
+
 ### 한·중·일·영 UI 다국어
 
 `next-intl` 기반으로 한국어(`ko`), 중국어(`zh`), 일본어(`ja`), 영어(`en`)를 지원합니다. 번역 카탈로그는 `messages/{locale}.json`, 요청별 언어 결정은 `src/i18n/request.js`, 지원 언어와 기본값은 `src/i18n/config.js`에서 관리합니다.

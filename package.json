@@ -7,10 +7,11 @@
     "build": "next build --webpack",
     "start": "next start --port 3000",
     "lint": "eslint .",
-    "test": "pnpm test:navigation && pnpm test:preferences && pnpm test:i18n",
+    "test": "pnpm test:navigation && pnpm test:preferences && pnpm test:i18n && pnpm test:request-language",
     "test:navigation": "node --test tests/navigation-routing.test.mjs",
     "test:preferences": "node --test tests/preference-policy.test.mjs",
     "test:i18n": "node --test tests/i18n.test.mjs",
+    "test:request-language": "node --test tests/request-language.test.mjs",
     "check": "pnpm lint && pnpm build"
   },
   "dependencies": {
