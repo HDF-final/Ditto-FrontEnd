@@ -13,7 +13,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   if (process.env.NODE_ENV !== "production") {
-    const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID || "1";
+    const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim();
     if (localUserId && !config.headers.get("X-User-Id")) {
       config.headers.set("X-User-Id", localUserId);
     }
