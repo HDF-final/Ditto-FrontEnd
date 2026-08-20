@@ -38,18 +38,17 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       ? Number(course.slug)
       : course.rank || 1);
 
-  const postIdentifier = String(
-    course.postId || course.slug || course.rank || postId || "1",
-  );
+  const slugKey = course.slug ? String(course.slug) : "";
+  const numKey = String(course.postId || course.rank || postId || "1");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
-    state.isLiked(postIdentifier),
+    state.isLiked(slugKey, numKey),
   );
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
-    state.isBookmarked(postIdentifier),
+    state.isBookmarked(slugKey, numKey),
   );
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
-    state.getLikesDelta(postIdentifier),
+    state.getLikesDelta(slugKey, numKey),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const setBookmarked = useCommunityInteractionsStore(
@@ -75,7 +74,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       return;
     }
     const nextState = !isLiked;
-    setLiked(postIdentifier, nextState);
+    setLiked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
@@ -95,7 +94,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       return;
     }
     const nextState = !isBookmarked;
-    setBookmarked(postIdentifier, nextState);
+    setBookmarked(slugKey, nextState, numKey);
 
     if (postId) {
       try {

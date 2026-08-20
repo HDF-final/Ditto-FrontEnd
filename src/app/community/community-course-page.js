@@ -61,16 +61,18 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
   const mounted = useIsMounted();
 
-  const postIdentifier = String(card.postId || card.slug || postId || rank || "1");
+  const slugKey = card.slug ? String(card.slug) : "";
+  const numKey = String(card.postId || postId || rank || "1");
+  const postIdentifier = slugKey || numKey;
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
-    state.isLiked(postIdentifier),
+    state.isLiked(slugKey, numKey),
   );
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
-    state.isBookmarked(postIdentifier),
+    state.isBookmarked(slugKey, numKey),
   );
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
-    state.getLikesDelta(postIdentifier),
+    state.getLikesDelta(slugKey, numKey),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const setBookmarked = useCommunityInteractionsStore(
@@ -94,7 +96,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       return;
     }
     const nextState = !isLiked;
-    setLiked(postIdentifier, nextState);
+    setLiked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
@@ -114,7 +116,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       return;
     }
     const nextState = !isBookmarked;
-    setBookmarked(postIdentifier, nextState);
+    setBookmarked(slugKey, nextState, numKey);
 
     if (postId) {
       try {

@@ -30,19 +30,28 @@ function getFlagEmoji(countryCode = "") {
   return "🌐";
 }
 
-function enrichCourseItem(item, index, isLiked = false, isBookmarked = true) {
+function getDeterministicBaseTime(rankOrId = 1) {
+  const num = typeof rankOrId === "number" ? rankOrId : Number(rankOrId) || 1;
+  return 1770000000000 - num * 3600000;
+}
+
+function enrichCourseItem(item, index) {
   const postId = item.postId || item.id || item.courseId || index + 1;
   const fixture =
     communityCourses.find(
       (c) =>
         String(c.postId || c.slug) === String(postId) ||
+        String(c.slug) === String(item.slug) ||
         String(c.rank) === String(postId),
     ) || communityCourses[index % communityCourses.length];
+
+  const defaultTime = getDeterministicBaseTime(index + 1);
+  const slug = item.slug || fixture?.slug || String(postId);
 
   return {
     postId,
     id: postId,
-    slug: fixture?.slug || postId,
+    slug,
     title: item.title || fixture?.title || "추천 커뮤니티 코스",
     description: item.description || fixture?.description || "더현대 서울 맞춤 추천 코스",
     name: item.authorName || item.nickname || fixture?.name || "여행자",
@@ -56,9 +65,8 @@ function enrichCourseItem(item, index, isLiked = false, isBookmarked = true) {
     likes: item.likeCount ?? item.likes ?? fixture?.likes ?? 742,
     saves: item.bookmarkCount ?? item.saves ?? fixture?.saves ?? 214,
     comments: item.commentCount ?? item.comments ?? fixture?.comments ?? 58,
-    bookmarkedAt: item.bookmarkedAt || new Date().toISOString(),
-    isLiked,
-    isBookmarked,
+    initialBookmarkedAt: item.bookmarkedAt ? new Date(item.bookmarkedAt).getTime() : defaultTime,
+    initialLikedAt: defaultTime,
   };
 }
 
@@ -75,22 +83,23 @@ function BookmarkCard({ course, onAuthRequired }) {
       ? Number(course.slug)
       : 1);
 
-  const postIdentifier = String(course.postId || course.slug || postId || "1");
+  const slugKey = course.slug ? String(course.slug) : "";
+  const numKey = String(course.postId || postId || "1");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
-    state.isLiked(postIdentifier),
+    state.isLiked(slugKey, numKey),
   );
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
-    state.isBookmarked(postIdentifier),
+    state.isBookmarked(slugKey, numKey),
   );
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
-    state.getLikesDelta(postIdentifier),
+    state.getLikesDelta(slugKey, numKey),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const setBookmarked = useCommunityInteractionsStore((state) => state.setBookmarked);
 
-  const isLiked = mounted ? isLikedStored : course.isLiked;
-  const isBookmarked = mounted ? isBookmarkedStored : course.isBookmarked;
+  const isLiked = mounted ? isLikedStored : false;
+  const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
   const baseLikes = course.likes ?? 0;
@@ -108,7 +117,7 @@ function BookmarkCard({ course, onAuthRequired }) {
       return;
     }
     const nextState = !isLiked;
-    setLiked(postIdentifier, nextState);
+    setLiked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
@@ -128,7 +137,7 @@ function BookmarkCard({ course, onAuthRequired }) {
       return;
     }
     const nextState = !isBookmarked;
-    setBookmarked(postIdentifier, nextState);
+    setBookmarked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
@@ -258,8 +267,20 @@ function BookmarkCard({ course, onAuthRequired }) {
 export function CommunityBookmarksView() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const bookmarkedPosts = useCommunityInteractionsStore((state) => state.bookmarkedPosts);
+  const mounted = useIsMounted();
+
+  const isLikedStored = useCommunityInteractionsStore((state) => state.isLiked);
+  const isBookmarkedStored = useCommunityInteractionsStore((state) => state.isBookmarked);
+  const getLikedAt = useCommunityInteractionsStore((state) => state.getLikedAt);
+  const getBookmarkedAt = useCommunityInteractionsStore((state) => state.getBookmarkedAt);
+  const getLikesDelta = useCommunityInteractionsStore((state) => state.getLikesDelta);
+  const setBookmarked = useCommunityInteractionsStore((state) => state.setBookmarked);
+
+  // Subscribe to raw maps for reactive state updates
   const likedPosts = useCommunityInteractionsStore((state) => state.likedPosts);
+  const bookmarkedPosts = useCommunityInteractionsStore((state) => state.bookmarkedPosts);
+  const likedAtMap = useCommunityInteractionsStore((state) => state.likedAtMap);
+  const bookmarkedAtMap = useCommunityInteractionsStore((state) => state.bookmarkedAtMap);
 
   const [loading, setLoading] = useState(true);
   const [coursesList, setCoursesList] = useState([]);
@@ -282,6 +303,7 @@ export function CommunityBookmarksView() {
     };
   }, []);
 
+  // Fetch backend bookmarks once on mount
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
@@ -296,102 +318,32 @@ export function CommunityBookmarksView() {
         const res = await getMyBookmarks();
         const rawList = Array.isArray(res) ? res : res?.content || res?.items || [];
 
-        const allItemsMap = new Map();
+        const map = new Map();
 
-        // 1. Backend Bookmarked items
-        rawList.forEach((item, idx) => {
-          const enriched = enrichCourseItem(
-            item,
-            idx,
-            Boolean(likedPosts[item.postId]),
-            bookmarkedPosts?.[item.postId] !== false,
-          );
-          allItemsMap.set(String(enriched.postId), enriched);
+        // 1. All standard fixtures
+        communityCourses.forEach((c, idx) => {
+          const enriched = enrichCourseItem(c, idx);
+          map.set(String(enriched.slug || enriched.postId), enriched);
         });
 
-        // 2. Locally Bookmarked items
-        if (bookmarkedPosts) {
-          Object.keys(bookmarkedPosts).forEach((id, idx) => {
-            if (bookmarkedPosts[id]) {
-              const fixture =
-                communityCourses.find((c) => String(c.postId || c.slug) === String(id)) ||
-                communityCourses[idx % communityCourses.length];
-              const enriched = enrichCourseItem(
-                { ...fixture, postId: id },
-                idx,
-                Boolean(likedPosts[id]),
-                true,
-              );
-              allItemsMap.set(String(id), enriched);
-            }
-          });
-        }
-
-        // 3. Locally Liked items
-        if (likedPosts) {
-          Object.keys(likedPosts).forEach((id, idx) => {
-            if (likedPosts[id]) {
-              const existing = allItemsMap.get(String(id));
-              if (existing) {
-                existing.isLiked = true;
-              } else {
-                const fixture =
-                  communityCourses.find((c) => String(c.postId || c.slug) === String(id)) ||
-                  communityCourses[idx % communityCourses.length];
-                const enriched = enrichCourseItem(
-                  { ...fixture, postId: id },
-                  idx,
-                  true,
-                  Boolean(bookmarkedPosts?.[id]),
-                );
-                allItemsMap.set(String(id), enriched);
-              }
-            }
-          });
-        }
+        // 2. Backend bookmarks update
+        rawList.forEach((item, idx) => {
+          const id = String(item.postId || item.id || item.courseId || idx + 1);
+          const enriched = enrichCourseItem(item, idx);
+          const key = String(enriched.slug || id);
+          map.set(key, { ...map.get(key), ...enriched });
+          // Ensure it's recorded in store if not present
+          setBookmarked(key, true, id);
+        });
 
         if (isMounted) {
-          setCoursesList(Array.from(allItemsMap.values()));
+          setCoursesList(Array.from(map.values()));
         }
       } catch (err) {
         console.warn("[Bookmarks] API fetch warning:", err.message);
         if (isMounted) {
-          const allItemsMap = new Map();
-          Object.keys(bookmarkedPosts || {}).forEach((id, idx) => {
-            if (bookmarkedPosts[id]) {
-              const fixture =
-                communityCourses.find((c) => String(c.postId || c.slug) === String(id)) ||
-                communityCourses[idx % communityCourses.length];
-              allItemsMap.set(
-                String(id),
-                enrichCourseItem({ ...fixture, postId: id }, idx, Boolean(likedPosts?.[id]), true),
-              );
-            }
-          });
-
-          Object.keys(likedPosts || {}).forEach((id, idx) => {
-            if (likedPosts[id]) {
-              const existing = allItemsMap.get(String(id));
-              if (existing) {
-                existing.isLiked = true;
-              } else {
-                const fixture =
-                  communityCourses.find((c) => String(c.postId || c.slug) === String(id)) ||
-                  communityCourses[idx % communityCourses.length];
-                allItemsMap.set(
-                  String(id),
-                  enrichCourseItem(
-                    { ...fixture, postId: id },
-                    idx,
-                    true,
-                    Boolean(bookmarkedPosts?.[id]),
-                  ),
-                );
-              }
-            }
-          });
-
-          setCoursesList(Array.from(allItemsMap.values()));
+          const fallbackList = communityCourses.map((c, idx) => enrichCourseItem(c, idx));
+          setCoursesList(fallbackList);
         }
       } finally {
         if (isMounted) {
@@ -405,51 +357,112 @@ export function CommunityBookmarksView() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, router, bookmarkedPosts, likedPosts]);
+  }, [isAuthenticated, router]);
 
-  // Filter based on activeCategory & sort based on sortBy
+  // Filter based on activeCategory & sort purely by the relevant action timestamp
   const displayedCourses = useMemo(() => {
-    let list = coursesList;
-    if (activeCategory === "likes") {
-      list = coursesList.filter((c) => {
-        const id = String(c.postId || c.slug);
-        return likedPosts[id] !== undefined ? likedPosts[id] : c.isLiked;
-      });
-    } else if (activeCategory === "bookmarks") {
-      list = coursesList.filter((c) => {
-        const id = String(c.postId || c.slug);
-        return bookmarkedPosts[id] !== undefined ? bookmarkedPosts[id] : c.isBookmarked;
-      });
-    }
+    if (!mounted) return [];
+
+    let list = coursesList.filter((c) => {
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.id || "1");
+
+      const isLiked = isLikedStored(slugKey, numKey);
+      const isBookmarked = isBookmarkedStored(slugKey, numKey);
+
+      if (activeCategory === "likes") {
+        return isLiked;
+      }
+      if (activeCategory === "bookmarks") {
+        return isBookmarked;
+      }
+      return isLiked || isBookmarked;
+    });
 
     if (sortBy === "popular") {
-      return [...list].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
+      return [...list].sort((a, b) => {
+        const slugKeyA = a.slug ? String(a.slug) : "";
+        const numKeyA = String(a.postId || a.id || "1");
+        const slugKeyB = b.slug ? String(b.slug) : "";
+        const numKeyB = String(b.postId || b.id || "1");
+
+        const likesA = (a.likes ?? 0) + (getLikesDelta(slugKeyA, numKeyA) || 0);
+        const likesB = (b.likes ?? 0) + (getLikesDelta(slugKeyB, numKeyB) || 0);
+        return likesB - likesA;
+      });
     }
-    // Default: latest
-    return [...list].sort(
-      (a, b) =>
-        new Date(b.bookmarkedAt || 0).getTime() -
-        new Date(a.bookmarkedAt || 0).getTime(),
-    );
-  }, [coursesList, activeCategory, sortBy, likedPosts, bookmarkedPosts]);
 
-  const likesCount = useMemo(
-    () =>
-      coursesList.filter((c) => {
-        const id = String(c.postId || c.slug);
-        return likedPosts[id] !== undefined ? likedPosts[id] : c.isLiked;
-      }).length,
-    [coursesList, likedPosts],
-  );
+    // Default: latest (독립된 타임스탬프 기준 정렬)
+    return [...list].sort((a, b) => {
+      const slugKeyA = a.slug ? String(a.slug) : "";
+      const numKeyA = String(a.postId || a.id || "1");
+      const slugKeyB = b.slug ? String(b.slug) : "";
+      const numKeyB = String(b.postId || b.id || "1");
 
-  const bookmarksCount = useMemo(
-    () =>
-      coursesList.filter((c) => {
-        const id = String(c.postId || c.slug);
-        return bookmarkedPosts[id] !== undefined ? bookmarkedPosts[id] : c.isBookmarked;
-      }).length,
-    [coursesList, bookmarkedPosts],
-  );
+      if (activeCategory === "likes") {
+        // 좋아요한 코스 탭: 오직 좋아요한 시각(getLikedAt)으로만 정렬!
+        const timeB = getLikedAt(slugKeyB, numKeyB) || b.initialLikedAt || 0;
+        const timeA = getLikedAt(slugKeyA, numKeyA) || a.initialLikedAt || 0;
+        return timeB - timeA;
+      }
+
+      if (activeCategory === "bookmarks") {
+        // 북마크한 코스 탭: 오직 북마크한 시각(getBookmarkedAt)으로만 정렬!
+        const timeB = getBookmarkedAt(slugKeyB, numKeyB) || b.initialBookmarkedAt || 0;
+        const timeA = getBookmarkedAt(slugKeyA, numKeyA) || a.initialBookmarkedAt || 0;
+        return timeB - timeA;
+      }
+
+      // 전체 카테고리
+      const timeB = Math.max(
+        getLikedAt(slugKeyB, numKeyB) || b.initialLikedAt || 0,
+        getBookmarkedAt(slugKeyB, numKeyB) || b.initialBookmarkedAt || 0,
+      );
+      const timeA = Math.max(
+        getLikedAt(slugKeyA, numKeyA) || a.initialLikedAt || 0,
+        getBookmarkedAt(slugKeyA, numKeyA) || a.initialBookmarkedAt || 0,
+      );
+      return timeB - timeA;
+    });
+  }, [
+    coursesList,
+    activeCategory,
+    sortBy,
+    likedPosts,
+    likedAtMap,
+    bookmarkedPosts,
+    bookmarkedAtMap,
+    isLikedStored,
+    isBookmarkedStored,
+    getLikedAt,
+    getBookmarkedAt,
+    getLikesDelta,
+    mounted,
+  ]);
+
+  const likesCount = useMemo(() => {
+    return coursesList.filter((c) => {
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.id || "1");
+      return isLikedStored(slugKey, numKey);
+    }).length;
+  }, [coursesList, likedPosts, isLikedStored]);
+
+  const bookmarksCount = useMemo(() => {
+    return coursesList.filter((c) => {
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.id || "1");
+      return isBookmarkedStored(slugKey, numKey);
+    }).length;
+  }, [coursesList, bookmarkedPosts, isBookmarkedStored]);
+
+  const totalCount = useMemo(() => {
+    return coursesList.filter((c) => {
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.id || "1");
+      return isLikedStored(slugKey, numKey) || isBookmarkedStored(slugKey, numKey);
+    }).length;
+  }, [coursesList, likedPosts, bookmarkedPosts, isLikedStored, isBookmarkedStored]);
 
   return (
     <main className="bg-background min-h-screen">
@@ -491,7 +504,7 @@ export function CommunityBookmarksView() {
                 ? likesCount
                 : cat.id === "bookmarks"
                   ? bookmarksCount
-                  : coursesList.length;
+                  : totalCount;
 
             return (
               <button
