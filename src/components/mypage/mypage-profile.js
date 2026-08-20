@@ -62,7 +62,7 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           </button>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-3">
           {stats.map((stat) => (
             <div
               key={stat.label}
