@@ -26,6 +26,7 @@ export function CourseNavigationMap({
   route,
   routeFloorIds,
   routeGraph,
+  placeLogos,
   overlayOccluderRef,
 }) {
   return (
@@ -37,6 +38,7 @@ export function CourseNavigationMap({
         route={route}
         routeFloorIds={routeFloorIds}
         routeGraph={routeGraph}
+        placeLogos={placeLogos}
         overlayOccluderRef={overlayOccluderRef}
       />
     </section>

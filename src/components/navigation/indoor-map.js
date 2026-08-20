@@ -602,7 +602,146 @@ function toWorldPoint(node, floor, flatView, yLift = 0) {
   ];
 }
 
-function RouteMarker({ position, label, name, badgeColor = "#BC7C22" }) {
+// 브랜드 로고를 같은 오리진 프록시로 받는 URL. (S3 원본은 CORS가 없어 캔버스
+// 트리밍이 막히므로 `/brand-logo`로 우회한다.)
+function logoProxyUrl(logoUrl) {
+  return `/brand-logo?src=${encodeURIComponent(logoUrl)}`;
+}
+
+// 로고 이미지에서 실제 그림이 차지하는 사각 영역(bounding box)을 찾습니다.
+// 코너 픽셀을 배경으로 보고, 그와 충분히 다른(또는 불투명한) 픽셀만 콘텐츠로
+// 취급합니다. 속도를 위해 400px로 다운샘플해 스캔합니다.
+function logoContentBox(img) {
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  if (!w || !h) return null;
+  const scale = Math.min(1, 400 / Math.max(w, h));
+  const cw = Math.max(1, Math.round(w * scale));
+  const ch = Math.max(1, Math.round(h * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, cw, ch);
+  const { data } = ctx.getImageData(0, 0, cw, ch);
+  const br = data[0];
+  const bg = data[1];
+  const bb = data[2];
+  const ba = data[3];
+  let minX = cw;
+  let minY = ch;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < ch; y += 1) {
+    for (let x = 0; x < cw; x += 1) {
+      const i = (y * cw + x) * 4;
+      const a = data[i + 3];
+      const diff =
+        Math.abs(data[i] - br) +
+        Math.abs(data[i + 1] - bg) +
+        Math.abs(data[i + 2] - bb) +
+        Math.abs(a - ba);
+      if (a > 16 && diff > 40) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return null;
+  const boxW = maxX - minX + 1;
+  const boxH = maxY - minY + 1;
+  const mX = boxW * 0.04;
+  const mY = boxH * 0.04;
+  const x0 = Math.max(0, (minX - mX) / scale);
+  const y0 = Math.max(0, (minY - mY) / scale);
+  const x1 = Math.min(w, (maxX + 1 + mX) / scale);
+  const y1 = Math.min(h, (maxY + 1 + mY) / scale);
+  return {
+    x: x0,
+    y: y0,
+    w: x1 - x0,
+    h: y1 - y0,
+    bg: { r: br, g: bg, b: bb, a: ba },
+  };
+}
+
+// 잘라낸 로고를 그리되, 배경색(코너 색)과 가까운 픽셀은 투명하게 키잉합니다.
+// 이렇게 하면 로고의 흰/단색 배경 박스(워터마크처럼 비치는 것)가 사라지고 마크만
+// 남습니다. 원본 배경이 이미 투명(alpha~0)이면 키잉을 건너뜁니다.
+function cropLogoToDataUrl(img, box) {
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(box.w));
+  canvas.height = Math.max(1, Math.round(box.h));
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, canvas.width, canvas.height);
+
+  const bg = box.bg;
+  if (bg && bg.a > 200) {
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = image.data;
+    // 배경과의 색 거리로 알파를 정합니다: 아주 가까우면 투명, 경계 구간은
+    // 부드럽게 페이드해 글자 가장자리가 거칠어지지 않게 합니다.
+    const near = 42; // 이 이하 거리 = 완전 배경 → 투명
+    const far = 96; // 이 이상 거리 = 완전 콘텐츠 → 불투명
+    for (let i = 0; i < d.length; i += 4) {
+      const dist =
+        Math.abs(d[i] - bg.r) +
+        Math.abs(d[i + 1] - bg.g) +
+        Math.abs(d[i + 2] - bg.b);
+      if (dist <= near) {
+        d[i + 3] = 0;
+      } else if (dist < far) {
+        d[i + 3] = Math.round((d[i + 3] * (dist - near)) / (far - near));
+      }
+    }
+    ctx.putImageData(image, 0, 0);
+  }
+  return canvas.toDataURL("image/png");
+}
+
+// 로고 URL을 받아 여백을 잘라낸(직사각형) 이미지 src를 돌려줍니다. 트리밍이
+// 끝나기 전(또는 실패 시)에는 원본 URL을 그대로 씁니다(직접 <img>로는 표시 가능).
+// 결과는 `{ url, src }`로 담아, 현재 logoUrl과 맞을 때만 트리밍본을 씁니다 —
+// effect 본문에서 동기 setState를 하지 않으려는 파생값 패턴입니다.
+function useTrimmedLogo(logoUrl) {
+  const [trimmed, setTrimmed] = useState(null);
+  useEffect(() => {
+    if (!logoUrl) return undefined;
+    let active = true;
+    const img = new Image();
+    img.onload = () => {
+      if (!active) return;
+      try {
+        const box = logoContentBox(img);
+        setTrimmed({ url: logoUrl, src: box ? cropLogoToDataUrl(img, box) : logoUrl });
+      } catch {
+        setTrimmed({ url: logoUrl, src: logoUrl });
+      }
+    };
+    img.onerror = () => {
+      if (active) setTrimmed({ url: logoUrl, src: logoUrl });
+    };
+    img.src = logoProxyUrl(logoUrl);
+    return () => {
+      active = false;
+    };
+  }, [logoUrl]);
+  if (!logoUrl) return null;
+  return trimmed && trimmed.url === logoUrl ? trimmed.src : logoUrl;
+}
+
+// 지도 핑: 기본은 출발/도착·경유 배지 + 브랜드 이름 칩. 칩에 호버하면 그 위로
+// 여백을 잘라내고 배경을 투명 처리한 브랜드 로고 마크만 뜹니다(배경 박스 없음).
+// 로고(사진)가 없으면 호버해도 아무것도 띄우지 않습니다. 3D 캔버스의 Html
+// 오버레이라 칩에만 pointer-events를 살립니다.
+function RouteMarker({ position, label, name, logoUrl, badgeColor = "#BC7C22" }) {
+  const [hovered, setHovered] = useState(false);
+  // 로고 로드 실패 시 빈 자리가 남지 않도록 표시 여부를 끕니다(사진 없으면 안 띄움).
+  const [logoOk, setLogoOk] = useState(true);
+  const trimmedLogoSrc = useTrimmedLogo(logoUrl);
+  const showBubble = hovered && Boolean(trimmedLogoSrc) && logoOk;
   return (
     <OccludingHtml
       position={position}
@@ -612,29 +751,77 @@ function RouteMarker({ position, label, name, badgeColor = "#BC7C22" }) {
       zIndexRange={[5, 1]}
     >
       <div
-        className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/95 py-1 pl-1 pr-2.5 backdrop-blur-[1px]"
-        style={{
-          boxShadow:
-            "0 4px 12px rgba(90,55,15,0.22), 0 0 0 1px rgba(188,124,34,0.32)",
-        }}
+        className="relative flex flex-col items-center"
+        // 새 Tailwind 유틸(pointer-events-auto)은 dev 재스캔 전 미컴파일될 수 있어
+        // 인라인으로 확실히 켭니다. 없으면 Html의 none을 물려받아 호버가 안 먹힙니다.
+        style={{ pointerEvents: "auto" }}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
       >
-        <span
-          className="rounded-full px-2 py-[3px] text-[9px] font-black leading-none text-white"
-          style={{ backgroundColor: badgeColor }}
-        >
-          {label}
-        </span>
-        {name ? (
-          <span
-            className="text-[10px] font-bold leading-none"
-            style={{ color: "#5A3E10" }}
+        {/* 호버 시 칩 위에 뜨는 브랜드 로고. 배경 박스 없이(워터마크처럼 비치는
+            것 없음) 투명 키잉된 마크만, 가독성용 그림자만 얹습니다. 층 간격을 넘지
+            않게 크기를 작게 제한합니다. */}
+        {showBubble ? (
+          <div
+            className="flex items-center justify-center"
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              marginBottom: 6,
+            }}
           >
-            {name}
-          </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={trimmedLogoSrc}
+              alt=""
+              className="object-contain"
+              style={{
+                width: "auto",
+                height: "auto",
+                maxWidth: 84,
+                maxHeight: 24,
+                display: "block",
+                filter: "drop-shadow(0 2px 3px rgba(60,40,20,0.35))",
+              }}
+              onError={() => setLogoOk(false)}
+            />
+          </div>
         ) : null}
+        {/* Name chip: 출발/도착 badge + brand name. */}
+        <div
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/95 py-1 pl-1 pr-2.5"
+          style={{
+            boxShadow:
+              "0 4px 12px rgba(90,55,15,0.22), 0 0 0 1px rgba(188,124,34,0.32)",
+          }}
+        >
+          <span
+            className="rounded-full px-2 py-[3px] text-[9px] font-black leading-none text-white"
+            style={{ backgroundColor: badgeColor }}
+          >
+            {label}
+          </span>
+          {name ? (
+            <span
+              className="text-[10px] font-bold leading-none"
+              style={{ color: "#5A3E10" }}
+            >
+              {name}
+            </span>
+          ) : null}
+        </div>
       </div>
     </OccludingHtml>
   );
+}
+
+// 브랜드/장소 이름을 로고 조회용으로 정규화합니다(공백 제거 + 소문자).
+// `src/lib/api/brands.js`의 정규화와 동일한 규칙 — 축(axios) 의존을 지도 번들로
+// 끌어오지 않으려고 여기서는 작은 헬퍼로 다시 둡니다.
+function normalizeLogoKey(name) {
+  return String(name ?? "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
 }
 
 function RouteOverlay({
@@ -643,6 +830,7 @@ function RouteOverlay({
   visibleFloors,
   flatView,
   overlayOnTop,
+  placeLogos,
 }) {
   const markerRef = useRef(null);
   const progressRef = useRef(0);
@@ -750,13 +938,16 @@ function RouteOverlay({
           ),
           label: index === 0 ? "출발" : index === lastIndex ? "도착" : String(index),
           name: place.name ?? null,
+          logoUrl: place.name
+            ? (placeLogos?.[normalizeLogoKey(place.name)] ?? null)
+            : null,
           badgeColor: `#${badge.getHexString()}`,
         },
       ];
     });
 
     return { lines: raw, markers, path, totalLen };
-  }, [flatView, graph, itinerary, visibleFloors]);
+  }, [flatView, graph, itinerary, visibleFloors, placeLogos]);
 
   // Travel a marker along the whole route path.
   useFrame((_, delta) => {
@@ -1130,6 +1321,7 @@ function FloorStack({
   resetSignal,
   route,
   routeGraph,
+  placeLogos,
   roomsByFloor,
   floorDatasets,
   overlayOnTop,
@@ -1188,6 +1380,7 @@ function FloorStack({
         visibleFloors={floorsWithAspect}
         flatView={viewMode === "floor"}
         overlayOnTop={overlayOnTop}
+        placeLogos={placeLogos}
       />
       <MapCamera
         viewMode={viewMode}
@@ -1293,6 +1486,7 @@ export function IndoorMap({
   route,
   routeFloorIds = FLOOR_ORDER,
   routeGraph,
+  placeLogos = null,
   overlayOccluderRef = null,
 }) {
   // Default to the "route floors" view: with no course it equals the full stack
@@ -1416,6 +1610,7 @@ export function IndoorMap({
                   resetSignal={resetSignal}
                   route={route}
                   routeGraph={routeGraph}
+                  placeLogos={placeLogos}
                   roomsByFloor={roomsByFloor}
                   floorDatasets={floorDatasets}
                   overlayOnTop={overlayOnTop}

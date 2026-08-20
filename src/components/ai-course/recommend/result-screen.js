@@ -16,6 +16,7 @@ import {
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
+import { getBrands, buildBrandLogoMap } from "@/lib/api/brands";
 import {
   addCoursePlace,
   createCourse,
@@ -39,6 +40,7 @@ function sameOrder(a, b) {
 export function ResultScreen({ chat, onPlaceClick }) {
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
+  const [placeLogos, setPlaceLogos] = useState(null);
   const [datasetStatus, setDatasetStatus] = useState("loading");
   const [routeState, setRouteState] = useState({
     status: "idle",
@@ -100,6 +102,25 @@ export function ResultScreen({ chat, onPlaceClick }) {
           setDatasetStatus("error");
           setNotice(error.message || "장소 정보를 불러오지 못했습니다.");
         }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // 브랜드 로고는 지도 핑(출발·도착)에만 쓰는 장식이라, 실패해도 지도/코스 로딩을
+  // 막지 않도록 별도 effect로 느슨하게 붙입니다. 이름으로 매칭하는 조회 맵을 만듭니다.
+  useEffect(() => {
+    let active = true;
+    getBrands()
+      .then((brands) => {
+        if (active) setPlaceLogos(buildBrandLogoMap(brands));
+      })
+      .catch((err) => {
+        console.warn(
+          "[ResultScreen] Brand logos unavailable, pings show name only:",
+          err?.message || err,
+        );
       });
     return () => {
       active = false;
@@ -635,6 +656,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
             route={routeState.itinerary}
             routeFloorIds={routeState.itinerary?.floorIds}
             routeGraph={routeState.graph}
+            placeLogos={placeLogos}
             overlayOccluderRef={chatOccluderRef}
           />
         </div>
