@@ -6,6 +6,7 @@ import {
   newsItems,
 } from "@/lib/fixtures/news";
 import { getServerApiBaseUrl } from "./server-base-url";
+import { getServerApiHeaders } from "./server-language";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -189,11 +190,12 @@ export function normalizeNewsDetail(feed) {
  */
 export async function fetchNewsFeedsServer({ page = 0, size = 20 } = {}) {
   try {
+    const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(
       `${getBaseUrl()}/api/v1/news?page=${page}&size=${size}`,
       {
         cache: "no-store",
-        headers: { Accept: "application/json" },
+        headers,
       },
     );
 
@@ -220,11 +222,12 @@ export async function getNewsDetailBySlug(slug) {
   if (!slug) return null;
 
   try {
+    const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(
       `${getBaseUrl()}/api/v1/news/slug/${encodeURIComponent(slug)}`,
       {
         cache: "no-store",
-        headers: { Accept: "application/json" },
+        headers,
       },
     );
 
@@ -254,9 +257,10 @@ export async function getNewsDetailById(newsId) {
   if (!newsId) return null;
 
   try {
+    const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(`${getBaseUrl()}/api/v1/news/${newsId}`, {
       cache: "no-store",
-      headers: { Accept: "application/json" },
+      headers,
     });
 
     if (res.ok) {
@@ -279,9 +283,10 @@ export async function getNewsDetailById(newsId) {
  */
 export async function getNewsSitemap() {
   try {
+    const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(`${getBaseUrl()}/api/v1/news/sitemap`, {
       cache: "no-store",
-      headers: { Accept: "application/json" },
+      headers,
     });
 
     if (res.ok) {
