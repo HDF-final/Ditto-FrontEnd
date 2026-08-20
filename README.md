@@ -321,18 +321,18 @@ Tailwind CSS 4를 사용하며 전역 디자인 토큰은 `src/app/globals.css`�
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=/api/v1
-NEXT_PUBLIC_LOCAL_USER_ID=1
-API_PROXY_TARGET=http://localhost:8080
+NEXT_PUBLIC_LOCAL_USER_ID=
+API_PROXY_TARGET=http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com
 ```
 
 | 키 | 설명 |
 | --- | --- |
 | `NEXT_PUBLIC_API_BASE_URL` | 브라우저가 호출할 API 기준 경로. 기본값 `/api/v1`. |
-| `NEXT_PUBLIC_LOCAL_USER_ID` | 로컬 인증 대체용 `X-User-Id`. 운영 빌드에서는 사용하지 않습니다. |
-| `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값 `http://localhost:8080`. |
+| `NEXT_PUBLIC_LOCAL_USER_ID` | 로컬 Spring의 `local` 프로필을 의도적으로 시험할 때만 넣는 `X-User-Id`. 기본값은 비워 둡니다. |
+| `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값은 배포된 Backend ALB입니다. |
 
 `NEXT_PUBLIC_` 접두사가 붙은 값은 브라우저 번들에 포함되므로 비밀 키를 넣으면 안 됩니다.
-개발 환경에서는 `NEXT_PUBLIC_LOCAL_USER_ID`를 `X-User-Id` 헤더로 전달하며, 운영 인증이 연결되면 제거합니다.
+`NEXT_PUBLIC_LOCAL_USER_ID`가 명시된 개발 환경에서만 `X-User-Id` 헤더를 전달합니다. 배포 Backend를 프록시할 때는 비워 두고 실제 `JSESSIONID` 세션으로 인증합니다.
 브라우저의 `/api/*` 요청은 Next.js rewrite를 통해 `API_PROXY_TARGET`으로 전달합니다.
 
 ## 라이브러리 관리
