@@ -193,6 +193,61 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
           return normalizePublicCourseDetail(json.data);
         }
       }
+
+      // 1-2. If not a community post, check if it is a user-created course (GET /courses/{id})
+      const courseUrl = `${baseUrl}/api/v1/courses/${postIdOrSlug}`;
+      const courseRes = await fetch(courseUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (courseRes.ok) {
+        const json = await courseRes.json();
+        const courseData = json?.data;
+        if (courseData) {
+          const places = (courseData.places || []).map((p, idx) => ({
+            placeId: p.placeId,
+            floor: p.floor || p.floorCode || `${idx + 1}F`,
+            name: p.name || `추천 장소 #${p.placeId || idx + 1}`,
+            description: p.description || "더현대 서울 내 추천 방문 스팟",
+          }));
+
+          const num = parseInt(String(postIdOrSlug), 10) || 0;
+          return {
+            postId: courseData.courseId || postIdOrSlug,
+            courseId: courseData.courseId,
+            slug: String(postIdOrSlug),
+            country: "KR",
+            name: "DITTO 여행자",
+            hash: "#나만의코스 #더현대서울",
+            title: courseData.name || courseData.title || "나만의 맞춤 코스",
+            description:
+              courseData.description ||
+              (places.length > 0
+                ? places.map((p) => p.name).join(" → ")
+                : "더현대 서울 맞춤 코스입니다."),
+            image:
+              courseData.representativeImageUrl ||
+              COURSE_IMAGES[num % COURSE_IMAGES.length],
+            likes: 0,
+            commentsCount: 0,
+            saves: 0,
+            gradient: getGradientForId(postIdOrSlug),
+            label: "THE HYUNDAI SEOUL",
+            stops: places.length > 0 ? places : [
+              { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
+              { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
+              { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
+            ],
+            note: courseData.description || "내가 생성한 맞춤 코스입니다.",
+            reviews: [],
+            isRealDb: true,
+          };
+        }
+      }
     } catch (error) {
       console.error(`[Community Server] Detail fetch failed for ${postIdOrSlug}:`, error.message);
     }
@@ -202,6 +257,35 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
   const fixture = getDefaultCommunityCourse(postIdOrSlug);
   if (fixture) {
     return fixture;
+  }
+
+  // 3. Fallback for any valid numeric id (so users clicking newly created courses never see 404)
+  if (isNumeric) {
+    const num = parseInt(String(postIdOrSlug), 10) || 0;
+    return {
+      postId: Number(postIdOrSlug),
+      courseId: Number(postIdOrSlug),
+      slug: String(postIdOrSlug),
+      country: "KR",
+      name: "DITTO 여행자",
+      hash: "#나만의코스 #더현대서울",
+      title: "나만의 맞춤 코스",
+      description: "더현대 서울 맞춤 추천 코스입니다.",
+      image: COURSE_IMAGES[num % COURSE_IMAGES.length],
+      likes: 0,
+      commentsCount: 0,
+      saves: 0,
+      gradient: getGradientForId(postIdOrSlug),
+      label: "THE HYUNDAI SEOUL",
+      stops: [
+        { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
+        { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
+        { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
+      ],
+      note: "내가 생성한 맞춤 코스입니다.",
+      reviews: [],
+      isRealDb: false,
+    };
   }
 
   return null;

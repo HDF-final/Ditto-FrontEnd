@@ -11,6 +11,7 @@ import {
   unbookmarkCourse,
 } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 
@@ -57,15 +58,24 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       : rank || 1);
 
   const href = `/community/${card.postId || card.slug || rank || "1"}`;
-  const image =
-    card.image ||
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
-
   const mounted = useIsMounted();
+  const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
 
   const slugKey = card.slug ? String(card.slug) : "";
   const numKey = String(card.postId || postId || rank || "1");
   const postIdentifier = slugKey || numKey;
+
+  const customImage = mounted
+    ? getPostImage(card.postId) ||
+      getPostImage(card.courseId) ||
+      getPostImage(slugKey) ||
+      getPostImage(numKey)
+    : null;
+
+  const image =
+    customImage ||
+    card.image ||
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),

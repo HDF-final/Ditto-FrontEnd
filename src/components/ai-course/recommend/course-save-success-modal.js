@@ -5,8 +5,12 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Check } from "./recommend-icons";
 
-export function CourseSaveSuccessModal({ open, courseName, onClose }) {
-  const t = useTranslations("aiCourse");
+export function CourseSaveSuccessModal({
+  open,
+  courseName,
+  isUpdate = false,
+  onClose,
+}) {
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +26,11 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const title = isUpdate ? "코스 수정 완료!" : "코스 저장 완료!";
+  const description = isUpdate
+    ? "의 변경사항을 마이페이지에 저장했어요."
+    : "을(를) 마이페이지에 저장했어요.";
 
   return (
     <div
@@ -45,13 +54,16 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
           id="course-save-title"
           className="mt-5 text-[22px] font-black text-[#1a142e]"
         >
-          {t("saveComplete")}
+          {title}
         </h2>
         <p
           id="course-save-description"
           className="mt-2 text-[13px] leading-relaxed text-[#6b6685]"
         >
-          {t("savedToMypage", { name: courseName || t("unnamedCourse") })}
+          <strong className="font-bold text-[#1a142e]">
+            {courseName || "이름 없는 코스"}
+          </strong>
+          {description}
         </p>
         <div className="mt-7 grid grid-cols-2 gap-2.5">
           <button

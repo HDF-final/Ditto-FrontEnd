@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 import {
@@ -27,9 +28,10 @@ export function MypageCourseCard({ course, onAuthRequired }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
+  const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
 
   const slugKey = course.slug ? String(course.slug) : "";
-  const numKey = String(course.postId || course.id || "1");
+  const numKey = String(course.postId || course.courseId || course.id || "1");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -52,8 +54,18 @@ export function MypageCourseCard({ course, onAuthRequired }) {
   const baseSaves = course.saves ?? 0;
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
 
-  const href = course.href || `/community/${slugKey || numKey}`;
+  const href = course.href || `/community/${numKey || slugKey}`;
+
+  const customImage = mounted
+    ? getPostImage(course.postId) ||
+      getPostImage(course.courseId) ||
+      getPostImage(course.id) ||
+      getPostImage(slugKey) ||
+      getPostImage(numKey)
+    : null;
+
   const image =
+    customImage ||
     course.image ||
     "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
 

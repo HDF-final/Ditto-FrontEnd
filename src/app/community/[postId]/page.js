@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { CommunityDetailActions } from "./community-detail-actions";
-import { getLocale, getTranslations } from "next-intl/server";
+import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 
 export const dynamic = "force-dynamic";
 
@@ -204,21 +204,25 @@ export default async function CommunityCourseDetailPage({ params }) {
       <section className="px-10 sm:px-14 pb-16 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
           <div className="relative flex aspect-[4/3] lg:aspect-[3/4] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
-            <img
-              src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
-              alt={course.title}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            <div className="absolute inset-0">
+              <CommunityDetailHeroImage
+                postId={course.postId || postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt={course.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none" />
             <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
-            <div className="relative z-10 p-6">
+            <div className="relative z-10 p-6 pointer-events-none">
               <span className="rounded-full bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs border border-white/10">
                 {course.label || "THE HYUNDAI SEOUL"}
               </span>
             </div>
 
-            <div className="relative z-10 p-6 flex flex-col gap-1">
+            <div className="relative z-10 p-6 flex flex-col gap-1 pointer-events-none">
               <h1 className="text-2xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 {course.title}
               </h1>
@@ -258,14 +262,18 @@ export default async function CommunityCourseDetailPage({ params }) {
         <div className="mx-auto max-w-7xl grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
           <StopList stops={course.stops} t={t} />
           <div className="relative min-h-[260px] overflow-hidden rounded-[28px] bg-slate-950 shadow-md">
-            <img
-              src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
-              alt={t("coverPhoto")}
-              className="h-full w-full object-cover"
-            />
+            <div className="absolute inset-0">
+              <CommunityDetailHeroImage
+                postId={course.postId || postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt="코스 대표 사진"
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-            <span className="absolute bottom-4 left-5 text-xs font-bold text-white/90 drop-shadow-sm">
-              {t("coverPhoto")} · {course.stops?.[0]?.name || "The Hyundai Seoul"}
+            <span className="absolute bottom-4 left-5 z-10 text-xs font-bold text-white/90 drop-shadow-sm pointer-events-none">
+              코스 대표 사진 · {course.stops?.[0]?.name || "더현대 서울"}
             </span>
           </div>
         </div>
