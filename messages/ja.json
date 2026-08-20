@@ -133,8 +133,9 @@
     "viewAll": "ニュースをすべて見る",
     "copied": "リンクをコピーしました！",
     "share": "記事をシェア",
-    "copyToast": "記事のリンクをクリップボードにコピーしました！"
-    ,"originalArticle": "元の記事"
+    "copyToast": "記事のリンクをクリップボードにコピーしました！",
+    "originalArticle": "元の記事",
+    "viewLargePhoto": "写真を拡大"
   },
   "auth": {
     "welcomeBack": "おかえりなさい",
@@ -304,7 +305,7 @@
     "passwordChange": "パスワード変更",
     "optional": "（任意）",
     "passwordPlaceholder": "新しいパスワード（空欄なら変更なし）",
-    "persona": "ショッピングタイプ（ペルソナ）",
+    "persona": "ショッピングタイプ",
     "cancel": "キャンセル",
     "saving": "保存中...",
     "save": "保存する",

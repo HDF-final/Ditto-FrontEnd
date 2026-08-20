@@ -57,6 +57,9 @@ export function LoginForm() {
 
     try {
       const userData = await login({ email, password });
+      if (typeof window !== "undefined") {
+        window.sessionStorage?.removeItem("ditto_logged_out");
+      }
       if (userData) {
         setUser(userData);
       }

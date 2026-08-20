@@ -8,6 +8,7 @@ import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
 import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import {
   deleteCoursePost,
+  getComments,
   getPublicCourses,
   updateCoursePost,
 } from "@/lib/api/community";
@@ -202,6 +203,7 @@ export function MypageView() {
   const [courses, setCourses] = useState([]);
   const [sharedCourses, setSharedCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
+  const [myComments, setMyComments] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("내 코스");
@@ -371,8 +373,49 @@ export function MypageView() {
               currentUserName,
             );
             setSharedCourses(normalizedShared);
+
+            // Fetch user's written comments for "활동" tab
+            const userCommentsList = [];
+            const commentsPromises = publicList.slice(0, 30).map(async (post) => {
+              try {
+                const pId = post.postId || post.id;
+                const res = await getComments(pId);
+                const list = Array.isArray(res) ? res : res?.content || [];
+                list.forEach((c) => {
+                  const isMine =
+                    c.isMine ||
+                    (userProfile && (
+                      (c.userId && Number(c.userId) === Number(userProfile.id || userProfile.userId)) ||
+                      (userProfile.nickname && c.nickname === userProfile.nickname) ||
+                      (userProfile.name && c.nickname === userProfile.name)
+                    )) ||
+                    c.nickname === currentUserName ||
+                    c.nickname === "야야호";
+
+                  if (isMine) {
+                    userCommentsList.push({
+                      commentId: c.commentId || c.id || `${pId}-${c.createdAt}`,
+                      postId: pId,
+                      postTitle: post.title || "추천 커뮤니티 코스",
+                      content: c.content,
+                      createdAt: c.createdAt,
+                      likeCount: c.likeCount ?? c.likes ?? 0,
+                      author: c.nickname || currentUserName,
+                    });
+                  }
+                });
+              } catch {
+                // Ignore individual comment fetch errors
+              }
+            });
+
+            await Promise.allSettled(commentsPromises);
+            if (isMounted) {
+              setMyComments(userCommentsList);
+            }
           } else {
             setSharedCourses([]);
+            setMyComments([]);
           }
 
           if (bookmarksResult.status === "fulfilled") {
@@ -590,13 +633,11 @@ export function MypageView() {
       actionLabel: t("browseCommunity"),
       actionHref: "/community",
     },
-    후기: {
-      title: "아직 작성한 후기가 없어요",
-      description: "방문한 코스의 후기를 남기면 이곳에서 확인할 수 있어요.",
-    },
     활동: {
-      title: "아직 표시할 활동이 없어요",
-      description: "DITTO에서 코스를 만들고 커뮤니티에 참여해보세요.",
+      title: "아직 작성한 댓글이 없어요",
+      description: "여행자 커뮤니티 코스에 첫 댓글을 남겨보세요!",
+      actionLabel: "커뮤니티 둘러보기",
+      actionHref: "/community",
     },
   }[activeTab];
 
@@ -620,27 +661,45 @@ export function MypageView() {
                     ? likedCourses.length
                     : tab === "저장한 코스"
                       ? bookmarkedCourses.length
-                      : null;
+                      : tab === "활동"
+                        ? myComments.length
+                        : null;
+
+            const isTabActive = activeTab === tab;
+            const activeColor = displayProfile.persona.badgeText;
 
             return (
               <button
                 key={tab}
                 type="button"
                 onClick={() => handleTabChange(tab)}
+                style={isTabActive ? { borderBottomColor: activeColor, color: activeColor } : undefined}
                 className={`-mb-px flex items-center gap-1.5 border-b-2 pb-3.5 text-[15px] font-black transition cursor-pointer ${
-                  activeTab === tab
-                    ? "border-brand text-brand"
+                  isTabActive
+                    ? ""
                     : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                <span>{tab === "내 코스" ? t("myCourses") : tab === "찜한 코스" ? t("likedCourses") : tab === "저장한 코스" ? t("savedCourses") : tab}</span>
+                <span>
+                  {tab === "내 코스"
+                    ? t("myCourses")
+                    : tab === "찜한 코스"
+                      ? t("likedCourses")
+                      : tab === "저장한 코스"
+                        ? t("savedCourses")
+                        : tab}
+                </span>
                 {count !== null && (
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-bold transition ${
-                      activeTab === tab
-                        ? "bg-brand text-white"
-                        : "bg-surface-soft text-ink-muted"
-                    }`}
+                    style={
+                      isTabActive
+                        ? { backgroundColor: activeColor, color: "#ffffff" }
+                        : {
+                            backgroundColor: displayProfile.persona.badgeBg,
+                            color: displayProfile.persona.badgeText,
+                          }
+                    }
+                    className="rounded-full px-2 py-0.5 text-xs font-bold transition"
                   >
                     {count}
                   </span>
@@ -656,9 +715,78 @@ export function MypageView() {
           </div>
         )}
 
-        {/* 3:4 Cards Grid (10% Reduced Size) */}
+        {/* 3:4 Cards Grid or Activity Comments List */}
         <div className="max-w-[1020px] mx-auto">
-          {paginatedCourses.length > 0 ? (
+          {activeTab === "활동" ? (
+            myComments.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {myComments.map((comment) => (
+                  <div
+                    key={comment.commentId}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 shadow-xs hover:border-brand/40 transition group"
+                  >
+                    <div className="flex items-start gap-4 min-w-0 flex-1">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand font-black">
+                        <svg
+                          className="size-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link
+                            href={`/community/${comment.postId}`}
+                            className="truncate text-xs font-bold text-brand hover:underline"
+                          >
+                            {comment.postTitle}
+                          </Link>
+                          <span className="text-[11px] text-ink-muted">
+                            {comment.createdAt
+                              ? new Date(comment.createdAt).toLocaleDateString(locale)
+                              : "방금 전"}
+                          </span>
+                        </div>
+                        <p className="mt-1.5 text-sm font-medium text-ink break-words">
+                          {comment.content}
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/community/${comment.postId}`}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand hover:text-brand transition shrink-0 self-end sm:self-center cursor-pointer shadow-2xs"
+                    >
+                      <span>코스 보기</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-[32px] border border-dashed border-line bg-white p-16 text-center shadow-xs">
+                <h3 className="text-xl font-black text-ink">{emptyState?.title}</h3>
+                <p className="mt-2 text-sm text-ink-muted">
+                  {emptyState?.description}
+                </p>
+                {emptyState?.actionLabel && emptyState?.actionHref && (
+                  <Link
+                    href={emptyState.actionHref}
+                    className="mt-6 rounded-full bg-brand px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
+                  >
+                    {emptyState.actionLabel}
+                  </Link>
+                )}
+              </div>
+            )
+          ) : paginatedCourses.length > 0 ? (
             <>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {paginatedCourses.map((course) =>

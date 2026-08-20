@@ -133,8 +133,9 @@
     "viewAll": "뉴스피드 전체보기",
     "copied": "링크 복사 완료!",
     "share": "기사 공유",
-    "copyToast": "기사 링크가 클립보드에 복사되었습니다!"
-    ,"originalArticle": "원문 기사"
+    "copyToast": "기사 링크가 클립보드에 복사되었습니다!",
+    "originalArticle": "원문 기사",
+    "viewLargePhoto": "사진 크게 보기"
   },
   "auth": {
     "welcomeBack": "다시 오셨네요",
@@ -304,7 +305,7 @@
     "passwordChange": "비밀번호 변경",
     "optional": "(선택)",
     "passwordPlaceholder": "변경할 비밀번호 (미입력 시 기존 유지)",
-    "persona": "쇼핑 타입 (페르소나)",
+    "persona": "쇼핑 타입",
     "cancel": "취소",
     "saving": "저장 중...",
     "save": "저장하기",

@@ -107,6 +107,9 @@ export function SignupForm() {
       // 2. Establish login session
       try {
         const loginResult = await login({ email, password });
+        if (typeof window !== "undefined") {
+          window.sessionStorage?.removeItem("ditto_logged_out");
+        }
         if (loginResult) {
           setUser(loginResult);
         }
