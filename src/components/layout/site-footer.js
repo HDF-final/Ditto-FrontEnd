@@ -31,8 +31,8 @@ const footerColumns = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-white px-10 sm:px-14 pb-[55px] pt-[62px] lg:px-52 xl:px-60 2xl:px-72">
-      <div className="flex flex-wrap gap-x-[62px] gap-y-10">
+    <footer className="bg-white px-10 pb-5 pt-[34px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
+      <div className="flex flex-wrap gap-x-[62px] gap-y-5">
         <div className="min-w-[150px]">
           <Link href="/" className="block" aria-label="DITTO 홈">
             <Image
@@ -48,7 +48,7 @@ export function SiteFooter() {
           </p>
         </div>
         {footerColumns.map((column) => (
-          <div key={column.title} className="flex min-w-[70px] flex-col gap-[13px]">
+          <div key={column.title} className="flex min-w-[70px] flex-col gap-[6px]">
             <p className="text-xs font-black leading-none text-ink">{column.title}</p>
             {column.links.map((link) => (
               <Link
@@ -62,8 +62,8 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="mt-[86px] h-px bg-line" />
-      <div className="mt-6 flex flex-col gap-3 text-[10px] font-semibold text-ink-muted sm:flex-row sm:items-center sm:gap-7">
+      <div className="mt-6 h-px bg-line" />
+      <div className="mt-2 flex flex-col gap-2 text-[10px] font-semibold text-ink-muted sm:flex-row sm:items-center sm:gap-5">
         <span>© 2026 DITTO. All rights reserved.</span>
         <div className="flex flex-wrap gap-6">
           <Link href="/news">이용약관</Link>
