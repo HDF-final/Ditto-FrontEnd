@@ -1,19 +1,15 @@
-"use client";
-
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 
 export function MypageProfile({ profile, stats, onEditClick }) {
-  const t = useTranslations("mypage");
   const persona = profile.persona;
 
   return (
-    <section className="border-b border-line bg-white px-10 sm:px-14 pt-[60px] lg:px-52 xl:px-60 2xl:px-72">
-      <div className="flex flex-col gap-10 pb-[60px]">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div className="flex items-center gap-5">
+    <section className="border-b border-line bg-white px-5 pt-6 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
+      <div className="flex flex-col gap-5 pb-6 lg:gap-10 lg:pb-[60px]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+          <div className="flex items-center gap-3.5 lg:gap-5">
             <div
-              className="flex size-[78px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200"
+              className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200 lg:size-[78px]"
               style={{ backgroundColor: persona.bgColor || "#fff1e6" }}
             >
               <Image
@@ -21,25 +17,33 @@ export function MypageProfile({ profile, stats, onEditClick }) {
                 alt={persona.name}
                 width={66}
                 height={66}
-                className="h-[66px] w-[66px] object-contain"
+                className="h-[54px] w-[54px] object-contain lg:h-[66px] lg:w-[66px]"
                 unoptimized
               />
             </div>
             <div>
-              <h1 className="text-[26px] font-black text-ink">{profile.name}</h1>
+              <h1 className="text-xl font-black text-ink lg:text-[26px]">{profile.name}</h1>
               <p className="mt-1 text-sm font-medium text-ink-muted">
                 {profile.description}
               </p>
               <div
-                className="mt-3 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 transition-colors duration-200"
+                className="mt-3 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition-colors duration-200"
                 style={{
-                  backgroundColor: persona.badgeBg || "#fdf2f8",
-                  borderColor: persona.badgeBorder || "#fbcfe8",
+                  backgroundColor: persona.badgeBg || "#f5f3ff",
+                  borderColor: persona.badgeBorder || "#e0d8ff",
                 }}
               >
+                <Image
+                  src={persona.image}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="size-[22px] object-contain"
+                  unoptimized
+                />
                 <span
                   className="text-sm font-black"
-                  style={{ color: persona.badgeText || "#db2777" }}
+                  style={{ color: persona.badgeText || "#5c2ef5" }}
                 >
                   {persona.name}
                 </span>
@@ -52,28 +56,19 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           <button
             type="button"
             onClick={onEditClick}
-            style={{
-              backgroundColor: persona.badgeBg || "#fdf2f8",
-              borderColor: persona.badgeBorder || "#fbcfe8",
-              color: persona.badgeText || "#db2777",
-            }}
-            className="w-fit rounded-full border px-6 py-3 text-sm font-black transition hover:opacity-85 cursor-pointer shadow-xs"
+            className="w-full cursor-pointer rounded-full border border-[#e0d8ff] bg-brand-soft px-5 py-2.5 text-sm font-black text-brand transition hover:bg-[#e7ddff] lg:w-fit lg:px-6 lg:py-3"
           >
-            {t("editProfile")}
+            프로필 편집
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2 lg:gap-5">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              style={{
-                backgroundColor: persona.badgeBg || "#fdf2f8",
-                borderColor: persona.badgeBorder || "#fbcfe8",
-              }}
-              className="rounded-[20px] border p-6 transition-colors duration-200"
+              className="rounded-[16px] border border-line bg-surface-soft p-3 text-center lg:rounded-[20px] lg:p-6"
             >
-              <p className="text-[28px] font-black leading-none text-ink">
+              <p className="text-xl font-black leading-none text-ink lg:text-[28px]">
                 {stat.value}
               </p>
               <p className="mt-2 text-xs font-medium text-ink-muted">

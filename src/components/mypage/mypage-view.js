@@ -1,29 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
-import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
-import {
-  deleteCoursePost,
-  getComments,
-  getPublicCourses,
-  updateCoursePost,
-} from "@/lib/api/community";
+import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
-import { compressImage } from "@/lib/utils/image-compression";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
-import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
 import { mypageTabs } from "@/lib/fixtures/mypage";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import { useLocale, useTranslations } from "next-intl";
 
 const ITEMS_PER_PAGE = 3;
 
@@ -40,56 +30,6 @@ function normalizePage(data) {
       ? totalElements
       : content.length,
   };
-}
-
-function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러버") {
-  const userCourseMap = new Map();
-  (userCourses || []).forEach((c) => {
-    userCourseMap.set(Number(c.courseId || c.id || c.postId), c);
-  });
-
-  const list = Array.isArray(publicPosts)
-    ? publicPosts
-    : Array.isArray(publicPosts?.content)
-      ? publicPosts.content
-      : [];
-
-  return list
-    .filter((post) => userCourseMap.has(Number(post.courseId)))
-    .map((post) => {
-      const linkedCourse = userCourseMap.get(Number(post.courseId));
-      const stops = linkedCourse?.stops || [];
-      const spotCount =
-        linkedCourse?.spotCount ||
-        (stops.length > 0 ? `${stops.length}개 스팟` : "맞춤 코스");
-
-      return {
-        id: post.postId,
-        postId: post.postId,
-        courseId: post.courseId,
-        slug: String(post.postId),
-        href: `/community/${post.postId}`,
-        badge: "SHARED",
-        name: userName,
-        country: "KR",
-        flag: "KR",
-        hash: "#공유한코스 #더현대",
-        title: post.title || linkedCourse?.title || "공유한 코스",
-        description:
-          post.content ||
-          linkedCourse?.description ||
-          "커뮤니티에 공유한 코스입니다.",
-        image:
-          post.representativeImageUrl ||
-          linkedCourse?.image ||
-          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-        likes: Number(post.likeCount) || 0,
-        comments: Number(post.commentCount) || 0,
-        saves: Number(post.bookmarkCount) || 0,
-        spotCount,
-        stops,
-      };
-    });
 }
 
 async function hydrateMyCourses(data, userName = "디또러버") {
@@ -119,7 +59,7 @@ async function hydrateMyCourses(data, userName = "디또러버") {
       return {
         id: course.courseId,
         postId: course.courseId,
-        href: `/community/${course.courseId}`,
+        href: `/ai-course?courseId=${course.courseId}`,
         badge: "MY COURSE",
         name: userName,
         country: "KR",
@@ -184,9 +124,6 @@ function normalizeBookmarks(data) {
 }
 
 export function MypageView() {
-  const t = useTranslations("mypage");
-  const communityT = useTranslations("community");
-  const locale = useLocale();
   const router = useRouter();
   const authUser = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -201,124 +138,13 @@ export function MypageView() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [sharedCourses, setSharedCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
-  const [myComments, setMyComments] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("내 코스");
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState(null);
-  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
-  const [postToDelete, setPostToDelete] = useState(null);
-  const [isDeletingPost, setIsDeletingPost] = useState(false);
-  const [postToEdit, setPostToEdit] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [editPhotos, setEditPhotos] = useState([]);
-  const [isEditingPost, setIsEditingPost] = useState(false);
-  const fileInputRef = useRef(null);
-  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
-  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
-
-  const handleEditFileChange = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    for (const file of files) {
-      try {
-        const compressed = await compressImage(file);
-        if (compressed) {
-          setEditPhotos((prev) => [...prev, compressed].slice(0, 10));
-        }
-      } catch (err) {
-        console.warn("[Edit Photo Compress] Error:", err);
-      }
-    }
-
-    e.target.value = "";
-  };
-
-  const handleRemoveEditPhoto = (indexToRemove) => {
-    setEditPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
-  };
-
-  const handleConfirmDeleteCourse = async () => {
-    if (!courseToDelete) return;
-    const targetId = courseToDelete.courseId || courseToDelete.id;
-    setIsDeletingCourse(true);
-    try {
-      await deleteCourse(targetId);
-      setCourses((prev) => prev.filter((c) => (c.courseId || c.id) !== targetId));
-      setCourseTotal((prev) => Math.max(0, prev - 1));
-      setCourseToDelete(null);
-    } catch (err) {
-      alert(err.message || "코스를 삭제하지 못했습니다.");
-    } finally {
-      setIsDeletingCourse(false);
-    }
-  };
-
-  const handleConfirmDeletePost = async () => {
-    if (!postToDelete) return;
-    const targetId = postToDelete.postId || postToDelete.id;
-    setIsDeletingPost(true);
-    try {
-      await deleteCoursePost(targetId);
-      setSharedCourses((prev) =>
-        prev.filter((p) => (p.postId || p.id) !== targetId),
-      );
-      setPostToDelete(null);
-    } catch (err) {
-      alert(err.message || "공유한 코스 게시글을 삭제하지 못했습니다.");
-    } finally {
-      setIsDeletingPost(false);
-    }
-  };
-
-  const handleConfirmEditPost = async (e) => {
-    e?.preventDefault();
-    if (!postToEdit) return;
-    const targetId = postToEdit.postId || postToEdit.id;
-    if (!editTitle.trim()) {
-      alert("게시글 제목을 입력해주세요.");
-      return;
-    }
-    setIsEditingPost(true);
-    try {
-      await updateCoursePost(targetId, {
-        title: editTitle.trim(),
-        content: editContent.trim(),
-        representativeImageUrl: editPhotos[0] || undefined,
-      });
-
-      // Update post images store
-      setPostImages(targetId, editPhotos);
-      if (postToEdit.courseId) {
-        setPostImages(postToEdit.courseId, editPhotos);
-      }
-
-      setSharedCourses((prev) =>
-        prev.map((p) =>
-          (p.postId || p.id) === targetId
-            ? {
-                ...p,
-                title: editTitle.trim(),
-                description: editContent.trim(),
-                image: editPhotos[0] || p.image,
-              }
-            : p,
-        ),
-      );
-      setPostToEdit(null);
-    } catch (err) {
-      alert(err.message || "게시글 수정에 실패했습니다.");
-    } finally {
-      setIsEditingPost(false);
-    }
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -339,83 +165,23 @@ export function MypageView() {
       }
 
       try {
-        const [myCoursesResult, bookmarksResult, publicCoursesResult] = await Promise.allSettled([
+        const [myCoursesResult, bookmarksResult] = await Promise.allSettled([
           getMyCourses(),
           getMyBookmarks(),
-          getPublicCourses({ page: 0, size: 100 }),
         ]);
 
         if (isMounted) {
           const failures = [];
-          let hydratedCourses = [];
 
           if (myCoursesResult.status === "fulfilled") {
             const hydrated = await hydrateMyCourses(myCoursesResult.value, currentUserName);
             if (!isMounted) return;
-            hydratedCourses = hydrated.courses;
             setCourses(hydrated.courses);
             setCourseTotal(hydrated.totalElements);
           } else {
             setCourses([]);
             setCourseTotal(0);
             failures.push("내 코스");
-          }
-
-          if (publicCoursesResult.status === "fulfilled") {
-            const publicList = Array.isArray(publicCoursesResult.value?.content)
-              ? publicCoursesResult.value.content
-              : Array.isArray(publicCoursesResult.value)
-                ? publicCoursesResult.value
-                : [];
-            const normalizedShared = normalizeSharedCourses(
-              publicList,
-              hydratedCourses,
-              currentUserName,
-            );
-            setSharedCourses(normalizedShared);
-
-            // Fetch user's written comments for "활동" tab
-            const userCommentsList = [];
-            const commentsPromises = publicList.slice(0, 30).map(async (post) => {
-              try {
-                const pId = post.postId || post.id;
-                const res = await getComments(pId);
-                const list = Array.isArray(res) ? res : res?.content || [];
-                list.forEach((c) => {
-                  const isMine =
-                    c.isMine ||
-                    (userProfile && (
-                      (c.userId && Number(c.userId) === Number(userProfile.id || userProfile.userId)) ||
-                      (userProfile.nickname && c.nickname === userProfile.nickname) ||
-                      (userProfile.name && c.nickname === userProfile.name)
-                    )) ||
-                    c.nickname === currentUserName ||
-                    c.nickname === "야야호";
-
-                  if (isMine) {
-                    userCommentsList.push({
-                      commentId: c.commentId || c.id || `${pId}-${c.createdAt}`,
-                      postId: pId,
-                      postTitle: post.title || "추천 커뮤니티 코스",
-                      content: c.content,
-                      createdAt: c.createdAt,
-                      likeCount: c.likeCount ?? c.likes ?? 0,
-                      author: c.nickname || currentUserName,
-                    });
-                  }
-                });
-              } catch {
-                // Ignore individual comment fetch errors
-              }
-            });
-
-            await Promise.allSettled(commentsPromises);
-            if (isMounted) {
-              setMyComments(userCommentsList);
-            }
-          } else {
-            setSharedCourses([]);
-            setMyComments([]);
           }
 
           if (bookmarksResult.status === "fulfilled") {
@@ -428,13 +194,13 @@ export function MypageView() {
 
           setLoadError(
             failures.length > 0
-              ? t("partialLoadFailed", { lists: failures.join(", ") })
+              ? `${failures.join(", ")} 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.`
               : "",
           );
         }
       } catch {
         if (isMounted) {
-          setLoadError(t("loadFailed"));
+          setLoadError("코스 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.");
         }
       } finally {
         if (isMounted) {
@@ -448,7 +214,7 @@ export function MypageView() {
     return () => {
       isMounted = false;
     };
-  }, [setUser, t]);
+  }, [setUser]);
 
   // If not logged in after loading, redirect to /login immediately
   useEffect(() => {
@@ -529,11 +295,10 @@ export function MypageView() {
   // Displayed courses list based on active tab
   const displayedCourses = useMemo(() => {
     if (activeTab === "내 코스") return courses;
-    if (activeTab === "공유한 코스") return sharedCourses;
     if (activeTab === "찜한 코스") return likedCourses;
     if (activeTab === "저장한 코스") return bookmarkedCourses;
     return [];
-  }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
+  }, [activeTab, courses, likedCourses, bookmarkedCourses]);
 
   // Pagination calculation: 3 items per page (1 row of 3) - Unconditional Hook Call
   const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
@@ -558,7 +323,7 @@ export function MypageView() {
       <main className="flex min-h-[60vh] items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
-          <p className="text-xs font-bold text-ink-muted">{t("loading")}</p>
+          <p className="text-xs font-bold text-ink-muted">마이페이지 불러오는 중...</p>
         </div>
       </main>
     );
@@ -587,8 +352,8 @@ export function MypageView() {
     personaData.imageSrc;
 
   const displayProfile = {
-    name: currentUser.nickname || currentUser.name || t("defaultUser"),
-    description: currentUser.description || `${currentUser.country || "KR"} · ${t("explorer")}`,
+    name: currentUser.nickname || currentUser.name || "디또러버",
+    description: currentUser.description || `${currentUser.country || "한국"} · DITTO 탐험가`,
     persona: {
       id: personaData.id,
       name: personaData.name,
@@ -602,42 +367,37 @@ export function MypageView() {
   };
 
   const displayStats = [
-    { value: courseTotal.toLocaleString(locale || "ko-KR"), label: t ? t("createdCourses") : "만든 코스" },
-    { value: sharedCourses.length.toLocaleString(locale || "ko-KR"), label: "공유한 코스" },
-    { value: likedCourses.length.toLocaleString(locale || "ko-KR"), label: t ? t("likedCourses") : "찜한 코스" },
-    { value: bookmarkedCourses.length.toLocaleString(locale || "ko-KR"), label: t ? t("savedCourses") : "저장한 코스" },
+    { value: courseTotal.toLocaleString("ko-KR"), label: "만든 코스" },
+    { value: likedCourses.length.toLocaleString("ko-KR"), label: "찜한 코스" },
+    { value: bookmarkedCourses.length.toLocaleString("ko-KR"), label: "저장한 코스" },
   ];
 
   const emptyState = {
     "내 코스": {
-      title: t("emptyMineTitle"),
-      description: t("emptyMineDescription"),
-      actionLabel: t("createCourse"),
+      title: "아직 생성한 코스가 없어요",
+      description: "AI 추천 또는 직접 추가로 나만의 첫 코스를 만들어보세요!",
+      actionLabel: "+ 코스 만들러 가기",
       actionHref: "/ai-course",
     },
-    "공유한 코스": {
-      title: "아직 커뮤니티에 공유한 코스가 없어요",
-      description: "내가 만든 맞춤 코스를 여행자 커뮤니티에 공유해보세요!",
-      actionLabel: "코스 공유하러 가기",
-      actionHref: "/community/share",
-    },
     "찜한 코스": {
-      title: t("emptyLikedTitle"),
-      description: t("emptyLikedDescription"),
-      actionLabel: t("browseCommunity"),
+      title: "아직 찜한(좋아요한) 코스가 없어요",
+      description: "커뮤니티에서 마음에 드는 코스를 찾아 좋아요를 눌러보세요.",
+      actionLabel: "커뮤니티 둘러보기",
       actionHref: "/community",
     },
     "저장한 코스": {
-      title: t("emptySavedTitle"),
-      description: t("emptySavedDescription"),
-      actionLabel: t("browseCommunity"),
-      actionHref: "/community",
-    },
-    활동: {
-      title: "아직 작성한 댓글이 없어요",
-      description: "여행자 커뮤니티 코스에 첫 댓글을 남겨보세요!",
+      title: "아직 저장한(북마크한) 코스가 없어요",
+      description: "커뮤니티에서 마음에 드는 코스를 찾아 북마크로 저장해보세요.",
       actionLabel: "커뮤니티 둘러보기",
       actionHref: "/community",
+    },
+    후기: {
+      title: "아직 작성한 후기가 없어요",
+      description: "방문한 코스의 후기를 남기면 이곳에서 확인할 수 있어요.",
+    },
+    활동: {
+      title: "아직 표시할 활동이 없어요",
+      description: "DITTO에서 코스를 만들고 커뮤니티에 참여해보세요.",
     },
   }[activeTab];
 
@@ -648,58 +408,37 @@ export function MypageView() {
         stats={displayStats}
         onEditClick={() => setIsEditModalOpen(true)}
       />
-      <section className="px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
-        {/* Custom Tab Navigation */}
-        <div className="mb-[40px] flex gap-[22px] border-b border-line">
+      <section className="px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
+        <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-[40px] lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {mypageTabs.map((tab) => {
             const count =
               tab === "내 코스"
                 ? courses.length
-                : tab === "공유한 코스"
-                  ? sharedCourses.length
-                  : tab === "찜한 코스"
-                    ? likedCourses.length
-                    : tab === "저장한 코스"
-                      ? bookmarkedCourses.length
-                      : tab === "활동"
-                        ? myComments.length
-                        : null;
-
-            const isTabActive = activeTab === tab;
-            const activeColor = displayProfile.persona.badgeText;
+                : tab === "찜한 코스"
+                  ? likedCourses.length
+                  : tab === "저장한 코스"
+                    ? bookmarkedCourses.length
+                    : null;
 
             return (
               <button
                 key={tab}
                 type="button"
                 onClick={() => handleTabChange(tab)}
-                style={isTabActive ? { borderBottomColor: activeColor, color: activeColor } : undefined}
-                className={`-mb-px flex items-center gap-1.5 border-b-2 pb-3.5 text-[15px] font-black transition cursor-pointer ${
-                  isTabActive
-                    ? ""
+                className={`-mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 pb-2.5 text-[13px] font-black transition lg:pb-3.5 lg:text-[15px] ${
+                  activeTab === tab
+                    ? "border-brand text-brand"
                     : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                <span>
-                  {tab === "내 코스"
-                    ? t("myCourses")
-                    : tab === "찜한 코스"
-                      ? t("likedCourses")
-                      : tab === "저장한 코스"
-                        ? t("savedCourses")
-                        : tab}
-                </span>
+                <span>{tab}</span>
                 {count !== null && (
                   <span
-                    style={
-                      isTabActive
-                        ? { backgroundColor: activeColor, color: "#ffffff" }
-                        : {
-                            backgroundColor: displayProfile.persona.badgeBg,
-                            color: displayProfile.persona.badgeText,
-                          }
-                    }
-                    className="rounded-full px-2 py-0.5 text-xs font-bold transition"
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold transition ${
+                      activeTab === tab
+                        ? "bg-brand text-white"
+                        : "bg-surface-soft text-ink-muted"
+                    }`}
                   >
                     {count}
                   </span>
@@ -715,115 +454,18 @@ export function MypageView() {
           </div>
         )}
 
-        {/* 3:4 Cards Grid or Activity Comments List */}
+        {/* 3:4 Cards Grid (10% Reduced Size) */}
         <div className="max-w-[1020px] mx-auto">
-          {activeTab === "활동" ? (
-            myComments.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {myComments.map((comment) => (
-                  <div
-                    key={comment.commentId}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 shadow-xs hover:border-brand/40 transition group"
-                  >
-                    <div className="flex items-start gap-4 min-w-0 flex-1">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand font-black">
-                        <svg
-                          className="size-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Link
-                            href={`/community/${comment.postId}`}
-                            className="truncate text-xs font-bold text-brand hover:underline"
-                          >
-                            {comment.postTitle}
-                          </Link>
-                          <span className="text-[11px] text-ink-muted">
-                            {comment.createdAt
-                              ? new Date(comment.createdAt).toLocaleDateString(locale)
-                              : "방금 전"}
-                          </span>
-                        </div>
-                        <p className="mt-1.5 text-sm font-medium text-ink break-words">
-                          {comment.content}
-                        </p>
-                      </div>
-                    </div>
-                    <Link
-                      href={`/community/${comment.postId}`}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand hover:text-brand transition shrink-0 self-end sm:self-center cursor-pointer shadow-2xs"
-                    >
-                      <span>코스 보기</span>
-                      <span>→</span>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-[32px] border border-dashed border-line bg-white p-16 text-center shadow-xs">
-                <h3 className="text-xl font-black text-ink">{emptyState?.title}</h3>
-                <p className="mt-2 text-sm text-ink-muted">
-                  {emptyState?.description}
-                </p>
-                {emptyState?.actionLabel && emptyState?.actionHref && (
-                  <Link
-                    href={emptyState.actionHref}
-                    className="mt-6 rounded-full bg-brand px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
-                  >
-                    {emptyState.actionLabel}
-                  </Link>
-                )}
-              </div>
-            )
-          ) : paginatedCourses.length > 0 ? (
+          {paginatedCourses.length > 0 ? (
             <>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {paginatedCourses.map((course) =>
-                  activeTab === "내 코스" ? (
-                    <MyCoursePrivateCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onDelete={(c) => setCourseToDelete(c)}
-                    />
-                  ) : activeTab === "공유한 코스" ? (
-                    <MypageCourseCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onAuthRequired={() => setIsLoginModalOpen(true)}
-                      onEdit={(post) => {
-                        setPostToEdit(post);
-                        setEditTitle(post.title || "");
-                        setEditContent(post.description || "");
-                        const images = getPostImages(post.postId || post.id);
-                        if (images && images.length > 0) {
-                          setEditPhotos(images);
-                        } else if (post.image && !post.image.includes("unsplash.com")) {
-                          setEditPhotos([post.image]);
-                        } else {
-                          setEditPhotos([]);
-                        }
-                      }}
-                      onDelete={(post) => setPostToDelete(post)}
-                    />
-                  ) : (
-                    <MypageCourseCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onAuthRequired={() => setIsLoginModalOpen(true)}
-                    />
-                  ),
-                )}
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+                {paginatedCourses.map((course) => (
+                  <MypageCourseCard
+                    key={course.id || course.slug}
+                    course={course}
+                    onAuthRequired={() => setIsLoginModalOpen(true)}
+                  />
+                ))}
               </div>
 
               {/* 페이징 컨트롤 */}
@@ -838,7 +480,7 @@ export function MypageView() {
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                         : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                     }`}
-                    aria-label={t("previousPage")}
+                    aria-label="이전 페이지"
                   >
                     ‹
                   </button>
@@ -868,7 +510,7 @@ export function MypageView() {
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                         : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                     }`}
-                    aria-label={t("nextPage")}
+                    aria-label="다음 페이지"
                   >
                     ›
                   </button>
@@ -897,10 +539,9 @@ export function MypageView() {
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <ProfileEditModal
-          isOpen
-          currentProfile={displayProfile}
+          profile={currentUser}
           onClose={() => setIsEditModalOpen(false)}
-          onProfileUpdated={(updatedProfile) => {
+          onSuccess={(updatedProfile) => {
             setProfile(updatedProfile);
             setUser(updatedProfile);
           }}
@@ -920,9 +561,9 @@ export function MypageView() {
             aria-modal="true"
             className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
           >
-            <h3 className="text-base font-black text-ink">{communityT("loginRequired")}</h3>
+            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              {communityT("loginRequiredDescription")}
+              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -930,7 +571,7 @@ export function MypageView() {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                {communityT("cancel")}
+                취소
               </button>
               <button
                 type="button"
@@ -940,253 +581,9 @@ export function MypageView() {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                {communityT("login")}
+                로그인하기 →
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Course Delete Confirmation Modal */}
-      {courseToDelete ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeletingCourse) setCourseToDelete(null);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
-          >
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                <line x1="10" x2="10" y1="11" y2="17" />
-                <line x1="14" x2="14" y1="11" y2="17" />
-              </svg>
-            </div>
-            <h3 className="mt-4 text-base font-black text-ink">코스 삭제</h3>
-            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              <strong className="text-ink font-bold">{courseToDelete.title || "이 코스"}</strong>를 정말 삭제하시겠습니까?<br />
-              삭제한 코스는 복구할 수 없습니다.
-            </p>
-            <div className="mt-5 flex items-center gap-2">
-              <button
-                type="button"
-                disabled={isDeletingCourse}
-                onClick={() => setCourseToDelete(null)}
-                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingCourse}
-                onClick={handleConfirmDeleteCourse}
-                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
-              >
-                {isDeletingCourse ? "삭제 중..." : "삭제하기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Shared Post Delete Confirmation Modal */}
-      {postToDelete ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeletingPost) setPostToDelete(null);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
-          >
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                <line x1="10" x2="10" y1="11" y2="17" />
-                <line x1="14" x2="14" y1="11" y2="17" />
-              </svg>
-            </div>
-            <h3 className="mt-4 text-base font-black text-ink">공유한 코스 삭제</h3>
-            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              <strong className="text-ink font-bold">{postToDelete.title || "이 게시글"}</strong>을 정말 삭제하시겠습니까?<br />
-              삭제 시 커뮤니티 공개 목록에서 사라집니다.
-            </p>
-            <div className="mt-5 flex items-center gap-2">
-              <button
-                type="button"
-                disabled={isDeletingPost}
-                onClick={() => setPostToDelete(null)}
-                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingPost}
-                onClick={handleConfirmDeletePost}
-                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
-              >
-                {isDeletingPost ? "삭제 중..." : "삭제하기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Shared Post Edit Modal */}
-      {postToEdit ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isEditingPost) setPostToEdit(null);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-[28px] bg-white p-7 shadow-2xl animate-in zoom-in-95 duration-150 text-left"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-ink">공유한 코스 수정</h3>
-              <button
-                type="button"
-                onClick={() => setPostToEdit(null)}
-                className="text-ink-muted hover:text-ink transition text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleConfirmEditPost} className="mt-5 flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-bold text-ink mb-1.5">게시글 제목</label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="코스 제목을 입력하세요"
-                  required
-                  className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-bold text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-ink mb-1.5">후기 및 코스 설명</label>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={3}
-                  placeholder="코스에 대한 후기나 팁을 작성하세요"
-                  className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-medium text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition resize-none"
-                />
-              </div>
-
-              {/* 첨부 사진 수정 및 추가 */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-ink">첨부 사진</label>
-                  <span className="text-[11px] font-medium text-ink-muted">
-                    {editPhotos.length}/10장
-                  </span>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleEditFileChange}
-                  className="hidden"
-                />
-
-                <div className="flex gap-2.5 overflow-x-auto rounded-xl bg-surface-soft p-3">
-                  {/* 사진 추가 버튼 */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-line bg-white text-center hover:border-brand hover:bg-brand-soft/20 transition cursor-pointer"
-                  >
-                    <span className="text-xl font-black leading-none text-brand">+</span>
-                    <span className="mt-1 text-[11px] font-bold text-ink">사진 추가</span>
-                  </button>
-
-                  {/* 업로드된 사진 목록 */}
-                  {editPhotos.map((photoUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="group/photo relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-slate-950 shadow-xs"
-                    >
-                      <img
-                        src={photoUrl}
-                        alt={`첨부 사진 ${idx + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                      {idx === 0 && (
-                        <span className="absolute bottom-1 left-1 rounded bg-brand/90 px-1 py-0.5 text-[9px] font-black text-white pointer-events-none">
-                          대표
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveEditPhoto(idx)}
-                        aria-label="사진 삭제"
-                        className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-red-500 cursor-pointer shadow-sm text-xs font-bold leading-none"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={isEditingPost}
-                  onClick={() => setPostToEdit(null)}
-                  className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  disabled={isEditingPost}
-                  className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
-                >
-                  {isEditingPost ? "저장 중..." : "수정 완료"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       ) : null}

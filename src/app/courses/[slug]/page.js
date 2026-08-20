@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import {
   getRecommendedCourse,
@@ -17,8 +16,7 @@ export async function generateMetadata({ params }) {
   const course = getRecommendedCourse(slug);
 
   if (!course) {
-    const t = await getTranslations("courses");
-    return { title: t("recommendedCourse") };
+    return { title: "추천 코스" };
   }
 
   return { title: course.title };
@@ -63,10 +61,10 @@ function PillButton({ children, variant = "primary" }) {
   );
 }
 
-function StopSection({ course, t }) {
+function StopSection({ course }) {
   return (
     <section className="rounded-[28px] bg-surface-soft p-7">
-      <h2 className="text-2xl font-black text-ink">{t("coursePlaces")}</h2>
+      <h2 className="text-2xl font-black text-ink">코스 장소</h2>
       <div className="mt-5 flex flex-col gap-4">
         {course.stops.map((stop, index) => (
           <div
@@ -85,7 +83,7 @@ function StopSection({ course, t }) {
               </p>
             </div>
             <Link href="/courses" className="text-sm font-black text-brand">
-              {t("view")}
+              보기
             </Link>
           </div>
         ))}
@@ -94,23 +92,23 @@ function StopSection({ course, t }) {
   );
 }
 
-function RecommendationNote({ course, t }) {
+function RecommendationNote({ course }) {
   return (
-    <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-5 py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">BONI NOTE</p>
           <h2 className="mt-3 text-[32px] font-black text-ink">
-            {t("whyBoniRecommends")}
+            보니가 추천하는 이유
           </h2>
         </div>
         <Link href="/courses" className="text-sm font-black text-brand">
-          {t("viewCriteria")}
+          추천 기준 보기 →
         </Link>
       </div>
 
       <article className="mt-8 rounded-[28px] bg-white p-8 shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.05fr]">
+        <div className="grid gap-5">
           <div>
             <div className="flex items-center gap-4">
               <Image
@@ -121,9 +119,9 @@ function RecommendationNote({ course, t }) {
                 className="size-12 rounded-full"
               />
               <div>
-                <h3 className="text-xl font-black text-ink">{t("boniComment")}</h3>
+                <h3 className="text-xl font-black text-ink">Boni 추천 코멘트</h3>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
-                  {t("criteriaSummary")}
+                  초행자 · 사진 포인트 · 실내 동선 기준
                 </p>
               </div>
             </div>
@@ -133,7 +131,7 @@ function RecommendationNote({ course, t }) {
           </div>
 
           <div className="rounded-[24px] bg-surface-soft p-7">
-            <h3 className="text-xl font-black text-ink">{t("criteria")}</h3>
+            <h3 className="text-xl font-black text-ink">추천 기준</h3>
             <div className="mt-6 flex flex-col gap-5">
               {course.criteria.map((criterion, index) => (
                 <div key={criterion.title} className="flex gap-4">
@@ -158,21 +156,21 @@ function RecommendationNote({ course, t }) {
   );
 }
 
-function ReviewCards({ t }) {
+function ReviewCards() {
   return (
-    <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-5 pb-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">REVIEWS</p>
           <h2 className="mt-3 text-[30px] font-black text-ink">
-            {t("visitors")}
+            이 코스 다녀온 사람들
           </h2>
         </div>
         <Link href="/community/share" className="text-sm font-black text-brand">
-          {t("writeReview")}
+          후기 쓰기 →
         </Link>
       </div>
-      <div className="mt-7 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-4">
         {reviews.map((review) => (
           <article key={review.name} className="rounded-[20px] bg-white p-6">
             <h3 className="text-lg font-black text-ink">{review.name}</h3>
@@ -188,7 +186,7 @@ function ReviewCards({ t }) {
           href="/community"
           className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand"
         >
-          {t("viewAllReviews")}
+          후기 128개 모두 보기 →
         </Link>
       </div>
     </section>
@@ -196,7 +194,6 @@ function ReviewCards({ t }) {
 }
 
 export default async function RecommendedCourseDetailPage({ params }) {
-  const t = await getTranslations("courses");
   const { slug } = await params;
   const course = getRecommendedCourse(slug);
 
@@ -206,8 +203,8 @@ export default async function RecommendedCourseDetailPage({ params }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-10 sm:px-14 pb-20 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
+      <section className="bg-white px-5 pb-8 pt-6">
+        <div className="grid gap-6">
           <GradientPanel
             gradient={course.gradient}
             className="flex h-[270px] flex-col justify-between rounded-[28px] p-9 text-white"
@@ -241,27 +238,27 @@ export default async function RecommendedCourseDetailPage({ params }) {
               {course.description}
             </p>
             <div className="mt-7 flex flex-wrap gap-4">
-              <PillButton>{t("saveCourse")}</PillButton>
-              <PillButton variant="outline">{t("share")}</PillButton>
+              <PillButton>코스 저장</PillButton>
+              <PillButton variant="outline">공유하기</PillButton>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1fr]">
-          <StopSection course={course} t={t} />
+      <section className="bg-white px-5 pb-6">
+        <div className="grid gap-5">
+          <StopSection course={course} />
           <GradientPanel
             gradient="from-[#2d1b8e] to-[#9b5cf6]"
             className="flex min-h-[300px] items-center justify-center rounded-[28px] text-base font-black text-white/75"
           >
-            {t("coverPhoto")}
+            코스 대표 사진
           </GradientPanel>
         </div>
       </section>
 
-      <RecommendationNote course={course} t={t} />
-      <ReviewCards t={t} />
+      <RecommendationNote course={course} />
+      <ReviewCards />
     </main>
   );
 }

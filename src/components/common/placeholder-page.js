@@ -7,12 +7,12 @@ export async function PlaceholderPage({ eyebrow, title, description }) {
   const t = await getTranslations("common");
 
   return (
-    <PageShell className="flex min-h-[calc(100vh-8rem)] items-center py-20">
-      <SoftCard className="w-full p-8 sm:p-12 lg:p-16">
+    <PageShell className="flex min-h-[60vh] items-center py-10">
+      <SoftCard className="w-full p-6">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
           {eyebrow}
         </p>
-        <h1 className="mt-4 text-4xl font-black tracking-tight text-ink sm:text-5xl">
+        <h1 className="mt-3 text-[26px] font-black tracking-tight text-ink">
           {title}
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-ink-muted sm:text-lg">

@@ -36,7 +36,7 @@ export function SiteFooter() {
   const t = useTranslations();
 
   return (
-    <footer className="bg-white px-10 pb-5 pt-[34px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
+    <footer className="hidden bg-white px-10 pb-5 pt-[34px] sm:px-14 lg:block lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-wrap gap-x-[62px] gap-y-5">
         <div className="min-w-[150px]">
           <Link href="/" className="block" aria-label={t("navigation.dittoHome")}>

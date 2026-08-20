@@ -92,7 +92,7 @@ export function CountryForm() {
   return (
     <form className="flex flex-col gap-[22px]" onSubmit={handleSubmit} noValidate>
       <div
-        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        className="grid grid-cols-1 gap-3"
         role="radiogroup"
         aria-label={t("preferences.chooseCountry")}
       >

@@ -1,27 +1,24 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { createCoursePost } from "@/lib/api/community";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
-import { compressImage } from "@/lib/utils/image-compression";
+
+const storageKey = "ditto:shared-community-courses";
 
 function CourseOption({ course, selected, onSelect }) {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full items-center gap-4 rounded-[24px] border bg-white px-4 py-4 text-left transition cursor-pointer ${
+      className={`flex w-full items-center gap-4 rounded-[24px] border bg-white px-4 py-4 text-left transition ${
         selected
-          ? "border-brand shadow-[0_8px_20px_rgba(92,46,245,0.1)] ring-1 ring-brand"
+          ? "border-brand shadow-[0_8px_20px_rgba(92,46,245,0.1)]"
           : "border-line hover:border-line-hover"
       }`}
       aria-pressed={selected}
     >
       <div
-        className={`h-[92px] w-[116px] shrink-0 rounded-[16px] bg-linear-to-br ${course.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
+        className={`h-[92px] w-[116px] shrink-0 rounded-[16px] bg-linear-to-br ${course.gradient}`}
       />
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-black text-brand">{course.category}</p>
@@ -36,7 +33,7 @@ function CourseOption({ course, selected, onSelect }) {
         </p>
       </div>
       <span
-        className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-black transition ${
+        className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${
           selected ? "bg-brand text-white" : "bg-brand-soft text-transparent"
         }`}
         aria-hidden="true"
@@ -47,474 +44,165 @@ function CourseOption({ course, selected, onSelect }) {
   );
 }
 
-function PhotoTile({ image, onRemove }) {
-  if (!image) return null;
-  return (
-    <div className="group relative h-[166px] w-[118px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-xs">
-      <img
-        src={image}
-        alt="첨부 사진"
-        className="h-full w-full object-cover"
-      />
+function PhotoTile({ label, upload }) {
+  if (upload) {
+    return (
       <button
         type="button"
-        onClick={onRemove}
-        aria-label="사진 삭제"
-        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/65 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black cursor-pointer"
+        className="flex h-[166px] w-[176px] shrink-0 flex-col items-center justify-center rounded-[18px] border border-line bg-white text-center"
       >
-        ✕
+        <span className="text-[34px] font-black leading-none text-brand">+</span>
+        <span className="mt-4 text-sm font-black text-ink">사진 첨부</span>
+        <span className="mt-3 text-xs font-medium text-ink-muted">최대 10장</span>
       </button>
+    );
+  }
+
+  return (
+    <div className="h-[166px] w-[118px] shrink-0 rounded-[18px] bg-linear-to-br from-[#2d1b8e] to-[#7c3ff2] p-5">
+      <span className="text-[10px] font-black text-white">{label}</span>
     </div>
   );
 }
 
-export function ShareCourseForm({ courses = [], loading = false }) {
-  const t = useTranslations("community");
+export function ShareCourseForm({ courses }) {
   const router = useRouter();
-  const fileInputRef = useRef(null);
-
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedCourse = courses[selectedIndex] || courses[0] || null;
-
-  const [customTitle, setCustomTitle] = useState("");
-  const title = customTitle || selectedCourse?.title || "";
-  const [caption, setCaption] = useState("");
-  const [photos, setPhotos] = useState([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [createdPostId, setCreatedPostId] = useState(null);
-  const [alertModalMessage, setAlertModalMessage] = useState("");
-
-  const setPostImages = useCommunityPostImagesStore(
-    (state) => state.setPostImages,
-  );
-
+  const selectedCourse = courses[selectedIndex];
   const shouldScroll = courses.length > 4;
-
-  const handleFileChange = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    for (const file of files) {
-      try {
-        const compressed = await compressImage(file);
-        if (compressed) {
-          setPhotos((prev) => [...prev, compressed].slice(0, 10));
-        }
-      } catch (err) {
-        console.warn("[Photo Compress] Error:", err);
-      }
-    }
-
-    e.target.value = "";
-  };
-
-  const handleRemovePhoto = (indexToRemove) => {
-    setPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
-  };
-
-  const publishCourse = async () => {
-    if (!selectedCourse || submitting) return;
-
-    const courseId = Number(selectedCourse.courseId || selectedCourse.id);
-    if (!courseId || Number.isNaN(courseId)) {
-      setAlertModalMessage("공유할 코스 정보가 올바르지 않습니다.");
-      return;
-    }
-
-    setSubmitting(true);
-    setErrorMsg("");
+  const publishCourse = () => {
+    const sharedCourse = {
+      slug: "first-timer-photo-route",
+      country: "JP",
+      name: "Annie",
+      hash: selectedCourse.tags,
+      title: selectedCourse.title,
+      likes: 0,
+      comments: 0,
+      saves: 0,
+      gradient: selectedCourse.gradient,
+    };
 
     try {
-      const result = await createCoursePost({
-        courseId,
-        title: title.trim() || selectedCourse.title || "나만의 코스",
-        content: caption.trim() || "더현대 서울 맞춤 코스입니다.",
-        representativeImageUrl: photos[0] || undefined,
-      });
-
-      const newPostId =
-        result?.postId ||
-        result?.id ||
-        result?.courseId ||
-        (typeof result === "number" ? result : null) ||
-        courseId;
-
-      if (photos.length > 0) {
-        setPostImages(newPostId, photos);
-        setPostImages(courseId, photos);
-        if (selectedCourse?.id) setPostImages(selectedCourse.id, photos);
-      }
-
-      setCreatedPostId(newPostId);
-      setIsSuccessModalOpen(true);
-    } catch (err) {
-      console.error("Failed to publish course post:", err);
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "코스 게시글 공유에 실패했습니다. 로그인 상태를 확인해주세요.";
-      setErrorMsg(message);
-      setAlertModalMessage(message);
-    } finally {
-      setSubmitting(false);
+      const savedCards = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const nextCards = Array.isArray(savedCards)
+        ? [...savedCards, sharedCourse]
+        : [sharedCourse];
+      localStorage.setItem(storageKey, JSON.stringify(nextCards));
+    } catch {
+      localStorage.setItem(storageKey, JSON.stringify([sharedCourse]));
     }
+
+    router.push("/community");
   };
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-10 sm:px-14 pb-12 pt-[94px] lg:px-52 xl:px-60 2xl:px-72">
+      <section className="bg-white px-5 pb-6 pt-6 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
-            <h1 className="mt-6 text-[38px] font-black leading-none text-ink">
-              {t("shareTitle")}
+            <h1 className="mt-2 text-[22px] font-black leading-tight text-ink lg:mt-6 lg:text-[34px]">
+              내 코스 공유하기
             </h1>
             <p className="mt-5 text-sm font-medium text-ink-muted">
-              {t("shareDescription")}
+              마이페이지의 내 코스 목록에서 공유할 코스를 선택하고, 직접 찍은
+              사진과 후기를 첨부하세요.
             </p>
           </div>
-          {selectedCourse && (
-            <button
-              type="button"
-              onClick={publishCourse}
-              disabled={submitting}
-              className={`inline-flex w-fit items-center justify-center rounded-full px-10 py-4 text-sm font-black text-white shadow-control transition ${
-                submitting
-                  ? "bg-brand/60 cursor-not-allowed"
-                  : "bg-brand hover:bg-brand-dark cursor-pointer"
-              }`}
-            >
-              {submitting ? "게시 중..." : "게시하기"}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={publishCourse}
+            className="inline-flex w-fit items-center justify-center rounded-full bg-brand px-10 py-4 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
+          >
+            게시하기
+          </button>
         </div>
       </section>
 
-      <section className="bg-white px-10 sm:px-14 pb-[120px] lg:px-52 xl:px-60 2xl:px-72">
-        {errorMsg && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-600">
-            {errorMsg}
-          </div>
-        )}
-        <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
-          {/* 왼쪽: 내 코스 목록 */}
+      <section className="bg-white px-5 pb-8 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+        <div className="grid gap-5">
           <section className="rounded-[28px] bg-surface-soft p-7 lg:p-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-ink">{t("myCourses")}</h2>
+              <h2 className="text-2xl font-black text-ink">내 코스</h2>
               <span className="text-sm font-black text-brand">
                 {courses.length}개
               </span>
             </div>
             <div className="mt-8">
               <span className="rounded-full bg-brand px-4 py-2 text-xs font-black text-white">
-                {t("myCourses")}
+                내 코스
               </span>
             </div>
-
-            {loading ? (
-              <div className="flex min-h-[260px] flex-col items-center justify-center gap-3">
-                <div className="size-7 animate-spin rounded-full border-3 border-brand border-t-transparent" />
-                <p className="text-xs font-bold text-ink-muted">
-                  내 코스를 불러오는 중...
-                </p>
-              </div>
-            ) : courses.length === 0 ? (
-              <div className="mt-6 flex flex-col items-center justify-center rounded-[24px] border border-dashed border-line bg-white p-10 text-center">
-                <div className="flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand mb-3">
-                  <svg
-                    className="size-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-base font-black text-ink">
-                  아직 생성된 코스가 없어요
-                </h3>
-                <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-                  AI 맞춤 코스 만들기에서 먼저 나만의 코스를 생성해보세요!
-                </p>
-                <Link
-                  href="/ai-course"
-                  className="mt-5 rounded-full bg-brand px-6 py-3 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
-                >
-                  + AI 코스 만들기
-                </Link>
-              </div>
-            ) : (
-              <div
-                className={`mt-6 flex flex-col gap-4 pr-1 ${
-                  shouldScroll
-                    ? "max-h-[530px] overflow-y-auto overscroll-contain"
-                    : ""
-                }`}
-              >
-                {courses.map((course, index) => (
-                  <CourseOption
-                    key={course.id || course.title}
-                    course={course}
-                    selected={selectedIndex === index}
-                    onSelect={() => {
-                      setSelectedIndex(index);
-                      setCustomTitle("");
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+            <div
+              className={`mt-6 flex flex-col gap-4 pr-1 ${
+                shouldScroll
+                  ? "max-h-[530px] overflow-y-auto overscroll-contain"
+                  : ""
+              }`}
+            >
+              {courses.map((course, index) => (
+                <CourseOption
+                  key={course.title}
+                  course={course}
+                  selected={selectedIndex === index}
+                  onSelect={() => setSelectedIndex(index)}
+                />
+              ))}
+            </div>
           </section>
 
-          {/* 오른쪽: 코스 정보 및 후기 작성 */}
-          {selectedCourse ? (
-            <section className="rounded-[28px] border border-line bg-white p-7 lg:p-8">
-              <h2 className="text-2xl font-black text-ink">
-                선택한 코스에 사진 및 후기 첨부
-              </h2>
-
-              {/* 제목 수정 필드 */}
-              <label
-                htmlFor="course-title-input"
-                className="mt-6 block text-sm font-black text-ink"
-              >
-                게시글 제목
-              </label>
-              <input
-                id="course-title-input"
-                type="text"
-                value={title}
-                onChange={(e) => setCustomTitle(e.target.value)}
-                placeholder="코스 제목을 입력하세요"
-                className="mt-2 w-full rounded-[16px] border border-line bg-surface-soft px-4 py-3.5 text-base font-bold text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
-              />
-
-              {/* 사진 첨부 영역 */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-ink">사진 첨부</span>
-                  <span className="text-xs font-medium text-ink-muted">
-                    {photos.length}/10장
-                  </span>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                <div className="mt-3 flex gap-4 overflow-x-auto rounded-[28px] bg-surface-soft p-6">
-                  {/* 사진 첨부 버튼 */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-[166px] w-[176px] shrink-0 flex-col items-center justify-center rounded-[18px] border border-dashed border-line bg-white text-center hover:border-brand hover:bg-brand-soft/20 transition cursor-pointer"
-                  >
-                    <span className="text-[34px] font-black leading-none text-brand">
-                      +
-                    </span>
-                    <span className="mt-4 text-sm font-black text-ink">
-                      사진 첨부
-                    </span>
-                    <span className="mt-2 text-xs font-medium text-ink-muted">
-                      최대 10장
-                    </span>
-                  </button>
-
-                  {/* 업로드된 사진 목록 */}
-                  {photos.map((photoUrl, idx) => (
-                    <PhotoTile
-                      key={idx}
-                      image={photoUrl}
-                      onRemove={() => handleRemovePhoto(idx)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* 후기 캡션 */}
-              <label
-                htmlFor="review-caption"
-                className="mt-7 block text-sm font-black text-ink"
-              >
-                후기 캡션
-              </label>
-              <textarea
-                id="review-caption"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                rows={5}
-                className="mt-2 w-full resize-none rounded-[20px] border border-line bg-surface-soft p-5 text-sm font-medium leading-6 text-ink outline-none placeholder:text-ink-muted/50 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
-                placeholder="코스에 대한 방문 후기 및 동선 꿀팁을 작성해보세요. (예: 사진 순서대로 이동하면 동선이 편리해요)"
-              />
-
-              {/* 하단 공유 미리보기 및 게시 버튼 */}
-              <div className="mt-10 flex flex-col gap-5 rounded-[24px] bg-surface-soft p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-5">
-                  {photos.length > 0 ? (
-                    <div className="relative size-[100px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-slate-950 shadow-xs">
-                      <img
-                        src={photos[0]}
-                        alt="대표 사진 미리보기"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className={`size-[100px] shrink-0 rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
-                    />
-                  )}
-                  <div>
-                    <p className="text-sm font-black text-brand">
-                      공유 미리보기
-                    </p>
-                    <h3 className="mt-3 text-xl font-black text-ink">
-                      {title || selectedCourse.title}
-                    </h3>
-                    <p className="mt-2 text-xs font-medium text-ink-muted">
-                      {selectedCourse.tags}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={publishCourse}
-                  disabled={submitting}
-                  className={`inline-flex shrink-0 items-center justify-center rounded-full px-9 py-4 text-sm font-black text-white shadow-control transition ${
-                    submitting
-                      ? "bg-brand/60 cursor-not-allowed"
-                      : "bg-brand hover:bg-brand-dark cursor-pointer"
-                  }`}
-                >
-                  {submitting ? "게시 중..." : "게시하기"}
-                </button>
-              </div>
-            </section>
-          ) : (
-            <section className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-line bg-white p-12 text-center">
-              <p className="text-sm font-bold text-ink-muted">
-                왼쪽에서 공유할 내 코스를 선택해주세요.
-              </p>
-            </section>
-          )}
-        </div>
-      </section>
-
-      {/* 공유 완료 성공 모달 */}
-      {isSuccessModalOpen ? (
-        <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          role="presentation"
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[390px] rounded-[28px] bg-white p-8 text-center shadow-2xl animate-in zoom-in-95 duration-150"
-          >
-            <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-soft text-brand">
-              <svg
-                className="size-7"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h2 className="mt-5 text-[22px] font-black text-ink">
-              코스 공유 완료!
+          <section className="rounded-[28px] border border-line bg-white p-7 lg:p-8">
+            <h2 className="text-2xl font-black text-ink">
+              선택한 코스에 사진 첨부
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              <strong className="font-bold text-ink">
-                {title || selectedCourse?.title || "나만의 코스"}
-              </strong>
-              이(가) 커뮤니티에 성공적으로 등록되었어요.
+            <p className="mt-6 text-base font-black text-brand">
+              {selectedCourse.title}
             </p>
-            <div className="mt-7 grid grid-cols-2 gap-2.5">
-              <Link
-                href="/mypage"
-                className="rounded-full border border-line bg-surface-soft px-4 py-3.5 text-xs font-bold text-ink transition hover:bg-line text-center"
-              >
-                마이페이지 보기
-              </Link>
+            <div className="mt-6 flex gap-4 overflow-x-auto rounded-[28px] bg-surface-soft p-6">
+              <PhotoTile upload />
+              <PhotoTile label="PHOTO 02" />
+              <PhotoTile label="PHOTO 03" />
+            </div>
+
+            <label
+              htmlFor="review-caption"
+              className="mt-7 block text-base font-black text-ink"
+            >
+              후기 캡션
+            </label>
+            <textarea
+              id="review-caption"
+              className="mt-3 h-[160px] w-full resize-none rounded-[20px] border-0 bg-surface-soft p-5 text-sm font-medium leading-6 text-ink outline-none focus:ring-2 focus:ring-brand/30"
+              defaultValue={`처음 온 친구랑 따라가기 좋은 코스였어요. 사진 순서대로 보면 동선이 바로 이해됩니다.`}
+            />
+
+            <div className="mt-10 flex flex-col gap-5 rounded-[24px] bg-surface-soft p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-5">
+                <div
+                  className={`size-[100px] rounded-[18px] bg-linear-to-br ${selectedCourse.gradient}`}
+                />
+                <div>
+                  <p className="text-sm font-black text-brand">공유 미리보기</p>
+                  <h3 className="mt-3 text-xl font-black text-ink">
+                    {selectedCourse.title}
+                  </h3>
+                  <p className="mt-3 text-xs font-medium text-ink-muted">
+                    {selectedCourse.tags}
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => {
-                  setIsSuccessModalOpen(false);
-                  if (createdPostId) {
-                    router.push(`/community/${createdPostId}`);
-                  } else {
-                    router.push("/community");
-                  }
-                }}
-                className="rounded-full bg-brand px-4 py-3.5 text-xs font-black text-white shadow-xs transition hover:bg-brand-dark cursor-pointer"
+                onClick={publishCourse}
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-brand px-9 py-4 text-sm font-black text-white transition hover:bg-brand-dark"
               >
-                커뮤니티 보기 →
+                게시하기
               </button>
             </div>
-          </div>
+          </section>
         </div>
-      ) : null}
-
-      {/* 안내 / 에러 알림 모달 */}
-      {alertModalMessage ? (
-        <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setAlertModalMessage("");
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
-          >
-            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-              <svg
-                className="size-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-base font-black text-ink">알림</h3>
-            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              {alertModalMessage}
-            </p>
-            <button
-              type="button"
-              onClick={() => setAlertModalMessage("")}
-              className="mt-5 w-full rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      ) : null}
+      </section>
     </main>
   );
 }

@@ -14,14 +14,13 @@ import {
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import { useTranslations } from "next-intl";
 
 const ITEMS_PER_PAGE = 3;
 
 const CATEGORIES = [
-  { id: "all", labelKey: "all" },
-  { id: "likes", labelKey: "likedCourses" },
-  { id: "bookmarks", labelKey: "bookmarkedCourses" },
+  { id: "all", label: "전체" },
+  { id: "likes", label: "좋아요한 코스" },
+  { id: "bookmarks", label: "북마크한 코스" },
 ];
 
 function getFlagEmoji(countryCode = "") {
@@ -74,7 +73,6 @@ function enrichCourseItem(item, index) {
 }
 
 function BookmarkCard({ course, onAuthRequired }) {
-  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -210,7 +208,7 @@ function BookmarkCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label={t("like")}
+            aria-label="좋아요"
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
@@ -232,7 +230,7 @@ function BookmarkCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label={t("comments")}
+            aria-label="댓글"
             className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -245,7 +243,7 @@ function BookmarkCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label={t("save")}
+            aria-label="북마크"
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isBookmarked
                 ? "bg-brand text-white scale-105"
@@ -269,7 +267,6 @@ function BookmarkCard({ course, onAuthRequired }) {
 }
 
 export function CommunityBookmarksView() {
-  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -493,7 +490,7 @@ export function CommunityBookmarksView() {
   return (
     <main className="bg-background min-h-screen">
       {/* Header Section */}
-      <section className="bg-white px-10 sm:px-14 pb-0 pt-[80px] lg:px-52 xl:px-60 2xl:px-72 border-b border-line">
+      <section className="border-b border-line bg-white px-5 pb-0 pt-6 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2">
@@ -506,11 +503,11 @@ export function CommunityBookmarksView() {
                 MY FAVORITE COURSES
               </p>
             </div>
-            <h1 className="mt-4 text-[32px] font-black leading-none text-ink lg:text-[36px]">
-              {t("favoritesTitle")}
+            <h1 className="mt-3 text-[22px] font-black leading-tight text-ink lg:text-[34px]">
+              내가 찜하고 저장한 코스
             </h1>
             <p className="mt-3 text-sm font-medium text-ink-muted">
-              {t("favoritesDescription")}
+              여행자들이 공유한 코스 중 내가 좋아요 누르고 북마크한 코스들을 모아보세요.
             </p>
           </div>
 
@@ -518,7 +515,7 @@ export function CommunityBookmarksView() {
             href="/community"
             className="inline-flex w-fit items-center justify-center rounded-full border border-line bg-surface-soft px-6 py-3 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
           >
-            {t("viewAllCommunity")}
+            전체 커뮤니티 보기 →
           </Link>
         </div>
 
@@ -543,7 +540,7 @@ export function CommunityBookmarksView() {
                     : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                <span>{t(cat.labelKey)}</span>
+                <span>{cat.label}</span>
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-bold transition ${
                     activeCategory === cat.id
@@ -560,12 +557,12 @@ export function CommunityBookmarksView() {
       </section>
 
       {/* Grid Content & 정렬 드롭다운 토글 */}
-      <section className="px-10 sm:px-14 py-[36px] lg:px-52 xl:px-60 2xl:px-72">
+      <section className="px-5 py-6 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
         <div className="max-w-[1020px] mx-auto">
           {/* 상단 툴바: 우측 정렬 드롭다운 토글 */}
           <div className="mb-6 flex items-center justify-between">
             <p className="text-xs font-bold text-ink-muted">
-              {t("courseCount", { count: displayedCourses.length })}
+              총 <span className="text-brand font-black">{displayedCourses.length}</span>개의 코스
             </p>
 
             {/* 토글형 드롭다운 메뉴 */}
@@ -575,7 +572,7 @@ export function CommunityBookmarksView() {
                 onClick={() => setIsSortDropdownOpen((prev) => !prev)}
                 className="inline-flex h-9 items-center justify-between gap-2.5 rounded-full border border-line bg-white px-4 text-xs font-bold text-ink shadow-xs transition hover:border-brand hover:text-brand cursor-pointer"
               >
-                <span>{sortBy === "latest" ? t("latest") : t("popular")}</span>
+                <span>{sortBy === "latest" ? "최신순" : "인기순"}</span>
                 <svg
                   className={`size-3.5 text-ink-muted transition-transform duration-200 ${
                     isSortDropdownOpen ? "rotate-180 text-brand" : ""
@@ -600,7 +597,7 @@ export function CommunityBookmarksView() {
                         : "text-ink hover:bg-surface-soft"
                     }`}
                   >
-                    <span>{t("latest")}</span>
+                    <span>최신순</span>
                     {sortBy === "latest" && (
                       <span className="size-1.5 rounded-full bg-brand" />
                     )}
@@ -614,7 +611,7 @@ export function CommunityBookmarksView() {
                         : "text-ink hover:bg-surface-soft"
                     }`}
                   >
-                    <span>{t("popular")}</span>
+                    <span>인기순</span>
                     {sortBy === "popular" && (
                       <span className="size-1.5 rounded-full bg-brand" />
                     )}
@@ -628,11 +625,11 @@ export function CommunityBookmarksView() {
           {loading ? (
             <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
               <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
-              <p className="text-xs font-bold text-ink-muted">{t("loadingCourses")}</p>
+              <p className="text-xs font-bold text-ink-muted">코스를 불러오는 중...</p>
             </div>
           ) : paginatedCourses.length > 0 ? (
             <>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) => (
                   <BookmarkCard
                     key={course.postId || course.slug || course.id}
@@ -654,7 +651,7 @@ export function CommunityBookmarksView() {
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                         : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                     }`}
-                    aria-label={t("previousPage")}
+                    aria-label="이전 페이지"
                   >
                     ‹
                   </button>
@@ -684,7 +681,7 @@ export function CommunityBookmarksView() {
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                         : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                     }`}
-                    aria-label={t("nextPage")}
+                    aria-label="다음 페이지"
                   >
                     ›
                   </button>
@@ -706,21 +703,21 @@ export function CommunityBookmarksView() {
               </div>
               <h3 className="text-lg font-black text-ink">
                 {activeCategory === "likes"
-                  ? t("emptyLiked")
+                  ? "아직 좋아요한 코스가 없어요"
                   : activeCategory === "bookmarks"
-                    ? t("emptyBookmarked")
-                    : t("emptySaved")}
+                    ? "아직 북마크한 코스가 없어요"
+                    : "아직 저장한 코스가 없어요"}
               </h3>
               <p className="mt-2 text-xs text-ink-muted max-w-sm">
                 {activeCategory === "likes"
-                  ? t("emptyLikedDescription")
-                  : t("emptyBookmarkedDescription")}
+                  ? "여행자들이 공유한 코스를 구경하고 마음에 드는 코스에 좋아요를 눌러보세요!"
+                  : "여행자들이 만든 다채로운 코스를 구경하고 마음에 드는 코스를 북마크해 보관해보세요!"}
               </p>
               <Link
                 href="/community"
                 className="mt-6 rounded-full bg-brand px-8 py-3.5 text-xs font-black text-white shadow-control transition hover:bg-brand-dark"
               >
-                {t("browseCourses")}
+                커뮤니티 코스 둘러보기 →
               </Link>
             </div>
           )}
@@ -755,9 +752,9 @@ export function CommunityBookmarksView() {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">{t("loginRequired")}</h3>
+            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              {t("loginRequiredDescription")}
+              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -765,7 +762,7 @@ export function CommunityBookmarksView() {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                {t("cancel")}
+                취소
               </button>
               <button
                 type="button"
@@ -775,7 +772,7 @@ export function CommunityBookmarksView() {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                {t("login")}
+                로그인하기 →
               </button>
             </div>
           </div>

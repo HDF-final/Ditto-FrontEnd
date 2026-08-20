@@ -1,10 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import { NewsShareButton } from "@/components/news/news-share-button";
-import { NewsImageLightbox } from "@/components/news/news-image-lightbox";
 import {
   getNewsDetailBySlug,
   getNewsSitemap,
@@ -13,7 +11,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function FormattedParagraph({ text, originalArticle }) {
+function FormattedParagraph({ text }) {
   if (!text) return null;
 
   // 1. Markdown link pattern: [연합뉴스](https://...)
@@ -73,7 +71,7 @@ function FormattedParagraph({ text, originalArticle }) {
   const sourceWithUrlRegex = /^(출처:\s*)([^\s(]+)?\s*\((https?:\/\/[^\s)]+)\)$/;
   const sourceMatch = text.match(sourceWithUrlRegex);
   if (sourceMatch) {
-    const [, prefix, label = originalArticle, url] = sourceMatch;
+    const [, prefix, label = "원문 기사", url] = sourceMatch;
     return (
       <>
         {prefix}
@@ -112,14 +110,11 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const [{ slug }, t] = await Promise.all([
-    params,
-    getTranslations("news"),
-  ]);
+  const { slug } = await params;
   const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
-    return { title: t("detailTitle") };
+    return { title: "뉴스 상세" };
   }
 
   return {
@@ -129,10 +124,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function NewsDetailPage({ params }) {
-  const [{ slug }, t] = await Promise.all([
-    params,
-    getTranslations("news"),
-  ]);
+  const { slug } = await params;
   const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
@@ -147,9 +139,9 @@ export default async function NewsDetailPage({ params }) {
 
   return (
     <main className="bg-surface-soft">
-      <section className="bg-white px-10 sm:px-14 pb-10 pt-8 lg:px-52 xl:px-60 2xl:px-72 lg:pb-14">
+      <section className="bg-white px-5 pb-6 pt-6">
         <div
-          className={`relative mx-auto max-w-7xl min-h-[460px] lg:min-h-[520px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
+          className={`relative mx-auto max-w-7xl min-h-[400px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
             news.representativeImageUrl ? "" : `bg-linear-to-br ${news.gradient}`
           }`}
         >
@@ -185,46 +177,23 @@ export default async function NewsDetailPage({ params }) {
                 href="/news"
                 className="inline-flex min-h-12 items-center justify-center rounded-control border border-white/80 bg-black/20 backdrop-blur-xs px-7 text-sm font-black text-white transition hover:bg-white/20"
               >
-                {t("backToFeed")}
+                뉴스피드로 돌아가기
               </Link>
               <NewsShareButton
                 title={news.title}
                 summary={news.summary}
               />
-              {news.representativeImageUrl ? (
-                <NewsImageLightbox
-                  src={news.representativeImageUrl}
-                  alt={news.title}
-                  caption={news.imageCaption || news.summary}
-                  mode="button"
-                />
-              ) : null}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-10 sm:px-14 py-10 lg:px-52 xl:px-60 2xl:px-72 lg:py-16">
-        <div className="mx-auto max-w-7xl">
-          {news.representativeImageUrl ? (
-            <div className="mb-10 w-full">
-              <NewsImageLightbox
-                src={news.representativeImageUrl}
-                alt={news.title}
-                caption={news.imageCaption || news.summary}
-                mode="card"
-              />
-            </div>
-          ) : null}
-
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
-              {body.slice(0, 2).map((paragraph, index) => (
+      <section className="px-5 py-6">
+        <div className="grid gap-6">
+          <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
+            {body.slice(0, 2).map((paragraph, index) => (
               <p key={index}>
-                <FormattedParagraph
-                  text={paragraph}
-                  originalArticle={t("originalArticle")}
-                />
+                <FormattedParagraph text={paragraph} />
               </p>
             ))}
 
@@ -243,10 +212,7 @@ export default async function NewsDetailPage({ params }) {
 
             {body.slice(2).map((paragraph, index) => (
               <p key={index}>
-                <FormattedParagraph
-                  text={paragraph}
-                  originalArticle={t("originalArticle")}
-                />
+                <FormattedParagraph text={paragraph} />
               </p>
             ))}
 
@@ -273,7 +239,7 @@ export default async function NewsDetailPage({ params }) {
             <div className="flex items-center justify-between gap-3 border-b border-line pb-5">
               <div className="flex items-center gap-3">
                 <span className="size-3 rounded-full bg-brand" />
-                <h2 className="text-2xl font-black text-ink">{t("summary")}</h2>
+                <h2 className="text-2xl font-black text-ink">기사 요약</h2>
               </div>
               <span className="rounded-full bg-brand-soft px-3.5 py-1 text-xs font-black text-brand">
                 KEY POINTS
@@ -281,11 +247,11 @@ export default async function NewsDetailPage({ params }) {
             </div>
             <ol className="mt-6 flex flex-col gap-6">
               {summaryPoints.map((point, index) => (
-                <li key={index} className="flex items-start gap-3.5">
-                  <span className="flex size-7 flex-none items-center justify-center rounded-full bg-brand text-xs font-black text-white mt-0.5">
+                <li key={index} className="flex items-start gap-4">
+                  <span className="flex size-8 flex-none items-center justify-center rounded-full bg-brand text-sm font-black text-white">
                     {index + 1}
                   </span>
-                  <p className="text-[17px] font-bold leading-relaxed text-ink">
+                  <p className="text-[19px] font-bold leading-snug text-ink">
                     {point}
                   </p>
                 </li>
@@ -293,18 +259,17 @@ export default async function NewsDetailPage({ params }) {
             </ol>
           </aside>
         </div>
-      </div>
-    </section>
+      </section>
 
-      <section className="bg-white px-10 sm:px-14 py-12 lg:px-52 xl:px-60 2xl:px-72">
+      <section className="bg-white px-5 py-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-black text-ink">{t("related")}</h2>
+            <h2 className="text-2xl font-black text-ink">관련 뉴스</h2>
             <Link href="/news" className="text-sm font-bold text-brand">
-              {t("viewAll")}
+              뉴스피드 전체보기
             </Link>
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-4">
             {relatedNews.map((item) => (
               <Link
                 key={item.slug}

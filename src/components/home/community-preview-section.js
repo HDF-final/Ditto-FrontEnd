@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { communityCourses } from "@/lib/fixtures/home";
 import { SectionHeading } from "@/components/home/section-heading";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -27,7 +26,6 @@ function getFlagEmoji(countryCode) {
 }
 
 function CommunityCourseCard({ course, onAuthRequired }) {
-  const t = useTranslations("home");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -117,7 +115,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] w-full bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)]"
+      className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)]"
     >
       {/* Full Background Image */}
       <img
@@ -133,8 +131,8 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       <div className="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 p-5 flex items-start justify-between">
-        <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/10">
+      <div className="relative z-10 flex items-start justify-between p-4 lg:p-5">
+        <div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/30 px-3 py-1.5 backdrop-blur-xs">
           {/* Rank Badge */}
           <span className="flex size-7 items-center justify-center rounded-lg bg-[#5c2ef5] text-xs font-black text-white shadow-sm">
             {course.rank}
@@ -142,22 +140,22 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           {/* Flag */}
           <span className="text-base leading-none">{getFlagEmoji(course.flag || course.country)}</span>
           {/* Name & Tag */}
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-bold text-white drop-shadow-sm">{course.name}</span>
-            <span className="text-[11px] font-semibold text-violet-200 drop-shadow-sm">{course.hash}</span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-xs font-bold text-white drop-shadow-sm">{course.name}</span>
+            <span className="truncate text-[11px] font-semibold text-violet-200 drop-shadow-sm">{course.hash}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 p-5 pt-0 flex flex-col gap-3">
+      <div className="relative z-10 flex flex-col gap-3 p-4 pt-0 lg:p-5 lg:pt-0">
         {/* Title & Description */}
         <div className="flex flex-col gap-1.5">
-          <h3 className="text-2xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+          <h3 className="line-clamp-2 min-h-[3.2rem] text-xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:min-h-0 lg:text-2xl">
             {course.title}
           </h3>
           {course.description && (
-            <p className="text-xs font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="line-clamp-1 text-xs font-medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {course.description}
             </p>
           )}
@@ -169,7 +167,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label={t("like")}
+            aria-label="좋아요"
             className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
@@ -192,7 +190,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label={t("comment")}
+            aria-label="댓글"
             className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
           >
             <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -205,7 +203,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label={t("save")}
+            aria-label="저장"
             className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
@@ -229,52 +227,32 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   );
 }
 
-export function CommunityPreviewSection() {
-  const t = useTranslations("home");
-  const common = useTranslations("common");
-  const router = useRouter();
+function CommunitySlider({
+  itemsPerSlide,
+  columnsClassName,
+  onAuthRequired,
+  isPaused,
+}) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  // Group 9 courses into chunks of 3 (Slide 0: 1~3, Slide 1: 4~6, Slide 2: 7~9)
-  const itemsPerSlide = 3;
-  const totalSlides = Math.ceil(communityCourses.length / itemsPerSlide);
-
+  const totalSlides = Math.ceil(communityCourses.length / itemsPerSlide) || 1;
   const slides = [];
   for (let i = 0; i < communityCourses.length; i += itemsPerSlide) {
     slides.push(communityCourses.slice(i, i + itemsPerSlide));
   }
 
-  // 2초마다 자동 슬라이드 전환
   useEffect(() => {
     if (isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    }, 2000);
+    }, 4000);
 
     return () => clearInterval(timer);
   }, [isPaused, totalSlides]);
 
   return (
-    <section
-      id="community"
-      className="scroll-mt-[94px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <SectionHeading
-        eyebrow="TRAVELER COMMUNITY"
-        title={t("communityTitle")}
-        description={t("communityDescription")}
-        href="/community"
-        linkLabel={t("browseCommunity")}
-        inverse
-      />
-
-      {/* Slider Viewport */}
-      <div className="relative overflow-hidden w-full pt-2 pb-4">
+    <>
+      <div className="relative w-full overflow-hidden pb-4 pt-2">
         <div
           className="flex transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -282,22 +260,20 @@ export function CommunityPreviewSection() {
           {slides.map((slideItems, slideIdx) => (
             <div
               key={slideIdx}
-              className="w-full shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-1"
+              className={`grid min-w-full shrink-0 basis-full items-stretch gap-4 px-0.5 lg:gap-6 ${columnsClassName}`}
             >
               {slideItems.map((course) => (
                 <CommunityCourseCard
                   key={course.rank}
                   course={course}
-                  onAuthRequired={() => setIsLoginModalOpen(true)}
+                  onAuthRequired={onAuthRequired}
                 />
               ))}
             </div>
           ))}
         </div>
       </div>
-
-      {/* Pagination Indicator Dots */}
-      <div className="mt-8 flex justify-center items-center gap-2.5">
+      <div className="mt-5 flex items-center justify-center gap-2 lg:mt-8 lg:gap-2.5">
         {slides.map((_, idx) => (
           <button
             key={idx}
@@ -308,10 +284,51 @@ export function CommunityPreviewSection() {
                 ? "w-7 bg-white shadow-sm"
                 : "w-2.5 bg-white/40 hover:bg-white/70"
             }`}
-            aria-label={t("courseListItem", { index: idx + 1 })}
+            aria-label={`${idx + 1}번째 코스 목록 보기`}
             aria-current={currentSlide === idx}
           />
         ))}
+      </div>
+    </>
+  );
+}
+
+export function CommunityPreviewSection() {
+  const router = useRouter();
+  const [isPaused, setIsPaused] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  return (
+    <section
+      id="community"
+      className="scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-8 lg:scroll-mt-[94px] lg:px-52 lg:py-16 xl:px-60 2xl:px-72"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <SectionHeading
+        eyebrow="TRAVELER COMMUNITY"
+        title="지금 인기 있는 커스텀 코스"
+        description="다른 여행자들이 직접 만들고 공유한 코스를 확인해보세요."
+        href="/community"
+        linkLabel="커뮤니티 둘러보기"
+        inverse
+      />
+
+      <div className="lg:hidden">
+        <CommunitySlider
+          itemsPerSlide={1}
+          columnsClassName="grid-cols-1"
+          onAuthRequired={() => setIsLoginModalOpen(true)}
+          isPaused={isPaused}
+        />
+      </div>
+      <div className="hidden lg:block">
+        <CommunitySlider
+          itemsPerSlide={3}
+          columnsClassName="grid-cols-3"
+          onAuthRequired={() => setIsLoginModalOpen(true)}
+          isPaused={isPaused}
+        />
       </div>
 
       {/* 로그인 필요 알림 모달 */}
@@ -342,11 +359,9 @@ export function CommunityPreviewSection() {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">
-              {t("loginRequired")}
-            </h3>
+            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              {t("loginRequiredDescription")}
+              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -354,7 +369,7 @@ export function CommunityPreviewSection() {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                {common("cancel")}
+                취소
               </button>
               <button
                 type="button"
@@ -364,7 +379,7 @@ export function CommunityPreviewSection() {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                {t("loginAction")}
+                로그인하기 →
               </button>
             </div>
           </div>

@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { PromptScreen } from "./prompt-screen";
 import { ResultScreen } from "./result-screen";
 import { PlaceModal } from "./place-modal";
 import { useCourseChat } from "./use-course-chat";
-import { getCourseDetail } from "@/lib/api/courses";
 
 /**
  * Course recommendation flow ported from the Figma wireframe.
@@ -21,41 +19,18 @@ import { getCourseDetail } from "@/lib/api/courses";
  * 추천 응답은 결과 화면 위 버퍼링 오버레이로 기다립니다. 결과 화면 안의 Boni
  * 대화도 같은 세션·같은 엔드포인트를 쓰므로 대화 상태는 여기서 한 번만 만듭니다.
  *
- * When `courseId` query param is present, it directly opens the result phase and
- * loads the saved course places onto the map and sidebar.
+ * The site header comes from the global AppFrame. Desktop hides the footer on
+ * this route so the editor can fill the remaining viewport.
  */
 export function CourseRecommend() {
-  const searchParams = useSearchParams();
-  const courseId = searchParams.get("courseId");
-
-  const [phase, setPhase] = useState(courseId ? "result" : "prompt");
+  const [phase, setPhase] = useState("prompt");
   const [mode, setMode] = useState("auto"); // "auto" (Boni) | "manual"
   const [activePlace, setActivePlace] = useState(null);
-  const [initialCourse, setInitialCourse] = useState(null);
   const chat = useCourseChat();
 
-  useEffect(() => {
-    if (!courseId) return;
-    let active = true;
-    getCourseDetail(courseId)
-      .then((detail) => {
-        if (active && detail) {
-          setInitialCourse(detail);
-          setPhase("result");
-        }
-      })
-      .catch((err) => {
-        console.warn("[CourseRecommend] Failed to load course detail:", err);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [courseId]);
-
   return (
-    <div className="flex flex-col bg-white">
-      {phase === "prompt" && !courseId ? (
+    <div className="flex min-h-0 flex-1 flex-col bg-white lg:min-h-[calc(100dvh-72px)]">
+      {phase === "prompt" ? (
         <PromptScreen
           mode={mode}
           onModeChange={setMode}
@@ -67,11 +42,7 @@ export function CourseRecommend() {
           }}
         />
       ) : (
-        <ResultScreen
-          chat={chat}
-          initialCourse={initialCourse}
-          onPlaceClick={setActivePlace}
-        />
+        <ResultScreen chat={chat} onPlaceClick={setActivePlace} />
       )}
 
       {activePlace && (

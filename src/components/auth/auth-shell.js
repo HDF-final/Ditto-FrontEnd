@@ -14,13 +14,13 @@ export function AuthShell({
   wide = false,
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-auth-canvas px-6 py-12 sm:px-8">
+    <main className="flex min-h-dvh items-center justify-center bg-auth-canvas px-4 py-8 lg:min-h-screen lg:px-6 lg:py-12">
       <div
         className={[
           "flex w-full flex-col gap-[22px]",
           wide ? "max-w-[640px]" : "max-w-[480px]",
-          "rounded-[28px] bg-white px-7 py-10 shadow-[0_24px_60px_rgba(43,28,89,0.10)]",
-          "sm:px-[61px] sm:py-14",
+          "rounded-[24px] bg-white px-5 py-8 shadow-[0_24px_60px_rgba(43,28,89,0.10)]",
+          "lg:rounded-[28px] lg:px-[61px] lg:py-14",
         ].join(" ")}
       >
         <Link
@@ -40,7 +40,7 @@ export function AuthShell({
           </span>
         </Link>
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-[28px] font-bold leading-tight text-ink">
+          <h1 className="text-[22px] font-bold leading-tight text-ink lg:text-[28px]">
             {title}
           </h1>
           {description ? (

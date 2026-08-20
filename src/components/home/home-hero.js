@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
 function ArrowRightIcon({ className = "" }) {
   return (
@@ -23,7 +22,6 @@ function ArrowRightIcon({ className = "" }) {
 }
 
 export function HomeHero({ slides }) {
-  const t = useTranslations("home");
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -37,74 +35,125 @@ export function HomeHero({ slides }) {
   const activeSlide = slides[activeIndex];
   const heroMinHeight = "clamp(480px, 44vw, 640px)";
 
+  function SlideIndicators({ compact = false }) {
+    return (
+      <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
+        {slides.map((slide, index) => (
+          <button
+            key={slide.titleLine}
+            type="button"
+            aria-label={`${index + 1}번째 배너 보기`}
+            aria-current={activeIndex === index}
+            onClick={() => setActiveIndex(index)}
+            className={`rounded-full transition-all ${
+              compact ? "h-1.5" : "h-2.5"
+            } ${
+              activeIndex === index
+                ? compact
+                  ? "w-5 bg-brand"
+                  : "w-7 bg-brand"
+                : compact
+                  ? "w-1.5 bg-line-strong hover:bg-brand/50"
+                  : "w-2.5 bg-line-strong hover:bg-brand/50"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <section className="relative w-full overflow-hidden">
-      <div className="relative" style={{ minHeight: heroMinHeight }}>
-        {/* 배경: 흰색 폴백 위에 슬라이드 이미지(파일을 넣기 전에는 흰 배경이 노출) */}
-        <div className="absolute inset-0 bg-white" />
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url("${activeSlide.image}")` }}
-          role="img"
-          aria-label={activeSlide.alt}
-        />
-        {/* 좌측 가독성 확보용 화이트 그라데이션 오버레이 */}
-        <div className="absolute inset-0 bg-linear-to-r from-white via-white/85 to-transparent" />
+    <>
+      <section className="px-5 pt-5 lg:hidden">
+        <p className="text-[11px] font-black tracking-wide text-brand">
+          {activeSlide.eyebrow}
+        </p>
+        <h1 className="mt-1 text-[24px] font-black leading-snug text-ink">
+          <span className="block">{activeSlide.titleLine}</span>
+          <span className="block">
+            <span className="text-brand">{activeSlide.accent}</span>
+            {activeSlide.suffix}
+          </span>
+        </h1>
 
-        {/* 콘텐츠 */}
-        <div
-          className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-5 px-8 sm:px-14 lg:px-16"
-          style={{ minHeight: heroMinHeight }}
-        >
-          <p className="text-sm font-black tracking-wide text-brand">
-            {activeSlide.eyebrow}
-          </p>
-          <h1 className="text-3xl font-black leading-snug text-ink sm:text-4xl lg:text-5xl">
-            <span className="block">{activeSlide.titleLine}</span>
-            <span className="block whitespace-nowrap">
-              <span className="text-brand">{activeSlide.accent}</span>
-              {activeSlide.suffix}
-            </span>
-          </h1>
-          <p className="max-w-xl whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
-            {activeSlide.description}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={activeSlide.primaryCta.href}
-              className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-brand px-6 py-3 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
-            >
-              {activeSlide.primaryCta.label}
-              <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href={activeSlide.secondaryCta.href}
-              className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-white px-6 py-3 text-sm font-black text-ink transition hover:border-brand hover:text-brand"
-            >
-              {activeSlide.secondaryCta.label}
-              <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-
-          {/* 슬라이드 인디케이터 (현재 위치 표시) */}
-          <div className="flex items-center gap-2" aria-label={t("bannerSlides")}>
-            {slides.map((slide, index) => (
-              <button
-                key={slide.titleLine}
-                type="button"
-                aria-label={t("bannerItem", { index: index + 1 })}
-                aria-current={activeIndex === index}
-                onClick={() => setActiveIndex(index)}
-                className={`h-2.5 rounded-full transition-all ${
-                  activeIndex === index
-                    ? "w-7 bg-brand"
-                    : "w-2.5 bg-line-strong hover:bg-brand/50"
-                }`}
-              />
-            ))}
+        <div className="relative mt-4 overflow-hidden rounded-[22px]">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url("${activeSlide.image}")` }}
+            role="img"
+            aria-label={activeSlide.alt}
+          />
+          <div className="absolute inset-0 bg-linear-to-br from-[#2d1b8e]/92 via-[#5c2ef5]/78 to-[#8c57fa]/70" />
+          <div className="relative flex min-h-[168px] flex-col justify-between p-5">
+            <p className="text-[28px] font-black tracking-tight text-white">DITTO</p>
+            <div>
+              <p className="text-[13px] font-semibold leading-5 text-white/90">
+                {activeSlide.description.split("\n")[0]}
+              </p>
+              <Link
+                href={activeSlide.primaryCta.href}
+                className="mt-3 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-black text-brand"
+              >
+                {activeSlide.primaryCta.label}
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+
+        <div className="mt-3">
+          <SlideIndicators compact />
+        </div>
+      </section>
+
+      <section className="relative hidden w-full overflow-hidden lg:block">
+        <div className="relative" style={{ minHeight: heroMinHeight }}>
+          <div className="absolute inset-0 bg-white" />
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url("${activeSlide.image}")` }}
+            role="img"
+            aria-label={activeSlide.alt}
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-white via-white/85 to-transparent" />
+
+          <div
+            className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-5 px-8 sm:px-14 lg:px-16"
+            style={{ minHeight: heroMinHeight }}
+          >
+            <p className="text-sm font-black tracking-wide text-brand">
+              {activeSlide.eyebrow}
+            </p>
+            <h1 className="text-3xl font-black leading-snug text-ink sm:text-4xl lg:text-5xl">
+              <span className="block">{activeSlide.titleLine}</span>
+              <span className="block whitespace-nowrap">
+                <span className="text-brand">{activeSlide.accent}</span>
+                {activeSlide.suffix}
+              </span>
+            </h1>
+            <p className="max-w-xl whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
+              {activeSlide.description}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={activeSlide.primaryCta.href}
+                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-brand px-6 py-3 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
+              >
+                {activeSlide.primaryCta.label}
+                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href={activeSlide.secondaryCta.href}
+                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-white px-6 py-3 text-sm font-black text-ink transition hover:border-brand hover:text-brand"
+              >
+                {activeSlide.secondaryCta.label}
+                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+            <SlideIndicators />
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

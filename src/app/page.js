@@ -1,4 +1,5 @@
 import { AppBanner } from "@/components/home/app-banner";
+import { BoniLauncher } from "@/components/home/boni-launcher";
 import { CommunityPreviewSection } from "@/components/home/community-preview-section";
 import { DittoPicksSection } from "@/components/home/ditto-picks-section";
 import { HomeHero } from "@/components/home/home-hero";
@@ -33,6 +34,7 @@ export default async function Home() {
       <KeywordSection />
       <NewsletterPreviewSection items={newsList} />
       <AppBanner />
+      <BoniLauncher />
     </main>
   );
 }
