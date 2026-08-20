@@ -15,7 +15,7 @@ export async function generateMetadata({ params }) {
 
   if (!course) {
     const t = await getTranslations("community");
-    return { title: t("communityCourse") };
+    return { title: t.has("communityCourse") ? t("communityCourse") : "커뮤니티 코스" };
   }
 
   return { title: course.title };
@@ -79,7 +79,9 @@ function StopList({ stops = [], courseId, t }) {
     <section className="flex flex-col justify-between rounded-[28px] bg-surface-soft p-6 lg:p-7">
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-black text-ink">{t ? t("coursePlaces") : "코스 장소"}</h2>
+          <h2 className="text-lg font-black text-ink">
+            {t && t.has("coursePlaces") ? t("coursePlaces") : "코스 장소"}
+          </h2>
           <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-ink-muted shadow-xs">
             총 {stops.length}개 스팟
           </span>
@@ -107,7 +109,7 @@ function StopList({ stops = [], courseId, t }) {
                 href={courseId ? `/ai-course?courseId=${courseId}` : "/ai-course"}
                 className="text-sm font-black text-brand transition hover:text-brand-dark"
               >
-                {t ? t("view") : "보기"}
+                {t && t.has("view") ? t("view") : "보기"}
               </Link>
             </div>
           ))}
@@ -118,6 +120,16 @@ function StopList({ stops = [], courseId, t }) {
 }
 
 function AuthorNote({ course, t, locale }) {
+  const travelerText = t && t.has("traveler") ? t("traveler") : "여행자";
+  const authorRecordText = t && t.has("authorRecord") ? t("authorRecord") : "작성자가 남긴 기록";
+  const authorRecordDescText = t && t.has("authorRecordDescription")
+    ? t("authorRecordDescription", { name: course.name || travelerText })
+    : `이 코스를 만든 ${course.name || travelerText}님이 직접 쓴 글이에요.`;
+  const otherCoursesText = t && t.has("otherCourses") ? t("otherCourses") : "다른 커뮤니티 코스 둘러보기 →";
+  const authoredOnText = t && t.has("authoredOn")
+    ? t("authoredOn", { date: course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02" })
+    : `${course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02"} 작성`;
+
   return (
     <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
@@ -125,17 +137,17 @@ function AuthorNote({ course, t, locale }) {
           <div>
             <p className="text-xs font-black text-brand">COURSE NOTE</p>
             <h2 className="mt-3 text-[32px] font-black text-ink">
-              {t("authorRecord")}
+              {authorRecordText}
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
-              {t("authorRecordDescription", { name: course.name || t("traveler") })}
+              {authorRecordDescText}
             </p>
           </div>
           <Link
             href="/community"
             className="text-sm font-black text-brand transition hover:text-brand-dark"
           >
-            {t("otherCourses")}
+            {otherCoursesText}
           </Link>
         </div>
 
@@ -148,12 +160,12 @@ function AuthorNote({ course, t, locale }) {
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-ink">{course.name || t("traveler")}</p>
+                    <p className="text-lg font-black text-ink">{course.name || travelerText}</p>
                     <span className="font-black text-ink">·</span>
                     <span className="text-sm font-black text-ink">{course.country || "KR"}</span>
                   </div>
                   <p className="mt-1 text-xs font-medium text-ink-muted">
-                    {t("authoredOn", { date: course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02" })}
+                    {authoredOnText}
                   </p>
                 </div>
               </div>
@@ -206,8 +218,13 @@ export default async function CommunityCourseDetailPage({ params }) {
     notFound();
   }
 
-  const coverGradient =
-    course.gradient || "from-[#201658] via-[#2f1b7a] to-[#43239a]";
+  const travelerText = t.has("traveler") ? t("traveler") : "여행자";
+  const breadcrumbHomeText = t.has("breadcrumbHome") ? t("breadcrumbHome") : "홈";
+  const breadcrumbCommunityText = t.has("breadcrumbCommunity") ? t("breadcrumbCommunity") : "커뮤니티";
+  const listText = t.has("list") ? t("list") : "목록";
+  const visitorsText = t.has("visitors") ? t("visitors") : "이 코스 다녀온 사람들";
+  const writeReviewText = t.has("writeReview") ? t("writeReview") : "후기 쓰기 →";
+  const viewAllCoursesText = t.has("viewAllCourses") ? t("viewAllCourses") : "코스 목록 전체보기 →";
 
   return (
     <main className="bg-white">
@@ -215,11 +232,11 @@ export default async function CommunityCourseDetailPage({ params }) {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted">
           <div className="flex items-center gap-2">
             <Link href="/" className="hover:text-brand">
-              {t("breadcrumbHome")}
+              {breadcrumbHomeText}
             </Link>
             <span>›</span>
             <Link href="/community" className="hover:text-brand">
-              {t("breadcrumbCommunity")}
+              {breadcrumbCommunityText}
             </Link>
             <span>›</span>
             <span className="text-ink">{course.title}</span>
@@ -228,7 +245,7 @@ export default async function CommunityCourseDetailPage({ params }) {
             href="/community"
             className="text-xs font-black text-brand transition hover:text-brand-dark"
           >
-            {t("list")}
+            {listText}
           </Link>
         </div>
       </section>
@@ -244,7 +261,7 @@ export default async function CommunityCourseDetailPage({ params }) {
                 {course.country || "KR"}
               </span>
               <div>
-                <p className="text-sm font-black text-ink">{course.name || t("traveler")}</p>
+                <p className="text-sm font-black text-ink">{course.name || travelerText}</p>
                 <p className="mt-1 text-[11px] font-black text-brand">
                   {course.hash || "#공개코스"}
                 </p>
@@ -276,14 +293,14 @@ export default async function CommunityCourseDetailPage({ params }) {
             <div>
               <p className="text-xs font-black text-brand">REVIEWS</p>
               <h2 className="mt-3 text-[30px] font-black text-ink">
-                {t("visitors")}
+                {visitorsText}
               </h2>
             </div>
             <Link
               href="/community/share"
               className="text-sm font-black text-brand transition hover:text-brand-dark"
             >
-              {t("writeReview")}
+              {writeReviewText}
             </Link>
           </div>
           <div className="mt-7 grid gap-5 lg:grid-cols-3">
@@ -296,7 +313,7 @@ export default async function CommunityCourseDetailPage({ params }) {
               href="/community"
               className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
             >
-              {t("viewAllCourses")}
+              {viewAllCoursesText}
             </Link>
           </div>
         </div>
