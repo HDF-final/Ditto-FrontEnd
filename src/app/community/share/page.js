@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { getMyCourses } from "@/lib/api/courses";
 import { getPublicCourses } from "@/lib/api/community";
 import { ShareCourseForm } from "./share-course-form";
-import { getTranslations } from "next-intl/server";
 
 export default function ShareCoursePage() {
   const [courses, setCourses] = useState([]);

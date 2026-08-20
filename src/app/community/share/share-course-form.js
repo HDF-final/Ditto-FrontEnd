@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createCoursePost } from "@/lib/api/community";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 
@@ -67,6 +68,7 @@ function PhotoTile({ image, onRemove }) {
 }
 
 export function ShareCourseForm({ courses = [], loading = false }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const fileInputRef = useRef(null);
 
