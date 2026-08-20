@@ -156,7 +156,11 @@ export async function calculateCourseRoute(places, preferences) {
   };
 }
 
-export async function optimizeCourseRoute(places, preferences) {
+export async function optimizeCourseRoute(
+  places,
+  preferences,
+  { lockedIndexes = [] } = {},
+) {
   const dataset = await loadCourseRoutingDataset();
   const inputPlacesByNavigationKey = new Map(
     places.map((place) => [place.navigationKey, place]),
@@ -165,6 +169,7 @@ export async function optimizeCourseRoute(places, preferences) {
     dataset.graph,
     places.map((place) => place.navigationKey),
     routeOptions(preferences),
+    { lockedIndexes, preserveEndpoints: true },
   );
   if (!optimized) return null;
   return {

@@ -3,7 +3,16 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, Zap, Save, RotateCcw, Check, Trash2 } from "./recommend-icons";
+import {
+  Plus,
+  Zap,
+  Save,
+  RotateCcw,
+  Check,
+  Trash2,
+  Lock,
+  LockOpen,
+} from "./recommend-icons";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
@@ -57,6 +66,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
   const [courseTitle, setCourseTitle] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
+  const [lockedPlaceIds, setLockedPlaceIds] = useState(() => new Set());
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -136,6 +146,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     setSaveSuccessOpen(false);
     setHistory([]);
     setVisited(new Set());
+    setLockedPlaceIds(new Set());
     setNotice("");
   }
 
@@ -208,6 +219,12 @@ export function ResultScreen({ chat, onPlaceClick }) {
   };
 
   const handleDelete = (id) => {
+    setLockedPlaceIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
     commit(items.filter((p) => p.id !== id));
   };
 
@@ -220,17 +237,37 @@ export function ResultScreen({ chat, onPlaceClick }) {
     });
   };
 
+  const toggleLocked = (id, index) => {
+    if (index === 0 || index === items.length - 1) return;
+    setLockedPlaceIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setNotice("");
+  };
+
   const handleOptimize = async () => {
     if (items.length < 2) return;
     try {
-      setNotice("실제 이동 거리를 계산해 최적 순서를 찾는 중이에요.");
-      const optimized = await optimizeCourseRoute(items, preferences);
+      const lockedIndexes = items.flatMap((place, index) =>
+        lockedPlaceIds.has(place.id) ? [index] : [],
+      );
+      setNotice("고정한 방문 순서를 지키며 최단 이동 거리를 계산 중이에요.");
+      const optimized = await optimizeCourseRoute(items, preferences, {
+        lockedIndexes,
+      });
       if (!optimized) {
         setNotice("현재 이동수단 조건으로 모든 장소를 연결할 수 없어요.");
         return;
       }
       if (!sameOrder(optimized.places, items)) commit(optimized.places);
-      setNotice("최단 이동거리 기준으로 코스 순서를 정리했어요.");
+      setNotice(
+        lockedIndexes.length > 0
+          ? "출발·도착과 잠근 장소를 고정해 코스를 최적화했어요."
+          : "출발지와 도착지를 고정해 코스를 최적화했어요.",
+      );
     } catch {
       setNotice("코스 최적화 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.");
     }
@@ -398,7 +435,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
         {/* Drag hint */}
         <p className="text-[#9994ad] text-[12px] border border-dashed border-[#ccc8d8] rounded-[8px] px-[14px] py-[9px] bg-white/60">
-          카드를 드래그해 순서를 바꾸세요 · 첫 장소는 출발, 마지막은 도착
+          카드를 드래그해 순서를 바꾸세요 · 출발·도착과 잠근 순서는 최적화해도 유지돼요
         </p>
 
         <div className="rounded-[12px] border border-[#e5e0f2] bg-[#faf9fe] px-3 py-3">
@@ -506,7 +543,11 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
         {/* Place cards */}
         <div className="flex flex-col gap-[10px]">
-          {items.map((place, index) => (
+          {items.map((place, index) => {
+            const isEndpoint = index === 0 || index === items.length - 1;
+            const isLocked = isEndpoint || lockedPlaceIds.has(place.id);
+
+            return (
             <div
               key={place.id}
               className="flex items-start gap-[12px]"
@@ -599,7 +640,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 )}
               </button>
 
-              {/* Per-card controls: visited toggle + delete */}
+              {/* Per-card controls: visited toggle + order lock + delete */}
               <div className="flex flex-col gap-[6px] shrink-0 mt-[14px]">
                 <button
                   onClick={() => toggleVisited(place.id)}
@@ -615,6 +656,32 @@ export function ResultScreen({ chat, onPlaceClick }) {
                   <Check size={14} />
                 </button>
                 <button
+                  type="button"
+                  onClick={() => toggleLocked(place.id, index)}
+                  disabled={isEndpoint}
+                  title={
+                    isEndpoint
+                      ? `${index === 0 ? "출발지" : "도착지"}는 최적화 시 항상 고정됩니다`
+                      : isLocked
+                        ? "최적화 방문 순서 잠금 해제"
+                        : "최적화 방문 순서 고정"
+                  }
+                  aria-label={
+                    isEndpoint
+                      ? `${place.name} 방문 순서 고정됨`
+                      : `${place.name} 방문 순서 ${isLocked ? "잠금 해제" : "고정"}`
+                  }
+                  aria-pressed={isLocked}
+                  className="w-[26px] h-[26px] rounded-full border flex items-center justify-center transition-colors cursor-pointer disabled:cursor-default"
+                  style={
+                    isLocked
+                      ? { backgroundColor: "#5c2ef5", borderColor: "#5c2ef5", color: "white" }
+                      : { backgroundColor: "white", borderColor: "#ccc8d8", color: "#9994ad" }
+                  }
+                >
+                  {isLocked ? <Lock size={12} /> : <LockOpen size={12} />}
+                </button>
+                <button
                   onClick={() => handleDelete(place.id)}
                   title="코스에서 삭제"
                   aria-label={`${place.name} 삭제`}
@@ -624,7 +691,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
