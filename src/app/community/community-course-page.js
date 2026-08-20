@@ -13,7 +13,7 @@ import {
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 
-const tabs = ["인기순", "최신순", "팔로잉", "내 타입"];
+const tabs = ["인기순", "최신순"];
 const storageKey = "ditto:shared-community-courses";
 const ITEMS_PER_PAGE = 6; // 가로 3개씩 2줄 = 페이지당 6개
 
@@ -268,19 +268,11 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const cards = useMemo(() => {
     const combined = [...initialCards, ...sharedCards];
 
-    if (activeTab === "인기순") {
-      return [...combined].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
-    }
     if (activeTab === "최신순") {
       return [...combined].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
     }
-    if (activeTab === "팔로잉") {
-      return combined.filter((c) => c.isRealDb || c.country === "JP" || c.country === "US");
-    }
-    if (activeTab === "내 타입") {
-      return combined.filter((c) => c.country === "KR" || c.isRealDb);
-    }
-    return combined;
+    // 기본값: 인기순
+    return [...combined].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
   }, [initialCards, sharedCards, activeTab]);
 
   // 탭 변경 시 1페이지로 리셋
