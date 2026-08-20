@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { HeaderNavLinks } from "./header-nav-links";
 import { HeaderAuthNav } from "./header-auth-nav";
+import { CountrySelector } from "@/components/common/country-selector";
 
 function GlobeIcon() {
   return (
@@ -22,10 +26,12 @@ function GlobeIcon() {
 }
 
 export function SiteHeader() {
+  const t = useTranslations("navigation");
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="flex h-[94px] items-center justify-between gap-6 px-10 sm:px-14 lg:px-52 xl:px-60 2xl:px-72">
-        <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
+      <div className="flex min-h-[94px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10 xl:px-14 2xl:px-20">
+        <Link href="/" className="block shrink-0" aria-label={t("dittoHome")}>
           <div className="flex flex-col">
             <Image
               src="/assets/common/ditto-logo.svg"
@@ -43,11 +49,14 @@ export function SiteHeader() {
 
         <HeaderNavLinks />
 
-        <div className="flex items-center gap-6 text-ink">
+        <div className="flex items-center gap-3 text-ink sm:gap-5">
+          <div className="hidden xl:block">
+            <CountrySelector />
+          </div>
           <Link
             href="/country"
-            aria-label="국가·언어 선택"
-            className="hover:text-brand"
+            aria-label={t("preferences")}
+            className="hover:text-brand xl:hidden"
           >
             <GlobeIcon />
           </Link>

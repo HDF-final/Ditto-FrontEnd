@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   AuthAltLink,
   AuthFieldError,
@@ -23,6 +24,7 @@ const initialErrors = {
 };
 
 export function LoginForm() {
+  const t = useTranslations();
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
   const [email, setEmail] = useState("");
@@ -36,8 +38,13 @@ export function LoginForm() {
     setServerError("");
 
     const nextErrors = {
-      email: validateEmail(email),
-      password: validatePassword(password),
+      email: validateEmail(email, {
+        required: t("validation.emailRequired"),
+        invalid: t("validation.emailInvalid"),
+      }),
+      password: validatePassword(password, {
+        required: t("validation.passwordRequired"),
+      }),
     };
 
     setErrors(nextErrors);
@@ -56,7 +63,7 @@ export function LoginForm() {
       router.push(LOGIN_SUCCESS_HREF);
     } catch (error) {
       setServerError(
-        error?.message || "이메일 또는 비밀번호를 다시 확인해주세요.",
+        error?.message || t("auth.loginError"),
       );
     } finally {
       setIsLoading(false);
@@ -81,7 +88,7 @@ export function LoginForm() {
 
         <div>
           <label htmlFor="login-email" className="sr-only">
-            이메일
+            {t("auth.email")}
           </label>
           <input
             id="login-email"
@@ -89,7 +96,7 @@ export function LoginForm() {
             type="email"
             inputMode="email"
             autoComplete="email"
-            placeholder="이메일을 입력하세요"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             disabled={isLoading}
             onChange={(event) => {
@@ -107,14 +114,14 @@ export function LoginForm() {
         </div>
         <div>
           <label htmlFor="login-password" className="sr-only">
-            비밀번호
+            {t("auth.password")}
           </label>
           <input
             id="login-password"
             name="password"
             type="password"
             autoComplete="current-password"
-            placeholder="비밀번호를 입력하세요"
+            placeholder={t("auth.passwordPlaceholder")}
             value={password}
             disabled={isLoading}
             onChange={(event) => {
@@ -143,19 +150,19 @@ export function LoginForm() {
           {isLoading ? (
             <span className="inline-flex items-center gap-2">
               <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              로그인 중...
+              {t("auth.loggingIn")}
             </span>
           ) : (
             <>
-              로그인 <span aria-hidden="true">→</span>
+              {t("common.login")} <span aria-hidden="true">→</span>
             </>
           )}
         </button>
       </form>
       <AuthAltLink
-        prompt="아직 계정이 없으신가요?"
+        prompt={t("auth.noAccount")}
         href="/signup"
-        label="회원가입"
+        label={t("common.signup")}
       />
     </>
   );

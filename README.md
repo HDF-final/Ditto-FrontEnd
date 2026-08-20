@@ -26,6 +26,7 @@
 | Styling | Tailwind CSS | 반응형 UI와 디자인 토큰 |
 | HTTP | Axios | 브라우저 API 통신 공통 인스턴스 |
 | Client state | Zustand | 여러 클라이언트 컴포넌트가 공유하는 상태 |
+| Internationalization | next-intl | 서버 렌더링과 클라이언트 UI의 한·중·일·영 고정 문구 |
 | Package manager | pnpm | 의존성 및 잠금 파일 관리 |
 
 설치된 정확한 버전은 [package.json](./package.json)과 `pnpm-lock.yaml`을 기준으로 합니다.
@@ -206,9 +207,33 @@ Ditto-FrontEnd/
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가 코드처럼 온보딩과 공용 셀렉터가 공유하는 값은 `src/stores/use-preference-store.js`에 두되 **persist하지 않습니다**. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
 
-인증·온보딩 임시 이동 정책(실제 로그인/토큰 없음):
+국가·언어 설정 우선순위는 다음과 같습니다.
+
+```text
+로그인 사용자 → GET /users/me의 DB 설정
+비로그인 사용자 → 국가·언어 쿠키
+저장된 설정 없음 → 브라우저 언어 + 기본 국가 KR
+```
+
+전역 레이아웃이 요청 쿠키와 `Accept-Language`를 읽어 Zustand provider의 첫 상태와 `<html lang>`을 함께 초기화하므로, hydration 이후 언어가 뒤늦게 바뀌는 현상을 막습니다. 국가를 바꾸면 그 국가의 기본 언어를 함께 선택하되, 사용자가 언어를 직접 선택한 뒤에는 국가를 바꿔도 해당 언어를 유지합니다. 헤더에서는 국가와 화면 언어를 별도 선택기로 제공합니다.
+
+선택 언어는 Backend 동적 콘텐츠에도 동일하게 적용됩니다. 브라우저의 모든 Axios 요청은 공통
+`src/lib/api/client.js` 인터셉터가 `ditto-language` 쿠키를 읽어 `Accept-Language` 헤더에 넣습니다.
+뉴스처럼 Server Component가 직접 호출하는 요청은 `src/lib/api/server-language.js`가 요청 쿠키를 읽어
+같은 헤더를 전달합니다. 지원 값은 `ko`, `zh`, `ja`, `en`이며 값이 없거나 잘못되면 `ko`를 사용합니다.
+호출부가 `Accept-Language`를 직접 지정한 경우 공통 계층은 해당 값을 덮어쓰지 않습니다.
+
+### 한·중·일·영 UI 다국어
+
+`next-intl` 기반으로 한국어(`ko`), 중국어(`zh`), 일본어(`ja`), 영어(`en`)를 지원합니다. 번역 카탈로그는 `messages/{locale}.json`, 요청별 언어 결정은 `src/i18n/request.js`, 지원 언어와 기본값은 `src/i18n/config.js`에서 관리합니다.
+
+고정 UI 문구는 메시지 키로 관리하며, 언어 선택 쿠키가 바뀌면 서버 컴포넌트까지 같은 언어로 다시 렌더링합니다. 새 문구를 추가할 때는 네 카탈로그에 동일한 키를 추가해야 합니다. 키 구조 일치와 다른 언어 파일의 한국어 혼입은 `pnpm test:i18n`으로 검사합니다.
+
+이번 단계는 메뉴, 제목, 버튼, 입력 안내, 오류와 접근성 문구 같은 프론트 고정 UI만 포함합니다. 뉴스·커뮤니티 게시물·코스명·AI 응답처럼 API나 사용자가 만드는 동적 콘텐츠의 자동 번역은 Azure Translator 연동 단계에서 별도로 처리합니다. 따라서 현재 단계에는 Azure 키가 필요하지 않습니다.
+
+인증·온보딩 이동 정책:
 
 ```text
 /signup → /country → /persona?lang=… → /
@@ -287,12 +312,28 @@ Zustand는 국가·언어, 다단계 코스 작성 상태, 전역 모달처럼 �
 import { usePreferenceStore } from "@/stores/use-preference-store";
 
 const countryCode = usePreferenceStore((state) => state.countryCode);
+const languageCode = usePreferenceStore((state) => state.languageCode);
 ```
 
 - 한 컴포넌트에서만 사용하는 값은 React `useState`를 사용합니다.
 - API 응답 목록 전체를 Zustand에 불필요하게 복사하지 않습니다.
 - 인증 토큰을 Zustand persist나 `localStorage`에 저장하지 않습니다.
-- persist가 필요해질 때는 Next.js hydration 전략을 먼저 정의합니다.
+- 국가·언어 저장소는 서버에서 쿠키와 브라우저 언어로 초기화하며, 로그인된 경우 DB 값으로 덮어씁니다.
+- `/country`에서 국가는 콘텐츠·트렌드 시장, 언어는 화면 표시 언어로 별도 선택합니다.
+
+### 국가·언어 설정 2차 범위
+
+- 지원 국가: `KR`, `CN`, `JP`, `US`
+- 지원 언어: `ko`, `zh`, `ja`, `en`
+- 저장 API: `PATCH /api/v1/users/me/preferences`
+- 세션 복원: `GET /api/v1/users/me`
+- 게스트 저장: `ditto-country`, `ditto-language`, `ditto-language-manual` 쿠키
+- SSR 초기화: 쿠키가 없으면 `Accept-Language`와 기본 국가 `KR` 사용
+- 헤더 선택기: 국가와 화면 언어를 독립적으로 변경
+- 국가 변경: 언어를 직접 선택하기 전에는 국가 기본 언어 적용, 직접 선택한 뒤에는 언어 유지
+
+이번 2차에는 설정 우선순위 통합과 첫 렌더링 복원까지 포함합니다. 화면 고정 문구 사전,
+실제 UI 전체 언어 전환, 동적 콘텐츠 번역 및 DeepL 연동은 후속 단계입니다.
 
 ## Tailwind CSS
 
@@ -308,18 +349,18 @@ Tailwind CSS 4를 사용하며 전역 디자인 토큰은 `src/app/globals.css`�
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=/api/v1
-NEXT_PUBLIC_LOCAL_USER_ID=1
-API_PROXY_TARGET=http://localhost:8080
+NEXT_PUBLIC_LOCAL_USER_ID=
+API_PROXY_TARGET=http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com
 ```
 
 | 키 | 설명 |
 | --- | --- |
 | `NEXT_PUBLIC_API_BASE_URL` | 브라우저가 호출할 API 기준 경로. 기본값 `/api/v1`. |
-| `NEXT_PUBLIC_LOCAL_USER_ID` | 로컬 인증 대체용 `X-User-Id`. 운영 빌드에서는 사용하지 않습니다. |
-| `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값 `http://localhost:8080`. |
+| `NEXT_PUBLIC_LOCAL_USER_ID` | 로컬 Spring의 `local` 프로필을 의도적으로 시험할 때만 넣는 `X-User-Id`. 기본값은 비워 둡니다. |
+| `API_PROXY_TARGET` | Next가 `/api/*`를 넘길 백엔드 주소. 기본값은 배포된 Backend ALB입니다. |
 
 `NEXT_PUBLIC_` 접두사가 붙은 값은 브라우저 번들에 포함되므로 비밀 키를 넣으면 안 됩니다.
-개발 환경에서는 `NEXT_PUBLIC_LOCAL_USER_ID`를 `X-User-Id` 헤더로 전달하며, 운영 인증이 연결되면 제거합니다.
+`NEXT_PUBLIC_LOCAL_USER_ID`가 명시된 개발 환경에서만 `X-User-Id` 헤더를 전달합니다. 배포 Backend를 프록시할 때는 비워 두고 실제 `JSESSIONID` 세션으로 인증합니다.
 브라우저의 `/api/*` 요청은 Next.js rewrite를 통해 `API_PROXY_TARGET`으로 전달합니다.
 
 ## 라이브러리 관리

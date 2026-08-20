@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 function ArrowRightIcon({ className = "" }) {
   return (
@@ -22,6 +23,7 @@ function ArrowRightIcon({ className = "" }) {
 }
 
 export function HomeHero({ slides }) {
+  const t = useTranslations("home");
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -85,12 +87,12 @@ export function HomeHero({ slides }) {
           </div>
 
           {/* 슬라이드 인디케이터 (현재 위치 표시) */}
-          <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
+          <div className="flex items-center gap-2" aria-label={t("bannerSlides")}>
             {slides.map((slide, index) => (
               <button
                 key={slide.titleLine}
                 type="button"
-                aria-label={`${index + 1}번째 배너 보기`}
+                aria-label={t("bannerItem", { index: index + 1 })}
                 aria-current={activeIndex === index}
                 onClick={() => setActiveIndex(index)}
                 className={`h-2.5 rounded-full transition-all ${

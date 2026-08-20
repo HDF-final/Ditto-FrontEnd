@@ -176,11 +176,10 @@ export function ShareCourseForm({ courses = [], loading = false }) {
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
             <h1 className="mt-6 text-[38px] font-black leading-none text-ink">
-              내 코스 공유하기
+              {t("shareTitle")}
             </h1>
             <p className="mt-5 text-sm font-medium text-ink-muted">
-              마이페이지의 내 코스 목록에서 공유할 코스를 선택하고, 직접 찍은
-              사진과 후기를 첨부하세요.
+              {t("shareDescription")}
             </p>
           </div>
           {selectedCourse && (
@@ -210,14 +209,14 @@ export function ShareCourseForm({ courses = [], loading = false }) {
           {/* 왼쪽: 내 코스 목록 */}
           <section className="rounded-[28px] bg-surface-soft p-7 lg:p-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-ink">내 코스</h2>
+              <h2 className="text-2xl font-black text-ink">{t("myCourses")}</h2>
               <span className="text-sm font-black text-brand">
                 {courses.length}개
               </span>
             </div>
             <div className="mt-8">
               <span className="rounded-full bg-brand px-4 py-2 text-xs font-black text-white">
-                내 코스
+                {t("myCourses")}
               </span>
             </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { NewsShareButton } from "@/components/news/news-share-button";
 import {
@@ -11,7 +12,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function FormattedParagraph({ text }) {
+function FormattedParagraph({ text, originalArticle }) {
   if (!text) return null;
 
   // 1. Markdown link pattern: [연합뉴스](https://...)
@@ -71,7 +72,7 @@ function FormattedParagraph({ text }) {
   const sourceWithUrlRegex = /^(출처:\s*)([^\s(]+)?\s*\((https?:\/\/[^\s)]+)\)$/;
   const sourceMatch = text.match(sourceWithUrlRegex);
   if (sourceMatch) {
-    const [, prefix, label = "원문 기사", url] = sourceMatch;
+    const [, prefix, label = originalArticle, url] = sourceMatch;
     return (
       <>
         {prefix}
@@ -110,11 +111,14 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params;
+  const [{ slug }, t] = await Promise.all([
+    params,
+    getTranslations("news"),
+  ]);
   const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
-    return { title: "뉴스 상세" };
+    return { title: t("detailTitle") };
   }
 
   return {
@@ -124,7 +128,10 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function NewsDetailPage({ params }) {
-  const { slug } = await params;
+  const [{ slug }, t] = await Promise.all([
+    params,
+    getTranslations("news"),
+  ]);
   const news = await getNewsDetailBySlug(slug);
 
   if (!news) {
@@ -177,7 +184,7 @@ export default async function NewsDetailPage({ params }) {
                 href="/news"
                 className="inline-flex min-h-12 items-center justify-center rounded-control border border-white/80 bg-black/20 backdrop-blur-xs px-7 text-sm font-black text-white transition hover:bg-white/20"
               >
-                뉴스피드로 돌아가기
+                {t("backToFeed")}
               </Link>
               <NewsShareButton
                 title={news.title}
@@ -193,7 +200,10 @@ export default async function NewsDetailPage({ params }) {
           <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
             {body.slice(0, 2).map((paragraph, index) => (
               <p key={index}>
-                <FormattedParagraph text={paragraph} />
+                <FormattedParagraph
+                  text={paragraph}
+                  originalArticle={t("originalArticle")}
+                />
               </p>
             ))}
 
@@ -212,7 +222,10 @@ export default async function NewsDetailPage({ params }) {
 
             {body.slice(2).map((paragraph, index) => (
               <p key={index}>
-                <FormattedParagraph text={paragraph} />
+                <FormattedParagraph
+                  text={paragraph}
+                  originalArticle={t("originalArticle")}
+                />
               </p>
             ))}
 
@@ -239,7 +252,7 @@ export default async function NewsDetailPage({ params }) {
             <div className="flex items-center justify-between gap-3 border-b border-line pb-5">
               <div className="flex items-center gap-3">
                 <span className="size-3 rounded-full bg-brand" />
-                <h2 className="text-2xl font-black text-ink">기사 요약</h2>
+                <h2 className="text-2xl font-black text-ink">{t("summary")}</h2>
               </div>
               <span className="rounded-full bg-brand-soft px-3.5 py-1 text-xs font-black text-brand">
                 KEY POINTS
@@ -264,9 +277,9 @@ export default async function NewsDetailPage({ params }) {
       <section className="bg-white px-10 sm:px-14 py-12 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-black text-ink">관련 뉴스</h2>
+            <h2 className="text-2xl font-black text-ink">{t("related")}</h2>
             <Link href="/news" className="text-sm font-bold text-brand">
-              뉴스피드 전체보기
+              {t("viewAll")}
             </Link>
           </div>
           <div className="grid gap-5 md:grid-cols-3">

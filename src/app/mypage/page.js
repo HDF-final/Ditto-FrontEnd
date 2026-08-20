@@ -1,6 +1,10 @@
 import { MypageView } from "@/components/mypage/mypage-view";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = { title: "마이페이지" };
+export async function generateMetadata() {
+  const t = await getTranslations("mypage");
+  return { title: t("title") };
+}
 
 export default function MyPage() {
   return <MypageView />;

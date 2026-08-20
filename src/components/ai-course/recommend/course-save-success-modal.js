@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Check } from "./recommend-icons";
 
 export function CourseSaveSuccessModal({
@@ -71,13 +72,13 @@ export function CourseSaveSuccessModal({
             onClick={onClose}
             className="rounded-full border border-[#d8d3e8] bg-white px-4 py-3 text-[12px] font-bold text-[#6b6685] transition-colors hover:border-[#5c2ef5] hover:text-[#5c2ef5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            계속 편집
+            {t("continueEditing")}
           </button>
           <Link
             href="/mypage"
             className="rounded-full bg-[#5c2ef5] px-4 py-3 text-[12px] font-bold text-white transition-colors hover:bg-[#4a22d4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            마이페이지 보기
+            {t("viewMypage")}
           </Link>
         </div>
       </section>

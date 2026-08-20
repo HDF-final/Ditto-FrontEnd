@@ -2,41 +2,91 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import {
   COUNTRIES,
   DEFAULT_COUNTRY_CODE,
+  DEFAULT_LANGUAGE_CODE,
+  LANGUAGES,
+  getDefaultLanguageForCountry,
   getCountryByCode,
 } from "@/lib/fixtures/countries";
+import { updateMyPreferences } from "@/lib/api/users";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 import { useSignupStore } from "@/stores/use-signup-store";
 
 export function CountryForm() {
+  const t = useTranslations();
   const router = useRouter();
   const storedCountryCode = usePreferenceStore((state) => state.countryCode);
-  const setCountryCode = usePreferenceStore((state) => state.setCountryCode);
-  const setSignupDraft = useSignupStore((state) => state.setDraft);
-  const signupCountry = useSignupStore((state) => state.draft.country);
-
-  const [selectedCode, setSelectedCode] = useState(
-    () => signupCountry || storedCountryCode || DEFAULT_COUNTRY_CODE,
+  const storedLanguageCode = usePreferenceStore((state) => state.languageCode);
+  const storedLanguageWasManuallySelected = usePreferenceStore(
+    (state) => state.languageWasManuallySelected,
   );
-  const [error, setError] = useState("");
+  const hydratePreferences = usePreferenceStore(
+    (state) => state.hydratePreferences,
+  );
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setSignupDraft = useSignupStore((state) => state.setDraft);
+  const signupDraft = useSignupStore((state) => state.draft);
 
-  function handleSubmit(event) {
+  const [selectedCodeOverride, setSelectedCode] = useState(null);
+  const [selectedLanguageOverride, setSelectedLanguage] = useState(null);
+  const [languageWasManuallySelected, setLanguageWasManuallySelected] =
+    useState(storedLanguageWasManuallySelected);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const selectedCode =
+    selectedCodeOverride ||
+    (signupDraft.isSignedUp ? signupDraft.country : storedCountryCode) ||
+    DEFAULT_COUNTRY_CODE;
+  const selectedLanguage =
+    selectedLanguageOverride ||
+    (signupDraft.isSignedUp ? signupDraft.language : storedLanguageCode) ||
+    DEFAULT_LANGUAGE_CODE;
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const selected = getCountryByCode(selectedCode);
 
     if (!selected) {
-      setError("국가를 선택해 주세요.");
+      setError(t("preferences.countryRequired"));
       return;
     }
 
     setError("");
-    setCountryCode(selected.code);
-    setSignupDraft({ country: selected.code });
-    router.push(`/persona?lang=${selected.lang}`);
+    setIsLoading(true);
+
+    try {
+      if (isAuthenticated) {
+        await updateMyPreferences({
+          countryCode: selected.code,
+          languageCode: selectedLanguage,
+        });
+      }
+
+      hydratePreferences({
+        countryCode: selected.code,
+        languageCode: selectedLanguage,
+        languageWasManuallySelected,
+      });
+      setSignupDraft({
+        country: selected.code,
+        language: selectedLanguage,
+      });
+      router.push(`/persona?lang=${selectedLanguage}`);
+    } catch (requestError) {
+      setError(
+        requestError?.message ||
+          t("preferences.saveDetailedError"),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -44,7 +94,7 @@ export function CountryForm() {
       <div
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         role="radiogroup"
-        aria-label="국가 선택"
+        aria-label={t("preferences.chooseCountry")}
       >
         {COUNTRIES.map((country) => {
           const selected = country.code === selectedCode;
@@ -55,8 +105,14 @@ export function CountryForm() {
               type="button"
               role="radio"
               aria-checked={selected}
+              disabled={isLoading}
               onClick={() => {
                 setSelectedCode(country.code);
+                if (!languageWasManuallySelected) {
+                  setSelectedLanguage(
+                    getDefaultLanguageForCountry(country.code),
+                  );
+                }
                 setError("");
               }}
               className={[
@@ -86,14 +142,55 @@ export function CountryForm() {
         })}
       </div>
 
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-sm font-bold text-ink">
+          {t("preferences.chooseLanguage")}
+        </legend>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {LANGUAGES.map((language) => {
+            const selected = language.code === selectedLanguage;
+            return (
+              <button
+                key={language.code}
+                type="button"
+                aria-pressed={selected}
+                disabled={isLoading}
+                onClick={() => {
+                  setSelectedLanguage(language.code);
+                  setLanguageWasManuallySelected(true);
+                  setError("");
+                }}
+                className={[
+                  "rounded-[14px] border-[1.5px] px-3 py-3 text-center text-sm font-bold transition",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+                  selected
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-line bg-white text-ink hover:border-line-hover",
+                ].join(" ")}
+              >
+                <span className="block">{language.nativeName}</span>
+                <span className="mt-0.5 block text-[10px] font-medium text-ink-muted">
+                  {language.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
       {error ? (
         <p className="text-center text-xs font-medium text-danger" role="alert">
           {error}
         </p>
       ) : null}
 
-      <button type="submit" className={authButtonClassName()}>
-        계속하기 <span aria-hidden="true">→</span>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className={authButtonClassName()}
+      >
+        {isLoading ? t("common.saving") : t("common.continue")}{" "}
+        {!isLoading ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>
   );

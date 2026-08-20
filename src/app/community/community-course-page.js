@@ -13,8 +13,9 @@ import {
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useTranslations } from "next-intl";
 
-const tabs = ["인기순", "최신순"];
+const tabs = ["popular", "latest"];
 const storageKey = "ditto:shared-community-courses";
 const ITEMS_PER_PAGE = 6; // 가로 3개씩 2줄 = 페이지당 6개
 
@@ -44,6 +45,7 @@ function getFlagEmoji(countryCode) {
 }
 
 function CommunityCard({ card, rank, onAuthRequired }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -173,7 +175,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           <span className="text-sm leading-none">{getFlagEmoji(card.country || card.flag)}</span>
           {/* Name & Tag */}
           <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-sm">{card.name || "여행자"}</span>
+            <span className="text-[11px] font-bold text-white drop-shadow-sm">{card.name || t("traveler")}</span>
             <span className="text-[10px] font-semibold text-violet-200 drop-shadow-sm">{card.hash || "#더현대"}</span>
           </div>
         </div>
@@ -199,7 +201,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label="좋아요"
+            aria-label={t("like")}
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
@@ -222,7 +224,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label="댓글"
+            aria-label={t("comments")}
             className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -235,7 +237,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label="저장"
+            aria-label={t("save")}
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
@@ -260,8 +262,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 }
 
 export function CommunityCoursePage({ initialCards = [] }) {
+  const t = useTranslations("community");
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("인기순");
+  const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const sharedCardsRaw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -278,7 +281,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const cards = useMemo(() => {
     const combined = [...initialCards, ...sharedCards];
 
-    if (activeTab === "최신순") {
+    if (activeTab === "latest") {
       return [...combined].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
     }
     // 기본값: 인기순
@@ -312,11 +315,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               THE HYUNDAI SEOUL COMMUNITY
             </p>
             <h1 className="mt-6 text-[34px] font-black leading-none text-ink lg:text-[36px]">
-              더현대 코스
+              {t("title")}
             </h1>
             <p className="mt-5 text-sm font-medium text-ink-muted">
-              더현대 서울에서 직접 돈 코스를 공유하고, 여행자들이 남긴 장소와
-              대화를 확인해보세요.
+              {t("description")}
             </p>
             <div className="mt-6 flex gap-10 border-b border-line">
               {tabs.map((tab) => (
@@ -330,7 +332,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                       : "border-transparent text-ink-muted hover:text-ink"
                   }`}
                 >
-                  {tab}
+                  {t(tab)}
                 </button>
               ))}
             </div>
@@ -339,7 +341,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
             href="/community/share"
             className="inline-flex w-fit items-center justify-center rounded-full bg-brand px-8 py-4 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
           >
-            내 코스 공유하기 →
+            {t("shareMine")}
           </Link>
         </div>
       </section>
@@ -374,7 +376,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}
-                aria-label="이전 페이지"
+                aria-label={t("previousPage")}
               >
                 ‹
               </button>
@@ -406,7 +408,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}
-                aria-label="다음 페이지"
+                aria-label={t("nextPage")}
               >
                 ›
               </button>
@@ -443,9 +445,9 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <h3 className="text-base font-black text-ink">{t("loginRequired")}</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
+              {t("loginRequiredDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -453,7 +455,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -463,7 +465,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                로그인하기 →
+                {t("login")}
               </button>
             </div>
           </div>

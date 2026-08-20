@@ -28,6 +28,7 @@ export function signup({
   password,
   nickname,
   country = "KR",
+  languageCode = "ko",
   persona = "openrun",
   marketingAgreed = false,
 }) {
@@ -39,6 +40,7 @@ export function signup({
       name: nickname || "디또러버",
       country,
       countryCode: country,
+      languageCode,
       persona,
       marketingAgreed: Boolean(marketingAgreed),
       marketingAccepted: Boolean(marketingAgreed),
@@ -56,10 +58,10 @@ export function logout() {
 
 /**
  * 세션 로그인 상태 확인 API
- * GET /api/v1/auth/session
+ * GET /api/v1/auth/me
  */
 export function getAuthSession() {
-  return requestData(apiClient.get("/auth/session"));
+  return requestData(apiClient.get("/auth/me"));
 }
 
 /**
