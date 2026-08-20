@@ -842,11 +842,18 @@ function RouteOverlay({
   );
 
   useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!query) return;
     const handleChange = () => setMotionAllowed(!query.matches);
 
-    query.addEventListener("change", handleChange);
-    return () => query.removeEventListener("change", handleChange);
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", handleChange);
+      return () => query.removeEventListener("change", handleChange);
+    } else if (typeof query.addListener === "function") {
+      query.addListener(handleChange);
+      return () => query.removeListener(handleChange);
+    }
   }, []);
 
   // Animate the moving dashes along the route.
@@ -1266,51 +1273,54 @@ function MapCamera({
         near={0.1}
         far={800}
       />
-      <OrbitControls
-        ref={controlsRef}
-        makeDefault
-        onStart={() => {
-          interactedRef.current = true;
-        }}
-        enableDamping={!singleFloor}
-        dampingFactor={0.08}
-        enablePan
-        enableRotate={!singleFloor}
-        enableZoom
-        screenSpacePanning
-        minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
-        maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
-        minAzimuthAngle={-Infinity}
-        maxAzimuthAngle={Infinity}
-        minZoom={OVERVIEW_MIN_ZOOM}
-        maxZoom={34}
-        rotateSpeed={0.62}
-        zoomSpeed={0.72}
-        mouseButtons={
-          singleFloor
-            ? {
-                LEFT: THREE.MOUSE.PAN,
-                MIDDLE: THREE.MOUSE.DOLLY,
-                RIGHT: THREE.MOUSE.PAN,
-              }
-            : {
-                LEFT: THREE.MOUSE.PAN,
-                MIDDLE: THREE.MOUSE.DOLLY,
-                RIGHT: THREE.MOUSE.ROTATE,
-              }
-        }
-        touches={
-          singleFloor
-            ? {
-                ONE: THREE.TOUCH.PAN,
-                TWO: THREE.TOUCH.DOLLY_PAN,
-              }
-            : {
-                ONE: THREE.TOUCH.PAN,
-                TWO: THREE.TOUCH.DOLLY_ROTATE,
-              }
-        }
-      />
+      {gl?.domElement ? (
+        <OrbitControls
+          ref={controlsRef}
+          makeDefault
+          domElement={gl.domElement}
+          onStart={() => {
+            interactedRef.current = true;
+          }}
+          enableDamping={!singleFloor}
+          dampingFactor={0.08}
+          enablePan
+          enableRotate={!singleFloor}
+          enableZoom
+          screenSpacePanning
+          minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
+          maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
+          minAzimuthAngle={-Infinity}
+          maxAzimuthAngle={Infinity}
+          minZoom={OVERVIEW_MIN_ZOOM}
+          maxZoom={34}
+          rotateSpeed={0.62}
+          zoomSpeed={0.72}
+          mouseButtons={
+            singleFloor
+              ? {
+                  LEFT: THREE.MOUSE.PAN,
+                  MIDDLE: THREE.MOUSE.DOLLY,
+                  RIGHT: THREE.MOUSE.PAN,
+                }
+              : {
+                  LEFT: THREE.MOUSE.PAN,
+                  MIDDLE: THREE.MOUSE.DOLLY,
+                  RIGHT: THREE.MOUSE.ROTATE,
+                }
+          }
+          touches={
+            singleFloor
+              ? {
+                  ONE: THREE.TOUCH.PAN,
+                  TWO: THREE.TOUCH.DOLLY_PAN,
+                }
+              : {
+                  ONE: THREE.TOUCH.PAN,
+                  TWO: THREE.TOUCH.DOLLY_ROTATE,
+                }
+          }
+        />
+      ) : null}
     </>
   );
 }
@@ -1488,6 +1498,7 @@ export function IndoorMap({
   routeGraph,
   placeLogos = null,
   overlayOccluderRef = null,
+  showFloorSelector = false,
 }) {
   // Default to the "route floors" view: with no course it equals the full stack
   // (routeFloorIds falls back to every floor), and once a course exists it shows
@@ -1499,6 +1510,7 @@ export function IndoorMap({
   const [viewReady, setViewReady] = useState(false);
   const [roomsByFloor, setRoomsByFloor] = useState(null);
   const [floorDatasets, setFloorDatasets] = useState(null);
+  const containerRef = useRef(null);
   const handleCameraReady = useCallback(() => {
     setViewReady(true);
   }, []);
@@ -1592,6 +1604,7 @@ export function IndoorMap({
     <MapErrorBoundary>
       <div className="relative isolate z-0 h-full min-h-[260px] w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)]">
         <div
+          ref={containerRef}
           className={
             viewMode === "floor"
               ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
@@ -1599,6 +1612,7 @@ export function IndoorMap({
           }
         >
           <Canvas
+            eventSource={containerRef}
             dpr={[1, 1.75]}
             gl={{ antialias: true, alpha: true }}
           >
@@ -1621,7 +1635,9 @@ export function IndoorMap({
           </Canvas>
         </div>
 
-        <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+        {showFloorSelector ? (
+          <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+        ) : null}
 
         <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
           <button

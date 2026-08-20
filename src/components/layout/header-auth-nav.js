@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { logout } from "@/lib/api/auth";
 
@@ -8,7 +9,7 @@ function HeartIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-5 lg:size-[27px]"
+      className="size-[27px]"
       viewBox="0 0 27 27"
       fill="none"
       stroke="currentColor"
@@ -22,40 +23,53 @@ function HeartIcon() {
 }
 
 export function HeaderAuthNav() {
+  const t = useTranslations();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const clearUser = useAuthStore((state) => state.clearUser);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage?.setItem("ditto_logged_out", "true");
+    }
+    clearUser();
     try {
       await logout();
-    } catch {
-      // Ignore network errors on logout
+    } catch (err) {
+      console.warn("[HeaderAuthNav] Error calling logout:", err?.message);
     } finally {
-      clearUser();
+      if (typeof window !== "undefined") {
+        // Hard reload to root to completely purge client memory and cookies
+        window.location.replace("/");
+      }
     }
   };
 
   if (isAuthenticated && user) {
     return (
-      <div className="flex items-center gap-2.5 lg:gap-6">
+      <div className="flex items-center gap-6">
         <Link
           href="/community/bookmarks"
-          aria-label="저장한 커뮤니티 코스"
+          aria-label={t("navigation.likedCourses")}
           className="text-ink transition hover:text-brand"
         >
           <HeartIcon />
         </Link>
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm font-bold text-ink xl:inline">
-            {user.nickname || user.name || "회원"}님
-          </span>
+          <Link
+            href="/mypage"
+            className="text-sm font-bold text-ink hover:text-brand transition cursor-pointer"
+          >
+            {t("common.memberGreeting", {
+              name: user.nickname || user.name || t("common.member"),
+            })}
+          </Link>
           <button
             type="button"
             onClick={handleLogout}
-            className="cursor-pointer rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-bold text-ink-muted transition hover:border-brand hover:text-brand lg:px-4 lg:py-2 lg:text-xs"
+            className="rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer"
           >
-            로그아웃
+            {t("common.logout")}
           </button>
         </div>
       </div>
@@ -65,9 +79,9 @@ export function HeaderAuthNav() {
   return (
     <Link
       href="/login"
-      className="rounded-full bg-brand px-3.5 py-1.5 text-xs font-black leading-none text-white transition hover:bg-brand-dark lg:px-5 lg:py-3 lg:text-base"
+      className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
     >
-      로그인
+      {t("common.login")}
     </Link>
   );
 }

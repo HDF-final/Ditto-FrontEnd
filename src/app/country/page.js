@@ -1,17 +1,20 @@
 import { AuthShell } from "@/components/auth/auth-shell";
 import { CountryForm } from "@/components/auth/country-form";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = {
-  title: "국가 선택",
-  description: "국가를 고르면 언어와 추천 코스가 맞춰집니다.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return { title: t("countryTitle"), description: t("countryDescription") };
+}
 
-export default function CountryPage() {
+export default async function CountryPage() {
+  const t = await getTranslations("preferences");
+
   return (
     <AuthShell
       wide
-      title="어디에서 오셨나요?"
-      description="국가를 고르면 언어와 추천 코스가 맞춰집니다."
+      title={t("selectTitle")}
+      description={t("selectDescription")}
     >
       <CountryForm />
     </AuthShell>

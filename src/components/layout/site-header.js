@@ -1,14 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { HeaderNavLinks } from "./header-nav-links";
 import { HeaderAuthNav } from "./header-auth-nav";
+import { CountrySelector } from "@/components/common/country-selector";
 
-function GlobeIcon({ className = "size-5" }) {
+function GlobeIcon() {
   return (
     <svg
       aria-hidden="true"
-      className={className}
+      className="size-[27px]"
       viewBox="0 0 27 27"
       fill="none"
       stroke="currentColor"
@@ -22,37 +26,13 @@ function GlobeIcon({ className = "size-5" }) {
 }
 
 export function SiteHeader() {
+  const t = useTranslations("navigation");
+
   return (
-    <>
-      <header className="sticky top-0 z-50 border-b border-line bg-white/95 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:hidden">
-        <div className="flex h-14 items-center justify-between gap-3 px-4">
-          <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
-            <Image
-              src="/assets/common/ditto-logo.svg"
-              alt="DITTO"
-              width={96}
-              height={30}
-              priority
-              style={{ width: "96px", height: "auto" }}
-            />
-          </Link>
-
-          <div className="flex items-center gap-3 text-ink">
-            <Link
-              href="/country"
-              aria-label="국가·언어 선택"
-              className="hover:text-brand"
-            >
-              <GlobeIcon />
-            </Link>
-            <HeaderAuthNav />
-          </div>
-        </div>
-      </header>
-
-      <header className="sticky top-0 z-50 hidden border-b border-line bg-white lg:block">
-        <div className="mx-auto flex h-[72px] w-full max-w-7xl items-center justify-between gap-4 px-6 sm:px-10 xl:px-16">
-          <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
+    <header className="sticky top-0 z-50 border-b border-line bg-white">
+      <div className="flex lg:grid lg:grid-cols-[1fr_auto_1fr] min-h-[94px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10 xl:px-14 2xl:px-20">
+        <div className="flex items-center justify-start">
+          <Link href="/" className="block shrink-0" aria-label={t("dittoHome")}>
             <div className="flex flex-col">
               <Image
                 src="/assets/common/ditto-logo.svg"
@@ -67,21 +47,26 @@ export function SiteHeader() {
               </span>
             </div>
           </Link>
-
-          <HeaderNavLinks />
-
-          <div className="flex items-center gap-4 text-ink">
-            <Link
-              href="/country"
-              aria-label="국가·언어 선택"
-              className="hover:text-brand"
-            >
-              <GlobeIcon className="size-[27px]" />
-            </Link>
-            <HeaderAuthNav />
-          </div>
         </div>
-      </header>
-    </>
+
+        <div className="flex items-center justify-center">
+          <HeaderNavLinks />
+        </div>
+
+        <div className="flex items-center justify-end gap-3 text-ink sm:gap-5">
+          <div className="hidden xl:block">
+            <CountrySelector />
+          </div>
+          <Link
+            href="/country"
+            aria-label={t("preferences")}
+            className="hover:text-brand xl:hidden"
+          >
+            <GlobeIcon />
+          </Link>
+          <HeaderAuthNav />
+        </div>
+      </div>
+    </header>
   );
 }

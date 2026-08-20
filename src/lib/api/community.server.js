@@ -55,6 +55,7 @@ export function normalizePublicCourseCard(post, index = 0) {
     slug,
     country,
     name: authorName,
+    persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
     description: post.content || `${post.title}에 연결된 맞춤형 추천 코스입니다.`,
@@ -79,9 +80,9 @@ export function normalizePublicCourseDetail(detail) {
 
   const places = (detail.course?.places || []).map((p, idx) => ({
     placeId: p.placeId,
-    floor: p.floor || `${idx + 1}F`,
-    name: p.name || `추천 장소 #${p.placeId || idx + 1}`,
-    description: p.description || "더현대 서울 내 추천 방문 스팟",
+    floor: p.floor || p.floorCode || `${idx + 1}F`,
+    name: p.name || p.placeName || `추천 장소 #${p.placeId || idx + 1}`,
+    description: p.description || p.desc || "더현대 서울 내 추천 방문 스팟",
   }));
 
   const comments = (detail.comments || []).map((c) => ({
@@ -101,19 +102,31 @@ export function normalizePublicCourseDetail(detail) {
     detail.representativeImageUrl ||
     COURSE_IMAGES[num % COURSE_IMAGES.length];
 
+  const authorName =
+    detail.writerNickname ||
+    detail.nickname ||
+    detail.userName ||
+    detail.author ||
+    detail.user?.nickname ||
+    detail.user?.name ||
+    detail.course?.userName ||
+    detail.course?.author ||
+    "사토 유키";
+
   return {
     postId,
-    courseId: detail.course?.courseId,
+    courseId: detail.course?.courseId || detail.courseId,
     slug,
-    country: "KR",
-    name: "DITTO 여행자",
+    country: detail.country || detail.user?.country || "KR",
+    name: authorName,
+    persona: detail.persona || detail.shoppingType || detail.user?.persona || detail.course?.persona || "sohwak",
     hash: "#공개코스 #더현대서울",
     title: detail.title,
     description: detail.content,
     image,
-    likes: 0,
+    likes: detail.likeCount ?? detail.likes ?? 0,
     commentsCount: comments.length,
-    saves: 0,
+    saves: detail.bookmarkCount ?? detail.bookmarks ?? 0,
     gradient: getGradientForId(postId),
     label: "THE HYUNDAI SEOUL",
     stops: places.length > 0 ? places : [
@@ -190,7 +203,85 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
       if (response.ok) {
         const json = await response.json();
         if (json?.data) {
-          return normalizePublicCourseDetail(json.data);
+          const detail = json.data;
+          const courseId = detail.course?.courseId || detail.courseId;
+          if (courseId) {
+            try {
+              const courseRes = await fetch(`${baseUrl}/api/v1/courses/${courseId}`, {
+                method: "GET",
+                headers: { Accept: "application/json" },
+                cache: "no-store",
+              });
+              if (courseRes.ok) {
+                const cJson = await courseRes.json();
+                if (cJson?.data?.places && cJson.data.places.length > 0) {
+                  detail.course = {
+                    ...detail.course,
+                    ...cJson.data,
+                    places: cJson.data.places,
+                  };
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+          return normalizePublicCourseDetail(detail);
+        }
+      }
+
+      // 1-2. If not a community post, check if it is a user-created course (GET /courses/{id})
+      const courseUrl = `${baseUrl}/api/v1/courses/${postIdOrSlug}`;
+      const courseRes = await fetch(courseUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (courseRes.ok) {
+        const json = await courseRes.json();
+        const courseData = json?.data;
+        if (courseData) {
+          const places = (courseData.places || []).map((p, idx) => ({
+            placeId: p.placeId,
+            floor: p.floor || p.floorCode || `${idx + 1}F`,
+            name: p.name || `추천 장소 #${p.placeId || idx + 1}`,
+            description: p.description || "더현대 서울 내 추천 방문 스팟",
+          }));
+
+          const num = parseInt(String(postIdOrSlug), 10) || 0;
+          return {
+            postId: courseData.courseId || postIdOrSlug,
+            courseId: courseData.courseId,
+            slug: String(postIdOrSlug),
+            country: "KR",
+            name: "DITTO 여행자",
+            hash: "#나만의코스 #더현대서울",
+            title: courseData.name || courseData.title || "나만의 맞춤 코스",
+            description:
+              courseData.description ||
+              (places.length > 0
+                ? places.map((p) => p.name).join(" → ")
+                : "더현대 서울 맞춤 코스입니다."),
+            image:
+              courseData.representativeImageUrl ||
+              COURSE_IMAGES[num % COURSE_IMAGES.length],
+            likes: 0,
+            commentsCount: 0,
+            saves: 0,
+            gradient: getGradientForId(postIdOrSlug),
+            label: "THE HYUNDAI SEOUL",
+            stops: places.length > 0 ? places : [
+              { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
+              { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
+              { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
+            ],
+            note: courseData.description || "내가 생성한 맞춤 코스입니다.",
+            reviews: [],
+            isRealDb: true,
+          };
         }
       }
     } catch (error) {
@@ -202,6 +293,35 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
   const fixture = getDefaultCommunityCourse(postIdOrSlug);
   if (fixture) {
     return fixture;
+  }
+
+  // 3. Fallback for any valid numeric id (so users clicking newly created courses never see 404)
+  if (isNumeric) {
+    const num = parseInt(String(postIdOrSlug), 10) || 0;
+    return {
+      postId: Number(postIdOrSlug),
+      courseId: Number(postIdOrSlug),
+      slug: String(postIdOrSlug),
+      country: "KR",
+      name: "DITTO 여행자",
+      hash: "#나만의코스 #더현대서울",
+      title: "나만의 맞춤 코스",
+      description: "더현대 서울 맞춤 추천 코스입니다.",
+      image: COURSE_IMAGES[num % COURSE_IMAGES.length],
+      likes: 0,
+      commentsCount: 0,
+      saves: 0,
+      gradient: getGradientForId(postIdOrSlug),
+      label: "THE HYUNDAI SEOUL",
+      stops: [
+        { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
+        { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
+        { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
+      ],
+      note: "내가 생성한 맞춤 코스입니다.",
+      reviews: [],
+      isRealDb: false,
+    };
   }
 
   return null;

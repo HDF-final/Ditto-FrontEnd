@@ -1,16 +1,19 @@
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignupForm } from "@/components/auth/signup-form";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = {
-  title: "회원가입",
-  description: "DITTO에 가입하고 코스 저장과 공유를 시작하세요.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return { title: t("signupTitle"), description: t("signupDescription") };
+}
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  const t = await getTranslations("auth");
+
   return (
     <AuthShell
-      title="디토 시작하기"
-      description="30초면 충분해요. 코스 저장과 공유가 열립니다."
+      title={t("startDitto")}
+      description={t("signupDescription")}
     >
       <SignupForm />
     </AuthShell>

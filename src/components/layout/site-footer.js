@@ -1,40 +1,45 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 const footerColumns = [
   {
-    title: "서비스",
+    titleKey: "service",
     links: [
-      { href: "/ai-course", label: "AI 코스 만들기" },
-      { href: "/courses", label: "코스 리스트" },
-      { href: "/community", label: "커뮤니티" },
-      { href: "/news", label: "뉴스피드" },
+      { href: "/ai-course", labelKey: "aiCourse" },
+      { href: "/courses", labelKey: "courseList" },
+      { href: "/community", labelKey: "community" },
+      { href: "/news", labelKey: "news" },
     ],
   },
   {
-    title: "고객지원",
+    titleKey: "support",
     links: [
-      { href: "/news", label: "자주 묻는 질문" },
-      { href: "/news", label: "문의하기" },
-      { href: "/news", label: "공지사항" },
+      { href: "/news", labelKey: "faq" },
+      { href: "/news", labelKey: "contact" },
+      { href: "/news", labelKey: "notices" },
     ],
   },
   {
-    title: "DITTO",
+    titleKey: "ditto",
     links: [
-      { href: "/news", label: "회사 소개" },
-      { href: "/news", label: "제휴 문의" },
-      { href: "/news", label: "채용" },
+      { href: "/news", labelKey: "about" },
+      { href: "/news", labelKey: "partnership" },
+      { href: "/news", labelKey: "careers" },
     ],
   },
 ];
 
 export function SiteFooter() {
+  const t = useTranslations();
+
   return (
     <footer className="hidden bg-white px-10 pb-5 pt-[34px] sm:px-14 lg:block lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-wrap gap-x-[62px] gap-y-5">
         <div className="min-w-[150px]">
-          <Link href="/" className="block" aria-label="DITTO 홈">
+          <Link href="/" className="block" aria-label={t("navigation.dittoHome")}>
             <Image
               src="/assets/common/ditto-logo.svg"
               alt="Ditto"
@@ -48,15 +53,23 @@ export function SiteFooter() {
           </p>
         </div>
         {footerColumns.map((column) => (
-          <div key={column.title} className="flex min-w-[70px] flex-col gap-[6px]">
-            <p className="text-xs font-black leading-none text-ink">{column.title}</p>
+          <div key={column.titleKey} className="flex min-w-[70px] flex-col gap-[6px]">
+            <p className="text-xs font-black leading-none text-ink">
+              {column.titleKey === "ditto"
+                ? "DITTO"
+                : t(`footer.${column.titleKey}`)}
+            </p>
             {column.links.map((link) => (
               <Link
-                key={link.label}
+                key={link.labelKey}
                 href={link.href}
                 className="text-xs leading-none text-ink-muted transition hover:text-brand"
               >
-                {link.label}
+                {link.labelKey === "community"
+                  ? t("navigation.community")
+                  : link.labelKey === "news"
+                    ? t("navigation.news")
+                    : t(`footer.${link.labelKey}`)}
               </Link>
             ))}
           </div>
@@ -66,9 +79,9 @@ export function SiteFooter() {
       <div className="mt-2 flex flex-col gap-2 text-[10px] font-semibold text-ink-muted sm:flex-row sm:items-center sm:gap-5">
         <span>© 2026 DITTO. All rights reserved.</span>
         <div className="flex flex-wrap gap-6">
-          <Link href="/news">이용약관</Link>
-          <Link href="/news">개인정보처리방침</Link>
-          <Link href="/news">위치기반서비스 이용약관</Link>
+          <Link href="/news">{t("footer.terms")}</Link>
+          <Link href="/news">{t("footer.privacy")}</Link>
+          <Link href="/news">{t("footer.locationTerms")}</Link>
         </div>
       </div>
     </footer>

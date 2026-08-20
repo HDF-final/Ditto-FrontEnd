@@ -34,3 +34,7 @@ export function addCoursePlace(courseId, { placeId, position }) {
 export function deleteCoursePlace(courseId, placeId) {
   return requestData(apiClient.delete(`/courses/${courseId}/places/${placeId}`));
 }
+
+export function deleteCourse(courseId) {
+  return requestData(apiClient.delete(`/courses/${courseId}`));
+}

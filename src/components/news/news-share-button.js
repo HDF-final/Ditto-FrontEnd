@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function NewsShareButton() {
+  const t = useTranslations("news");
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -54,7 +56,7 @@ export function NewsShareButton() {
             >
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            링크 복사 완료!
+            {t("copied")}
           </>
         ) : (
           <>
@@ -74,7 +76,7 @@ export function NewsShareButton() {
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
-            기사 공유
+            {t("share")}
           </>
         )}
       </button>
@@ -96,7 +98,7 @@ export function NewsShareButton() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
-          기사 링크가 클립보드에 복사되었습니다!
+          {t("copyToast")}
         </div>
       ) : null}
     </div>

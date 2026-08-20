@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BONI_IMAGE } from "./recommend-data";
 import { useTransparentBg } from "./use-transparent-bg";
 
@@ -17,6 +18,7 @@ const EXPECTED_SECONDS = 40;
  * 40초는 무한 스피너로 버티기엔 길어서 경과 시간과 취소 버튼을 함께 보여줍니다.
  */
 export function CourseLoadingOverlay({ message, isFirstTurn = true, onCancel }) {
+  const t = useTranslations("aiCourse");
   const [elapsed, setElapsed] = useState(0);
   const boniSrc = useTransparentBg(BONI_IMAGE);
 
@@ -79,13 +81,13 @@ export function CourseLoadingOverlay({ message, isFirstTurn = true, onCancel }) 
 
         <h2 className="text-[19px] font-bold text-[#1a142e]">
           {isFirstTurn
-            ? "Boni가 코스를 만들고 있어요"
-            : "Boni가 코스를 다시 짜고 있어요"}
+            ? t("loadingFirst")
+            : t("loadingAgain")}
         </h2>
         <p className="mt-2 text-[13px] leading-[1.6] text-[#9994ad]">
-          요청하신 내용을 더현대서울 실내 지도와 맞춰보는 중이에요.
+          {t("loadingDescription")}
           <br />
-          보통 40초 정도 걸려요.
+          {t("usuallyTakes")}
         </p>
 
         {message ? (
@@ -114,8 +116,8 @@ export function CourseLoadingOverlay({ message, isFirstTurn = true, onCancel }) 
         </div>
 
         <p className="mt-3 text-[12px] font-medium text-[#9994ad]">
-          {elapsed}초 경과
-          {elapsed >= EXPECTED_SECONDS ? " · 거의 다 됐어요" : ""}
+          {t("secondsElapsed", { seconds: elapsed })}
+          {elapsed >= EXPECTED_SECONDS ? ` · ${t("almostDone")}` : ""}
         </p>
 
         {onCancel ? (
@@ -124,7 +126,7 @@ export function CourseLoadingOverlay({ message, isFirstTurn = true, onCancel }) 
             onClick={onCancel}
             className="mt-5 rounded-full border border-[#e0d9f8] px-5 py-2 text-[12px] font-semibold text-[#6b6685] transition-colors hover:border-[#5c2ef5] hover:text-[#5c2ef5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            요청 취소
+            {t("cancelRequest")}
           </button>
         ) : null}
       </div>

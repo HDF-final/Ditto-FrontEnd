@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import {
+  getPublicCourse,
   likeCourse,
   unlikeCourse,
   bookmarkCourse,
@@ -13,8 +14,10 @@ import {
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { CommunityChatButton } from "./community-chat-button";
 import { CommunityShareButton } from "./community-share-button";
+import { useTranslations } from "next-intl";
 
 export function CommunityDetailActions({ course = {} }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -28,6 +31,30 @@ export function CommunityDetailActions({ course = {} }) {
       : 1);
 
   const postIdentifier = String(course.postId || course.slug || postId || "1");
+
+  const [liveLikes, setLiveLikes] = useState(
+    typeof course.likes === "number"
+      ? course.likes
+      : typeof course.likeCount === "number"
+        ? course.likeCount
+        : 0,
+  );
+
+  useEffect(() => {
+    if (postId) {
+      getPublicCourse(postId)
+        .then((detail) => {
+          const count =
+            typeof detail?.likeCount === "number"
+              ? detail.likeCount
+              : typeof detail?.likes === "number"
+                ? detail.likes
+                : null;
+          if (count !== null) setLiveLikes(count);
+        })
+        .catch(() => {});
+    }
+  }, [postId]);
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(postIdentifier),
@@ -47,7 +74,7 @@ export function CommunityDetailActions({ course = {} }) {
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
-  const baseLikes = course.likes || 742;
+  const baseLikes = liveLikes;
   const likesCount = Math.max(0, baseLikes + likesDelta);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -115,7 +142,7 @@ export function CommunityDetailActions({ course = {} }) {
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span>좋아요</span>
+          <span>{t("like")}</span>
           <span className="text-xs font-bold opacity-80">{likesCount}</span>
         </button>
 
@@ -138,7 +165,7 @@ export function CommunityDetailActions({ course = {} }) {
           >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
-          <span>{isBookmarked ? "저장됨" : "코스 저장"}</span>
+          <span>{isBookmarked ? t("saved") : t("saveCourse")}</span>
         </button>
 
         {/* 공유하기 버튼 */}
@@ -176,9 +203,9 @@ export function CommunityDetailActions({ course = {} }) {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <h3 className="text-base font-black text-ink">{t("loginRequired")}</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
+              {t("loginRequiredDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -186,7 +213,7 @@ export function CommunityDetailActions({ course = {} }) {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -196,7 +223,7 @@ export function CommunityDetailActions({ course = {} }) {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                로그인하기 →
+                {t("login")}
               </button>
             </div>
           </div>

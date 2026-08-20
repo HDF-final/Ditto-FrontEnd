@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import { DEFAULT_PERSONA_ID } from "@/lib/fixtures/personas";
 import { signup, login } from "@/lib/api/auth";
-import { updateMyPreferences } from "@/lib/api/users";
+import { updateMyProfile } from "@/lib/api/users";
 import { useSignupStore } from "@/stores/use-signup-store";
 import { useAuthStore } from "@/stores/use-auth-store";
 
@@ -16,6 +17,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 const PERSONA_SUCCESS_HREF = "/";
 
 export function PersonaForm({ copy }) {
+  const t = useTranslations("auth");
   const router = useRouter();
   const draft = useSignupStore((state) => state.draft);
   const resetDraft = useSignupStore((state) => state.resetDraft);
@@ -42,16 +44,15 @@ export function PersonaForm({ copy }) {
     try {
       // 1. If already signed up in step 1, update preference and finalize
       if (draft.isSignedUp) {
-        try {
-          await updateMyPreferences({
-            countryCode: draft.country || "KR",
-            persona: selectedId,
-          });
-        } catch {
-          // Ignore preference update error if optional
-        }
+        await updateMyProfile({ persona: selectedId });
         if (user) {
-          setUser({ ...user, persona: selectedId, country: draft.country || user.country });
+          setUser({
+            ...user,
+            persona: selectedId,
+            countryCode: draft.country || user.countryCode,
+            preferredLanguageCode:
+              draft.language || user.preferredLanguageCode,
+          });
         }
         resetDraft();
         router.push(PERSONA_SUCCESS_HREF);
@@ -65,11 +66,12 @@ export function PersonaForm({ copy }) {
           password: draft.password,
           nickname: draft.nickname || "디또러버",
           country: draft.country || "KR",
+          languageCode: draft.language || "ko",
           persona: selectedId,
           marketingAgreed: Boolean(draft.marketingAccepted),
         };
 
-        const signupResult = await signup(signupPayload);
+        await signup(signupPayload);
 
         try {
           const loginResult = await login({
@@ -80,9 +82,7 @@ export function PersonaForm({ copy }) {
             setUser(loginResult);
           }
         } catch {
-          if (signupResult) {
-            setUser(signupResult);
-          }
+          // Signup success does not establish an authenticated session.
         }
 
         resetDraft();
@@ -95,7 +95,7 @@ export function PersonaForm({ copy }) {
       router.push(PERSONA_SUCCESS_HREF);
     } catch (err) {
       setError(
-        err?.message || "회원가입 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
+        err?.message || t("finishSignupError"),
       );
     } finally {
       setIsLoading(false);
@@ -176,7 +176,7 @@ export function PersonaForm({ copy }) {
         {isLoading ? (
           <span className="inline-flex items-center gap-2">
             <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            가입 완료하는 중...
+            {t("finishingSignup")}
           </span>
         ) : (
           <>

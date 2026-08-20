@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useTranslations } from "next-intl";
 import {
   likeCourse,
   unlikeCourse,
@@ -21,13 +23,20 @@ function getFlagEmoji(countryCode = "") {
   return "🌐";
 }
 
-export function MypageCourseCard({ course, onAuthRequired }) {
+export function MypageCourseCard({
+  course,
+  onAuthRequired,
+  onEdit,
+  onDelete,
+}) {
+  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
+  const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
 
   const slugKey = course.slug ? String(course.slug) : "";
-  const numKey = String(course.postId || course.id || "1");
+  const numKey = String(course.postId || course.courseId || course.id || "1");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -50,8 +59,18 @@ export function MypageCourseCard({ course, onAuthRequired }) {
   const baseSaves = course.saves ?? 0;
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
 
-  const href = course.href || `/community/${slugKey || numKey}`;
+  const href = course.href || `/community/${numKey || slugKey}`;
+
+  const customImage = mounted
+    ? getPostImage(course.postId) ||
+      getPostImage(course.courseId) ||
+      getPostImage(course.id) ||
+      getPostImage(slugKey) ||
+      getPostImage(numKey)
+    : null;
+
   const image =
+    customImage ||
     course.image ||
     "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
 
@@ -124,15 +143,54 @@ export function MypageCourseCard({ course, onAuthRequired }) {
       {/* Top Header Overlay */}
       <div className="relative z-10 p-4 flex items-start justify-between">
         <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-xs">
-            {course.badge === "MY COURSE" ? "ME" : "★"}
+          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-xs">
+            {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
           </span>
           <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
           <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || "여행자"}</span>
+            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || t("traveler")}</span>
             <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
           </div>
         </div>
+
+        {(onEdit || onDelete) && (
+          <div className="flex items-center gap-1.5 z-20">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onEdit(course);
+                }}
+                title="게시글 수정"
+                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-brand border border-white/15 cursor-pointer shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(course);
+                }}
+                title="게시글 삭제"
+                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-red-500 border border-white/15 cursor-pointer shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom Content Area */}
@@ -154,7 +212,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label="좋아요"
+            aria-label={t("like")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
@@ -176,7 +234,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label="댓글"
+            aria-label={t("comments")}
             className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -189,7 +247,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label="북마크"
+            aria-label={t("save")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isBookmarked
                 ? "bg-brand text-white scale-105"
