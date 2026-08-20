@@ -8,11 +8,7 @@ import {
   buildItineraryRoute,
   optimizeOpenItinerary,
 } from "./routing-engine";
-
-const CATEGORY_STYLES = {
-  매장: "bg-[#ede9f8] text-[#5c2ef5]",
-  팝업: "bg-[#1a142e] text-white",
-};
+import { categoryStyleOf, normalizeCategory } from "@/lib/place-category";
 
 const DEFAULT_COURSE_KEYS = [
   "B2_STORE_0032",
@@ -24,7 +20,8 @@ const DEFAULT_COURSE_KEYS = [
 let datasetPromise;
 
 function toCoursePlace(record) {
-  const category = record.place_name?.includes("팝업") ? "팝업" : (record.category ?? "매장");
+  // 팝업 매장도 매장이다. 분류는 매장/음식점/카페/여가 넷뿐이라 따로 두지 않는다.
+  const category = normalizeCategory(record.category);
   const img =
     record.image_url ??
     record.imageUrl ??
@@ -40,12 +37,12 @@ function toCoursePlace(record) {
     floor: record.floor_code ?? record.floor,
     name: record.place_name ?? record.name,
     category,
-    categoryStyle: CATEGORY_STYLES[category] ?? "bg-[#f0ecfa] text-[#5c2ef5]",
+    categoryStyle: categoryStyleOf(category).categoryStyle,
     desc: record.desc ?? `${record.floor_code ?? record.floor ?? ""} ${record.place_name ?? record.name} · 실내 길찾기 지원 매장`,
     image: img,
     imageUrl: img,
     placeImg: img,
-    accentColor: category === "팝업" ? "#1a142e" : "#5c2ef5",
+    accentColor: categoryStyleOf(category).accentColor,
     location: `더현대서울 ${record.floor_code ?? record.floor ?? ""}`.trim(),
   };
 }

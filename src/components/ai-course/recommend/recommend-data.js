@@ -1,3 +1,4 @@
+import { PLACE_CATEGORIES, categoryStyleOf } from "@/lib/place-category";
 /**
  * Static demo data for the course recommendation flow.
  *
@@ -35,7 +36,7 @@ export const places = [
   },
   {
     id: 2,
-    category: "패션",
+    category: "매장",
     categoryStyle: "bg-[#dbeeff] text-[#1a6cb8]",
     name: "MLB더현대서울점",
     desc: "K-pop 스타들의 대표 아이템인 스트리트 캡과 크롭 탑, 트레이닝 셋업을 한자리에서 만나보세요.",
@@ -103,7 +104,7 @@ export const places = [
   },
   {
     id: 3,
-    category: "디자이너 편집샵",
+    category: "매장",
     categoryStyle: "bg-[#ede9f8] text-[#5c2ef5]",
     name: "EQL(이필)",
     desc: "한국에서 가장 핫한 디자이너 브랜드를 한자리에서 골라보고 싶다면 꼭 들러야 할 편집샵이에요.",
@@ -129,7 +130,7 @@ export const places = [
   },
   {
     id: 4,
-    category: "팝업",
+    category: "매장",
     categoryStyle: "bg-[#1a142e] text-white",
     name: "스파이더맨: 브랜드 뉴 데이 팝업",
     desc: "화제의 영화를 체험형 팝업으로 생생하게 만나보세요!",
@@ -188,7 +189,7 @@ export const extraPlaces = [
   },
   {
     id: 102,
-    category: "뷰티",
+    category: "매장",
     categoryStyle: "bg-[#ede9f8] text-[#5c2ef5]",
     name: "올리브영 명동타운",
     desc: "K-뷰티 전 브랜드를 한자리에서. 외국인 관광객 필수 코스인 초대형 플래그십.",
@@ -212,7 +213,7 @@ export const extraPlaces = [
   },
   {
     id: 103,
-    category: "전시",
+    category: "여가",
     categoryStyle: "bg-[#1a142e] text-white",
     name: "그라운드시소 성수",
     desc: "감각적인 기획 전시가 늘 열리는 복합문화공간. 사진 찍기 좋은 전시 명소예요.",
@@ -237,7 +238,7 @@ export const extraPlaces = [
   },
   {
     id: 104,
-    category: "패션",
+    category: "매장",
     categoryStyle: "bg-[#dbeeff] text-[#1a6cb8]",
     name: "무신사 스탠다드 홍대",
     desc: "합리적인 가격의 베이직 아이템 성지. K-패션 입문자에게 딱인 대형 매장이에요.",
@@ -262,7 +263,7 @@ export const extraPlaces = [
   },
   {
     id: 105,
-    category: "팝업",
+    category: "매장",
     categoryStyle: "bg-[#1a142e] text-white",
     name: "성수 트레이딩 팝업존",
     desc: "매주 바뀌는 브랜드 팝업이 모이는 성수동 핫플. 한정판 굿즈 헌팅 명소예요.",
@@ -293,18 +294,11 @@ export const extraPlaces = [
  * so every entry carries a `floor` and one of the store categories below.
  * The picker lets users narrow the list by category and floor.
  */
-export const DEPARTMENT_CATEGORIES = ["팝업", "음식점", "패션", "뷰티", "카페"];
+export const DEPARTMENT_CATEGORIES = PLACE_CATEGORIES;
 
 // Ordered low → high so the picker can sort floors naturally (B2 → 6F).
 export const DEPARTMENT_FLOORS = ["B2", "B1", "1F", "2F", "3F", "4F", "5F", "6F"];
 
-const CATEGORY_STYLES = {
-  팝업: { categoryStyle: "bg-[#1a142e] text-white", accentColor: "#c0162a", gradientFrom: "#c0162a", gradientTo: "#0a0a0a" },
-  음식점: { categoryStyle: "bg-[#5c2ef5] text-white", accentColor: "#5c2ef5", gradientFrom: "#5c2ef5", gradientTo: "#1a142e" },
-  패션: { categoryStyle: "bg-[#dbeeff] text-[#1a6cb8]", accentColor: "#1a6cb8", gradientFrom: "#1a6cb8", gradientTo: "#0d1a2e" },
-  뷰티: { categoryStyle: "bg-[#ede9f8] text-[#5c2ef5]", accentColor: "#5c2ef5", gradientFrom: "#5c2ef5", gradientTo: "#1a142e" },
-  카페: { categoryStyle: "bg-[#fce7f3] text-[#be185d]", accentColor: "#be185d", gradientFrom: "#be185d", gradientTo: "#1a142e" },
-};
 
 // Build a full place object from the minimal per-shop fields, filling in the
 // shared department-store location and the category's color styling.
@@ -313,7 +307,7 @@ function makeDeptPlace({ id, category, floor, name, desc, longDesc, image, heroI
     id,
     category,
     floor,
-    ...CATEGORY_STYLES[category],
+    ...categoryStyleOf(category),
     name,
     desc,
     longDesc,
@@ -351,7 +345,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 202,
-    category: "팝업",
+    category: "매장",
     floor: "B1",
     name: "산리오 캐릭터즈 팝업",
     desc: "시즌마다 바뀌는 캐릭터 팝업. 한정판 굿즈와 포토존이 가득해요.",
@@ -367,7 +361,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 203,
-    category: "뷰티",
+    category: "매장",
     floor: "1F",
     name: "탬버린즈 플래그십",
     desc: "젠틀몬스터가 만든 향수·핸드케어 브랜드. 감각적인 공간 연출로 유명해요.",
@@ -383,7 +377,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 204,
-    category: "패션",
+    category: "매장",
     floor: "2F",
     name: "마뗑킴 더현대서울",
     desc: "MZ세대 최애 K-패션 브랜드. 러블리한 무드의 시즌 컬렉션을 만나보세요.",
@@ -404,7 +398,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 205,
-    category: "패션",
+    category: "매장",
     floor: "3F",
     name: "아더에러 더현대서울",
     desc: "유니크한 무드의 컨템포러리 브랜드. 실험적인 스타일링의 성지예요.",
@@ -436,7 +430,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 207,
-    category: "팝업",
+    category: "매장",
     floor: "B1",
     name: "K-pop 아티스트 콜라보 팝업",
     desc: "인기 아이돌과 협업한 기간 한정 팝업. 팬이라면 놓칠 수 없는 성지예요.",
@@ -468,7 +462,7 @@ export const departmentStorePlaces = [
   }),
   makeDeptPlace({
     id: 209,
-    category: "뷰티",
+    category: "매장",
     floor: "1F",
     name: "라네즈 플래그십",
     desc: "글로벌 인기 K-뷰티 브랜드. 대표 슬리핑 마스크를 직접 체험해보세요.",

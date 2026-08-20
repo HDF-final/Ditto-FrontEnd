@@ -28,6 +28,7 @@ import {
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import { getBrands, buildBrandLogoMap } from "@/lib/api/brands";
+import { normalizeCategory } from "@/lib/place-category";
 import {
   addCoursePlace,
   createCourse,
@@ -181,7 +182,7 @@ export function ResultScreen({ chat, onPlaceClick, initialCourse }) {
             placeId: place.placeId,
             name: place.name || "장소",
             floor: place.floor || place.floorCode || "1F",
-            category: place.category || "쇼핑/패션",
+            category: normalizeCategory(place.category),
             ...place,
           };
     });

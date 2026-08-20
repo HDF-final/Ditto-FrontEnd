@@ -6,6 +6,7 @@ import {
   sendCourseChatMessage,
 } from "@/lib/api/ai-course";
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
+import { categoryStyleOf, normalizeCategory } from "@/lib/place-category";
 import { useTranslations } from "next-intl";
 
 /**
@@ -87,9 +88,15 @@ async function toCoursePlaces(apiPlaces) {
       });
       if (!place) return null;
       const reason = item?.reason?.trim() || "";
+      // 분류는 응답만 알고 있습니다. 로컬 카탈로그(store-navigation-keys.json)에는
+      // category 필드가 아예 없어서, 카탈로그만 믿으면 124곳이 전부 "매장"
+      // 폴백으로 떨어집니다. 스타벅스 리저브도 나의 가야도 매장으로 나오던 이유입니다.
+      const category = normalizeCategory(item?.category);
       // 추천 이유가 카드 설명보다 훨씬 유용해서 있으면 그걸 보여줍니다.
       return {
         ...place,
+        category,
+        ...categoryStyleOf(category),
         desc: reason || place.desc,
         aiReason: reason || null,
         isAiRecommended: true,
