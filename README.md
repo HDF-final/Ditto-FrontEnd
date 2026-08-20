@@ -206,7 +206,17 @@ Ditto-FrontEnd/
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리합니다. 비로그인 사용자의 `countryCode`, `languageCode`만 localStorage에 보존하며, 로그인 사용자는 `GET /users/me`로 받은 DB 설정이 우선합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+
+국가·언어 설정 우선순위는 다음과 같습니다.
+
+```text
+로그인 사용자 → GET /users/me의 DB 설정
+비로그인 사용자 → 국가·언어 쿠키
+저장된 설정 없음 → 브라우저 언어 + 기본 국가 KR
+```
+
+전역 레이아웃이 요청 쿠키와 `Accept-Language`를 읽어 Zustand provider의 첫 상태와 `<html lang>`을 함께 초기화하므로, hydration 이후 언어가 뒤늦게 바뀌는 현상을 막습니다. 국가를 바꾸면 그 국가의 기본 언어를 함께 선택하되, 사용자가 언어를 직접 선택한 뒤에는 국가를 바꿔도 해당 언어를 유지합니다. 헤더에서는 국가와 화면 언어를 별도 선택기로 제공합니다.
 
 인증·온보딩 이동 정책:
 
@@ -293,19 +303,22 @@ const languageCode = usePreferenceStore((state) => state.languageCode);
 - 한 컴포넌트에서만 사용하는 값은 React `useState`를 사용합니다.
 - API 응답 목록 전체를 Zustand에 불필요하게 복사하지 않습니다.
 - 인증 토큰을 Zustand persist나 `localStorage`에 저장하지 않습니다.
-- 국가·언어 저장소는 `skipHydration` 후 클라이언트에서 복원하며, 로그인된 경우 DB 값으로 덮어씁니다.
+- 국가·언어 저장소는 서버에서 쿠키와 브라우저 언어로 초기화하며, 로그인된 경우 DB 값으로 덮어씁니다.
 - `/country`에서 국가는 콘텐츠·트렌드 시장, 언어는 화면 표시 언어로 별도 선택합니다.
 
-### 국가·언어 설정 1차 범위
+### 국가·언어 설정 2차 범위
 
 - 지원 국가: `KR`, `CN`, `JP`, `US`
 - 지원 언어: `ko`, `zh`, `ja`, `en`
 - 저장 API: `PATCH /api/v1/users/me/preferences`
 - 세션 복원: `GET /api/v1/users/me`
-- 게스트 저장: `ditto-preferences-v1` localStorage (국가·언어만 저장)
+- 게스트 저장: `ditto-country`, `ditto-language`, `ditto-language-manual` 쿠키
+- SSR 초기화: 쿠키가 없으면 `Accept-Language`와 기본 국가 `KR` 사용
+- 헤더 선택기: 국가와 화면 언어를 독립적으로 변경
+- 국가 변경: 언어를 직접 선택하기 전에는 국가 기본 언어 적용, 직접 선택한 뒤에는 언어 유지
 
-이번 1차에는 설정 저장과 선택 UI까지만 포함합니다. 화면 고정 문구 사전, 실제 UI 언어 전환,
-동적 콘텐츠 번역 및 DeepL 연동은 후속 단계입니다.
+이번 2차에는 설정 우선순위 통합과 첫 렌더링 복원까지 포함합니다. 화면 고정 문구 사전,
+실제 UI 전체 언어 전환, 동적 콘텐츠 번역 및 DeepL 연동은 후속 단계입니다.
 
 ## Tailwind CSS
 

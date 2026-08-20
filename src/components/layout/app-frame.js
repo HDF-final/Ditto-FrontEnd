@@ -18,23 +18,23 @@ export function AppFrame({ children }) {
   const isAuthRoute = AUTH_PATHS.has(pathname);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
-  const setPreferences = usePreferenceStore((state) => state.setPreferences);
+  const hydratePreferences = usePreferenceStore(
+    (state) => state.hydratePreferences,
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function restoreSession() {
-      await usePreferenceStore.persist.rehydrate();
-      if (!isMounted) return;
-
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
           setUser(profile);
-          setPreferences({
+          hydratePreferences({
             countryCode: profile.countryCode,
             languageCode:
               profile.languageCode || profile.preferredLanguageCode,
+            languageWasManuallySelected: true,
           });
         }
       } catch {
@@ -49,7 +49,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, clearUser, setPreferences]);
+  }, [setUser, clearUser, hydratePreferences]);
 
   if (isAuthRoute) {
     return children;

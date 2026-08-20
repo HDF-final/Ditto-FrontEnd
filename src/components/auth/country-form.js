@@ -20,7 +20,12 @@ export function CountryForm() {
   const router = useRouter();
   const storedCountryCode = usePreferenceStore((state) => state.countryCode);
   const storedLanguageCode = usePreferenceStore((state) => state.languageCode);
-  const setPreferences = usePreferenceStore((state) => state.setPreferences);
+  const storedLanguageWasManuallySelected = usePreferenceStore(
+    (state) => state.languageWasManuallySelected,
+  );
+  const hydratePreferences = usePreferenceStore(
+    (state) => state.hydratePreferences,
+  );
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setSignupDraft = useSignupStore((state) => state.setDraft);
   const signupDraft = useSignupStore((state) => state.draft);
@@ -28,7 +33,7 @@ export function CountryForm() {
   const [selectedCodeOverride, setSelectedCode] = useState(null);
   const [selectedLanguageOverride, setSelectedLanguage] = useState(null);
   const [languageWasManuallySelected, setLanguageWasManuallySelected] =
-    useState(false);
+    useState(storedLanguageWasManuallySelected);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,9 +67,10 @@ export function CountryForm() {
         });
       }
 
-      setPreferences({
+      hydratePreferences({
         countryCode: selected.code,
         languageCode: selectedLanguage,
+        languageWasManuallySelected,
       });
       setSignupDraft({
         country: selected.code,
