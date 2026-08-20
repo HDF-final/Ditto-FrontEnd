@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Check } from "./recommend-icons";
 
 export function CourseSaveSuccessModal({ open, courseName, onClose }) {
+  const t = useTranslations("aiCourse");
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
@@ -43,16 +45,13 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
           id="course-save-title"
           className="mt-5 text-[22px] font-black text-[#1a142e]"
         >
-          코스 저장 완료!
+          {t("saveComplete")}
         </h2>
         <p
           id="course-save-description"
           className="mt-2 text-[13px] leading-relaxed text-[#6b6685]"
         >
-          <strong className="font-bold text-[#1a142e]">
-            {courseName || "이름 없는 코스"}
-          </strong>
-          을(를) 마이페이지에 저장했어요.
+          {t("savedToMypage", { name: courseName || t("unnamedCourse") })}
         </p>
         <div className="mt-7 grid grid-cols-2 gap-2.5">
           <button
@@ -61,13 +60,13 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
             onClick={onClose}
             className="rounded-full border border-[#d8d3e8] bg-white px-4 py-3 text-[12px] font-bold text-[#6b6685] transition-colors hover:border-[#5c2ef5] hover:text-[#5c2ef5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            계속 편집
+            {t("continueEditing")}
           </button>
           <Link
             href="/mypage"
             className="rounded-full bg-[#5c2ef5] px-4 py-3 text-[12px] font-bold text-white transition-colors hover:bg-[#4a22d4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            마이페이지 보기
+            {t("viewMypage")}
           </Link>
         </div>
       </section>

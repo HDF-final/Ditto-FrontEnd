@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { COUNTRIES, LANGUAGES } from "@/lib/fixtures/countries";
 import {
   getPreferencesAfterCountryChange,
@@ -11,6 +13,8 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 
 export function CountrySelector() {
+  const router = useRouter();
+  const t = useTranslations("preferences");
   const countryCode = usePreferenceStore((state) => state.countryCode);
   const languageCode = usePreferenceStore((state) => state.languageCode);
   const languageWasManuallySelected = usePreferenceStore(
@@ -31,8 +35,9 @@ export function CountrySelector() {
         await updateMyPreferences(nextPreferences);
       }
       commit();
+      router.refresh();
     } catch (requestError) {
-      setError(requestError?.message || "환경설정을 저장하지 못했습니다.");
+      setError(requestError?.message || t("saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -47,7 +52,7 @@ export function CountrySelector() {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
       <label>
-        <span className="sr-only">서비스 국가 선택</span>
+        <span className="sr-only">{t("countryLabel")}</span>
         <select
           className="max-w-32 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand"
           value={countryCode}
@@ -71,7 +76,7 @@ export function CountrySelector() {
         </select>
       </label>
       <label>
-        <span className="sr-only">화면 언어 선택</span>
+        <span className="sr-only">{t("languageLabel")}</span>
         <select
           className="max-w-28 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand"
           value={languageCode}

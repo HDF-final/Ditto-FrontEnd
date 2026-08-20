@@ -6,6 +6,7 @@ import {
   sendCourseChatMessage,
 } from "@/lib/api/ai-course";
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
+import { useTranslations } from "next-intl";
 
 /**
  * Boni 코스 추천 대화 한 세션.
@@ -20,27 +21,27 @@ import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
 
 const CANCEL_CODES = new Set(["ERR_CANCELED"]);
 
-function toErrorMessage(error) {
+function toErrorMessage(error, t) {
   if (error?.code === "ECONNABORTED") {
-    return "응답이 너무 오래 걸려 요청을 중단했어요. 다시 시도해주세요.";
+    return t("timeoutError");
   }
 
   const status = error?.response?.status;
   if (status === 401 || status === 403) {
-    return "코스 추천은 로그인이 필요한 기능이에요. 로그인 후 다시 시도해주세요.";
+    return t("authError");
   }
   if (status === 502) {
     // 서버 스펙상 AI 엔진 장애·타임아웃이 E001(502)로 내려옵니다.
-    return "AI 추천 엔진이 응답하지 않았어요. 잠시 후 다시 시도해주세요.";
+    return t("engineError");
   }
   if (status) {
     const serverMessage = error.response?.data?.message;
-    return serverMessage || `코스를 만들지 못했어요. (서버 응답 ${status})`;
+    return serverMessage || t("serverError", { status });
   }
   if (error?.request) {
-    return "코스 추천 서버에 연결하지 못했어요. 서버가 실행 중인지 확인해주세요.";
+    return t("connectionError");
   }
-  return error?.message || "코스를 만들지 못했어요. 잠시 후 다시 시도해주세요.";
+  return error?.message || t("genericError");
 }
 
 /**
@@ -101,6 +102,7 @@ async function toCoursePlaces(apiPlaces) {
 }
 
 export function useCourseChat() {
+  const t = useTranslations("aiCourse");
   const sessionIdRef = useRef(null);
   const controllerRef = useRef(null);
 
@@ -150,16 +152,16 @@ export function useCourseChat() {
       if (controller.signal.aborted || CANCEL_CODES.has(caught?.code)) {
         setMessages((prev) => [
           ...prev,
-          { role: "boni", text: "요청을 취소했어요. 다시 물어봐 주세요 🐾" },
+          { role: "boni", text: t("cancelledMessage") },
         ]);
         return;
       }
-      setError(toErrorMessage(caught));
+      setError(toErrorMessage(caught, t));
     } finally {
       controllerRef.current = null;
       setPending(null);
     }
-  }, [course]);
+  }, [course, t]);
 
   const cancel = useCallback(() => {
     controllerRef.current?.abort();

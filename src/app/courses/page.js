@@ -1,13 +1,18 @@
 import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = { title: "코스 리스트" };
+export async function generateMetadata() {
+  const t = await getTranslations("courses");
+  return { title: t("listTitle") };
+}
 
-export default function CoursesPage() {
+export default async function CoursesPage() {
+  const t = await getTranslations("courses");
   return (
     <PlaceholderPage
       eyebrow="DITTO Picks"
-      title="코스 리스트"
-      description="국가별 트렌드와 K-POP, K-BEAUTY, FASHION, GOURMET 등의 카테고리로 기본 코스를 탐색하는 화면이 들어갈 자리입니다."
+      title={t("listTitle")}
+      description={t("listDescription")}
     />
   );
 }

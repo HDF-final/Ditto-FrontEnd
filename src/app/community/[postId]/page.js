@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { CommunityDetailActions } from "./community-detail-actions";
+import { getLocale, getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,8 @@ export async function generateMetadata({ params }) {
   const course = await fetchPublicCourseDetailServer(postId);
 
   if (!course) {
-    return { title: "커뮤니티 코스" };
+    const t = await getTranslations("community");
+    return { title: t("communityCourse") };
   }
 
   return { title: course.title };
@@ -70,10 +72,10 @@ function GradientBlock({ className = "", children, gradient }) {
   );
 }
 
-function StopList({ stops = [] }) {
+function StopList({ stops = [], t }) {
   return (
     <section className="rounded-[28px] bg-surface-soft p-6 lg:p-7">
-      <h2 className="text-lg font-black text-ink">코스 장소</h2>
+      <h2 className="text-lg font-black text-ink">{t("coursePlaces")}</h2>
       <div className="mt-4 flex flex-col gap-3">
         {stops.map((stop, index) => (
           <div
@@ -97,7 +99,7 @@ function StopList({ stops = [] }) {
               href="/courses"
               className="text-sm font-black text-brand transition hover:text-brand-dark"
             >
-              보기
+              {t("view")}
             </Link>
           </div>
         ))}
@@ -106,7 +108,7 @@ function StopList({ stops = [] }) {
   );
 }
 
-function AuthorNote({ course }) {
+function AuthorNote({ course, t, locale }) {
   return (
     <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
@@ -114,17 +116,17 @@ function AuthorNote({ course }) {
           <div>
             <p className="text-xs font-black text-brand">COURSE NOTE</p>
             <h2 className="mt-3 text-[32px] font-black text-ink">
-              작성자가 남긴 기록
+              {t("authorRecord")}
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
-              이 코스를 만든 {course.name || "여행자"}가 직접 쓴 글이에요.
+              {t("authorRecordDescription", { name: course.name || t("traveler") })}
             </p>
           </div>
           <Link
             href="/community"
             className="text-sm font-black text-brand transition hover:text-brand-dark"
           >
-            이 사람의 다른 코스 →
+            {t("otherCourses")}
           </Link>
         </div>
 
@@ -137,12 +139,12 @@ function AuthorNote({ course }) {
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-ink">{course.name || "여행자"}</p>
+                    <p className="text-lg font-black text-ink">{course.name || t("traveler")}</p>
                     <span className="font-black text-ink">·</span>
                     <span className="text-sm font-black text-ink">{course.country || "KR"}</span>
                   </div>
                   <p className="mt-1 text-xs font-medium text-ink-muted">
-                    {course.createdAt ? new Date(course.createdAt).toLocaleDateString("ko-KR") : "2026.03.02"} 작성
+                    {t("authoredOn", { date: course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02" })}
                   </p>
                 </div>
               </div>
@@ -150,7 +152,7 @@ function AuthorNote({ course }) {
                 gradient={course.gradient || "from-[#2d1b8e] to-[#8c57fa]"}
                 className="mt-6 flex h-[164px] items-center justify-center rounded-[18px] text-sm font-black text-white"
               >
-                사진
+                {t("photo")}
               </GradientBlock>
             </div>
 
@@ -188,6 +190,8 @@ function ReviewCard({ review }) {
 }
 
 export default async function CommunityCourseDetailPage({ params }) {
+  const t = await getTranslations("community");
+  const locale = await getLocale();
   const { postId } = await params;
   const course = await fetchPublicCourseDetailServer(postId);
 
@@ -233,7 +237,7 @@ export default async function CommunityCourseDetailPage({ params }) {
                 {course.country || "KR"}
               </span>
               <div>
-                <p className="text-sm font-black text-ink">{course.name || "여행자"}</p>
+                <p className="text-sm font-black text-ink">{course.name || t("traveler")}</p>
                 <p className="mt-1 text-[11px] font-black text-brand">
                   {course.hash || "#공개코스"}
                 </p>
@@ -252,22 +256,22 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <section className="px-10 sm:px-14 py-8 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
-          <StopList stops={course.stops} />
+          <StopList stops={course.stops} t={t} />
           <div className="relative min-h-[260px] overflow-hidden rounded-[28px] bg-slate-950 shadow-md">
             <img
               src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
-              alt="코스 대표 사진"
+              alt={t("coverPhoto")}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
             <span className="absolute bottom-4 left-5 text-xs font-bold text-white/90 drop-shadow-sm">
-              코스 대표 사진 · {course.stops?.[0]?.name || "더현대 서울"}
+              {t("coverPhoto")} · {course.stops?.[0]?.name || "The Hyundai Seoul"}
             </span>
           </div>
         </div>
       </section>
 
-      <AuthorNote course={course} />
+      <AuthorNote course={course} t={t} locale={locale} />
 
       <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl">
@@ -275,14 +279,14 @@ export default async function CommunityCourseDetailPage({ params }) {
             <div>
               <p className="text-xs font-black text-brand">REVIEWS</p>
               <h2 className="mt-3 text-[30px] font-black text-ink">
-                이 코스 다녀온 사람들
+                {t("visitors")}
               </h2>
             </div>
             <Link
               href="/community/share"
               className="text-sm font-black text-brand transition hover:text-brand-dark"
             >
-              후기 쓰기 →
+              {t("writeReview")}
             </Link>
           </div>
           <div className="mt-7 grid gap-5 lg:grid-cols-3">
@@ -295,7 +299,7 @@ export default async function CommunityCourseDetailPage({ params }) {
               href="/community"
               className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
             >
-              코스 목록 전체보기 →
+              {t("viewAllCourses")}
             </Link>
           </div>
         </div>

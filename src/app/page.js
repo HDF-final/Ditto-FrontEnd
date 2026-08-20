@@ -6,15 +6,28 @@ import { KeywordSection } from "@/components/home/keyword-section";
 import { NewsletterPreviewSection } from "@/components/home/newsletter-preview-section";
 import { heroSlides } from "@/lib/fixtures/home";
 import { fetchNewsFeedsServer } from "@/lib/api/news.server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const newsList = await fetchNewsFeedsServer({ page: 0, size: 3 });
+  const [newsList, t] = await Promise.all([
+    fetchNewsFeedsServer({ page: 0, size: 3 }),
+    getTranslations("home"),
+  ]);
+  const localizedHeroSlides = heroSlides.map((slide, index) => {
+    const copy = t.raw(`hero.slide${index + 1}`);
+    return {
+      ...slide,
+      ...copy,
+      primaryCta: { ...slide.primaryCta, label: copy.primaryCta },
+      secondaryCta: { ...slide.secondaryCta, label: copy.secondaryCta },
+    };
+  });
 
   return (
     <main className="bg-background">
-      <HomeHero slides={heroSlides} />
+      <HomeHero slides={localizedHeroSlides} />
       <DittoPicksSection />
       <CommunityPreviewSection />
       <KeywordSection />

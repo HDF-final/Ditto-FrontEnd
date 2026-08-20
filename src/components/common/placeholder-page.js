@@ -1,8 +1,11 @@
 import { ButtonLink } from "@/components/common/button";
 import { SoftCard } from "@/components/common/card";
 import { PageShell } from "@/components/layout/page-shell";
+import { getTranslations } from "next-intl/server";
 
-export function PlaceholderPage({ eyebrow, title, description }) {
+export async function PlaceholderPage({ eyebrow, title, description }) {
+  const t = await getTranslations("common");
+
   return (
     <PageShell className="flex min-h-[calc(100vh-8rem)] items-center py-20">
       <SoftCard className="w-full p-8 sm:p-12 lg:p-16">
@@ -16,9 +19,9 @@ export function PlaceholderPage({ eyebrow, title, description }) {
           {description}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <ButtonLink href="/">홈으로 돌아가기</ButtonLink>
+          <ButtonLink href="/">{t("backHome")}</ButtonLink>
           <span className="rounded-control border border-line bg-white px-5 py-3 text-sm font-semibold text-ink-muted">
-            라우팅 준비 완료
+            {t("routingReady")}
           </span>
         </div>
       </SoftCard>

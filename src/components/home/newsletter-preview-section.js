@@ -1,10 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 
 import { SectionHeading } from "@/components/home/section-heading";
 import { newsletters as defaultNewsletters } from "@/lib/fixtures/home";
 
-export function NewsletterPreviewSection({ items = [] }) {
+export async function NewsletterPreviewSection({ items = [] }) {
+  const t = await getTranslations("home");
   const displayItems = items.length > 0 ? items.slice(0, 3) : defaultNewsletters;
 
   return (
@@ -14,10 +16,10 @@ export function NewsletterPreviewSection({ items = [] }) {
     >
       <SectionHeading
         eyebrow="DITTO NEWSLETTER"
-        title="DITTO 임팩트 소식"
-        description="K-컬처와 브랜드, 그리고 우리 사회에 선한 변화를 만드는 소식을 전해드려요."
+        title={t("newsletterTitle")}
+        description={t("newsletterDescription")}
         href="/news"
-        linkLabel="뉴스 전체보기"
+        linkLabel={t("allNews")}
       />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {displayItems.map((news) => {

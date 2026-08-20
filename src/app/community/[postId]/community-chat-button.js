@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 import {
   createComment,
@@ -41,8 +42,8 @@ const fallbackChatMessages = [
   },
 ];
 
-function formatTimeAgo(dateStr) {
-  if (!dateStr) return "방금";
+function formatTimeAgo(dateStr, t) {
+  if (!dateStr) return t("justNow");
   try {
     let d = new Date(dateStr);
     if (
@@ -56,7 +57,7 @@ function formatTimeAgo(dateStr) {
         d = utcDate;
       }
     }
-    if (Number.isNaN(d.getTime())) return "방금";
+    if (Number.isNaN(d.getTime())) return t("justNow");
 
     const now = new Date();
     const diffMs = now - d;
@@ -65,12 +66,12 @@ function formatTimeAgo(dateStr) {
     const diffHour = Math.floor(diffMin / 60);
     const diffDay = Math.floor(diffHour / 24);
 
-    if (diffDay > 0) return `${diffDay}일`;
-    if (diffHour > 0) return `${diffHour}시간`;
-    if (diffMin > 0) return `${diffMin}분`;
-    return "방금";
+    if (diffDay > 0) return t("daysAgo", { count: diffDay });
+    if (diffHour > 0) return t("hoursAgo", { count: diffHour });
+    if (diffMin > 0) return t("minutesAgo", { count: diffMin });
+    return t("justNow");
   } catch {
-    return "방금";
+    return t("justNow");
   }
 }
 
@@ -101,6 +102,8 @@ function getAvatarColor(name = "") {
 }
 
 export function CommunityChatButton({ course = {} }) {
+  const t = useTranslations("community");
+  const locale = useLocale();
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -347,7 +350,7 @@ export function CommunityChatButton({ course = {} }) {
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        대화 참여
+        {t("joinConversation")}
       </button>
 
       {/* 인스타그램 피드 형태 대화 참여 모달 (스플릿 레이아웃) */}
@@ -368,7 +371,7 @@ export function CommunityChatButton({ course = {} }) {
             <div className="relative md:w-[56%] h-[280px] md:h-full bg-slate-950 flex flex-col justify-between p-6 overflow-hidden select-none">
               <img
                 src={courseImage}
-                alt={course?.title || "코스 이미지"}
+                alt={course?.title || t("courseImage")}
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none" />
@@ -427,7 +430,7 @@ export function CommunityChatButton({ course = {} }) {
                         isFollowing ? "text-ink-muted hover:text-danger" : "text-brand hover:text-brand-dark"
                       }`}
                     >
-                      {isFollowing ? "팔로잉" : "팔로우"}
+                      {isFollowing ? t("following") : t("follow")}
                     </button>
                   </div>
                 </div>
@@ -436,7 +439,7 @@ export function CommunityChatButton({ course = {} }) {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="flex size-8 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface-soft hover:text-ink cursor-pointer"
-                  aria-label="대화 닫기"
+                  aria-label={t("closeConversation")}
                 >
                   <svg
                     aria-hidden="true"
@@ -471,24 +474,24 @@ export function CommunityChatButton({ course = {} }) {
                       {course?.hash || "#DITTO #더현대서울 #K컬처"}
                     </p>
                     <p className="mt-1 text-[11px] font-medium text-ink-muted">
-                      수정됨 · 1일
+                      {t("editedAgo")}
                     </p>
                   </div>
                 </div>
 
                 {isLoading ? (
                   <div className="flex h-36 items-center justify-center text-xs font-bold text-ink-muted">
-                    대화 목록을 불러오는 중...
+                    {t("loadingConversation")}
                   </div>
                 ) : comments.length === 0 ? (
                   <div className="flex flex-col h-36 items-center justify-center text-center">
-                    <p className="text-sm font-black text-ink">아직 댓글이 없습니다.</p>
-                    <p className="mt-1 text-xs text-ink-muted">첫 번째로 대화에 참여해보세요!</p>
+                    <p className="text-sm font-black text-ink">{t("noComments")}</p>
+                    <p className="mt-1 text-xs text-ink-muted">{t("firstComment")}</p>
                   </div>
                 ) : (
                   comments.map((message, index) => {
                     const cId = message.commentId ?? `idx-${index}`;
-                    const commenterName = message.nickname || message.author || "여행자";
+                    const commenterName = message.nickname || message.author || t("traveler");
                     const isMine =
                       message.isMine ||
                       message.userId === 1 ||
@@ -524,14 +527,14 @@ export function CommunityChatButton({ course = {} }) {
                                     onClick={() => setEditingCommentId(null)}
                                     className="px-2 py-0.5 text-ink-muted hover:text-ink cursor-pointer"
                                   >
-                                    취소
+                                    {t("cancel")}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleSaveEdit(cId)}
                                     className="rounded-full bg-brand px-3 py-0.5 text-white shadow-xs hover:bg-brand-dark cursor-pointer"
                                   >
-                                    수정
+                                    {t("edit")}
                                   </button>
                                 </div>
                               </div>
@@ -542,7 +545,7 @@ export function CommunityChatButton({ course = {} }) {
                                   {message.content || message.text}
                                 </p>
                                 <div className="mt-1 flex items-center gap-3 text-[11px] font-medium text-ink-muted select-none">
-                                  <span>{formatTimeAgo(message.createdAt)}</span>
+                                  <span>{formatTimeAgo(message.createdAt, t)}</span>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -551,7 +554,7 @@ export function CommunityChatButton({ course = {} }) {
                                     }}
                                     className="font-bold hover:text-ink cursor-pointer"
                                   >
-                                    답글 달기
+                                    {t("reply")}
                                   </button>
                                   {isMine && (
                                     <>
@@ -560,14 +563,14 @@ export function CommunityChatButton({ course = {} }) {
                                         onClick={() => handleStartEdit(message)}
                                         className="font-bold hover:text-brand cursor-pointer"
                                       >
-                                        수정
+                                        {t("edit")}
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => setDeletingCommentId(cId)}
                                         className="font-bold hover:text-danger cursor-pointer"
                                       >
-                                        삭제
+                                        {t("delete")}
                                       </button>
                                     </>
                                   )}
@@ -581,7 +584,7 @@ export function CommunityChatButton({ course = {} }) {
                           type="button"
                           onClick={() => handleCommentLikeToggle(cId)}
                           className="pt-1 text-ink-muted hover:text-danger transition cursor-pointer shrink-0"
-                          aria-label="댓글 좋아요"
+                          aria-label={t("likeComment")}
                         >
                           <svg
                             aria-hidden="true"
@@ -613,7 +616,7 @@ export function CommunityChatButton({ course = {} }) {
                       type="button"
                       onClick={handleLikeToggle}
                       className="transition hover:opacity-75 cursor-pointer"
-                      aria-label="좋아요"
+                      aria-label={t("like")}
                     >
                       <svg
                         aria-hidden="true"
@@ -633,7 +636,7 @@ export function CommunityChatButton({ course = {} }) {
                       type="button"
                       onClick={() => inputRef.current?.focus()}
                       className="transition hover:opacity-75 cursor-pointer text-ink"
-                      aria-label="댓글 작성"
+                      aria-label={t("writeComment")}
                     >
                       <svg
                         aria-hidden="true"
@@ -652,11 +655,11 @@ export function CommunityChatButton({ course = {} }) {
                       onClick={() => {
                         if (typeof navigator !== "undefined" && navigator.clipboard) {
                           navigator.clipboard.writeText(window.location.href);
-                          alert("코스 링크가 클립보드에 복사되었습니다!");
+                          alert(t("copyToast"));
                         }
                       }}
                       className="transition hover:opacity-75 cursor-pointer text-ink"
-                      aria-label="코스 공유"
+                      aria-label={t("shareCourse")}
                     >
                       <svg
                         aria-hidden="true"
@@ -678,7 +681,7 @@ export function CommunityChatButton({ course = {} }) {
                     type="button"
                     onClick={handleBookmarkToggle}
                     className="transition hover:opacity-75 cursor-pointer"
-                    aria-label="코스 북마크"
+                    aria-label={t("bookmarkCourse")}
                   >
                     <svg
                       aria-hidden="true"
@@ -697,10 +700,10 @@ export function CommunityChatButton({ course = {} }) {
 
                 <div className="px-5 pt-2 pb-2.5">
                   <p className="text-xs font-black text-ink">
-                    {likesCount.toLocaleString()}명이 좋아합니다
+                    {t("likedBy", { count: likesCount.toLocaleString(locale) })}
                   </p>
                   <p className="text-[10px] font-semibold text-ink-muted uppercase mt-0.5">
-                    1일 전
+                    {t("oneDayAgo")}
                   </p>
                 </div>
 
@@ -725,7 +728,7 @@ export function CommunityChatButton({ course = {} }) {
                       setInputText((prev) => `${prev}😊`);
                     }}
                     className="text-ink-muted hover:text-ink transition cursor-pointer p-1"
-                    aria-label="이모지 추가"
+                    aria-label={t("addEmoji")}
                   >
                     <svg
                       aria-hidden="true"
@@ -755,8 +758,8 @@ export function CommunityChatButton({ course = {} }) {
                     }}
                     placeholder={
                       isAuthenticated
-                        ? "댓글 달기..."
-                        : "로그인 후 댓글을 작성할 수 있습니다..."
+                        ? t("commentPlaceholder")
+                        : t("loginCommentPlaceholder")
                     }
                     className={`min-w-0 flex-1 bg-transparent text-xs sm:text-sm font-medium text-ink placeholder:text-ink-muted outline-hidden ${
                       !isAuthenticated ? "cursor-pointer" : ""
@@ -773,7 +776,7 @@ export function CommunityChatButton({ course = {} }) {
                           : "text-brand/40 cursor-not-allowed"
                       }`}
                     >
-                      게시
+                      {t("post")}
                     </button>
                   ) : (
                     <button
@@ -781,7 +784,7 @@ export function CommunityChatButton({ course = {} }) {
                       onClick={() => setIsLoginModalOpen(true)}
                       className="text-xs sm:text-sm font-black text-brand hover:text-brand-dark transition cursor-pointer px-2"
                     >
-                      로그인
+                      {t("loginShort")}
                     </button>
                   )}
                 </form>
@@ -819,9 +822,9 @@ export function CommunityChatButton({ course = {} }) {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <h3 className="text-base font-black text-ink">{t("loginRequired")}</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              댓글 작성 및 좋아요·북마크 기능을 이용하시려면 먼저 로그인해주세요.
+              {t("conversationLoginDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -829,7 +832,7 @@ export function CommunityChatButton({ course = {} }) {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -839,7 +842,7 @@ export function CommunityChatButton({ course = {} }) {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                로그인하기 →
+                {t("login")}
               </button>
             </div>
           </div>
@@ -876,10 +879,10 @@ export function CommunityChatButton({ course = {} }) {
               </svg>
             </div>
             <h3 id="delete-dialog-title" className="text-base font-black text-ink">
-              댓글을 삭제하시겠습니까?
+              {t("deleteCommentTitle")}
             </h3>
             <p className="mt-1.5 text-xs text-ink-muted leading-relaxed">
-              삭제한 댓글은 복구할 수 없습니다.
+              {t("deleteCommentDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -888,7 +891,7 @@ export function CommunityChatButton({ course = {} }) {
                 onClick={() => setDeletingCommentId(null)}
                 className="flex-1 rounded-full bg-surface-soft py-2.5 text-xs font-black text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -896,7 +899,7 @@ export function CommunityChatButton({ course = {} }) {
                 onClick={handleConfirmDelete}
                 className="flex-1 rounded-full bg-danger py-2.5 text-xs font-black text-white shadow-xs hover:bg-danger-dark transition cursor-pointer disabled:opacity-50"
               >
-                {isDeleting ? "삭제 중..." : "삭제"}
+                {isDeleting ? t("deleting") : t("delete")}
               </button>
             </div>
           </div>

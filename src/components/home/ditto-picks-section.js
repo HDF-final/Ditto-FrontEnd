@@ -1,14 +1,17 @@
 import { categoryChips, pickCourses } from "@/lib/fixtures/home";
 import { CourseCard } from "@/components/home/course-card";
 import { SectionHeading } from "@/components/home/section-heading";
+import { getTranslations } from "next-intl/server";
 
-export function DittoPicksSection() {
+export async function DittoPicksSection() {
+  const t = await getTranslations("home");
+
   return (
     <section id="picks" className="scroll-mt-24 bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <SectionHeading
         eyebrow="DITTO PICKS"
-        title="기본 코스 추천"
-        description="인기 많은 더현대 대표 쇼핑·팝업·미식 코스"
+        title={t("picksTitle")}
+        description={t("picksDescription")}
       />
       <div className="mb-6 flex flex-wrap gap-2">
         {categoryChips.map((chip, index) => (
@@ -21,7 +24,7 @@ export function DittoPicksSection() {
                 : "bg-brand-soft text-brand hover:bg-white"
             }`}
           >
-            {chip}
+            {index === 0 ? t("all") : chip}
           </button>
         ))}
       </div>

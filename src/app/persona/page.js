@@ -2,11 +2,12 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { PersonaForm } from "@/components/auth/persona-form";
 import { resolveLang } from "@/lib/fixtures/countries";
 import { getPersonaPageCopy } from "@/lib/fixtures/personas";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = {
-  title: "쇼핑 타입 선택",
-  description: "캐릭터를 고르면 딱 맞는 코스를 추천해드려요.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return { title: t("personaTitle"), description: t("personaDescription") };
+}
 
 export default async function PersonaPage({ searchParams }) {
   const params = await searchParams;

@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { HeaderNavLinks } from "./header-nav-links";
 import { HeaderAuthNav } from "./header-auth-nav";
@@ -23,10 +26,12 @@ function GlobeIcon() {
 }
 
 export function SiteHeader() {
+  const t = useTranslations("navigation");
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
       <div className="flex min-h-[94px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10 xl:px-14 2xl:px-20">
-        <Link href="/" className="block shrink-0" aria-label="DITTO 홈">
+        <Link href="/" className="block shrink-0" aria-label={t("dittoHome")}>
           <div className="flex flex-col">
             <Image
               src="/assets/common/ditto-logo.svg"
@@ -50,7 +55,7 @@ export function SiteHeader() {
           </div>
           <Link
             href="/country"
-            aria-label="국가·언어 선택"
+            aria-label={t("preferences")}
             className="hover:text-brand xl:hidden"
           >
             <GlobeIcon />

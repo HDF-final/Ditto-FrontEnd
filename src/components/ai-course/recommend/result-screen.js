@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   Zap,
@@ -47,6 +48,7 @@ function sameOrder(a, b) {
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
 export function ResultScreen({ chat, onPlaceClick }) {
+  const t = useTranslations("aiCourse");
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
   const [placeLogos, setPlaceLogos] = useState(null);
@@ -102,7 +104,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
         setPlaceCatalog(hydratedDataset.places);
         if (hydratedDataset.unmappedPlaceCount > 0 && (navigationPlaces?.length ?? 0) > 0) {
           setNotice(
-            `${hydratedDataset.unmappedPlaceCount}개 매장의 DB 연결 정보가 없어 저장에서 제외됩니다.`,
+            t("unmappedPlaces", { count: hydratedDataset.unmappedPlaceCount }),
           );
         }
         setDatasetStatus("ready");
@@ -110,13 +112,13 @@ export function ResultScreen({ chat, onPlaceClick }) {
       .catch((error) => {
         if (active) {
           setDatasetStatus("error");
-          setNotice(error.message || "장소 정보를 불러오지 못했습니다.");
+          setNotice(error.message || t("placeLoadFailed"));
         }
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [t]);
 
   // 브랜드 로고는 지도 핑(출발·도착)에만 쓰는 장식이라, 실패해도 지도/코스 로딩을
   // 막지 않도록 별도 effect로 느슨하게 붙입니다. 이름으로 매칭하는 조회 맵을 만듭니다.
@@ -232,7 +234,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   const handleAddPlace = (place) => {
     if (items.length >= MAX_COURSE_PLACES) {
-      setNotice("출발지와 도착지를 포함해 최대 8곳까지 담을 수 있어요.");
+      setNotice(t("maxPlaces"));
       return;
     }
     setNotice("");
@@ -275,22 +277,22 @@ export function ResultScreen({ chat, onPlaceClick }) {
       const lockedIndexes = items.flatMap((place, index) =>
         lockedPlaceIds.has(place.id) ? [index] : [],
       );
-      setNotice("고정한 방문 순서를 지키며 최단 이동 거리를 계산 중이에요.");
+      setNotice(t("optimizing"));
       const optimized = await optimizeCourseRoute(items, preferences, {
         lockedIndexes,
       });
       if (!optimized) {
-        setNotice("현재 이동수단 조건으로 모든 장소를 연결할 수 없어요.");
+        setNotice(t("routeUnavailable"));
         return;
       }
       if (!sameOrder(optimized.places, items)) commit(optimized.places);
       setNotice(
         lockedIndexes.length > 0
-          ? "출발·도착과 잠근 장소를 고정해 코스를 최적화했어요."
-          : "출발지와 도착지를 고정해 코스를 최적화했어요.",
+          ? t("optimizedLocked")
+          : t("optimized"),
       );
     } catch {
-      setNotice("코스 최적화 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.");
+      setNotice(t("optimizeFailed"));
     }
   };
 
@@ -298,20 +300,20 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   const handleSave = async () => {
     if (items.length === 0) {
-      setNotice("저장할 장소를 한 곳 이상 담아주세요.");
+      setNotice(t("addOneToSave"));
       return;
     }
     const placeIds = items.map((item) => item.placeId);
     if (placeIds.some((placeId) => placeId === null || placeId === undefined)) {
-      setNotice("DB 장소 정보가 연결되지 않은 매장이 있어 저장할 수 없어요.");
+      setNotice(t("unmappedSave"));
       return;
     }
 
-    const name = courseTitle.trim() || "이름 없는 코스";
+    const name = courseTitle.trim() || t("unnamedCourse");
     let reconciledPlaceIds = savedCourse?.placeIds.map(Number) ?? [];
     setSaveStatus("saving");
     setSaveSuccessOpen(false);
-    setNotice("코스를 저장하고 있어요.");
+    setNotice(t("savingCourse"));
     try {
       if (!savedCourse) {
         const created = await createCourse({ name, placeIds });
@@ -352,7 +354,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
           placeIds: desiredIds,
         });
       }
-      setNotice("코스와 방문 순서를 저장했어요.");
+      setNotice(t("savedCourse"));
       setSaveStatus("saved");
       setSaveSuccessOpen(true);
     } catch (error) {
@@ -362,7 +364,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
           placeIds: reconciledPlaceIds,
         });
       }
-      setNotice(error.message || "코스를 저장하지 못했습니다.");
+      setNotice(error.message || t("saveFailed"));
       setSaveStatus("error");
     }
   };
@@ -417,7 +419,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
         <input
           className="text-[22px] md:text-[26px] font-bold text-[#1a142e] bg-transparent outline-none placeholder-[#ccc8d8] border-b-2 border-transparent focus:border-[#5c2ef5] transition-colors pb-1"
           style={{ outline: "none" }}
-          placeholder="코스 제목을 입력하세요"
+          placeholder={t("courseTitlePlaceholder")}
           value={courseTitle}
           onChange={(e) => setCourseTitle(e.target.value)}
         />
@@ -427,44 +429,44 @@ export function ResultScreen({ chat, onPlaceClick }) {
           <button
             onClick={undo}
             disabled={history.length === 0}
-            title="코스를 옮기기 전 상태로 되돌립니다"
+            title={t("undoTitle")}
             className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
           >
-            <RotateCcw size={12} /> 이전으로
+            <RotateCcw size={12} /> {t("undo")}
           </button>
           <button
             onClick={() => setAddOpen(true)}
             className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors"
           >
-            <Plus size={12} /> 장소 추가
+            <Plus size={12} /> {t("addPlace")}
           </button>
           <button
             onClick={handleOptimize}
             disabled={items.length < 2 || routeState.status === "loading"}
             className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Zap size={12} className="text-yellow-500" /> 최적화
+            <Zap size={12} className="text-yellow-500" /> {t("optimize")}
           </button>
           <button
             onClick={handleSave}
             disabled={saveStatus === "saving" || datasetStatus !== "ready"}
             className="flex items-center gap-[5px] rounded-full px-[14px] py-[7px] text-[12px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Save size={12} /> {saveStatus === "saving" ? "저장 중" : "저장"}
+            <Save size={12} /> {saveStatus === "saving" ? t("savingShort") : t("saveShort")}
           </button>
         </div>
 
         {/* Drag hint */}
         <p className="text-[#9994ad] text-[12px] border border-dashed border-[#ccc8d8] rounded-[8px] px-[14px] py-[9px] bg-white/60">
-          카드를 드래그해 순서를 바꾸세요 · 출발·도착과 잠근 순서는 최적화해도 유지돼요
+          {t("dragHint")}
         </p>
 
         <div className="rounded-[12px] border border-[#e5e0f2] bg-[#faf9fe] px-3 py-3">
-          <p className="mb-2 text-[11px] font-bold text-[#6b6685]">이동수단 조건</p>
+          <p className="mb-2 text-[11px] font-bold text-[#6b6685]">{t("transportOptions")}</p>
           <div className="flex flex-wrap gap-2">
             {[
-              ["excludeElevator", "엘리베이터 제외"],
-              ["excludeEscalator", "에스컬레이터 제외"],
+              ["excludeElevator", t("excludeElevator")],
+              ["excludeEscalator", t("excludeEscalator")],
             ].map(([key, label]) => (
               <button
                 key={key}
@@ -489,7 +491,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
           </div>
           {preferences.excludeElevator && preferences.excludeEscalator ? (
             <p className="mt-2 text-[10px] leading-relaxed text-[#e05a47]">
-              두 수단을 모두 제외하면 다른 층으로 이동할 수 없어요.
+              {t("bothExcluded")}
             </p>
           ) : null}
         </div>
@@ -506,7 +508,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
                   onClick={chat.retry}
                   className="rounded-full border border-[#e0d9f8] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c2ef5] transition-colors hover:border-[#5c2ef5] cursor-pointer"
                 >
-                  다시 시도
+                  {t("retry")}
                 </button>
               </div>
             ) : null}
@@ -523,19 +525,19 @@ export function ResultScreen({ chat, onPlaceClick }) {
           <div className="grid grid-cols-3 gap-2 rounded-[12px] bg-[#f6f4fa] px-3 py-3 text-center">
             <div>
               <strong className="block text-[15px] text-[#1a142e]">{items.length}</strong>
-              <span className="text-[10px] text-[#6b6685]">방문 장소</span>
+              <span className="text-[10px] text-[#6b6685]">{t("placesVisited")}</span>
             </div>
             <div>
               <strong className="block text-[15px] text-[#1a142e]">
                 {routeState.itinerary?.floorIds.length ?? 0}
               </strong>
-              <span className="text-[10px] text-[#6b6685]">이용 층</span>
+              <span className="text-[10px] text-[#6b6685]">{t("floorsUsed")}</span>
             </div>
             <div>
               <strong className="block text-[15px] text-[#1a142e]">
                 {routeState.itinerary?.connectorSteps.length ?? 0}
               </strong>
-              <span className="text-[10px] text-[#6b6685]">층간 이동</span>
+              <span className="text-[10px] text-[#6b6685]">{t("floorChanges")}</span>
             </div>
           </div>
         ) : null}
@@ -544,19 +546,17 @@ export function ResultScreen({ chat, onPlaceClick }) {
         {items.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center">
             <p className="text-[14px] font-semibold text-[#1a142e]">
-              아직 담은 장소가 없어요
+              {t("emptyPlaces")}
             </p>
             <p className="text-[12px] text-[#9994ad] leading-[1.5]">
-              &lsquo;장소 추가&rsquo;를 눌러 백화점 안 상점을
-              <br />
-              카테고리·층별로 골라 담아보세요
+              {t("emptyPlacesDescription")}
             </p>
             <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => setAddOpen(true)}
                 className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer"
               >
-                <Plus size={13} /> 장소 추가
+                <Plus size={13} /> {t("addPlace")}
               </button>
             </div>
           </div>
@@ -603,10 +603,10 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 </div>
                 <span className="mt-1 whitespace-nowrap text-[9px] font-bold text-[#6b6685]">
                   {index === 0
-                    ? "출발"
+                    ? t("start")
                     : index === items.length - 1
-                      ? "도착"
-                      : "경유"}
+                      ? t("end")
+                      : t("via")}
                 </span>
               </div>
               <button
@@ -665,7 +665,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
               <div className="flex flex-col gap-[6px] shrink-0 mt-[14px]">
                 <button
                   onClick={() => toggleVisited(place.id)}
-                  title={visited.has(place.id) ? "다녀옴 해제" : "다녀왔어요 체크"}
+                  title={visited.has(place.id) ? t("visitedOff") : t("visitedOn")}
                   aria-pressed={visited.has(place.id)}
                   className="w-[26px] h-[26px] rounded-full border flex items-center justify-center transition-colors cursor-pointer"
                   style={
@@ -682,15 +682,15 @@ export function ResultScreen({ chat, onPlaceClick }) {
                   disabled={isEndpoint}
                   title={
                     isEndpoint
-                      ? `${index === 0 ? "출발지" : "도착지"}는 최적화 시 항상 고정됩니다`
+                      ? t("endpointFixed", { point: index === 0 ? t("startPoint") : t("endPoint") })
                       : isLocked
-                        ? "최적화 방문 순서 잠금 해제"
-                        : "최적화 방문 순서 고정"
+                        ? t("unlockOrder")
+                        : t("lockOrder")
                   }
                   aria-label={
                     isEndpoint
-                      ? `${place.name} 방문 순서 고정됨`
-                      : `${place.name} 방문 순서 ${isLocked ? "잠금 해제" : "고정"}`
+                      ? t("orderFixed", { name: place.name })
+                      : t("orderAction", { name: place.name, action: isLocked ? t("unlock") : t("lock") })
                   }
                   aria-pressed={isLocked}
                   className="w-[26px] h-[26px] rounded-full border flex items-center justify-center transition-colors cursor-pointer disabled:cursor-default"
@@ -704,8 +704,8 @@ export function ResultScreen({ chat, onPlaceClick }) {
                 </button>
                 <button
                   onClick={() => handleDelete(place.id)}
-                  title="코스에서 삭제"
-                  aria-label={`${place.name} 삭제`}
+                  title={t("deleteFromCourse")}
+                  aria-label={t("deletePlace", { name: place.name })}
                   className="w-[26px] h-[26px] rounded-full border border-[#ccc8d8] text-[#9994ad] flex items-center justify-center transition-colors cursor-pointer hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2]"
                 >
                   <Trash2 size={13} />
@@ -762,7 +762,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
     <CourseSaveSuccessModal
       open={saveSuccessOpen}
-      courseName={courseTitle.trim() || "이름 없는 코스"}
+      courseName={courseTitle.trim() || t("unnamedCourse")}
       onClose={() => setSaveSuccessOpen(false)}
     />
 

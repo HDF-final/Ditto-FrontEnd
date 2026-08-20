@@ -1,6 +1,10 @@
 import { ShareCourseForm } from "./share-course-form";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = { title: "내 코스 공유하기" };
+export async function generateMetadata() {
+  const t = await getTranslations("community");
+  return { title: t("shareTitle") };
+}
 
 const myCourses = [
   {

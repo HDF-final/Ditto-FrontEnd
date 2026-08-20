@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const storageKey = "ditto:shared-community-courses";
 
@@ -45,6 +46,7 @@ function CourseOption({ course, selected, onSelect }) {
 }
 
 function PhotoTile({ label, upload }) {
+  const t = useTranslations("community");
   if (upload) {
     return (
       <button
@@ -52,8 +54,8 @@ function PhotoTile({ label, upload }) {
         className="flex h-[166px] w-[176px] shrink-0 flex-col items-center justify-center rounded-[18px] border border-line bg-white text-center"
       >
         <span className="text-[34px] font-black leading-none text-brand">+</span>
-        <span className="mt-4 text-sm font-black text-ink">사진 첨부</span>
-        <span className="mt-3 text-xs font-medium text-ink-muted">최대 10장</span>
+        <span className="mt-4 text-sm font-black text-ink">{t("attachPhoto")}</span>
+        <span className="mt-3 text-xs font-medium text-ink-muted">{t("maxPhotos")}</span>
       </button>
     );
   }
@@ -66,6 +68,7 @@ function PhotoTile({ label, upload }) {
 }
 
 export function ShareCourseForm({ courses }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectedCourse = courses[selectedIndex];
@@ -103,11 +106,10 @@ export function ShareCourseForm({ courses }) {
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
             <h1 className="mt-6 text-[38px] font-black leading-none text-ink">
-              내 코스 공유하기
+              {t("shareTitle")}
             </h1>
             <p className="mt-5 text-sm font-medium text-ink-muted">
-              마이페이지의 내 코스 목록에서 공유할 코스를 선택하고, 직접 찍은
-              사진과 후기를 첨부하세요.
+              {t("shareDescription")}
             </p>
           </div>
           <button
@@ -115,7 +117,7 @@ export function ShareCourseForm({ courses }) {
             onClick={publishCourse}
             className="inline-flex w-fit items-center justify-center rounded-full bg-brand px-10 py-4 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
           >
-            게시하기
+            {t("publish")}
           </button>
         </div>
       </section>
@@ -124,14 +126,14 @@ export function ShareCourseForm({ courses }) {
         <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="rounded-[28px] bg-surface-soft p-7 lg:p-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-ink">내 코스</h2>
+              <h2 className="text-2xl font-black text-ink">{t("myCourses")}</h2>
               <span className="text-sm font-black text-brand">
                 {courses.length}개
               </span>
             </div>
             <div className="mt-8">
               <span className="rounded-full bg-brand px-4 py-2 text-xs font-black text-white">
-                내 코스
+                {t("myCourses")}
               </span>
             </div>
             <div
@@ -154,7 +156,7 @@ export function ShareCourseForm({ courses }) {
 
           <section className="rounded-[28px] border border-line bg-white p-7 lg:p-8">
             <h2 className="text-2xl font-black text-ink">
-              선택한 코스에 사진 첨부
+              {t("attachToSelected")}
             </h2>
             <p className="mt-6 text-base font-black text-brand">
               {selectedCourse.title}
@@ -169,7 +171,7 @@ export function ShareCourseForm({ courses }) {
               htmlFor="review-caption"
               className="mt-7 block text-base font-black text-ink"
             >
-              후기 캡션
+              {t("reviewCaption")}
             </label>
             <textarea
               id="review-caption"
@@ -183,7 +185,7 @@ export function ShareCourseForm({ courses }) {
                   className={`size-[100px] rounded-[18px] bg-linear-to-br ${selectedCourse.gradient}`}
                 />
                 <div>
-                  <p className="text-sm font-black text-brand">공유 미리보기</p>
+                  <p className="text-sm font-black text-brand">{t("sharePreview")}</p>
                   <h3 className="mt-3 text-xl font-black text-ink">
                     {selectedCourse.title}
                   </h3>
@@ -197,7 +199,7 @@ export function ShareCourseForm({ courses }) {
                 onClick={publishCourse}
                 className="inline-flex shrink-0 items-center justify-center rounded-full bg-brand px-9 py-4 text-sm font-black text-white transition hover:bg-brand-dark"
               >
-                게시하기
+                {t("publish")}
               </button>
             </div>
           </section>

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   X,
   MapPin,
@@ -14,7 +15,8 @@ import {
  * - 우측: 연예인 / 앰버서더 / K-컬처 비주얼 사진 및 캡션
  */
 function AiPlaceModalContent({ place, onClose }) {
-  const locationText = place.location || (place.floor ? `더현대서울 ${place.floor}` : "더현대서울");
+  const t = useTranslations("aiCourse");
+  const locationText = place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   // 브랜드별 컨텍스트 매핑 (프라다 카리나, 아디다스 손흥민/제니 등)
   const isPrada = place.name?.includes("프라다") || place.name?.toLowerCase().includes("prada");
@@ -24,12 +26,12 @@ function AiPlaceModalContent({ place, onClose }) {
   const aiReasonText =
     place.aiReason ||
     (isPrada
-      ? "에스파 카리나가 프라다 글로벌 앰버서더로 활약 중이며, 최근 착용한 인기 컬렉션과 아이템을 직접 만나볼 수 있는 대표 매장입니다."
+      ? t("pradaReason")
       : isAdidas
-      ? "블랙핑크 제니와 손흥민이 착용한 아디다스 오리지널스 및 스타디움 익스클루시브 라인업을 체험할 수 있는 공간입니다."
+      ? t("adidasReason")
       : isGentleMonster
-      ? "블랙핑크 제니와의 협업 컬렉션 및 감각적인 공간 디자인으로 K-패션 트렌드를 직접 경험할 수 있는 플래그십 스팟입니다."
-      : place.desc || "K-컬처 트렌드와 방문자의 취향을 분석하여 추천한 맞춤 매장입니다. 트렌디한 아이템과 시그니처 공간을 경험해보세요.");
+      ? t("gentleReason")
+      : place.desc || t("genericReason"));
 
   // 매장 / 브랜드 대표 사진 (추천 응답이 준 사진 > placeImg / image 순)
   const rightImage =
@@ -86,13 +88,13 @@ function AiPlaceModalContent({ place, onClose }) {
           <div className="flex items-center justify-between gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
               <span className="text-sm">✨</span>
-              BONI AI 추천 장소
+              {t("boniAiPlace")}
             </span>
             <button
               type="button"
               onClick={onClose}
               className="size-9 rounded-full flex items-center justify-center transition hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer md:hidden"
-              aria-label="닫기"
+              aria-label={t("close")}
             >
               <X size={17} />
             </button>
@@ -120,7 +122,7 @@ function AiPlaceModalContent({ place, onClose }) {
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
             <div className="flex items-center gap-2 text-[13px] font-black text-[#5c2ef5] mb-2.5">
               <span>💡</span>
-              <span>보니 추천 이유</span>
+              <span>{t("boniReason")}</span>
             </div>
             <p className="text-[14px] font-medium leading-[1.7] text-[#2d2745] break-keep">
               {aiReasonText}
@@ -130,7 +132,7 @@ function AiPlaceModalContent({ place, onClose }) {
           {/* 브랜드 사진 3장 */}
           <div className="mt-6">
             <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-              브랜드 사진
+              {t("brandPhotos")}
             </p>
             <div className="grid grid-cols-3 gap-3">
               {brandImages.slice(0, 3).map((imgUrl, idx) => (
@@ -140,7 +142,7 @@ function AiPlaceModalContent({ place, onClose }) {
                 >
                   <img
                     src={imgUrl}
-                    alt={`${place.name} 브랜드 사진 ${idx + 1}`}
+                    alt={t("brandPhotoAlt", { name: place.name, index: idx + 1 })}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
@@ -181,7 +183,7 @@ function AiPlaceModalContent({ place, onClose }) {
             type="button"
             onClick={onClose}
             className="size-10 rounded-full flex items-center justify-center bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 cursor-pointer shadow-lg"
-            aria-label="닫기"
+            aria-label={t("close")}
           >
             <X size={18} />
           </button>
@@ -202,8 +204,9 @@ function AiPlaceModalContent({ place, onClose }) {
  * 일반 매장 상세 모달 (2컬럼 레이아웃: AI 추천 모달과 동일한 와이드 뷰이지만 일반 매장 정보와 place 테이블 이미지 반영)
  */
 function StandardPlaceModalContent({ place, onClose }) {
+  const t = useTranslations("aiCourse");
   const locationText =
-    place.location || (place.floor ? `더현대서울 ${place.floor}` : "더현대서울");
+    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   // 매장 대표 사진 (DB place 테이블의 image_url / image / placeImg)
   const rightImage =
@@ -226,7 +229,7 @@ function StandardPlaceModalContent({ place, onClose }) {
   const storeDescription =
     place.longDesc ||
     place.desc ||
-    `${locationText} ${place.name} · 실내 길찾기 지원 매장입니다. 쾌적하고 편리한 쇼핑 경험을 제공합니다.`;
+    t("indoorStoreDescription", { location: locationText, name: place.name });
 
   return (
     <div
@@ -239,14 +242,14 @@ function StandardPlaceModalContent({ place, onClose }) {
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              {place.category || "매장"}
+              {place.category || t("store")}
               {place.floor ? ` · ${place.floor}` : ""}
             </span>
             <button
               type="button"
               onClick={onClose}
               className="size-9 rounded-full flex items-center justify-center transition hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer md:hidden"
-              aria-label="닫기"
+              aria-label={t("close")}
             >
               <X size={17} />
             </button>
@@ -274,7 +277,7 @@ function StandardPlaceModalContent({ place, onClose }) {
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
             <div className="flex items-center gap-2 text-[13px] font-black text-[#5c2ef5] mb-2.5">
               <span>💡</span>
-              <span>매장 안내</span>
+              <span>{t("storeGuide")}</span>
             </div>
             <p className="text-[14px] font-medium leading-[1.7] text-[#2d2745] break-keep">
               {storeDescription}
@@ -284,7 +287,7 @@ function StandardPlaceModalContent({ place, onClose }) {
           {/* 매장 사진 3장 */}
           <div className="mt-6">
             <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-              매장 사진
+              {t("storePhotos")}
             </p>
             <div className="grid grid-cols-3 gap-3">
               {storeImages.slice(0, 3).map((imgUrl, idx) => (
@@ -294,7 +297,7 @@ function StandardPlaceModalContent({ place, onClose }) {
                 >
                   <img
                     src={imgUrl}
-                    alt={`${place.name} 매장 사진 ${idx + 1}`}
+                    alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
@@ -335,7 +338,7 @@ function StandardPlaceModalContent({ place, onClose }) {
             type="button"
             onClick={onClose}
             className="size-10 rounded-full flex items-center justify-center bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 cursor-pointer shadow-lg"
-            aria-label="닫기"
+            aria-label={t("close")}
           >
             <X size={18} />
           </button>
@@ -349,9 +352,10 @@ function StandardPlaceModalContent({ place, onClose }) {
  * 원본 컴팩트 매장 모달 (장소 추가 목록에서 매장 클릭 시 사진 없이 깔끔하게 뜨는 모달)
  */
 function CompactPlaceModalContent({ place, onClose }) {
+  const t = useTranslations("aiCourse");
   const accent = place.accentColor ?? "#5c2ef5";
   const locationText =
-    place.location || (place.floor ? `더현대서울 ${place.floor}` : "더현대서울");
+    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   return (
     <div
@@ -367,13 +371,13 @@ function CompactPlaceModalContent({ place, onClose }) {
       >
         <div className="flex items-center justify-between mb-3">
           <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-white/20 text-white backdrop-blur-xs border border-white/20">
-            {place.category || "매장"} {place.floor ? `· ${place.floor}` : ""}
+            {place.category || t("store")} {place.floor ? `· ${place.floor}` : ""}
           </span>
           <button
             type="button"
             onClick={onClose}
             className="size-8 rounded-full flex items-center justify-center bg-black/20 text-white hover:bg-black/40 transition cursor-pointer"
-            aria-label="닫기"
+            aria-label={t("close")}
           >
             <X size={15} />
           </button>
@@ -391,25 +395,25 @@ function CompactPlaceModalContent({ place, onClose }) {
       <div className="p-6 flex flex-col gap-4 overflow-y-auto">
         <div className="rounded-[16px] bg-[#faf8ff] border border-[#e0d9f8] p-4">
           <p className="text-[10px] font-bold text-[#5c2ef5] tracking-wide mb-1.5 uppercase">
-            매장 소개
+            {t("storeIntro")}
           </p>
           <p className="text-[13px] text-[#2d2745] leading-relaxed">
-            {place.desc || `${locationText} ${place.name} · 실내 길찾기 지원 매장`}
+            {place.desc || t("compactStoreDescription", { location: locationText, name: place.name })}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[12px]">
           <div className="rounded-xl bg-[#f8f7fc] p-3">
             <span className="text-[10px] font-semibold text-[#9994ad] block mb-1">
-              운영 시간
+              {t("hours")}
             </span>
             <span className="text-[#1a142e] font-bold">10:30 - 20:00</span>
           </div>
           <div className="rounded-xl bg-[#f8f7fc] p-3">
             <span className="text-[10px] font-semibold text-[#9994ad] block mb-1">
-              위치 안내
+              {t("locationInfo")}
             </span>
-            <span className="text-[#1a142e] font-bold">{place.floor || "더현대서울"}</span>
+            <span className="text-[#1a142e] font-bold">{place.floor || t("departmentStore")}</span>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import {
   getRecommendedCourse,
@@ -16,7 +17,8 @@ export async function generateMetadata({ params }) {
   const course = getRecommendedCourse(slug);
 
   if (!course) {
-    return { title: "추천 코스" };
+    const t = await getTranslations("courses");
+    return { title: t("recommendedCourse") };
   }
 
   return { title: course.title };
@@ -61,10 +63,10 @@ function PillButton({ children, variant = "primary" }) {
   );
 }
 
-function StopSection({ course }) {
+function StopSection({ course, t }) {
   return (
     <section className="rounded-[28px] bg-surface-soft p-7">
-      <h2 className="text-2xl font-black text-ink">코스 장소</h2>
+      <h2 className="text-2xl font-black text-ink">{t("coursePlaces")}</h2>
       <div className="mt-5 flex flex-col gap-4">
         {course.stops.map((stop, index) => (
           <div
@@ -83,7 +85,7 @@ function StopSection({ course }) {
               </p>
             </div>
             <Link href="/courses" className="text-sm font-black text-brand">
-              보기
+              {t("view")}
             </Link>
           </div>
         ))}
@@ -92,18 +94,18 @@ function StopSection({ course }) {
   );
 }
 
-function RecommendationNote({ course }) {
+function RecommendationNote({ course, t }) {
   return (
     <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">BONI NOTE</p>
           <h2 className="mt-3 text-[32px] font-black text-ink">
-            보니가 추천하는 이유
+            {t("whyBoniRecommends")}
           </h2>
         </div>
         <Link href="/courses" className="text-sm font-black text-brand">
-          추천 기준 보기 →
+          {t("viewCriteria")}
         </Link>
       </div>
 
@@ -119,9 +121,9 @@ function RecommendationNote({ course }) {
                 className="size-12 rounded-full"
               />
               <div>
-                <h3 className="text-xl font-black text-ink">Boni 추천 코멘트</h3>
+                <h3 className="text-xl font-black text-ink">{t("boniComment")}</h3>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
-                  초행자 · 사진 포인트 · 실내 동선 기준
+                  {t("criteriaSummary")}
                 </p>
               </div>
             </div>
@@ -131,7 +133,7 @@ function RecommendationNote({ course }) {
           </div>
 
           <div className="rounded-[24px] bg-surface-soft p-7">
-            <h3 className="text-xl font-black text-ink">추천 기준</h3>
+            <h3 className="text-xl font-black text-ink">{t("criteria")}</h3>
             <div className="mt-6 flex flex-col gap-5">
               {course.criteria.map((criterion, index) => (
                 <div key={criterion.title} className="flex gap-4">
@@ -156,18 +158,18 @@ function RecommendationNote({ course }) {
   );
 }
 
-function ReviewCards() {
+function ReviewCards({ t }) {
   return (
     <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">REVIEWS</p>
           <h2 className="mt-3 text-[30px] font-black text-ink">
-            이 코스 다녀온 사람들
+            {t("visitors")}
           </h2>
         </div>
         <Link href="/community/share" className="text-sm font-black text-brand">
-          후기 쓰기 →
+          {t("writeReview")}
         </Link>
       </div>
       <div className="mt-7 grid gap-5 lg:grid-cols-3">
@@ -186,7 +188,7 @@ function ReviewCards() {
           href="/community"
           className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand"
         >
-          후기 128개 모두 보기 →
+          {t("viewAllReviews")}
         </Link>
       </div>
     </section>
@@ -194,6 +196,7 @@ function ReviewCards() {
 }
 
 export default async function RecommendedCourseDetailPage({ params }) {
+  const t = await getTranslations("courses");
   const { slug } = await params;
   const course = getRecommendedCourse(slug);
 
@@ -238,8 +241,8 @@ export default async function RecommendedCourseDetailPage({ params }) {
               {course.description}
             </p>
             <div className="mt-7 flex flex-wrap gap-4">
-              <PillButton>코스 저장</PillButton>
-              <PillButton variant="outline">공유하기</PillButton>
+              <PillButton>{t("saveCourse")}</PillButton>
+              <PillButton variant="outline">{t("share")}</PillButton>
             </div>
           </div>
         </div>
@@ -247,18 +250,18 @@ export default async function RecommendedCourseDetailPage({ params }) {
 
       <section className="bg-white px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1fr]">
-          <StopSection course={course} />
+          <StopSection course={course} t={t} />
           <GradientPanel
             gradient="from-[#2d1b8e] to-[#9b5cf6]"
             className="flex min-h-[300px] items-center justify-center rounded-[28px] text-base font-black text-white/75"
           >
-            코스 대표 사진
+            {t("coverPhoto")}
           </GradientPanel>
         </div>
       </section>
 
-      <RecommendationNote course={course} />
-      <ReviewCards />
+      <RecommendationNote course={course} t={t} />
+      <ReviewCards t={t} />
     </main>
   );
 }
