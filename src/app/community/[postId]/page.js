@@ -54,38 +54,40 @@ function AuthorNote({ course, t, locale }) {
           </Link>
         </div>
 
-        <article className="mt-8 rounded-[28px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-          <div className="grid gap-7 p-8 lg:grid-cols-[0.86fr_1fr]">
+        <article className="mt-8 rounded-[28px] bg-white p-8 shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
+          {/* 1. 상단 작성자 프로필 */}
+          <div className="flex items-center gap-4 border-b border-line/60 pb-6">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white shadow-xs ring-2 ring-brand/10">
+              {(course.name || travelerText).slice(0, 2).toUpperCase()}
+            </div>
             <div>
-              <div className="flex items-center gap-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-black text-ink">{course.name || travelerText}</p>
+                <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
                   {course.country || "KR"}
                 </span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-ink">{course.name || travelerText}</p>
-                    <span className="font-black text-ink">·</span>
-                    <span className="text-sm font-black text-ink">{course.country || "KR"}</span>
-                  </div>
-                  <p className="mt-1 text-xs font-medium text-ink-muted">
-                    {authoredOnText}
-                  </p>
-                </div>
               </div>
+              <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                {authoredOnText}
+              </p>
+            </div>
+          </div>
 
-              {/* 첨부된 사진 (다중 사진 캐러셀 지원) */}
-              <div className="relative mt-6 h-[190px] w-full overflow-hidden rounded-[18px] bg-slate-950 shadow-md">
-                <CommunityDetailHeroImage
-                  postId={course.postId}
-                  courseId={course.courseId}
-                  fallbackImage={course.image}
-                  alt="작성자 첨부 사진"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+          {/* 2. 하단 사진 및 본문 내용 (일렬로 나란히 정렬) */}
+          <div className="mt-6 grid gap-7 lg:grid-cols-[0.86fr_1fr] items-stretch">
+            {/* 좌측: 첨부된 사진 (세로로 길게 확장) */}
+            <div className="relative min-h-[320px] md:min-h-[380px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md">
+              <CommunityDetailHeroImage
+                postId={course.postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt="작성자 첨부 사진"
+                className="h-full w-full object-cover"
+              />
             </div>
 
-            <div className="rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink flex flex-col justify-center">
+            {/* 우측: 작성자 본문 내용 (좌측 사진과 상하 라인 일치) */}
+            <div className="rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink flex flex-col justify-start h-full min-h-[320px] md:min-h-[380px]">
               <p className="whitespace-pre-line leading-relaxed text-ink">
                 {course.note || course.description || "작성자가 남긴 후기가 없습니다."}
               </p>
@@ -150,31 +152,31 @@ export default async function CommunityCourseDetailPage({ params }) {
               />
             </div>
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
             <div className="relative z-10 p-6 pointer-events-none">
               <span className="rounded-full bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs border border-white/10">
                 {course.label || "THE HYUNDAI SEOUL"}
               </span>
             </div>
-
-            <div className="relative z-10 p-6 flex flex-col gap-1 pointer-events-none">
-              <h1 className="text-2xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                {course.title}
-              </h1>
-            </div>
           </div>
 
           <div>
-            <div className="flex items-center gap-3">
-              <span className="flex size-7 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
-                1
-              </span>
-              <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-xs font-black text-brand">
-                {course.country || "KR"}
-              </span>
-              <div>
-                <p className="text-sm font-black text-ink">{course.name || travelerText}</p>
+            <div className="flex items-center gap-3.5">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white shadow-xs ring-2 ring-brand/10">
+                {(course.name || travelerText).slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-black text-ink">
+                    {course.name || travelerText}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+                    {course.country || "KR"}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                  DITTO {travelerText} · {course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02"}
+                </p>
               </div>
             </div>
             <h2 className="mt-6 text-[38px] font-black leading-tight text-ink">

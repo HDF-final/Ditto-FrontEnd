@@ -83,33 +83,44 @@ export function CommunityStopList({ stops = [], courseId }) {
             총 {list.length}개 스팟
           </span>
         </div>
-        <div className="mt-4 flex flex-col gap-3">
-          {list.map((stop, index) => (
-            <div
-              key={`stop-${stop.placeId || stop.name || index}-${index}`}
-              className="flex items-center gap-4 rounded-[16px] bg-white px-4 py-3 shadow-xs"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
-                {index + 1}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-ink">
-                  {stop.floor ? `${stop.floor} ` : ""}{stop.name || `스팟 #${index + 1}`}
-                </p>
-                {stop.description ? (
-                  <p className="mt-1 text-xs font-medium text-ink-muted line-clamp-1">
-                    {stop.description}
-                  </p>
-                ) : null}
-              </div>
-              <Link
-                href={courseId ? `/ai-course?courseId=${courseId}` : "/ai-course"}
-                className="text-sm font-black text-brand transition hover:text-brand-dark"
+        <div className="mt-4 flex flex-col gap-3.5 relative">
+          {list.map((stop, index) => {
+            const isLast = index === list.length - 1;
+            return (
+              <div
+                key={`stop-${stop.placeId || stop.name || index}-${index}`}
+                className="relative flex items-center gap-4 rounded-[18px] bg-white px-4 py-3.5 shadow-xs border border-line/40 transition hover:shadow-md"
               >
-                {t.has("view") ? t("view") : "보기"}
-              </Link>
-            </div>
-          ))}
+                {/* 다음 스팟 번호로 이어지는 수직 점선 (다음 번호 배지 내부까지 완전 연결) */}
+                {!isLast && (
+                  <div
+                    className="absolute left-[29.5px] top-7 -bottom-[36px] w-0 border-l-2 border-dashed border-brand/50 z-10 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                )}
+
+                <span className="relative z-20 flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white shadow-xs">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-black text-ink">
+                    {stop.floor ? `${stop.floor} ` : ""}{stop.name || `스팟 #${index + 1}`}
+                  </p>
+                  {stop.description ? (
+                    <p className="mt-1 text-xs font-medium text-ink-muted line-clamp-1">
+                      {stop.description}
+                    </p>
+                  ) : null}
+                </div>
+                <Link
+                  href={courseId ? `/ai-course?courseId=${courseId}` : "/ai-course"}
+                  className="text-sm font-black text-brand transition hover:text-brand-dark"
+                >
+                  {t.has("view") ? t("view") : "보기"}
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
