@@ -4,7 +4,12 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Check } from "./recommend-icons";
 
-export function CourseSaveSuccessModal({ open, courseName, onClose }) {
+export function CourseSaveSuccessModal({
+  open,
+  courseName,
+  isUpdate = false,
+  onClose,
+}) {
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
@@ -20,6 +25,11 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const title = isUpdate ? "코스 수정 완료!" : "코스 저장 완료!";
+  const description = isUpdate
+    ? "의 변경사항을 마이페이지에 저장했어요."
+    : "을(를) 마이페이지에 저장했어요.";
 
   return (
     <div
@@ -43,7 +53,7 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
           id="course-save-title"
           className="mt-5 text-[22px] font-black text-[#1a142e]"
         >
-          코스 저장 완료!
+          {title}
         </h2>
         <p
           id="course-save-description"
@@ -52,7 +62,7 @@ export function CourseSaveSuccessModal({ open, courseName, onClose }) {
           <strong className="font-bold text-[#1a142e]">
             {courseName || "이름 없는 코스"}
           </strong>
-          을(를) 마이페이지에 저장했어요.
+          {description}
         </p>
         <div className="mt-7 grid grid-cols-2 gap-2.5">
           <button

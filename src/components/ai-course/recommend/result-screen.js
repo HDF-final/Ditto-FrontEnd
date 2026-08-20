@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Zap,
@@ -28,6 +29,7 @@ import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import {
   addCoursePlace,
   createCourse,
+  deleteCourse,
   deleteCoursePlace,
   updateCourse,
 } from "@/lib/api/courses";
@@ -45,7 +47,8 @@ function sameOrder(a, b) {
  * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
-export function ResultScreen({ chat, onPlaceClick }) {
+export function ResultScreen({ chat, onPlaceClick, initialCourse }) {
+  const router = useRouter();
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
   const [datasetStatus, setDatasetStatus] = useState("loading");
@@ -68,9 +71,13 @@ export function ResultScreen({ chat, onPlaceClick }) {
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
   const [lockedPlaceIds, setLockedPlaceIds] = useState(() => new Set());
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
+  const [appliedInitialCourse, setAppliedInitialCourse] = useState(null);
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
+  const [isUpdateSuccess, setIsUpdateSuccess] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
@@ -115,6 +122,65 @@ export function ResultScreen({ chat, onPlaceClick }) {
       active = false;
     };
   }, []);
+
+  // initialCourse (예: 마이페이지 내 코스에서 선택하여 진입) 반영
+  if (initialCourse && initialCourse !== appliedInitialCourse && datasetStatus === "ready") {
+    const rawPlaces = Array.isArray(initialCourse.places)
+      ? [...initialCourse.places].sort(
+          (a, b) =>
+            Number(a.visitOrder ?? a.position ?? 0) -
+            Number(b.visitOrder ?? b.position ?? 0),
+        )
+      : [];
+
+    const hydratedPlaces = rawPlaces.map((place, idx) => {
+      const catalogPlace = placeCatalog.find(
+        (candidate) =>
+          Number(candidate.placeId) === Number(place.placeId) ||
+          (place.name &&
+            candidate.name?.trim().toLowerCase() ===
+              place.name?.trim().toLowerCase()) ||
+          (place.navigationKey &&
+            candidate.navigationKey === place.navigationKey),
+      );
+
+      return catalogPlace
+        ? {
+            ...catalogPlace,
+            ...place,
+            id: catalogPlace.id || place.placeId || `place-${idx}`,
+            placeId: catalogPlace.placeId || place.placeId,
+            floor: catalogPlace.floor || place.floor || place.floorCode || "1F",
+            image: place.image || catalogPlace.image,
+          }
+        : {
+            id: place.placeId || `place-${idx}`,
+            placeId: place.placeId,
+            name: place.name || "장소",
+            floor: place.floor || place.floorCode || "1F",
+            category: place.category || "쇼핑/패션",
+            ...place,
+          };
+    });
+
+    setAppliedInitialCourse(initialCourse);
+    setItems(hydratedPlaces);
+    setCourseTitle(initialCourse.name || initialCourse.title || "");
+    const initialPlaceIds = hydratedPlaces
+      .map((p) => p.placeId)
+      .filter((id) => id !== null && id !== undefined)
+      .map(Number);
+    setSavedCourse({
+      courseId: initialCourse.courseId,
+      placeIds: initialPlaceIds,
+      places: hydratedPlaces,
+    });
+    setSaveStatus("idle");
+    setSaveSuccessOpen(false);
+    setHistory([]);
+    setVisited(new Set());
+    setLockedPlaceIds(new Set());
+  }
 
   // Boni가 새 코스를 내려줄 때마다 목록을 통째로 교체합니다. 되돌리기 스택과
   // 방문 체크는 이전 코스 기준이라 함께 비웁니다.
@@ -287,41 +353,61 @@ export function ResultScreen({ chat, onPlaceClick }) {
     }
 
     const name = courseTitle.trim() || "이름 없는 코스";
-    let reconciledPlaceIds = savedCourse?.placeIds.map(Number) ?? [];
+    const existingPlaceIds =
+      savedCourse?.placeIds ||
+      (Array.isArray(savedCourse?.places)
+        ? savedCourse.places.map((p) => p.placeId)
+        : []);
+    let reconciledPlaceIds = (existingPlaceIds || []).filter((id) => id !== null && id !== undefined).map(Number);
+
     setSaveStatus("saving");
     setSaveSuccessOpen(false);
     setNotice("코스를 저장하고 있어요.");
     try {
-      if (!savedCourse) {
+      const isExistingCourse = Boolean(savedCourse?.courseId);
+      if (!isExistingCourse) {
         const created = await createCourse({ name, placeIds });
         setSavedCourse({
           courseId: created.courseId,
-          placeIds: created.places.map((place) => place.placeId),
+          placeIds: created.places?.map((place) => place.placeId) || placeIds,
+          places: created.places || items,
         });
-        setCourseTitle(created.name);
+        setCourseTitle(created.name || name);
+        setIsUpdateSuccess(false);
       } else {
         const desiredIds = placeIds.map(Number);
         const desiredSet = new Set(desiredIds);
 
+        // 1. Delete removed places
         for (const placeId of reconciledPlaceIds.filter(
           (id) => !desiredSet.has(id),
         )) {
-          await deleteCoursePlace(savedCourse.courseId, placeId);
+          try {
+            await deleteCoursePlace(savedCourse.courseId, placeId);
+          } catch (err) {
+            console.warn("[handleSave] deleteCoursePlace failed:", err);
+          }
           reconciledPlaceIds = reconciledPlaceIds.filter(
             (id) => id !== placeId,
           );
         }
 
+        // 2. Add newly added places
         for (const placeId of desiredIds.filter(
           (id) => !reconciledPlaceIds.includes(id),
         )) {
-          await addCoursePlace(savedCourse.courseId, {
-            placeId,
-            position: reconciledPlaceIds.length + 1,
-          });
-          reconciledPlaceIds.push(placeId);
+          try {
+            await addCoursePlace(savedCourse.courseId, {
+              placeId,
+              position: reconciledPlaceIds.length + 1,
+            });
+            reconciledPlaceIds.push(placeId);
+          } catch (err) {
+            console.warn("[handleSave] addCoursePlace failed:", err);
+          }
         }
 
+        // 3. Update course title & reorder places
         await updateCourse(savedCourse.courseId, {
           name,
           orderedPlaceIds: desiredIds,
@@ -329,9 +415,11 @@ export function ResultScreen({ chat, onPlaceClick }) {
         setSavedCourse({
           courseId: savedCourse.courseId,
           placeIds: desiredIds,
+          places: items,
         });
+        setIsUpdateSuccess(true);
       }
-      setNotice("코스와 방문 순서를 저장했어요.");
+      setNotice(isExistingCourse ? "코스와 방문 순서를 수정했어요." : "코스와 방문 순서를 저장했어요.");
       setSaveStatus("saved");
       setSaveSuccessOpen(true);
     } catch (error) {
@@ -339,10 +427,26 @@ export function ResultScreen({ chat, onPlaceClick }) {
         setSavedCourse({
           courseId: savedCourse.courseId,
           placeIds: reconciledPlaceIds,
+          places: items,
         });
       }
       setNotice(error.message || "코스를 저장하지 못했습니다.");
       setSaveStatus("error");
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!savedCourse?.courseId) return;
+    setIsDeleting(true);
+    try {
+      await deleteCourse(savedCourse.courseId);
+      setNotice("코스가 삭제되었습니다.");
+      setDeleteConfirmOpen(false);
+      router.push("/mypage");
+    } catch (error) {
+      setNotice(error.message || "코스를 삭제하지 못했습니다.");
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
     }
   };
 
@@ -424,9 +528,19 @@ export function ResultScreen({ chat, onPlaceClick }) {
           >
             <Zap size={12} className="text-yellow-500" /> 최적화
           </button>
+          {savedCourse?.courseId ? (
+            <button
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={isDeleting || saveStatus === "saving"}
+              title="이 코스를 삭제합니다"
+              className="flex items-center gap-[5px] border border-[#fca5a5] rounded-full px-[14px] py-[7px] text-[12px] text-[#dc2626] bg-white hover:bg-[#fef2f2] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Trash2 size={12} /> {isDeleting ? "삭제 중" : "삭제"}
+            </button>
+          ) : null}
           <button
             onClick={handleSave}
-            disabled={saveStatus === "saving" || datasetStatus !== "ready"}
+            disabled={saveStatus === "saving" || isDeleting || datasetStatus !== "ready"}
             className="flex items-center gap-[5px] rounded-full px-[14px] py-[7px] text-[12px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={12} /> {saveStatus === "saving" ? "저장 중" : "저장"}
@@ -741,8 +855,58 @@ export function ResultScreen({ chat, onPlaceClick }) {
     <CourseSaveSuccessModal
       open={saveSuccessOpen}
       courseName={courseTitle.trim() || "이름 없는 코스"}
+      isUpdate={isUpdateSuccess}
       onClose={() => setSaveSuccessOpen(false)}
     />
+
+    {deleteConfirmOpen && (
+      <div
+        className="fixed inset-0 z-[80] flex items-center justify-center bg-[#1a142e]/45 px-5 backdrop-blur-[2px]"
+        role="presentation"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget && !isDeleting) setDeleteConfirmOpen(false);
+        }}
+      >
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="course-delete-title"
+          className="w-full max-w-[360px] rounded-[28px] bg-white px-7 py-8 text-center shadow-[0_24px_80px_rgba(26,20,46,0.25)]"
+        >
+          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#fee2e2] text-[#dc2626]">
+            <Trash2 size={26} />
+          </div>
+          <h2
+            id="course-delete-title"
+            className="mt-5 text-[20px] font-black text-[#1a142e]"
+          >
+            코스 삭제
+          </h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#6b6685]">
+            <strong className="font-bold text-[#1a142e]">{courseTitle || "이 코스"}</strong>를 정말 삭제할까요?<br />
+            삭제한 코스는 복구할 수 없습니다.
+          </p>
+          <div className="mt-7 grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setDeleteConfirmOpen(false)}
+              className="rounded-full border border-[#d8d3e8] bg-white px-4 py-3 text-[12px] font-bold text-[#6b6685] transition-colors hover:border-[#5c2ef5] hover:text-[#5c2ef5] disabled:opacity-50"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleDeleteCourse}
+              className="rounded-full bg-[#dc2626] px-4 py-3 text-[12px] font-bold text-white transition-colors hover:bg-[#b91c1c] disabled:opacity-50"
+            >
+              {isDeleting ? "삭제 중..." : "삭제하기"}
+            </button>
+          </div>
+        </section>
+      </div>
+    )}
 
     {chatPending ? (
       <CourseLoadingOverlay
