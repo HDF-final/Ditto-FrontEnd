@@ -1498,6 +1498,7 @@ export function IndoorMap({
   routeGraph,
   placeLogos = null,
   overlayOccluderRef = null,
+  showFloorSelector = false,
 }) {
   // Default to the "route floors" view: with no course it equals the full stack
   // (routeFloorIds falls back to every floor), and once a course exists it shows
@@ -1634,7 +1635,9 @@ export function IndoorMap({
           </Canvas>
         </div>
 
-        <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+        {showFloorSelector ? (
+          <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+        ) : null}
 
         <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
           <button
