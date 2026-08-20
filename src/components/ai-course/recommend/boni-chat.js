@@ -64,9 +64,8 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
 
   return (
     <div
-      className="panel-chat flex flex-col rounded-[24px] overflow-hidden w-full"
+      className="panel-chat flex w-full max-w-[640px] flex-col overflow-hidden rounded-[24px]"
       style={{
-        maxWidth: "640px",
         boxShadow: "0 8px 40px rgba(92,46,245,0.18)",
         background: "white",
         transition: "height 0.32s cubic-bezier(.4,0,.2,1)",

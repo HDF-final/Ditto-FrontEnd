@@ -13,7 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Product context
 
 - DITTO helps visitors from China, Japan, and the United States discover country-specific K-culture trends, create an AI-assisted course, customize it, use it with a mobile indoor map, and share it with the traveler community.
-- The current milestone is the web and responsive-mobile front-end foundation. Do not invent backend behavior or API contracts that have not been provided.
+- The current milestone is the mobile PWA front-end. Keep the 430px app shell, bottom tab bar, and install/offline surface. Do not invent backend behavior or API contracts that have not been provided.
 - Keep README.md accurate when setup, commands, routes, environment variables, or architecture change.
 
 ## Required stack

@@ -1,7 +1,13 @@
+export const appPadClassName = "px-5 lg:px-52 xl:px-60 2xl:px-72";
+export const appSectionClassName = "px-5 py-8 lg:px-52 lg:py-16 xl:px-60 2xl:px-72";
+
 export function PageShell({ children, className = "" }) {
   return (
     <main
-      className={["mx-auto w-full max-w-7xl px-10 py-14 sm:px-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-16", className]
+      className={[
+        "w-full px-5 py-8 lg:mx-auto lg:max-w-7xl lg:px-52 lg:py-16 xl:px-60 2xl:px-72",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
@@ -18,7 +24,7 @@ export function PageSection({
 }) {
   const baseClassName = bleed
     ? "border-y border-line bg-surface"
-    : "mx-auto w-full max-w-7xl px-10 py-[72px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72";
+    : "w-full px-5 py-8 lg:mx-auto lg:max-w-7xl lg:px-52 lg:py-[72px] xl:px-60 2xl:px-72";
 
   return (
     <section className={[baseClassName, className].filter(Boolean).join(" ")} {...props}>
@@ -30,7 +36,10 @@ export function PageSection({
 export function SectionInner({ children, className = "" }) {
   return (
     <div
-      className={["mx-auto w-full max-w-7xl px-10 py-[72px] sm:px-14 lg:px-52 xl:px-60 2xl:px-72", className]
+      className={[
+        "w-full px-5 py-8 lg:mx-auto lg:max-w-7xl lg:px-52 lg:py-[72px] xl:px-60 2xl:px-72",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
@@ -52,8 +61,10 @@ export function SectionHeader({
   return (
     <div
       className={[
-        "flex flex-col gap-4",
-        centered ? "items-center text-center" : "sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-3 lg:gap-4",
+        centered
+          ? "items-center text-center"
+          : "lg:flex-row lg:items-end lg:justify-between",
         className,
       ]
         .filter(Boolean)
@@ -61,15 +72,15 @@ export function SectionHeader({
     >
       <div>
         {eyebrow ? (
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-brand lg:text-xs lg:tracking-[0.2em]">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="mt-3 text-3xl font-black tracking-tight text-ink">
+        <h2 className="mt-1.5 text-[22px] font-black tracking-tight text-ink lg:mt-3 lg:text-3xl">
           {title}
         </h2>
         {description ? (
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted sm:text-base">
+          <p className="mt-2 text-sm leading-6 text-ink-muted lg:mt-3 lg:max-w-2xl lg:text-base">
             {description}
           </p>
         ) : null}
@@ -81,14 +92,14 @@ export function SectionHeader({
 
 export function ContentGrid({ children, className = "", columns = "four" }) {
   const columnClassName = {
-    two: "md:grid-cols-2",
-    three: "md:grid-cols-2 lg:grid-cols-3",
-    four: "md:grid-cols-2 lg:grid-cols-4",
+    two: "lg:grid-cols-2",
+    three: "lg:grid-cols-3",
+    four: "lg:grid-cols-4",
   }[columns];
 
   return (
     <div
-      className={["mt-8 grid gap-4", columnClassName, className]
+      className={["mt-5 grid gap-3 lg:mt-8 lg:gap-4", columnClassName, className]
         .filter(Boolean)
         .join(" ")}
     >

@@ -10,7 +10,7 @@ export function NewsletterPreviewSection({ items = [] }) {
   return (
     <section
       id="newsletter"
-      className="scroll-mt-[94px] bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72"
+      className="scroll-mt-16 bg-surface-soft px-5 py-8 lg:scroll-mt-[94px] lg:px-52 lg:py-16 xl:px-60 2xl:px-72"
     >
       <SectionHeading
         eyebrow="DITTO NEWSLETTER"
@@ -19,7 +19,7 @@ export function NewsletterPreviewSection({ items = [] }) {
         href="/news"
         linkLabel="뉴스 전체보기"
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         {displayItems.map((news) => {
           const category = news.label || news.category || (news.keywords?.[0] ? `${news.keywords[0]}` : null);
           const slug = news.slug || "";
@@ -29,16 +29,16 @@ export function NewsletterPreviewSection({ items = [] }) {
             <Link
               key={news.slug || news.title}
               href={href}
-              className="group flex flex-col overflow-hidden rounded-[24px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
+              className="group flex overflow-hidden rounded-[20px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:flex-col lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
             >
-              <div className="relative h-[210px] w-full overflow-hidden bg-surface-muted">
+              <div className="relative h-[92px] w-[92px] shrink-0 overflow-hidden bg-surface-muted lg:h-[210px] lg:w-full">
                 {news.representativeImageUrl ? (
                   <Image
                     src={news.representativeImageUrl}
                     alt={news.title}
                     fill
                     unoptimized
-                    className="object-cover transition duration-300 group-hover:scale-105"
+                    className="object-cover lg:transition lg:duration-300 lg:group-hover:scale-105"
                   />
                 ) : (
                   <div
@@ -46,25 +46,30 @@ export function NewsletterPreviewSection({ items = [] }) {
                   />
                 )}
                 {category ? (
-                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3.5 py-1 text-xs font-black text-brand shadow-sm">
+                  <span className="absolute left-4 top-4 hidden rounded-full bg-white/95 px-3.5 py-1 text-xs font-black text-brand shadow-sm lg:inline-flex">
                     {category}
                   </span>
                 ) : null}
               </div>
-              <div className="flex flex-1 flex-col justify-between p-6">
-                <div>
-                  <h3 className="line-clamp-2 text-lg font-black leading-snug text-ink group-hover:text-brand transition-colors">
-                    {news.title}
-                  </h3>
-                  {news.summary ? (
-                    <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-ink-muted">
-                      {news.summary}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="mt-5 flex items-center justify-between border-t border-line/60 pt-4 text-xs font-semibold text-ink-muted">
-                  <span>{news.date}</span>
-                </div>
+              <div className="flex min-w-0 flex-1 flex-col justify-center p-3.5 lg:justify-between lg:p-6">
+                {category ? (
+                  <span className="mb-1 text-[10px] font-black text-brand lg:hidden">
+                    {category}
+                  </span>
+                ) : null}
+                <h3 className="line-clamp-2 text-sm font-black leading-snug text-ink lg:text-lg lg:transition-colors lg:group-hover:text-brand">
+                  {news.title}
+                </h3>
+                {news.summary ? (
+                  <p className="mt-2.5 hidden line-clamp-2 text-sm leading-relaxed text-ink-muted lg:block">
+                    {news.summary}
+                  </p>
+                ) : null}
+                {news.date ? (
+                  <p className="mt-1 text-[11px] font-semibold text-ink-muted lg:mt-5 lg:border-t lg:border-line/60 lg:pt-4 lg:text-xs">
+                    {news.date}
+                  </p>
+                ) : null}
               </div>
             </Link>
           );

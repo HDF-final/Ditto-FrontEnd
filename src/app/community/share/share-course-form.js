@@ -98,11 +98,11 @@ export function ShareCourseForm({ courses }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-10 sm:px-14 pb-12 pt-[94px] lg:px-52 xl:px-60 2xl:px-72">
+      <section className="bg-white px-5 pb-6 pt-6 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
-            <h1 className="mt-6 text-[38px] font-black leading-none text-ink">
+            <h1 className="mt-2 text-[22px] font-black leading-tight text-ink lg:mt-6 lg:text-[34px]">
               내 코스 공유하기
             </h1>
             <p className="mt-5 text-sm font-medium text-ink-muted">
@@ -120,8 +120,8 @@ export function ShareCourseForm({ courses }) {
         </div>
       </section>
 
-      <section className="bg-white px-10 sm:px-14 pb-[120px] lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="bg-white px-5 pb-8 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+        <div className="grid gap-5">
           <section className="rounded-[28px] bg-surface-soft p-7 lg:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-ink">내 코스</h2>

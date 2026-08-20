@@ -8,7 +8,7 @@ function HeartIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-[27px]"
+      className="size-5 lg:size-[27px]"
       viewBox="0 0 27 27"
       fill="none"
       stroke="currentColor"
@@ -38,22 +38,22 @@ export function HeaderAuthNav() {
 
   if (isAuthenticated && user) {
     return (
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2.5 lg:gap-6">
         <Link
           href="/community/bookmarks"
-          aria-label="내가 좋아요한 커뮤니티 코스"
+          aria-label="저장한 커뮤니티 코스"
           className="text-ink transition hover:text-brand"
         >
           <HeartIcon />
         </Link>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-ink">
+          <span className="hidden text-sm font-bold text-ink xl:inline">
             {user.nickname || user.name || "회원"}님
           </span>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer"
+            className="cursor-pointer rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-bold text-ink-muted transition hover:border-brand hover:text-brand lg:px-4 lg:py-2 lg:text-xs"
           >
             로그아웃
           </button>
@@ -65,7 +65,7 @@ export function HeaderAuthNav() {
   return (
     <Link
       href="/login"
-      className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
+      className="rounded-full bg-brand px-3.5 py-1.5 text-xs font-black leading-none text-white transition hover:bg-brand-dark lg:px-5 lg:py-3 lg:text-base"
     >
       로그인
     </Link>

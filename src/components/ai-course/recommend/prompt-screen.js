@@ -49,7 +49,7 @@ function ModeToggle({ mode, onModeChange }) {
             role="tab"
             aria-selected={active}
             onClick={() => onModeChange(option.value)}
-            className="relative z-10 flex w-[80px] md:w-[90px] flex-col items-center rounded-full py-[6px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
+            className="relative z-10 flex w-[80px] flex-col items-center rounded-full py-[6px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5] md:w-[90px]"
           >
             <span
               className="text-[13px] md:text-[14px] font-bold leading-none"
@@ -83,8 +83,7 @@ export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
 
   return (
     <main
-      className="flex-1 flex flex-col items-center justify-center bg-white px-4 py-8"
-      style={{ minHeight: "calc(100vh - 94px)" }}
+      className="flex flex-1 flex-col items-center justify-center bg-white px-4 py-8 min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] lg:min-h-[calc(100dvh-94px)]"
     >
       {/* Boni */}
       <div className="relative mb-6 md:mb-8">
@@ -92,21 +91,21 @@ export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
           <img
             src={boniSrc}
             alt="Boni"
-            className="w-[100px] h-[100px] md:w-[150px] md:h-[150px] object-contain"
+            className="h-[100px] w-[100px] object-contain md:h-[150px] md:w-[150px]"
             style={{ filter: "drop-shadow(0 12px 32px rgba(92,46,245,0.2))" }}
           />
         ) : (
           <div
-            className="w-[100px] h-[100px] md:w-[150px] md:h-[150px]"
+            className="h-[100px] w-[100px] md:h-[150px] md:w-[150px]"
             aria-hidden="true"
           />
         )}
       </div>
 
-      <h1 className="text-[24px] md:text-[36px] font-bold text-[#1a142e] mb-2 md:mb-3 text-center">
+      <h1 className="mb-2 text-center text-[24px] font-bold text-[#1a142e] md:mb-3 md:text-[36px]">
         오늘은 무엇을 해볼까요?
       </h1>
-      <p className="text-[14px] md:text-[16px] text-[#9994ad] mb-6 md:mb-8 text-center">
+      <p className="mb-6 text-center text-[14px] text-[#9994ad] md:mb-8 md:text-[16px]">
         {isManual
           ? "빈 코스에서 시작해 원하는 장소를 직접 담아보세요"
           : "Boni가 최적의 K-Culture 코스를 만들어 드릴게요"}
@@ -117,7 +116,7 @@ export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
       {/* Fixed-height region: auto and manual content differ in height, so we
           reserve the taller (auto) height to keep the toggle from shifting.
           Content is top-aligned so it hugs the toggle instead of floating. */}
-      <div className="w-full max-w-[720px] flex flex-col items-center justify-start min-h-[165px] md:min-h-[122px]">
+      <div className="flex w-full max-w-[720px] flex-col items-center justify-start min-h-[165px] md:min-h-[122px]">
       {isManual ? (
         /* 수동: skip the prompt bar and jump straight into an empty course. */
         <div className="w-full flex flex-col items-center">

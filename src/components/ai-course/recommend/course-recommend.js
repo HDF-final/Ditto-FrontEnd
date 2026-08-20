@@ -19,8 +19,8 @@ import { useCourseChat } from "./use-course-chat";
  * 추천 응답은 결과 화면 위 버퍼링 오버레이로 기다립니다. 결과 화면 안의 Boni
  * 대화도 같은 세션·같은 엔드포인트를 쓰므로 대화 상태는 여기서 한 번만 만듭니다.
  *
- * The site header/footer come from the global AppFrame, so this only renders
- * the flow between them.
+ * The site header comes from the global AppFrame. Desktop hides the footer on
+ * this route so the editor can fill the remaining viewport.
  */
 export function CourseRecommend() {
   const [phase, setPhase] = useState("prompt");
@@ -29,7 +29,7 @@ export function CourseRecommend() {
   const chat = useCourseChat();
 
   return (
-    <div className="flex flex-col bg-white">
+    <div className="flex min-h-0 flex-1 flex-col bg-white lg:min-h-[calc(100dvh-72px)]">
       {phase === "prompt" ? (
         <PromptScreen
           mode={mode}

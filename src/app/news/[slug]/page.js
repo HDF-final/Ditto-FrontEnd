@@ -139,7 +139,7 @@ export default async function NewsDetailPage({ params }) {
 
   return (
     <main className="bg-surface-soft">
-      <section className="bg-white px-10 sm:px-14 pb-10 pt-8 lg:px-52 xl:px-60 2xl:px-72 lg:pb-14">
+      <section className="bg-white px-5 pb-6 pt-6">
         <div
           className={`relative mx-auto max-w-7xl min-h-[400px] overflow-hidden rounded-[32px] px-8 py-12 text-white shadow-[0_18px_50px_rgba(43,28,89,0.16)] sm:px-12 lg:px-16 lg:py-16 ${
             news.representativeImageUrl ? "" : `bg-linear-to-br ${news.gradient}`
@@ -188,8 +188,8 @@ export default async function NewsDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-10 sm:px-14 py-14 lg:px-52 xl:px-60 2xl:px-72 lg:py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="px-5 py-6">
+        <div className="grid gap-6">
           <article className="flex flex-col gap-10 text-[17px] font-medium leading-8 text-ink">
             {body.slice(0, 2).map((paragraph, index) => (
               <p key={index}>
@@ -261,7 +261,7 @@ export default async function NewsDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="bg-white px-10 sm:px-14 py-12 lg:px-52 xl:px-60 2xl:px-72">
+      <section className="bg-white px-5 py-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-6 flex items-center justify-between gap-4">
             <h2 className="text-2xl font-black text-ink">관련 뉴스</h2>
@@ -269,7 +269,7 @@ export default async function NewsDetailPage({ params }) {
               뉴스피드 전체보기
             </Link>
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-4">
             {relatedNews.map((item) => (
               <Link
                 key={item.slug}

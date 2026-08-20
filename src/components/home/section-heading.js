@@ -9,18 +9,18 @@ export function SectionHeading({
   inverse = false,
 }) {
   return (
-    <div className="mb-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="mb-4 lg:mb-6">
+      <div className="flex items-end justify-between gap-3 lg:flex-row lg:gap-4">
         <div>
           <p
-            className={`text-xs font-black uppercase ${
+            className={`text-[11px] font-black uppercase lg:text-xs ${
               inverse ? "text-violet-200" : "text-brand"
             }`}
           >
             {eyebrow}
           </p>
           <h2
-            className={`mt-1 text-[30px] font-black tracking-tight sm:text-[34px] ${
+            className={`mt-1 text-[22px] font-black tracking-tight lg:text-[34px] ${
               inverse ? "text-white" : "text-ink"
             }`}
           >
@@ -30,7 +30,7 @@ export function SectionHeading({
         {href && linkLabel ? (
           <Link
             href={href}
-            className={`inline-flex shrink-0 items-center gap-1 text-sm font-black ${
+            className={`inline-flex shrink-0 items-center gap-1 text-xs font-black lg:text-sm ${
               inverse ? "text-violet-100" : "text-brand"
             }`}
           >
@@ -41,7 +41,7 @@ export function SectionHeading({
       </div>
       {description ? (
         <p
-          className={`mt-1 text-sm ${
+          className={`mt-1 text-[13px] leading-5 lg:text-sm ${
             inverse ? "text-violet-100" : "text-ink-muted"
           }`}
         >

@@ -94,7 +94,7 @@ function StopSection({ course }) {
 
 function RecommendationNote({ course }) {
   return (
-    <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-5 py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">BONI NOTE</p>
@@ -108,7 +108,7 @@ function RecommendationNote({ course }) {
       </div>
 
       <article className="mt-8 rounded-[28px] bg-white p-8 shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.05fr]">
+        <div className="grid gap-5">
           <div>
             <div className="flex items-center gap-4">
               <Image
@@ -158,7 +158,7 @@ function RecommendationNote({ course }) {
 
 function ReviewCards() {
   return (
-    <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-5 pb-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black text-brand">REVIEWS</p>
@@ -170,7 +170,7 @@ function ReviewCards() {
           후기 쓰기 →
         </Link>
       </div>
-      <div className="mt-7 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-4">
         {reviews.map((review) => (
           <article key={review.name} className="rounded-[20px] bg-white p-6">
             <h3 className="text-lg font-black text-ink">{review.name}</h3>
@@ -203,8 +203,8 @@ export default async function RecommendedCourseDetailPage({ params }) {
 
   return (
     <main className="bg-background">
-      <section className="bg-white px-10 sm:px-14 pb-20 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
+      <section className="bg-white px-5 pb-8 pt-6">
+        <div className="grid gap-6">
           <GradientPanel
             gradient={course.gradient}
             className="flex h-[270px] flex-col justify-between rounded-[28px] p-9 text-white"
@@ -245,8 +245,8 @@ export default async function RecommendedCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="bg-white px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1fr]">
+      <section className="bg-white px-5 pb-6">
+        <div className="grid gap-5">
           <StopSection course={course} />
           <GradientPanel
             gradient="from-[#2d1b8e] to-[#9b5cf6]"

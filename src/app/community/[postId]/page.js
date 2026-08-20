@@ -108,7 +108,7 @@ function StopList({ stops = [] }) {
 
 function AuthorNote({ course }) {
   return (
-    <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-5 py-6">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -129,7 +129,7 @@ function AuthorNote({ course }) {
         </div>
 
         <article className="mt-8 rounded-[28px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-          <div className="grid gap-7 p-8 lg:grid-cols-[0.86fr_1fr]">
+          <div className="grid gap-5 p-5">
             <div>
               <div className="flex items-center gap-4">
                 <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
@@ -197,8 +197,8 @@ export default async function CommunityCourseDetailPage({ params }) {
 
   return (
     <main className="bg-background">
-      <section className="px-10 sm:px-14 pb-16 pt-[72px] lg:px-52 xl:px-60 2xl:px-72">
-        <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-[0.78fr_1.32fr] lg:items-center">
+      <section className="px-5 pb-6 pt-6">
+        <div className="grid gap-6">
           <div className="relative flex aspect-[4/3] lg:aspect-[3/4] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
             <img
               src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
@@ -239,7 +239,7 @@ export default async function CommunityCourseDetailPage({ params }) {
                 </p>
               </div>
             </div>
-            <h2 className="mt-6 text-[38px] font-black leading-tight text-ink">
+            <h2 className="mt-4 text-[22px] font-black leading-tight text-ink">
               {course.title}
             </h2>
             <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-ink-muted">
@@ -250,8 +250,8 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-10 sm:px-14 py-8 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="mx-auto max-w-7xl grid gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+      <section className="px-5 py-5">
+        <div className="grid gap-4">
           <StopList stops={course.stops} />
           <div className="relative min-h-[260px] overflow-hidden rounded-[28px] bg-slate-950 shadow-md">
             <img
@@ -269,7 +269,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <AuthorNote course={course} />
 
-      <section className="bg-surface-soft px-10 sm:px-14 pb-16 lg:px-52 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-5 pb-6">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -285,7 +285,7 @@ export default async function CommunityCourseDetailPage({ params }) {
               후기 쓰기 →
             </Link>
           </div>
-          <div className="mt-7 grid gap-5 lg:grid-cols-3">
+          <div className="mt-5 grid gap-4">
             {defaultReviewCards.map((review, idx) => (
               <ReviewCard key={`review-card-${review.name || idx}-${idx}`} review={review} />
             ))}

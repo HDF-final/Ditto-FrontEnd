@@ -404,13 +404,21 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
   return (
     <>
-    <main
-      className="flex-1 md:flex-none flex flex-col md:flex-row overflow-y-auto md:overflow-hidden md:h-[calc(100vh-94px)]"
-      style={{ background: "#f0ecfa", gap: "12px", padding: "12px" }}
-    >
-      {/* ── Left: course list ── */}
+    <main className="course-studio flex-1 gap-3 bg-[#f0ecfa] p-3">
+      <div className="course-studio-map relative min-h-0 overflow-hidden rounded-[20px]">
+        <div className="h-full min-h-[220px] w-full lg:min-h-0">
+          <CourseNavigationMap
+            route={routeState.itinerary}
+            routeFloorIds={routeState.itinerary?.floorIds}
+            routeGraph={routeState.graph}
+            placeLogos={placeLogos}
+            overlayOccluderRef={chatOccluderRef}
+          />
+        </div>
+      </div>
+
       <div
-        className="flex flex-col gap-[14px] md:overflow-y-auto px-5 md:px-7 py-5 md:py-6 rounded-[20px] md:w-1/4 md:min-w-[300px] md:shrink-0 order-2 md:order-1"
+        className="course-studio-list flex min-h-0 flex-col gap-[14px] overflow-visible rounded-[20px] px-4 py-4 lg:px-7 lg:py-6"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
@@ -542,11 +550,11 @@ export function ResultScreen({ chat, onPlaceClick }) {
 
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center">
-            <p className="text-[14px] font-semibold text-[#1a142e]">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-[320px] lg:gap-4 lg:py-20">
+            <p className="text-[14px] font-semibold text-[#1a142e] lg:text-[18px]">
               아직 담은 장소가 없어요
             </p>
-            <p className="text-[12px] text-[#9994ad] leading-[1.5]">
+            <p className="text-[12px] leading-[1.5] text-[#9994ad] lg:text-[14px]">
               &lsquo;장소 추가&rsquo;를 눌러 백화점 안 상점을
               <br />
               카테고리·층별로 골라 담아보세요
@@ -554,7 +562,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
             <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => setAddOpen(true)}
-                className="flex items-center gap-[5px] rounded-full px-[16px] py-[8px] text-[13px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer"
+                className="flex cursor-pointer items-center gap-[5px] rounded-full bg-[#5c2ef5] px-[16px] py-[8px] text-[13px] font-semibold text-white transition-colors hover:bg-[#4a22d4] active:scale-95 lg:px-6 lg:py-3 lg:text-[15px]"
               >
                 <Plus size={13} /> 장소 추가
               </button>
@@ -717,33 +725,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
         </div>
       </div>
 
-      {/* ── Right: map + chat overlay ── */}
-      <div className="relative h-[260px] rounded-[20px] overflow-hidden order-1 md:order-2 md:h-auto md:flex-1 md:min-w-0">
-        <div className="w-full h-full">
-          <CourseNavigationMap
-            route={routeState.itinerary}
-            routeFloorIds={routeState.itinerary?.floorIds}
-            routeGraph={routeState.graph}
-            placeLogos={placeLogos}
-            overlayOccluderRef={chatOccluderRef}
-          />
-        </div>
-
-        {/* PanelChat: absolute on desktop, hidden on mobile (shown below instead).
-            Opaque + z-30 covers the map; floor / 출발 / 도착 labels hide when they overlap. */}
-        <div className="hidden md:flex absolute bottom-5 left-0 right-0 z-30 isolate justify-center px-6">
-          <div ref={chatOccluderRef} className="w-full max-w-[640px]">
-            <PanelChat
-              messages={chat?.messages}
-              pending={chatPending}
-              onSend={chat?.send}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile-only PanelChat — below the map */}
-      <div className="md:hidden order-3 w-full">
+      <div ref={chatOccluderRef} className="course-studio-chat min-w-0">
         <PanelChat
           messages={chat?.messages}
           pending={chatPending}

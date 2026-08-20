@@ -408,9 +408,8 @@ export function MypageView() {
         stats={displayStats}
         onEditClick={() => setIsEditModalOpen(true)}
       />
-      <section className="px-10 sm:px-14 py-[60px] lg:px-52 xl:px-60 2xl:px-72">
-        {/* Custom Tab Navigation */}
-        <div className="mb-[40px] flex gap-[22px] border-b border-line">
+      <section className="px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
+        <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-[40px] lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {mypageTabs.map((tab) => {
             const count =
               tab === "내 코스"
@@ -426,7 +425,7 @@ export function MypageView() {
                 key={tab}
                 type="button"
                 onClick={() => handleTabChange(tab)}
-                className={`-mb-px flex items-center gap-1.5 border-b-2 pb-3.5 text-[15px] font-black transition cursor-pointer ${
+                className={`-mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 pb-2.5 text-[13px] font-black transition lg:pb-3.5 lg:text-[15px] ${
                   activeTab === tab
                     ? "border-brand text-brand"
                     : "border-transparent text-ink-muted hover:text-ink"
@@ -459,7 +458,7 @@ export function MypageView() {
         <div className="max-w-[1020px] mx-auto">
           {paginatedCourses.length > 0 ? (
             <>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) => (
                   <MypageCourseCard
                     key={course.id || course.slug}

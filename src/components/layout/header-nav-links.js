@@ -9,7 +9,7 @@ const publicNavigation = [
   { href: "/ai-course", label: "코스 만들기", badge: "NEW" },
   { href: "/#picks", label: "코스 추천" },
   { href: "/#community", label: "커뮤니티" },
-  { href: "/#newsletter", label: "뉴스피드" },
+  { href: "/news", label: "뉴스피드" },
 ];
 
 export function HeaderNavLinks() {
@@ -22,7 +22,7 @@ export function HeaderNavLinks() {
   ];
 
   return (
-    <nav className="hidden items-center gap-6 text-base font-black lg:flex">
+    <nav className="hidden items-center gap-5 text-base font-black lg:flex xl:gap-6">
       {navigation.map((item) => {
         const isActive = pathname === item.href;
 
@@ -30,7 +30,7 @@ export function HeaderNavLinks() {
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex items-center gap-2 transition hover:text-brand ${
+            className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap transition hover:text-brand ${
               isActive ? "text-brand" : "text-ink"
             }`}
           >

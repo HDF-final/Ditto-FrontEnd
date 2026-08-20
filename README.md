@@ -14,7 +14,7 @@
 → 여행자 커뮤니티 공유
 ```
 
-현재 단계에서는 백엔드 연동보다 웹·반응형 모바일 화면의 구조와 공통 개발 기반을 먼저 구축합니다.
+현재 단계는 **모바일 PWA 프론트엔드**입니다. 화면은 430px 앱 셸로 고정되고, 홈 화면 설치·standalone 표시를 지원합니다.
 
 ## 기술 스택
 
@@ -180,7 +180,9 @@ Ditto-FrontEnd/
 │   │   ├── signup/page.js     # 회원가입
 │   │   ├── country/page.js    # 국가·언어 선택
 │   │   ├── persona/page.js    # 쇼핑 타입(페르소나) 선택
-│   │   ├── layout.js          # 전역 HTML 레이아웃
+│   │   ├── layout.js          # 전역 HTML 레이아웃·PWA viewport
+│   │   ├── manifest.js        # 웹 앱 매니페스트
+│   │   ├── icon.js            # PWA 아이콘
 │   │   └── globals.css        # 전역 스타일과 Tailwind 토큰
 │   ├── components/
 │   │   ├── home/              # 홈 화면 전용 섹션과 UI
@@ -189,9 +191,10 @@ Ditto-FrontEnd/
 │   │   ├── mypage/            # 마이페이지 화면 전용 UI
 │   │   ├── auth/              # 로그인·가입·국가·페르소나 온보딩 UI
 │   │   ├── common/            # 도메인에 묶이지 않는 재사용 UI
-│   │   └── layout/            # 전역 레이아웃을 구성하는 UI
+│   │   └── layout/            # 앱 셸, 헤더, 하단 탭, PWA 등록
 │   ├── lib/
 │   │   ├── api/               # Axios 공통 설정
+│   │   ├── pwa/               # 앱 아이콘 렌더러
 │   │   ├── fixtures/          # 화면 개발용 정적 더미 데이터
 │   │   └── utils/             # 순수 함수와 범용 유틸리티
 │   └── stores/                # Zustand 전역 클라이언트 상태
@@ -202,7 +205,7 @@ Ditto-FrontEnd/
 └── package.json
 ```
 
-`components/common`에는 버튼, 선택기, 빈 상태처럼 여러 도메인에서 공유하는 UI를 둡니다. `components/layout`에는 헤더, 푸터, 내비게이션처럼 페이지 골격을 만드는 UI를 둡니다. 특정 페이지나 도메인에서만 쓰는 컴포넌트는 `components/home`, `components/ai-course`, `components/news`, `components/mypage`, `components/auth` 아래에 먼저 배치합니다.
+`components/common`에는 버튼, 선택기, 빈 상태처럼 여러 도메인에서 공유하는 UI를 둡니다. `components/layout`에는 앱 셸, 헤더, 하단 탭처럼 페이지 골격을 만드는 UI를 둡니다. 특정 페이지나 도메인에서만 쓰는 컴포넌트는 `components/home`, `components/ai-course`, `components/news`, `components/mypage`, `components/auth` 아래에 먼저 배치합니다.
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
@@ -355,6 +358,20 @@ pnpm install --frozen-lockfile
 | `pnpm start` | 빌드 결과를 3000번 포트에서 실행 |
 | `pnpm check` | lint 후 build 연속 검증 |
 
-## PWA 계획
+## PWA
 
-초기에는 반응형 웹을 완성합니다. 이후 동일한 App Router 구조를 유지하면서 manifest, 앱 아이콘, 서비스 워커, 설치 및 오프라인 정책을 추가해 PWA로 확장합니다.
+웹 앱 매니페스트, 홈 화면 아이콘, 서비스 워커, 설치 배너를 포함합니다. 데스크톱에서는 430px 폰 셸로 미리보고, 실제 폰에서는 전체 폭으로 표시됩니다.
+
+| 항목 | 위치 |
+| --- | --- |
+| 매니페스트 | `src/app/manifest.js` → `/manifest.webmanifest` |
+| 앱 아이콘 | `/icons/192`, `/icons/512`, `apple-icon` |
+| 서비스 워커 | `public/sw.js` (`PwaRegister`가 등록) |
+| 하단 탭 | 홈 · 코스 · 만들기(+) · 뉴스 · 마이 |
+
+설치 방법:
+
+- **Chrome / Edge / Android**: 홈 하단 배너의 "지금 설치하기", 또는 브라우저 메뉴의 앱 설치
+- **iOS Safari**: 공유 버튼 → 홈 화면에 추가
+
+서비스 워커는 정적 자산과 홈 셸을 캐시하고, `/api/*` 요청은 항상 네트워크로 보냅니다. 인증 토큰은 캐시하지 않습니다.

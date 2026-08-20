@@ -490,7 +490,7 @@ export function CommunityBookmarksView() {
   return (
     <main className="bg-background min-h-screen">
       {/* Header Section */}
-      <section className="bg-white px-10 sm:px-14 pb-0 pt-[80px] lg:px-52 xl:px-60 2xl:px-72 border-b border-line">
+      <section className="border-b border-line bg-white px-5 pb-0 pt-6 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2">
@@ -503,7 +503,7 @@ export function CommunityBookmarksView() {
                 MY FAVORITE COURSES
               </p>
             </div>
-            <h1 className="mt-4 text-[32px] font-black leading-none text-ink lg:text-[36px]">
+            <h1 className="mt-3 text-[22px] font-black leading-tight text-ink lg:text-[34px]">
               내가 찜하고 저장한 코스
             </h1>
             <p className="mt-3 text-sm font-medium text-ink-muted">
@@ -557,7 +557,7 @@ export function CommunityBookmarksView() {
       </section>
 
       {/* Grid Content & 정렬 드롭다운 토글 */}
-      <section className="px-10 sm:px-14 py-[36px] lg:px-52 xl:px-60 2xl:px-72">
+      <section className="px-5 py-6 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
         <div className="max-w-[1020px] mx-auto">
           {/* 상단 툴바: 우측 정렬 드롭다운 토글 */}
           <div className="mb-6 flex items-center justify-between">
@@ -629,7 +629,7 @@ export function CommunityBookmarksView() {
             </div>
           ) : paginatedCourses.length > 0 ? (
             <>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) => (
                   <BookmarkCard
                     key={course.postId || course.slug || course.id}
