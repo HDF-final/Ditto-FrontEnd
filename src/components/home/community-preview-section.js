@@ -2,8 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { communityCourses } from "@/lib/fixtures/home";
 import { SectionHeading } from "@/components/home/section-heading";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useIsMounted } from "@/hooks/use-is-mounted";
+import {
+  likeCourse,
+  unlikeCourse,
+  bookmarkCourse,
+  unbookmarkCourse,
+} from "@/lib/api/community";
 
 function getFlagEmoji(countryCode) {
   if (!countryCode) return "🇰🇷";
@@ -15,10 +25,97 @@ function getFlagEmoji(countryCode) {
   return "🌐";
 }
 
-function CommunityCourseCard({ course }) {
+function CommunityCourseCard({ course, onAuthRequired }) {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const mounted = useIsMounted();
+
+  const postId =
+    course.postId ||
+    course.id ||
+    course.courseId ||
+    (typeof course.slug === "number" || /^\d+$/.test(course.slug)
+      ? Number(course.slug)
+      : course.rank || 1);
+
+  const postIdentifier = String(
+    course.postId || course.slug || course.rank || postId || "1",
+  );
+
+  const isLikedStored = useCommunityInteractionsStore((state) =>
+    state.isLiked(postIdentifier),
+  );
+  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
+    state.isBookmarked(postIdentifier),
+  );
+  const likesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getLikesDelta(postIdentifier),
+  );
+  const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const setBookmarked = useCommunityInteractionsStore(
+    (state) => state.setBookmarked,
+  );
+
+  const isLiked = mounted ? isLikedStored : false;
+  const isBookmarked = mounted ? isBookmarkedStored : false;
+  const likesDelta = mounted ? likesDeltaStored : 0;
+
+  const baseLikes = course.likes ?? 0;
+  const likesCount = Math.max(0, baseLikes + likesDelta);
+  const baseSaves = course.saves ?? 0;
+  const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
+
+  const href = `/community/${course.slug || course.rank || "1"}`;
+
+  async function handleLike(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      onAuthRequired?.();
+      return;
+    }
+    const nextState = !isLiked;
+    setLiked(postIdentifier, nextState);
+
+    if (postId) {
+      try {
+        if (nextState) await likeCourse(postId);
+        else await unlikeCourse(postId);
+      } catch (err) {
+        console.warn("[Home Card Like] error:", err);
+      }
+    }
+  }
+
+  async function handleBookmark(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      onAuthRequired?.();
+      return;
+    }
+    const nextState = !isBookmarked;
+    setBookmarked(postIdentifier, nextState);
+
+    if (postId) {
+      try {
+        if (nextState) await bookmarkCourse(postId);
+        else await unbookmarkCourse(postId);
+      } catch (err) {
+        console.warn("[Home Card Bookmark] error:", err);
+      }
+    }
+  }
+
+  function handleCommentClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(href);
+  }
+
   return (
     <Link
-      href={`/community/${course.slug || course.rank}`}
+      href={href}
       className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] w-full bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)]"
     >
       {/* Full Background Image */}
@@ -49,14 +146,6 @@ function CommunityCourseCard({ course }) {
             <span className="text-[11px] font-semibold text-violet-200 drop-shadow-sm">{course.hash}</span>
           </div>
         </div>
-
-        {/* Top Right Card Icon (Transparent) */}
-        <div className="flex size-8 items-center justify-center rounded-xl bg-black/30 backdrop-blur-xs text-white/90 border border-white/10">
-          <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-        </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
@@ -73,26 +162,66 @@ function CommunityCourseCard({ course }) {
           )}
         </div>
 
-        {/* Bottom Transparent Stats */}
-        <div className="flex items-center justify-end gap-4 pt-1 text-xs font-bold text-white/95">
-          <span className="inline-flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-white transition-colors">
-            <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        {/* Bottom Interactive Stats */}
+        <div className="flex items-center justify-end gap-3.5 pt-1 text-xs font-bold text-white/95">
+          {/* Like button */}
+          <button
+            type="button"
+            onClick={handleLike}
+            aria-label="좋아요"
+            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+              isLiked
+                ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
+                : "hover:bg-white/20 text-white/90"
+            }`}
+          >
+            <svg
+              className={`size-4 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-            {course.likes}
-          </span>
-          <span className="inline-flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-white transition-colors">
+            <span>{likesCount}</span>
+          </button>
+
+          {/* Comment button */}
+          <button
+            type="button"
+            onClick={handleCommentClick}
+            aria-label="댓글"
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
+          >
             <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            {course.comments}
-          </span>
-          <span className="inline-flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] hover:text-white transition-colors">
-            <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <span>{course.comments ?? 0}</span>
+          </button>
+
+          {/* Bookmark/Save button */}
+          <button
+            type="button"
+            onClick={handleBookmark}
+            aria-label="저장"
+            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+              isBookmarked
+                ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
+                : "hover:bg-white/20 text-white/90"
+            }`}
+          >
+            <svg
+              className={`size-4 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
-            {course.saves}
-          </span>
+            <span>{savesCount}</span>
+          </button>
         </div>
       </div>
     </Link>
@@ -100,8 +229,10 @@ function CommunityCourseCard({ course }) {
 }
 
 export function CommunityPreviewSection() {
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Group 9 courses into chunks of 3 (Slide 0: 1~3, Slide 1: 4~6, Slide 2: 7~9)
   const itemsPerSlide = 3;
@@ -151,7 +282,11 @@ export function CommunityPreviewSection() {
               className="w-full shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-1"
             >
               {slideItems.map((course) => (
-                <CommunityCourseCard key={course.rank} course={course} />
+                <CommunityCourseCard
+                  key={course.rank}
+                  course={course}
+                  onAuthRequired={() => setIsLoginModalOpen(true)}
+                />
               ))}
             </div>
           ))}
@@ -175,6 +310,61 @@ export function CommunityPreviewSection() {
           />
         ))}
       </div>
+
+      {/* 로그인 필요 알림 모달 */}
+      {isLoginModalOpen ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsLoginModalOpen(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand">
+              <svg
+                className="size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(false)}
+                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginModalOpen(false);
+                  router.push("/login");
+                }}
+                className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
+              >
+                로그인하기 →
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
