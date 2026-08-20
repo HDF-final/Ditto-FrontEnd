@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { getPersonaById } from "@/lib/fixtures/personas";
 import {
   createComment,
   getComments,
@@ -91,21 +93,6 @@ function deduplicateComments(list) {
   });
 }
 
-function getAvatarColor(name = "") {
-  const colors = [
-    "bg-gradient-to-br from-purple-500 to-indigo-600 text-white",
-    "bg-gradient-to-br from-pink-500 to-rose-500 text-white",
-    "bg-gradient-to-br from-amber-500 to-orange-600 text-white",
-    "bg-gradient-to-br from-emerald-500 to-teal-600 text-white",
-    "bg-gradient-to-br from-blue-500 to-cyan-600 text-white",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
-
 export function CommunityChatButton({ course = {} }) {
   const t = useTranslations("community");
   const locale = useLocale();
@@ -187,6 +174,14 @@ export function CommunityChatButton({ course = {} }) {
     user?.nickname ||
     user?.name ||
     "사토 유키";
+
+  const authorPersona = getPersonaById(
+    course?.persona ||
+      course?.shoppingType ||
+      course?.personaId ||
+      (user && authorName === (user.nickname || user.name) ? user.persona : "sohwak"),
+    locale,
+  );
 
   const courseImage =
     course?.image ||
@@ -500,11 +495,17 @@ export function CommunityChatButton({ course = {} }) {
               <div className="flex items-center justify-between px-5 pt-4 pb-2 bg-white shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-black shadow-xs ${getAvatarColor(
-                      authorName,
-                    )}`}
+                    className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+                    style={{ backgroundColor: authorPersona.theme?.bgColor || "#fff1e6" }}
                   >
-                    {authorName.slice(0, 2).toUpperCase()}
+                    <Image
+                      src={authorPersona.imageSrc}
+                      alt={authorName}
+                      width={34}
+                      height={34}
+                      className="size-[34px] object-contain"
+                      unoptimized
+                    />
                   </div>
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="truncate text-sm font-black text-ink">
@@ -570,15 +571,28 @@ export function CommunityChatButton({ course = {} }) {
                       commenterName === user?.nickname;
                     const isLikedComment = Boolean(likedComments[cId]);
 
+                    const commenterPersona = getPersonaById(
+                      isMine
+                        ? (user?.persona || "sohwak")
+                        : (message.persona || (message.isAuthor ? authorPersona.id : "openrun")),
+                      locale,
+                    );
+
                     return (
                       <div key={cId} className="flex items-start justify-between gap-2.5 group">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <div
-                            className={`flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black shadow-xs ${getAvatarColor(
-                              commenterName,
-                            )}`}
+                            className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-1 ring-black/5"
+                            style={{ backgroundColor: commenterPersona.theme?.bgColor || "#fff1e6" }}
                           >
-                            {commenterName.slice(0, 2).toUpperCase()}
+                            <Image
+                              src={commenterPersona.imageSrc}
+                              alt={commenterName}
+                              width={26}
+                              height={26}
+                              className="size-[26px] object-contain"
+                              unoptimized
+                            />
                           </div>
 
                           <div className="flex-1 min-w-0">

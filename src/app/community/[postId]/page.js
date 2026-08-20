@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
+import { getPersonaById } from "@/lib/fixtures/personas";
 import { CommunityDetailActions } from "./community-detail-actions";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
@@ -33,6 +35,11 @@ function AuthorNote({ course, t, locale }) {
     ? t("authoredOn", { date: course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02" })
     : `${course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02"} 작성`;
 
+  const authorPersona = getPersonaById(
+    course.persona || course.shoppingType || course.personaId || "sohwak",
+    locale,
+  );
+
   return (
     <section className="bg-surface-soft px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
@@ -57,8 +64,18 @@ function AuthorNote({ course, t, locale }) {
         <article className="mt-8 rounded-[28px] bg-white p-8 shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
           {/* 1. 상단 작성자 프로필 */}
           <div className="flex items-center gap-4 border-b border-line/60 pb-6">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white shadow-xs ring-2 ring-brand/10">
-              {(course.name || travelerText).slice(0, 2).toUpperCase()}
+            <div
+              className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+              style={{ backgroundColor: authorPersona.theme?.bgColor || "#fff1e6" }}
+            >
+              <Image
+                src={authorPersona.imageSrc}
+                alt={course.name || travelerText}
+                width={40}
+                height={40}
+                className="size-10 object-contain"
+                unoptimized
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -109,11 +126,16 @@ export default async function CommunityCourseDetailPage({ params }) {
     notFound();
   }
 
-  const travelerText = t.has("traveler") ? t("traveler") : "여행자";
+  const travelerText = t.has("traveler") ? t.has("traveler") : "여행자";
   const breadcrumbHomeText = t.has("breadcrumbHome") ? t("breadcrumbHome") : "홈";
   const breadcrumbCommunityText = t.has("breadcrumbCommunity") ? t("breadcrumbCommunity") : "커뮤니티";
   const listText = t.has("list") ? t("list") : "목록";
   const viewAllCoursesText = t.has("viewAllCourses") ? t("viewAllCourses") : "코스 목록 전체보기 →";
+
+  const authorPersona = getPersonaById(
+    course.persona || course.shoppingType || course.personaId || "sohwak",
+    locale,
+  );
 
   return (
     <main className="bg-white">
@@ -162,8 +184,18 @@ export default async function CommunityCourseDetailPage({ params }) {
 
           <div>
             <div className="flex items-center gap-3.5">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white shadow-xs ring-2 ring-brand/10">
-                {(course.name || travelerText).slice(0, 2).toUpperCase()}
+              <div
+                className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+                style={{ backgroundColor: authorPersona.theme?.bgColor || "#fff1e6" }}
+              >
+                <Image
+                  src={authorPersona.imageSrc}
+                  alt={course.name || travelerText}
+                  width={40}
+                  height={40}
+                  className="size-10 object-contain"
+                  unoptimized
+                />
               </div>
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">

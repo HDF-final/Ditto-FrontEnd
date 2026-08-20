@@ -304,7 +304,7 @@
     "passwordChange": "비밀번호 변경",
     "optional": "(선택)",
     "passwordPlaceholder": "변경할 비밀번호 (미입력 시 기존 유지)",
-    "persona": "쇼핑 타입 (페르소나)",
+    "persona": "쇼핑 타입",
     "cancel": "취소",
     "saving": "저장 중...",
     "save": "저장하기",

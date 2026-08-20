@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { normalizePersonaId, getPersonaPageCopy } from "@/lib/fixtures/personas";
+import { normalizePersonaId, getPersonaPageCopy, getPersonaById } from "@/lib/fixtures/personas";
 import { updateMyProfile } from "@/lib/api/users";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useLocale, useTranslations } from "next-intl";
@@ -23,6 +23,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
   if (!isOpen) return null;
 
   const copy = getPersonaPageCopy(locale);
+  const selectedPersonaTheme = getPersonaById(selectedPersona, locale)?.theme;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -116,20 +117,30 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
             />
           </div>
 
-          {/* 페르소나 선택 */}
+          {/* 쇼핑 타입 선택 */}
           <div>
             <label className="mb-2 block text-xs font-bold text-ink">{t("persona")}</label>
             <div className="grid grid-cols-2 gap-2.5">
               {copy.personas.map((persona) => {
                 const isSelected = selectedPersona === persona.id;
+                const personaTheme = getPersonaById(persona.id, locale)?.theme;
                 return (
                   <button
                     key={persona.id}
                     type="button"
                     onClick={() => setSelectedPersona(persona.id)}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: personaTheme?.badgeBg,
+                            borderColor: personaTheme?.badgeText,
+                            boxShadow: `0 0 0 1px ${personaTheme?.badgeText}`,
+                          }
+                        : undefined
+                    }
                     className={`flex items-center gap-2.5 rounded-2xl border p-2.5 text-left transition cursor-pointer ${
                       isSelected
-                        ? "border-brand bg-brand-soft ring-1 ring-brand"
+                        ? ""
                         : "border-line bg-white hover:bg-surface-soft"
                     }`}
                   >
@@ -142,7 +153,12 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
                       unoptimized
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-bold text-ink">{persona.name}</p>
+                      <p
+                        className="truncate text-xs font-bold text-ink"
+                        style={isSelected ? { color: personaTheme?.badgeText } : undefined}
+                      >
+                        {persona.name}
+                      </p>
                       <p className="truncate text-[10px] text-ink-muted">{persona.description}</p>
                     </div>
                   </button>
@@ -170,7 +186,8 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-full bg-brand px-6 py-2.5 text-xs font-black text-white hover:bg-brand-dark cursor-pointer disabled:opacity-50"
+              style={{ backgroundColor: selectedPersonaTheme?.badgeText || "#5c2ef5" }}
+              className="rounded-full px-6 py-2.5 text-xs font-black text-white transition hover:opacity-90 cursor-pointer disabled:opacity-50"
             >
               {isLoading ? t("saving") : t("save")}
             </button>

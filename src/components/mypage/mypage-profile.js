@@ -31,23 +31,15 @@ export function MypageProfile({ profile, stats, onEditClick }) {
                 {profile.description}
               </p>
               <div
-                className="mt-3 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition-colors duration-200"
+                className="mt-3 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 transition-colors duration-200"
                 style={{
-                  backgroundColor: persona.badgeBg || "#f5f3ff",
-                  borderColor: persona.badgeBorder || "#e0d8ff",
+                  backgroundColor: persona.badgeBg || "#fdf2f8",
+                  borderColor: persona.badgeBorder || "#fbcfe8",
                 }}
               >
-                <Image
-                  src={persona.image}
-                  alt=""
-                  width={22}
-                  height={22}
-                  className="size-[22px] object-contain"
-                  unoptimized
-                />
                 <span
                   className="text-sm font-black"
-                  style={{ color: persona.badgeText || "#5c2ef5" }}
+                  style={{ color: persona.badgeText || "#db2777" }}
                 >
                   {persona.name}
                 </span>
@@ -60,7 +52,12 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           <button
             type="button"
             onClick={onEditClick}
-            className="w-fit rounded-full border border-[#e0d8ff] bg-brand-soft px-6 py-3 text-sm font-black text-brand transition hover:bg-[#e7ddff] cursor-pointer"
+            style={{
+              backgroundColor: persona.badgeBg || "#fdf2f8",
+              borderColor: persona.badgeBorder || "#fbcfe8",
+              color: persona.badgeText || "#db2777",
+            }}
+            className="w-fit rounded-full border px-6 py-3 text-sm font-black transition hover:opacity-85 cursor-pointer shadow-xs"
           >
             {t("editProfile")}
           </button>
@@ -70,7 +67,11 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-[20px] border border-line bg-surface-soft p-6"
+              style={{
+                backgroundColor: persona.badgeBg || "#fdf2f8",
+                borderColor: persona.badgeBorder || "#fbcfe8",
+              }}
+              className="rounded-[20px] border p-6 transition-colors duration-200"
             >
               <p className="text-[28px] font-black leading-none text-ink">
                 {stat.value}
