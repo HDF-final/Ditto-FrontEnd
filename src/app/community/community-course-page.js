@@ -137,7 +137,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] w-full bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.4)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
     >
       {/* Full Background Image */}
       <img
@@ -147,57 +147,57 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       />
 
       {/* Top Gradient for text legibility */}
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 p-5 flex items-start justify-between">
-        <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/10">
+      <div className="relative z-10 p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
           {/* Rank Badge */}
-          <span className="flex size-7 items-center justify-center rounded-lg bg-[#5c2ef5] text-xs font-black text-white shadow-sm">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm">
             {rank}
           </span>
           {/* Flag */}
-          <span className="text-base leading-none">{getFlagEmoji(card.country || card.flag)}</span>
+          <span className="text-sm leading-none">{getFlagEmoji(card.country || card.flag)}</span>
           {/* Name & Tag */}
           <div className="flex flex-col leading-tight">
-            <span className="text-xs font-bold text-white drop-shadow-sm">{card.name || "여행자"}</span>
-            <span className="text-[11px] font-semibold text-violet-200 drop-shadow-sm">{card.hash || "#더현대"}</span>
+            <span className="text-[11px] font-bold text-white drop-shadow-sm">{card.name || "여행자"}</span>
+            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-sm">{card.hash || "#더현대"}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 p-5 pt-0 flex flex-col gap-3">
+      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
         {/* Title & Description */}
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-2xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
             {card.title}
           </h3>
           {card.description && (
-            <p className="text-xs font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {card.description}
             </p>
           )}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-3.5 pt-1 text-xs font-bold text-white/95">
+        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white/95 pt-1">
           {/* Like button */}
           <button
             type="button"
             onClick={handleLike}
             aria-label="좋아요"
-            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-4 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
+              className={`size-3.5 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -213,9 +213,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label="댓글"
-            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
           >
-            <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>{card.comments ?? 0}</span>
@@ -226,14 +226,14 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label="저장"
-            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-4 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
+              className={`size-3.5 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -343,72 +343,74 @@ export function CommunityCoursePage({ initialCards = [] }) {
       </section>
 
       <section className="bg-surface-soft px-10 sm:px-14 py-14 lg:px-52 xl:px-60 2xl:px-72">
-        {/* 가로 3개씩 (2줄 = 6개) 배치 */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {paginatedCards.map((card, index) => {
-            const actualRank = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
-            return (
-              <CommunityCard
-                key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                card={card}
-                rank={actualRank}
-                onAuthRequired={() => setIsLoginModalOpen(true)}
-              />
-            );
-          })}
-        </div>
-
-        {/* 6개 초과 시 페이징 컨트롤 바 렌더링 */}
-        {totalPages > 1 && (
-          <div className="mt-14 flex items-center justify-center gap-2">
-            {/* 이전 버튼 */}
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`flex size-10 items-center justify-center rounded-xl font-bold transition ${
-                currentPage === 1
-                  ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                  : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
-              }`}
-              aria-label="이전 페이지"
-            >
-              ‹
-            </button>
-
-            {/* 페이지 번호 버튼들 */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <button
-                key={pageNum}
-                type="button"
-                onClick={() => handlePageChange(pageNum)}
-                className={`flex size-10 items-center justify-center rounded-xl text-sm font-black transition cursor-pointer ${
-                  currentPage === pageNum
-                    ? "bg-brand text-white shadow-md"
-                    : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
-                }`}
-                aria-current={currentPage === pageNum ? "page" : undefined}
-              >
-                {pageNum}
-              </button>
-            ))}
-
-            {/* 다음 버튼 */}
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`flex size-10 items-center justify-center rounded-xl font-bold transition ${
-                currentPage === totalPages
-                  ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                  : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
-              }`}
-              aria-label="다음 페이지"
-            >
-              ›
-            </button>
+        <div className="max-w-[1020px] mx-auto">
+          {/* 가로 3개씩 배치 */}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {paginatedCards.map((card, index) => {
+              const actualRank = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
+              return (
+                <CommunityCard
+                  key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
+                  card={card}
+                  rank={actualRank}
+                  onAuthRequired={() => setIsLoginModalOpen(true)}
+                />
+              );
+            })}
           </div>
-        )}
+
+          {/* 페이징 컨트롤 바 렌더링 */}
+          {totalPages > 1 && (
+            <div className="mt-12 flex items-center justify-center gap-2">
+              {/* 이전 버튼 */}
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                  currentPage === 1
+                    ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
+                    : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                }`}
+                aria-label="이전 페이지"
+              >
+                ‹
+              </button>
+
+              {/* 페이지 번호 버튼들 */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`flex size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
+                    currentPage === pageNum
+                      ? "bg-brand text-white shadow-md"
+                      : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
+                  }`}
+                  aria-current={currentPage === pageNum ? "page" : undefined}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              {/* 다음 버튼 */}
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                  currentPage === totalPages
+                    ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
+                    : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                }`}
+                aria-label="다음 페이지"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* 로그인 필요 알림 모달 */}

@@ -1,73 +1,213 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useIsMounted } from "@/hooks/use-is-mounted";
+import {
+  likeCourse,
+  unlikeCourse,
+  bookmarkCourse,
+  unbookmarkCourse,
+} from "@/lib/api/community";
 
-export function MypageCourseCard({ course }) {
-  const stops = Array.isArray(course.stops) ? course.stops : [];
-  const isInteractive = Boolean(course.href);
-  const className = `group overflow-hidden rounded-[32px] shadow-[0_8px_20px_rgba(43,28,89,0.08)] transition ${
-    isInteractive
-      ? "hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(43,28,89,0.14)]"
-      : ""
-  }`;
+function getFlagEmoji(countryCode = "") {
+  const code = (countryCode || "").toUpperCase();
+  if (code === "JP" || code === "JAPAN") return "🇯🇵";
+  if (code === "CN" || code === "CHINA") return "🇨🇳";
+  if (code === "US" || code === "USA") return "🇺🇸";
+  if (code === "KR" || code === "KOREA") return "🇰🇷";
+  return "🌐";
+}
 
-  const content = (
-    <>
-      <div
-        className={`flex h-[150px] flex-col justify-between bg-linear-to-br ${course.gradient} p-5 text-white`}
-      >
-        <span className="w-fit rounded-full bg-white/20 px-3 py-1 text-[10px] font-black tracking-wide">
-          {course.badge}
-        </span>
-        <div>
-          <p className="text-xl font-black tracking-tight">
-            {course.englishTitle}
-          </p>
-          <p className="mt-1 text-xs font-medium text-white/85">
-            {course.subtitle}
-          </p>
-        </div>
-      </div>
-      <div className="bg-white p-5">
-        <h3 className="text-base font-black text-ink group-hover:text-brand">
-          {course.title}
-        </h3>
-        {stops.length > 0 ? (
-          <div className="mt-3 flex flex-col gap-1.5">
-            {stops.map((stop, index) => (
-              <div
-                key={`${course.id}-${stop.floor}-${stop.name}-${index}`}
-                className="flex items-center gap-2 text-xs text-ink"
-              >
-                <span className="min-w-[30px] rounded-md bg-brand-soft px-1.5 py-0.5 text-center text-[10px] font-black text-brand">
-                  {stop.floor}
-                </span>
-                <span className="font-medium">{stop.name}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-3 text-xs font-medium text-ink-muted">
-            {course.spotCount
-              ? `저장된 방문 장소 ${course.spotCount}`
-              : "코스 상세에서 방문 정보를 확인해보세요."}
-          </p>
-        )}
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-[11px] text-ink-muted">
-          {course.likes !== undefined ? <span>♥ {course.likes}</span> : null}
-          {course.bookmarkCount !== undefined ? (
-            <span>📌 {course.bookmarkCount}</span>
-          ) : null}
-          {course.spotCount ? <span>{course.spotCount}</span> : null}
-          {course.duration ? <span>{course.duration}</span> : null}
-        </div>
-      </div>
-    </>
+export function MypageCourseCard({ course, onAuthRequired }) {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const mounted = useIsMounted();
+
+  const slugKey = course.slug ? String(course.slug) : "";
+  const numKey = String(course.postId || course.id || "1");
+
+  const isLikedStored = useCommunityInteractionsStore((state) =>
+    state.isLiked(slugKey, numKey),
   );
+  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
+    state.isBookmarked(slugKey, numKey),
+  );
+  const likesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getLikesDelta(slugKey, numKey),
+  );
+  const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const setBookmarked = useCommunityInteractionsStore((state) => state.setBookmarked);
 
-  return isInteractive ? (
-    <Link href={course.href} className={className}>
-      {content}
+  const isLiked = mounted ? isLikedStored : false;
+  const isBookmarked = mounted ? isBookmarkedStored : false;
+  const likesDelta = mounted ? likesDeltaStored : 0;
+
+  const baseLikes = course.likes ?? 0;
+  const likesCount = Math.max(0, baseLikes + likesDelta);
+  const baseSaves = course.saves ?? 0;
+  const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
+
+  const href = course.href || `/community/${slugKey || numKey}`;
+  const image =
+    course.image ||
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+
+  async function handleLike(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      onAuthRequired?.();
+      return;
+    }
+    const nextState = !isLiked;
+    setLiked(slugKey, nextState, numKey);
+
+    const postIdNum = Number(course.postId || course.id);
+    if (postIdNum && !Number.isNaN(postIdNum)) {
+      try {
+        if (nextState) await likeCourse(postIdNum);
+        else await unlikeCourse(postIdNum);
+      } catch (err) {
+        console.warn("[Mypage Card Like] error:", err);
+      }
+    }
+  }
+
+  async function handleBookmark(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      onAuthRequired?.();
+      return;
+    }
+    const nextState = !isBookmarked;
+    setBookmarked(slugKey, nextState, numKey);
+
+    const postIdNum = Number(course.postId || course.id);
+    if (postIdNum && !Number.isNaN(postIdNum)) {
+      try {
+        if (nextState) await bookmarkCourse(postIdNum);
+        else await unbookmarkCourse(postIdNum);
+      } catch (err) {
+        console.warn("[Mypage Card Bookmark] error:", err);
+      }
+    }
+  }
+
+  function handleCommentClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(href);
+  }
+
+  return (
+    <Link
+      href={href}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+    >
+      {/* Full Background Image */}
+      <img
+        src={image}
+        alt={course.title}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
+
+      {/* Top Gradient */}
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
+
+      {/* Bottom Gradient */}
+      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+
+      {/* Top Header Overlay */}
+      <div className="relative z-10 p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-xs">
+            {course.badge === "MY COURSE" ? "ME" : "★"}
+          </span>
+          <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || "여행자"}</span>
+            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Content Area */}
+      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+            {course.title}
+          </h3>
+          {course.description && (
+            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {course.description}
+            </p>
+          )}
+        </div>
+
+        {/* Bottom Stats Toolbar */}
+        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white pt-1">
+          {/* 좋아요 버튼 */}
+          <button
+            type="button"
+            onClick={handleLike}
+            aria-label="좋아요"
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+              isLiked
+                ? "bg-red-500 text-white scale-105"
+                : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
+            }`}
+          >
+            <svg
+              className={`size-3.5 ${isLiked ? "fill-current" : "fill-none"}`}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span>{likesCount}</span>
+          </button>
+
+          {/* 댓글 버튼 */}
+          <button
+            type="button"
+            onClick={handleCommentClick}
+            aria-label="댓글"
+            className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
+          >
+            <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>{course.comments ?? 0}</span>
+          </button>
+
+          {/* 북마크 버튼 */}
+          <button
+            type="button"
+            onClick={handleBookmark}
+            aria-label="북마크"
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+              isBookmarked
+                ? "bg-brand text-white scale-105"
+                : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
+            }`}
+          >
+            <svg
+              className={`size-3.5 ${isBookmarked ? "fill-current" : "fill-none"}`}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>{savesCount}</span>
+          </button>
+        </div>
+      </div>
     </Link>
-  ) : (
-    <article className={className}>{content}</article>
   );
 }

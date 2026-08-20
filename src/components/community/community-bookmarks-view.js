@@ -15,6 +15,8 @@ import { useCommunityInteractionsStore } from "@/stores/use-community-interactio
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 
+const ITEMS_PER_PAGE = 3;
+
 const CATEGORIES = [
   { id: "all", label: "전체" },
   { id: "likes", label: "좋아요한 코스" },
@@ -158,7 +160,7 @@ function BookmarkCard({ course, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] w-full bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.4)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
     >
       {/* Full Background Image */}
       <img
@@ -168,46 +170,46 @@ function BookmarkCard({ course, onAuthRequired }) {
       />
 
       {/* Top Gradient */}
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Bottom Gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay */}
-      <div className="relative z-10 p-5 flex items-start justify-between">
-        <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-[#5c2ef5] text-xs font-black text-white shadow-xs">
+      <div className="relative z-10 p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-xs">
             ★
           </span>
-          <span className="text-base leading-none">{getFlagEmoji(course.country || course.flag)}</span>
+          <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
           <div className="flex flex-col leading-tight">
-            <span className="text-xs font-bold text-white drop-shadow-xs">{course.name}</span>
-            <span className="text-[11px] font-semibold text-violet-200 drop-shadow-xs">{course.hash}</span>
+            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name}</span>
+            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area */}
-      <div className="relative z-10 p-5 pt-0 flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-2xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
             {course.title}
           </h3>
           {course.description && (
-            <p className="text-xs font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {course.description}
             </p>
           )}
         </div>
 
         {/* Bottom Stats Toolbar (Interactive Buttons: Like, Comment, Bookmark) */}
-        <div className="flex items-center justify-end gap-2.5 text-xs font-bold text-white pt-1">
+        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white pt-1">
           {/* 좋아요 버튼 토글 */}
           <button
             type="button"
             onClick={handleLike}
             aria-label="좋아요"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
@@ -229,7 +231,7 @@ function BookmarkCard({ course, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label="댓글"
-            className="flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
+            className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -242,7 +244,7 @@ function BookmarkCard({ course, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label="북마크"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isBookmarked
                 ? "bg-brand text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
@@ -286,6 +288,7 @@ export function CommunityBookmarksView() {
   const [coursesList, setCoursesList] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all"); // "all" | "likes" | "bookmarks"
   const [sortBy, setSortBy] = useState("latest"); // "latest" | "popular"
+  const [currentPage, setCurrentPage] = useState(1);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const sortDropdownRef = useRef(null);
@@ -359,6 +362,17 @@ export function CommunityBookmarksView() {
     };
   }, [isAuthenticated, router]);
 
+  const handleCategoryChange = (catId) => {
+    setActiveCategory(catId);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSort) => {
+    setSortBy(newSort);
+    setCurrentPage(1);
+    setIsSortDropdownOpen(false);
+  };
+
   // Filter based on activeCategory & sort purely by the relevant action timestamp
   const displayedCourses = useMemo(() => {
     if (!mounted) return [];
@@ -400,20 +414,17 @@ export function CommunityBookmarksView() {
       const numKeyB = String(b.postId || b.id || "1");
 
       if (activeCategory === "likes") {
-        // 좋아요한 코스 탭: 오직 좋아요한 시각(getLikedAt)으로만 정렬!
         const timeB = getLikedAt(slugKeyB, numKeyB) || b.initialLikedAt || 0;
         const timeA = getLikedAt(slugKeyA, numKeyA) || a.initialLikedAt || 0;
         return timeB - timeA;
       }
 
       if (activeCategory === "bookmarks") {
-        // 북마크한 코스 탭: 오직 북마크한 시각(getBookmarkedAt)으로만 정렬!
         const timeB = getBookmarkedAt(slugKeyB, numKeyB) || b.initialBookmarkedAt || 0;
         const timeA = getBookmarkedAt(slugKeyA, numKeyA) || a.initialBookmarkedAt || 0;
         return timeB - timeA;
       }
 
-      // 전체 카테고리
       const timeB = Math.max(
         getLikedAt(slugKeyB, numKeyB) || b.initialLikedAt || 0,
         getBookmarkedAt(slugKeyB, numKeyB) || b.initialBookmarkedAt || 0,
@@ -439,6 +450,18 @@ export function CommunityBookmarksView() {
     getLikesDelta,
     mounted,
   ]);
+
+  // Pagination calculation: 3 items per page (1 row of 3)
+  const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
+  const paginatedCourses = useMemo(() => {
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    return displayedCourses.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  }, [displayedCourses, currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 300, behavior: "smooth" });
+  };
 
   const likesCount = useMemo(() => {
     return coursesList.filter((c) => {
@@ -510,7 +533,7 @@ export function CommunityBookmarksView() {
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => handleCategoryChange(cat.id)}
                 className={`-mb-px flex items-center gap-2 border-b-2 pb-3.5 text-sm font-black transition cursor-pointer ${
                   activeCategory === cat.id
                     ? "border-brand text-brand"
@@ -535,123 +558,170 @@ export function CommunityBookmarksView() {
 
       {/* Grid Content & 정렬 드롭다운 토글 */}
       <section className="px-10 sm:px-14 py-[36px] lg:px-52 xl:px-60 2xl:px-72">
-        {/* 상단 툴바: 우측 정렬 드롭다운 토글 */}
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-xs font-bold text-ink-muted">
-            총 <span className="text-brand font-black">{displayedCourses.length}</span>개의 코스
-          </p>
+        <div className="max-w-[1020px] mx-auto">
+          {/* 상단 툴바: 우측 정렬 드롭다운 토글 */}
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-xs font-bold text-ink-muted">
+              총 <span className="text-brand font-black">{displayedCourses.length}</span>개의 코스
+            </p>
 
-          {/* 토글형 드롭다운 메뉴 */}
-          <div className="relative" ref={sortDropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsSortDropdownOpen((prev) => !prev)}
-              className="inline-flex h-9 items-center justify-between gap-2.5 rounded-full border border-line bg-white px-4 text-xs font-bold text-ink shadow-xs transition hover:border-brand hover:text-brand cursor-pointer"
-            >
-              <span>{sortBy === "latest" ? "최신순" : "인기순"}</span>
-              <svg
-                className={`size-3.5 text-ink-muted transition-transform duration-200 ${
-                  isSortDropdownOpen ? "rotate-180 text-brand" : ""
-                }`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
+            {/* 토글형 드롭다운 메뉴 */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsSortDropdownOpen((prev) => !prev)}
+                className="inline-flex h-9 items-center justify-between gap-2.5 rounded-full border border-line bg-white px-4 text-xs font-bold text-ink shadow-xs transition hover:border-brand hover:text-brand cursor-pointer"
               >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-
-            {isSortDropdownOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1.5 w-28 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-lg animate-in fade-in zoom-in-95 duration-150">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSortBy("latest");
-                    setIsSortDropdownOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                    sortBy === "latest"
-                      ? "bg-brand-soft text-brand"
-                      : "text-ink hover:bg-surface-soft"
+                <span>{sortBy === "latest" ? "최신순" : "인기순"}</span>
+                <svg
+                  className={`size-3.5 text-ink-muted transition-transform duration-200 ${
+                    isSortDropdownOpen ? "rotate-180 text-brand" : ""
                   }`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
                 >
-                  <span>최신순</span>
-                  {sortBy === "latest" && (
-                    <span className="size-1.5 rounded-full bg-brand" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSortBy("popular");
-                    setIsSortDropdownOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                    sortBy === "popular"
-                      ? "bg-brand-soft text-brand"
-                      : "text-ink hover:bg-surface-soft"
-                  }`}
-                >
-                  <span>인기순</span>
-                  {sortBy === "popular" && (
-                    <span className="size-1.5 rounded-full bg-brand" />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
 
-        {/* 카드 그리드 */}
-        {loading ? (
-          <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
-            <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
-            <p className="text-xs font-bold text-ink-muted">코스를 불러오는 중...</p>
-          </div>
-        ) : displayedCourses.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedCourses.map((course) => (
-              <BookmarkCard
-                key={course.postId || course.slug || course.id}
-                course={course}
-                onAuthRequired={() => setIsLoginModalOpen(true)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-line bg-white p-16 text-center shadow-xs">
-            <div className="flex size-14 items-center justify-center rounded-full bg-brand-soft text-brand mb-4">
-              {activeCategory === "likes" ? (
-                <svg className="size-7 fill-red-500 text-red-500" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-              ) : (
-                <svg className="size-7 fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                </svg>
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-full z-30 mt-1.5 w-28 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-lg animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    type="button"
+                    onClick={() => handleSortChange("latest")}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      sortBy === "latest"
+                        ? "bg-brand-soft text-brand"
+                        : "text-ink hover:bg-surface-soft"
+                    }`}
+                  >
+                    <span>최신순</span>
+                    {sortBy === "latest" && (
+                      <span className="size-1.5 rounded-full bg-brand" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortChange("popular")}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      sortBy === "popular"
+                        ? "bg-brand-soft text-brand"
+                        : "text-ink hover:bg-surface-soft"
+                    }`}
+                  >
+                    <span>인기순</span>
+                    {sortBy === "popular" && (
+                      <span className="size-1.5 rounded-full bg-brand" />
+                    )}
+                  </button>
+                </div>
               )}
             </div>
-            <h3 className="text-lg font-black text-ink">
-              {activeCategory === "likes"
-                ? "아직 좋아요한 코스가 없어요"
-                : activeCategory === "bookmarks"
-                  ? "아직 북마크한 코스가 없어요"
-                  : "아직 저장한 코스가 없어요"}
-            </h3>
-            <p className="mt-2 text-xs text-ink-muted max-w-sm">
-              {activeCategory === "likes"
-                ? "여행자들이 공유한 코스를 구경하고 마음에 드는 코스에 좋아요를 눌러보세요!"
-                : "여행자들이 만든 다채로운 코스를 구경하고 마음에 드는 코스를 북마크해 보관해보세요!"}
-            </p>
-            <Link
-              href="/community"
-              className="mt-6 rounded-full bg-brand px-8 py-3.5 text-xs font-black text-white shadow-control transition hover:bg-brand-dark"
-            >
-              커뮤니티 코스 둘러보기 →
-            </Link>
           </div>
-        )}
+
+          {/* 카드 그리드 (10% 축소 사이즈) */}
+          {loading ? (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
+              <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
+              <p className="text-xs font-bold text-ink-muted">코스를 불러오는 중...</p>
+            </div>
+          ) : paginatedCourses.length > 0 ? (
+            <>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {paginatedCourses.map((course) => (
+                  <BookmarkCard
+                    key={course.postId || course.slug || course.id}
+                    course={course}
+                    onAuthRequired={() => setIsLoginModalOpen(true)}
+                  />
+                ))}
+              </div>
+
+              {/* 페이징 컨트롤 */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                      currentPage === 1
+                        ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
+                        : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                    }`}
+                    aria-label="이전 페이지"
+                  >
+                    ‹
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`flex size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
+                        currentPage === pageNum
+                          ? "bg-brand text-white shadow-md"
+                          : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
+                      }`}
+                      aria-current={currentPage === pageNum ? "page" : undefined}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                      currentPage === totalPages
+                        ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
+                        : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                    }`}
+                    aria-label="다음 페이지"
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-line bg-white p-16 text-center shadow-xs">
+              <div className="flex size-14 items-center justify-center rounded-full bg-brand-soft text-brand mb-4">
+                {activeCategory === "likes" ? (
+                  <svg className="size-7 fill-red-500 text-red-500" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                ) : (
+                  <svg className="size-7 fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="text-lg font-black text-ink">
+                {activeCategory === "likes"
+                  ? "아직 좋아요한 코스가 없어요"
+                  : activeCategory === "bookmarks"
+                    ? "아직 북마크한 코스가 없어요"
+                    : "아직 저장한 코스가 없어요"}
+              </h3>
+              <p className="mt-2 text-xs text-ink-muted max-w-sm">
+                {activeCategory === "likes"
+                  ? "여행자들이 공유한 코스를 구경하고 마음에 드는 코스에 좋아요를 눌러보세요!"
+                  : "여행자들이 만든 다채로운 코스를 구경하고 마음에 드는 코스를 북마크해 보관해보세요!"}
+              </p>
+              <Link
+                href="/community"
+                className="mt-6 rounded-full bg-brand px-8 py-3.5 text-xs font-black text-white shadow-control transition hover:bg-brand-dark"
+              >
+                커뮤니티 코스 둘러보기 →
+              </Link>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* 로그인 필요 알림 모달 */}
