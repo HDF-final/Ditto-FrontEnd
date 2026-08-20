@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import { DEFAULT_PERSONA_ID } from "@/lib/fixtures/personas";
 import { signup, login } from "@/lib/api/auth";
-import { updateMyPreferences } from "@/lib/api/users";
+import { updateMyProfile } from "@/lib/api/users";
 import { useSignupStore } from "@/stores/use-signup-store";
 import { useAuthStore } from "@/stores/use-auth-store";
 
@@ -42,16 +42,15 @@ export function PersonaForm({ copy }) {
     try {
       // 1. If already signed up in step 1, update preference and finalize
       if (draft.isSignedUp) {
-        try {
-          await updateMyPreferences({
-            countryCode: draft.country || "KR",
-            persona: selectedId,
-          });
-        } catch {
-          // Ignore preference update error if optional
-        }
+        await updateMyProfile({ persona: selectedId });
         if (user) {
-          setUser({ ...user, persona: selectedId, country: draft.country || user.country });
+          setUser({
+            ...user,
+            persona: selectedId,
+            countryCode: draft.country || user.countryCode,
+            preferredLanguageCode:
+              draft.language || user.preferredLanguageCode,
+          });
         }
         resetDraft();
         router.push(PERSONA_SUCCESS_HREF);
@@ -65,11 +64,12 @@ export function PersonaForm({ copy }) {
           password: draft.password,
           nickname: draft.nickname || "디또러버",
           country: draft.country || "KR",
+          languageCode: draft.language || "ko",
           persona: selectedId,
           marketingAgreed: Boolean(draft.marketingAccepted),
         };
 
-        const signupResult = await signup(signupPayload);
+        await signup(signupPayload);
 
         try {
           const loginResult = await login({
@@ -80,9 +80,7 @@ export function PersonaForm({ copy }) {
             setUser(loginResult);
           }
         } catch {
-          if (signupResult) {
-            setUser(signupResult);
-          }
+          // Signup success does not establish an authenticated session.
         }
 
         resetDraft();

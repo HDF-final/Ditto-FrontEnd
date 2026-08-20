@@ -206,9 +206,9 @@ Ditto-FrontEnd/
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가 코드처럼 온보딩과 공용 셀렉터가 공유하는 값은 `src/stores/use-preference-store.js`에 두되 **persist하지 않습니다**. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리합니다. 비로그인 사용자의 `countryCode`, `languageCode`만 localStorage에 보존하며, 로그인 사용자는 `GET /users/me`로 받은 DB 설정이 우선합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
 
-인증·온보딩 임시 이동 정책(실제 로그인/토큰 없음):
+인증·온보딩 이동 정책:
 
 ```text
 /signup → /country → /persona?lang=… → /
@@ -287,12 +287,25 @@ Zustand는 국가·언어, 다단계 코스 작성 상태, 전역 모달처럼 �
 import { usePreferenceStore } from "@/stores/use-preference-store";
 
 const countryCode = usePreferenceStore((state) => state.countryCode);
+const languageCode = usePreferenceStore((state) => state.languageCode);
 ```
 
 - 한 컴포넌트에서만 사용하는 값은 React `useState`를 사용합니다.
 - API 응답 목록 전체를 Zustand에 불필요하게 복사하지 않습니다.
 - 인증 토큰을 Zustand persist나 `localStorage`에 저장하지 않습니다.
-- persist가 필요해질 때는 Next.js hydration 전략을 먼저 정의합니다.
+- 국가·언어 저장소는 `skipHydration` 후 클라이언트에서 복원하며, 로그인된 경우 DB 값으로 덮어씁니다.
+- `/country`에서 국가는 콘텐츠·트렌드 시장, 언어는 화면 표시 언어로 별도 선택합니다.
+
+### 국가·언어 설정 1차 범위
+
+- 지원 국가: `KR`, `CN`, `JP`, `US`
+- 지원 언어: `ko`, `zh`, `ja`, `en`
+- 저장 API: `PATCH /api/v1/users/me/preferences`
+- 세션 복원: `GET /api/v1/users/me`
+- 게스트 저장: `ditto-preferences-v1` localStorage (국가·언어만 저장)
+
+이번 1차에는 설정 저장과 선택 UI까지만 포함합니다. 화면 고정 문구 사전, 실제 UI 언어 전환,
+동적 콘텐츠 번역 및 DeepL 연동은 후속 단계입니다.
 
 ## Tailwind CSS
 

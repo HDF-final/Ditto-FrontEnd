@@ -18,6 +18,7 @@ import {
 
 import { useSignupStore } from "@/stores/use-signup-store";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { usePreferenceStore } from "@/stores/use-preference-store";
 import { signup, login } from "@/lib/api/auth";
 
 /**
@@ -37,6 +38,8 @@ export function SignupForm() {
   const draft = useSignupStore((state) => state.draft);
   const setDraft = useSignupStore((state) => state.setDraft);
   const setUser = useAuthStore((state) => state.setUser);
+  const countryCode = usePreferenceStore((state) => state.countryCode);
+  const languageCode = usePreferenceStore((state) => state.languageCode);
 
   const [email, setEmail] = useState(draft.email || "");
   const [password, setPassword] = useState(draft.password || "");
@@ -80,11 +83,12 @@ export function SignupForm() {
 
     try {
       // 1. Call real backend signup API to validate email uniqueness and create user in RDS
-      const signupResult = await signup({
+      await signup({
         email,
         password,
         nickname: nickname || "디또러버",
-        country: draft.country || "KR",
+        country: countryCode || draft.country || "KR",
+        languageCode: languageCode || draft.language || "ko",
         persona: draft.persona || "openrun",
         marketingAgreed: Boolean(marketingAccepted),
       });
@@ -96,9 +100,7 @@ export function SignupForm() {
           setUser(loginResult);
         }
       } catch {
-        if (signupResult) {
-          setUser(signupResult);
-        }
+        // Signup success does not establish an authenticated session.
       }
 
       // 3. Save draft marked as successfully signed up
@@ -108,6 +110,8 @@ export function SignupForm() {
         nickname,
         termsAccepted,
         marketingAccepted,
+        country: countryCode || "KR",
+        language: languageCode || "ko",
         isSignedUp: true,
       });
 
