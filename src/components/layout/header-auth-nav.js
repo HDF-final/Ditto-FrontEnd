@@ -29,12 +29,19 @@ export function HeaderAuthNav() {
   const clearUser = useAuthStore((state) => state.clearUser);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage?.setItem("ditto_logged_out", "true");
+    }
+    clearUser();
     try {
       await logout();
-    } catch {
-      // Ignore network errors on logout
+    } catch (err) {
+      console.warn("[HeaderAuthNav] Error calling logout:", err?.message);
     } finally {
-      clearUser();
+      if (typeof window !== "undefined") {
+        // Hard reload to root to completely purge client memory and cookies
+        window.location.replace("/");
+      }
     }
   };
 

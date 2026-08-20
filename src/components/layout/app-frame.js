@@ -28,6 +28,14 @@ export function AppFrame({ children }) {
     let isMounted = true;
 
     async function restoreSession() {
+      if (
+        typeof window !== "undefined" &&
+        window.sessionStorage?.getItem("ditto_logged_out") === "true"
+      ) {
+        clearUser();
+        return;
+      }
+
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
