@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useAuthStore } from "@/stores/use-auth-store";
 
-const publicNavigation = [
-  { href: "/", labelKey: "home" },
+const navigation = [
   { href: "/ai-course", labelKey: "createCourse", badge: "NEW" },
   { href: "/#picks", labelKey: "courseRecommendations" },
   { href: "/#community", labelKey: "community" },
@@ -16,15 +14,9 @@ const publicNavigation = [
 export function HeaderNavLinks() {
   const t = useTranslations("navigation");
   const pathname = usePathname();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-
-  const navigation = [
-    ...publicNavigation,
-    ...(isAuthenticated ? [{ href: "/mypage", labelKey: "mypage" }] : []),
-  ];
 
   return (
-    <nav className="hidden items-center gap-6 text-base font-black lg:flex">
+    <nav className="hidden items-center gap-8 text-[17px] font-black lg:flex xl:gap-10 xl:text-lg 2xl:gap-12">
       {navigation.map((item) => {
         const isActive = pathname === item.href;
 

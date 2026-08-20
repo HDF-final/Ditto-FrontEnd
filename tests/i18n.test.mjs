@@ -75,3 +75,17 @@ test("server request config and root layout use the preference locale", async ()
   assert.match(rootLayout, /lang=\{initialPreferences\.languageCode\}/);
   assert.match(rootLayout, /NextIntlClientProvider/);
 });
+
+test("header exposes exactly the four primary product navigation items", async () => {
+  const source = await read("src/components/layout/header-nav-links.js");
+  const items = [...source.matchAll(/href: "([^"]+)", labelKey: "([^"]+)"/g)]
+    .map(([, href, labelKey]) => ({ href, labelKey }));
+
+  assert.deepEqual(items, [
+    { href: "/ai-course", labelKey: "createCourse" },
+    { href: "/#picks", labelKey: "courseRecommendations" },
+    { href: "/#community", labelKey: "community" },
+    { href: "/#newsletter", labelKey: "news" },
+  ]);
+  assert.doesNotMatch(source, /useAuthStore/);
+});
