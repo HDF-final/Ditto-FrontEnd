@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { communityCourses } from "@/lib/fixtures/home";
 import { SectionHeading } from "@/components/home/section-heading";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -26,6 +27,7 @@ function getFlagEmoji(countryCode) {
 }
 
 function CommunityCourseCard({ course, onAuthRequired }) {
+  const t = useTranslations("home");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -167,7 +169,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label="좋아요"
+            aria-label={t("like")}
             className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
@@ -190,7 +192,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label="댓글"
+            aria-label={t("comment")}
             className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
           >
             <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -203,7 +205,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label="저장"
+            aria-label={t("save")}
             className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
@@ -228,6 +230,8 @@ function CommunityCourseCard({ course, onAuthRequired }) {
 }
 
 export function CommunityPreviewSection() {
+  const t = useTranslations("home");
+  const common = useTranslations("common");
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -262,10 +266,10 @@ export function CommunityPreviewSection() {
     >
       <SectionHeading
         eyebrow="TRAVELER COMMUNITY"
-        title="지금 인기 있는 커스텀 코스"
-        description="다른 여행자들이 직접 만들고 공유한 코스를 확인해보세요."
+        title={t("communityTitle")}
+        description={t("communityDescription")}
         href="/community"
-        linkLabel="커뮤니티 둘러보기"
+        linkLabel={t("browseCommunity")}
         inverse
       />
 
@@ -304,7 +308,7 @@ export function CommunityPreviewSection() {
                 ? "w-7 bg-white shadow-sm"
                 : "w-2.5 bg-white/40 hover:bg-white/70"
             }`}
-            aria-label={`${idx + 1}번째 코스 목록 보기`}
+            aria-label={t("courseListItem", { index: idx + 1 })}
             aria-current={currentSlide === idx}
           />
         ))}
@@ -338,9 +342,11 @@ export function CommunityPreviewSection() {
                 />
               </svg>
             </div>
-            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <h3 className="text-base font-black text-ink">
+              {t("loginRequired")}
+            </h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
+              {t("loginRequiredDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -348,7 +354,7 @@ export function CommunityPreviewSection() {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {common("cancel")}
               </button>
               <button
                 type="button"
@@ -358,7 +364,7 @@ export function CommunityPreviewSection() {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                로그인하기 →
+                {t("loginAction")}
               </button>
             </div>
           </div>

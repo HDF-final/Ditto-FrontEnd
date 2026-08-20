@@ -5,8 +5,11 @@ import Image from "next/image";
 import { normalizePersonaId, getPersonaPageCopy } from "@/lib/fixtures/personas";
 import { updateMyProfile } from "@/lib/api/users";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useLocale, useTranslations } from "next-intl";
 
 export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpdated }) {
+  const t = useTranslations("mypage");
+  const locale = useLocale();
   const setUser = useAuthStore((state) => state.setUser);
   const authUser = useAuthStore((state) => state.user);
 
@@ -19,12 +22,12 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
 
   if (!isOpen) return null;
 
-  const copy = getPersonaPageCopy("ko");
+  const copy = getPersonaPageCopy(locale);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!nickname.trim()) {
-      setError("닉네임을 입력해 주세요.");
+      setError(t("nicknameRequired"));
       return;
     }
 
@@ -52,7 +55,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
       }
       onClose();
     } catch (err) {
-      setError(err?.message || "프로필 수정 중 오류가 발생했습니다.");
+      setError(err?.message || t("editFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -66,12 +69,12 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
     >
       <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-line pb-4">
-          <h2 className="text-xl font-black text-ink">프로필 편집</h2>
+          <h2 className="text-xl font-black text-ink">{t("editProfile")}</h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-ink-muted hover:bg-surface-soft hover:text-ink cursor-pointer"
-            aria-label="닫기"
+            aria-label={t("close")}
           >
             <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -82,7 +85,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
           {/* 닉네임 */}
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-ink">닉네임</label>
+            <label className="mb-1.5 block text-xs font-bold text-ink">{t("nickname")}</label>
             <input
               type="text"
               value={nickname}
@@ -90,7 +93,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
                 setNickname(e.target.value);
                 setError("");
               }}
-              placeholder="새로운 닉네임을 입력하세요"
+              placeholder={t("nicknamePlaceholder")}
               className="w-full rounded-xl border border-line bg-surface-soft px-4 py-3 text-sm font-medium text-ink focus:border-brand focus:bg-white focus:outline-none"
             />
           </div>
@@ -98,7 +101,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
           {/* 비밀번호 */}
           <div>
             <label className="mb-1.5 block text-xs font-bold text-ink">
-              비밀번호 변경 <span className="text-xs font-normal text-ink-muted">(선택)</span>
+              {t("passwordChange")} <span className="text-xs font-normal text-ink-muted">{t("optional")}</span>
             </label>
             <input
               type="password"
@@ -107,7 +110,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
                 setPassword(e.target.value);
                 setError("");
               }}
-              placeholder="변경할 비밀번호 (미입력 시 기존 유지)"
+              placeholder={t("passwordPlaceholder")}
               autoComplete="new-password"
               className="w-full rounded-xl border border-line bg-surface-soft px-4 py-3 text-sm font-medium text-ink focus:border-brand focus:bg-white focus:outline-none"
             />
@@ -115,7 +118,7 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
 
           {/* 페르소나 선택 */}
           <div>
-            <label className="mb-2 block text-xs font-bold text-ink">쇼핑 타입 (페르소나)</label>
+            <label className="mb-2 block text-xs font-bold text-ink">{t("persona")}</label>
             <div className="grid grid-cols-2 gap-2.5">
               {copy.personas.map((persona) => {
                 const isSelected = selectedPersona === persona.id;
@@ -162,14 +165,14 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
               onClick={onClose}
               className="rounded-full border border-line px-5 py-2.5 text-xs font-bold text-ink hover:bg-surface-soft cursor-pointer"
             >
-              취소
+              {t("cancel")}
             </button>
             <button
               type="submit"
               disabled={isLoading}
               className="rounded-full bg-brand px-6 py-2.5 text-xs font-black text-white hover:bg-brand-dark cursor-pointer disabled:opacity-50"
             >
-              {isLoading ? "저장 중..." : "저장하기"}
+              {isLoading ? t("saving") : t("save")}
             </button>
           </div>
         </form>

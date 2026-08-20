@@ -1,3 +1,5 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
 /** @type {import('next').NextConfig} */
 
 // 브라우저는 항상 같은 오리진의 `/api/*`로 요청하고, Next가 백엔드로 프록시합니다.
@@ -45,4 +47,6 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.js");
+
+export default withNextIntl(nextConfig);

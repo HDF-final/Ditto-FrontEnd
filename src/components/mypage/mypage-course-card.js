@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useTranslations } from "next-intl";
 import {
   likeCourse,
   unlikeCourse,
@@ -22,6 +23,7 @@ function getFlagEmoji(countryCode = "") {
 }
 
 export function MypageCourseCard({ course, onAuthRequired }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -129,7 +131,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           </span>
           <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
           <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || "여행자"}</span>
+            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || t("traveler")}</span>
             <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
           </div>
         </div>
@@ -154,7 +156,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleLike}
-            aria-label="좋아요"
+            aria-label={t("like")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
@@ -176,7 +178,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleCommentClick}
-            aria-label="댓글"
+            aria-label={t("comments")}
             className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -189,7 +191,7 @@ export function MypageCourseCard({ course, onAuthRequired }) {
           <button
             type="button"
             onClick={handleBookmark}
-            aria-label="북마크"
+            aria-label={t("save")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
               isBookmarked
                 ? "bg-brand text-white scale-105"

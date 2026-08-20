@@ -1,4 +1,6 @@
 import { cookies, headers } from "next/headers";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
 import { AppFrame } from "@/components/layout/app-frame";
 import { PreferenceStoreProvider } from "@/stores/use-preference-store";
 import {
@@ -7,19 +9,23 @@ import {
 } from "@/lib/preferences/preference-policy";
 import "./globals.css";
 
-export const metadata = {
-  title: {
-    default: "DITTO | K-Culture Shopping Mate",
-    template: "%s | DITTO",
-  },
-  description:
-    "국가별 K-컬처 트렌드부터 AI 맞춤 코스와 실내 길찾기까지 연결하는 관광 플랫폼",
-};
+export async function generateMetadata() {
+  const messages = await getMessages();
+
+  return {
+    title: {
+      default: "DITTO | K-Culture Shopping Mate",
+      template: "%s | DITTO",
+    },
+    description: messages.metadata.siteDescription,
+  };
+}
 
 export default async function RootLayout({ children }) {
-  const [cookieStore, requestHeaders] = await Promise.all([
+  const [cookieStore, requestHeaders, messages] = await Promise.all([
     cookies(),
     headers(),
+    getMessages(),
   ]);
   const initialPreferences = resolveInitialPreferences({
     countryCookie: cookieStore.get(PREFERENCE_COOKIE_NAMES.country)?.value,
@@ -38,7 +44,13 @@ export default async function RootLayout({ children }) {
     >
       <body className="flex min-h-full flex-col">
         <PreferenceStoreProvider initialPreferences={initialPreferences}>
-          <AppFrame>{children}</AppFrame>
+          <NextIntlClientProvider
+            locale={initialPreferences.languageCode}
+            messages={messages}
+            timeZone="Asia/Seoul"
+          >
+            <AppFrame>{children}</AppFrame>
+          </NextIntlClientProvider>
         </PreferenceStoreProvider>
       </body>
     </html>

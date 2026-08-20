@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export function MypageProfile({ profile, stats, onEditClick }) {
+  const t = useTranslations("mypage");
   const persona = profile.persona;
 
   return (
@@ -58,7 +62,7 @@ export function MypageProfile({ profile, stats, onEditClick }) {
             onClick={onEditClick}
             className="w-fit rounded-full border border-[#e0d8ff] bg-brand-soft px-6 py-3 text-sm font-black text-brand transition hover:bg-[#e7ddff] cursor-pointer"
           >
-            프로필 편집
+            {t("editProfile")}
           </button>
         </div>
 

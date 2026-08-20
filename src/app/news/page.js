@@ -2,12 +2,19 @@ import { NewsFeaturedCard } from "@/components/news/news-featured-card";
 import { NewsFeed } from "@/components/news/news-feed";
 import { fetchNewsFeedsServer } from "@/lib/api/news.server";
 import { newsTabs } from "@/lib/fixtures/news";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "뉴스피드" };
+export async function generateMetadata() {
+  const t = await getTranslations("news");
+  return { title: t("title"), description: t("description") };
+}
 
 export default async function NewsPage() {
-  const feeds = await fetchNewsFeedsServer({ page: 0, size: 20 });
+  const [feeds, t] = await Promise.all([
+    fetchNewsFeedsServer({ page: 0, size: 20 }),
+    getTranslations("news"),
+  ]);
   const featured = feeds[0] || null;
   const feedItems = feeds.length > 1 ? feeds.slice(1) : feeds;
 
@@ -19,10 +26,10 @@ export default async function NewsPage() {
             DITTO NEWSLETTER
           </p>
           <h1 className="mt-1 text-[28px] font-black tracking-tight text-ink">
-            뉴스피드
+            {t("title")}
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            K-컬처와 브랜드, 그리고 우리 사회에 선한 변화를 만드는 소식.
+            {t("description")}
           </p>
         </div>
         {featured ? <NewsFeaturedCard news={featured} /> : null}

@@ -3,10 +3,11 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, X } from "./recommend-icons";
 import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
 
-const ALL = "전체";
+const ALL = "__all__";
 
 // Small pill button used by both the category and floor filter rows.
 function FilterChip({ label, active, onClick }) {
@@ -34,6 +35,7 @@ function FilterChip({ label, active, onClick }) {
  * Already-added places are filtered out by the caller before they reach here.
  */
 export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
+  const t = useTranslations("aiCourse");
   const [category, setCategory] = useState(ALL);
   const [floor, setFloor] = useState(ALL);
   const [query, setQuery] = useState("");
@@ -84,9 +86,9 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
         {/* Header */}
         <div className="shrink-0 flex items-start justify-between px-6 pt-6 pb-4 border-b border-[#f0ecfa]">
           <div>
-            <h2 className="text-[18px] font-bold text-[#1a142e]">장소 추가</h2>
+            <h2 className="text-[18px] font-bold text-[#1a142e]">{t("addPlace")}</h2>
             <p className="text-[12px] text-[#9994ad] mt-1">
-              백화점 안 상점을 카테고리·층별로 골라보세요
+              {t("placePickerDescription")}
             </p>
           </div>
           <button
@@ -100,24 +102,24 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
         {/* Filters: category + floor */}
         <div className="shrink-0 px-5 pt-4 pb-3 border-b border-[#f0ecfa] flex flex-col gap-[10px]">
           <label>
-            <span className="sr-only">매장명 검색</span>
+            <span className="sr-only">{t("searchStore")}</span>
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="124개 매장 중 이름으로 검색"
+              placeholder={t("searchPlaceholder", { count: places.length })}
               className="w-full rounded-xl border border-[#e0d9f8] bg-[#faf8ff] px-3.5 py-2.5 text-[13px] text-[#1a142e] outline-none transition-colors placeholder:text-[#aaa5b8] focus:border-[#5c2ef5]"
             />
           </label>
           <div>
             <p className="text-[10px] font-bold tracking-wide text-[#9994ad] mb-[6px]">
-              카테고리
+              {t("category")}
             </p>
             <div className="flex gap-[7px] overflow-x-auto pb-1">
               {categoryOptions.map((c) => (
                 <FilterChip
                   key={c}
-                  label={c}
+                  label={c === ALL ? t("all") : c}
                   active={category === c}
                   onClick={() => setCategory(c)}
                 />
@@ -126,13 +128,13 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
           </div>
           <div>
             <p className="text-[10px] font-bold tracking-wide text-[#9994ad] mb-[6px]">
-              층수
+              {t("floor")}
             </p>
             <div className="flex gap-[7px] overflow-x-auto pb-1">
               {floorOptions.map((f) => (
                 <FilterChip
                   key={f}
-                  label={f}
+                  label={f === ALL ? t("all") : f}
                   active={floor === f}
                   onClick={() => setFloor(f)}
                 />
@@ -148,8 +150,8 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
               <span className="text-2xl">🗺️</span>
               <p className="text-[13px] text-[#6b6685]">
                 {places.length === 0
-                  ? "추천할 수 있는 장소를 모두 담았어요"
-                  : "선택한 조건에 맞는 장소가 없어요"}
+                  ? t("allAdded")
+                  : t("noMatches")}
               </p>
             </div>
           ) : (
@@ -166,7 +168,7 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
                   });
                 }}
                 className="flex items-center gap-[12px] rounded-[14px] p-[12px] border-2 border-transparent hover:border-[#e0d9f8] hover:bg-[#faf8ff] transition-all cursor-pointer group"
-                title="클릭하여 매장 상세 정보 보기"
+                title={t("viewStore")}
               >
                 {place.image ? (
                   <img
@@ -210,7 +212,7 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
                   }}
                   className="shrink-0 flex items-center gap-[4px] rounded-full px-[13px] py-[7px] text-[12px] font-semibold text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors active:scale-95 cursor-pointer z-10"
                 >
-                  <Plus size={13} /> 추가
+                  <Plus size={13} /> {t("add")}
                 </button>
               </div>
             ))

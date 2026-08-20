@@ -1,40 +1,43 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function validateEmail(value) {
+export function validateEmail(value, messages = {}) {
   const email = value.trim();
 
   if (!email) {
-    return "이메일을 입력하세요.";
+    return messages.required || "이메일을 입력하세요.";
   }
 
   if (!EMAIL_PATTERN.test(email)) {
-    return "올바른 이메일 형식을 입력하세요.";
+    return messages.invalid || "올바른 이메일 형식을 입력하세요.";
   }
 
   return "";
 }
 
-export function validatePassword(value) {
+export function validatePassword(value, messages = {}) {
   if (!value) {
-    return "비밀번호를 입력하세요.";
+    return messages.required || "비밀번호를 입력하세요.";
   }
 
   return "";
 }
 
-export function validateNickname(value) {
+export function validateNickname(value, messages = {}) {
   const nickname = value.trim();
 
   if (!nickname) {
-    return "닉네임을 입력하세요.";
+    return messages.required || "닉네임을 입력하세요.";
   }
 
   return "";
 }
 
-export function validateRequiredTerms(checked) {
+export function validateRequiredTerms(checked, messages = {}) {
   if (!checked) {
-    return "이용약관 및 개인정보처리방침에 동의해 주세요.";
+    return (
+      messages.required ||
+      "이용약관 및 개인정보처리방침에 동의해 주세요."
+    );
   }
 
   return "";

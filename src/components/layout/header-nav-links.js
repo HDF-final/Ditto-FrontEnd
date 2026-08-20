@@ -2,23 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 const publicNavigation = [
-  { href: "/", label: "홈" },
-  { href: "/ai-course", label: "코스 만들기", badge: "NEW" },
-  { href: "/#picks", label: "코스 추천" },
-  { href: "/#community", label: "커뮤니티" },
-  { href: "/#newsletter", label: "뉴스피드" },
+  { href: "/", labelKey: "home" },
+  { href: "/ai-course", labelKey: "createCourse", badge: "NEW" },
+  { href: "/#picks", labelKey: "courseRecommendations" },
+  { href: "/#community", labelKey: "community" },
+  { href: "/#newsletter", labelKey: "news" },
 ];
 
 export function HeaderNavLinks() {
+  const t = useTranslations("navigation");
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const navigation = [
     ...publicNavigation,
-    ...(isAuthenticated ? [{ href: "/mypage", label: "마이페이지" }] : []),
+    ...(isAuthenticated ? [{ href: "/mypage", labelKey: "mypage" }] : []),
   ];
 
   return (
@@ -34,7 +36,7 @@ export function HeaderNavLinks() {
               isActive ? "text-brand" : "text-ink"
             }`}
           >
-            {item.label}
+            {t(item.labelKey)}
             {item.badge ? (
               <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
                 {item.badge}

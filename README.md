@@ -26,6 +26,7 @@
 | Styling | Tailwind CSS | 반응형 UI와 디자인 토큰 |
 | HTTP | Axios | 브라우저 API 통신 공통 인스턴스 |
 | Client state | Zustand | 여러 클라이언트 컴포넌트가 공유하는 상태 |
+| Internationalization | next-intl | 서버 렌더링과 클라이언트 UI의 한·중·일·영 고정 문구 |
 | Package manager | pnpm | 의존성 및 잠금 파일 관리 |
 
 설치된 정확한 버전은 [package.json](./package.json)과 `pnpm-lock.yaml`을 기준으로 합니다.
@@ -217,6 +218,14 @@ Ditto-FrontEnd/
 ```
 
 전역 레이아웃이 요청 쿠키와 `Accept-Language`를 읽어 Zustand provider의 첫 상태와 `<html lang>`을 함께 초기화하므로, hydration 이후 언어가 뒤늦게 바뀌는 현상을 막습니다. 국가를 바꾸면 그 국가의 기본 언어를 함께 선택하되, 사용자가 언어를 직접 선택한 뒤에는 국가를 바꿔도 해당 언어를 유지합니다. 헤더에서는 국가와 화면 언어를 별도 선택기로 제공합니다.
+
+### 한·중·일·영 UI 다국어
+
+`next-intl` 기반으로 한국어(`ko`), 중국어(`zh`), 일본어(`ja`), 영어(`en`)를 지원합니다. 번역 카탈로그는 `messages/{locale}.json`, 요청별 언어 결정은 `src/i18n/request.js`, 지원 언어와 기본값은 `src/i18n/config.js`에서 관리합니다.
+
+고정 UI 문구는 메시지 키로 관리하며, 언어 선택 쿠키가 바뀌면 서버 컴포넌트까지 같은 언어로 다시 렌더링합니다. 새 문구를 추가할 때는 네 카탈로그에 동일한 키를 추가해야 합니다. 키 구조 일치와 다른 언어 파일의 한국어 혼입은 `pnpm test:i18n`으로 검사합니다.
+
+이번 단계는 메뉴, 제목, 버튼, 입력 안내, 오류와 접근성 문구 같은 프론트 고정 UI만 포함합니다. 뉴스·커뮤니티 게시물·코스명·AI 응답처럼 API나 사용자가 만드는 동적 콘텐츠의 자동 번역은 Azure Translator 연동 단계에서 별도로 처리합니다. 따라서 현재 단계에는 Azure 키가 필요하지 않습니다.
 
 인증·온보딩 이동 정책:
 

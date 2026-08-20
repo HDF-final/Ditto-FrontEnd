@@ -7,9 +7,10 @@
     "build": "next build --webpack",
     "start": "next start --port 3000",
     "lint": "eslint .",
-    "test": "pnpm test:navigation && pnpm test:preferences",
+    "test": "pnpm test:navigation && pnpm test:preferences && pnpm test:i18n",
     "test:navigation": "node --test tests/navigation-routing.test.mjs",
     "test:preferences": "node --test tests/preference-policy.test.mjs",
+    "test:i18n": "node --test tests/i18n.test.mjs",
     "check": "pnpm lint && pnpm build"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "@react-three/fiber": "^9.6.1",
     "axios": "^1.19.0",
     "next": "16.3.0",
+    "next-intl": "^4.13.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "three": "^0.185.1",

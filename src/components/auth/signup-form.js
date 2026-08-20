@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   AuthAltLink,
   AuthFieldError,
@@ -34,6 +35,7 @@ const initialErrors = {
 };
 
 export function SignupForm() {
+  const t = useTranslations();
   const router = useRouter();
   const draft = useSignupStore((state) => state.draft);
   const setDraft = useSignupStore((state) => state.setDraft);
@@ -61,10 +63,19 @@ export function SignupForm() {
     event.preventDefault();
 
     const nextErrors = {
-      email: validateEmail(email),
-      password: validatePassword(password),
-      nickname: validateNickname(nickname),
-      terms: validateRequiredTerms(termsAccepted),
+      email: validateEmail(email, {
+        required: t("validation.emailRequired"),
+        invalid: t("validation.emailInvalid"),
+      }),
+      password: validatePassword(password, {
+        required: t("validation.passwordRequired"),
+      }),
+      nickname: validateNickname(nickname, {
+        required: t("validation.nicknameRequired"),
+      }),
+      terms: validateRequiredTerms(termsAccepted, {
+        required: t("validation.termsRequired"),
+      }),
     };
 
     setErrors(nextErrors);
@@ -117,7 +128,7 @@ export function SignupForm() {
 
       router.push(SIGNUP_SUCCESS_HREF);
     } catch (err) {
-      const errMsg = err?.message || "회원가입 처리 중 오류가 발생했습니다.";
+      const errMsg = err?.message || t("auth.signupError");
       if (
         errMsg.includes("이메일") ||
         errMsg.includes("email") ||
@@ -145,7 +156,7 @@ export function SignupForm() {
       >
         <div>
           <label htmlFor="signup-email" className="sr-only">
-            이메일
+            {t("auth.email")}
           </label>
           <input
             id="signup-email"
@@ -153,7 +164,7 @@ export function SignupForm() {
             type="email"
             inputMode="email"
             autoComplete="email"
-            placeholder="이메일을 입력하세요"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);
@@ -167,14 +178,14 @@ export function SignupForm() {
         </div>
         <div>
           <label htmlFor="signup-password" className="sr-only">
-            비밀번호
+            {t("auth.password")}
           </label>
           <input
             id="signup-password"
             name="password"
             type="password"
             autoComplete="new-password"
-            placeholder="비밀번호를 입력하세요"
+            placeholder={t("auth.passwordPlaceholder")}
             value={password}
             onChange={(event) => {
               setPassword(event.target.value);
@@ -193,14 +204,14 @@ export function SignupForm() {
         </div>
         <div>
           <label htmlFor="signup-nickname" className="sr-only">
-            닉네임
+            {t("auth.nickname")}
           </label>
           <input
             id="signup-nickname"
             name="nickname"
             type="text"
             autoComplete="nickname"
-            placeholder="닉네임을 입력하세요"
+            placeholder={t("auth.nicknamePlaceholder")}
             value={nickname}
             onChange={(event) => {
               setNickname(event.target.value);
@@ -228,7 +239,7 @@ export function SignupForm() {
             }}
             error={errors.terms}
           >
-            이용약관 및 개인정보처리방침에 동의합니다 (필수)
+            {t("auth.requiredTerms")}
           </TermsCheckbox>
           <TermsCheckbox
             id="signup-marketing"
@@ -236,7 +247,7 @@ export function SignupForm() {
             checked={marketingAccepted}
             onChange={(event) => setMarketingAccepted(event.target.checked)}
           >
-            마케팅 정보 수신에 동의합니다 (선택)
+            {t("auth.marketingTerms")}
           </TermsCheckbox>
         </div>
         {serverError ? (
@@ -255,19 +266,19 @@ export function SignupForm() {
           {isLoading ? (
             <span className="inline-flex items-center gap-2">
               <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              가입 확인 중...
+              {t("auth.checkingSignup")}
             </span>
           ) : (
             <>
-              가입하고 시작하기 <span aria-hidden="true">→</span>
+              {t("auth.signupAction")} <span aria-hidden="true">→</span>
             </>
           )}
         </button>
       </form>
       <AuthAltLink
-        prompt="이미 계정이 있으신가요?"
+        prompt={t("auth.hasAccount")}
         href="/login"
-        label="로그인"
+        label={t("common.login")}
       />
     </>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authButtonClassName } from "@/components/auth/auth-shell";
 import {
   COUNTRIES,
@@ -17,6 +18,7 @@ import { usePreferenceStore } from "@/stores/use-preference-store";
 import { useSignupStore } from "@/stores/use-signup-store";
 
 export function CountryForm() {
+  const t = useTranslations();
   const router = useRouter();
   const storedCountryCode = usePreferenceStore((state) => state.countryCode);
   const storedLanguageCode = usePreferenceStore((state) => state.languageCode);
@@ -52,7 +54,7 @@ export function CountryForm() {
     const selected = getCountryByCode(selectedCode);
 
     if (!selected) {
-      setError("국가를 선택해 주세요.");
+      setError(t("preferences.countryRequired"));
       return;
     }
 
@@ -80,7 +82,7 @@ export function CountryForm() {
     } catch (requestError) {
       setError(
         requestError?.message ||
-          "국가·언어 설정을 저장하지 못했습니다. 다시 시도해주세요.",
+          t("preferences.saveDetailedError"),
       );
     } finally {
       setIsLoading(false);
@@ -92,7 +94,7 @@ export function CountryForm() {
       <div
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         role="radiogroup"
-        aria-label="국가 선택"
+        aria-label={t("preferences.chooseCountry")}
       >
         {COUNTRIES.map((country) => {
           const selected = country.code === selectedCode;
@@ -142,7 +144,7 @@ export function CountryForm() {
 
       <fieldset className="flex flex-col gap-3">
         <legend className="text-sm font-bold text-ink">
-          사용할 언어를 선택해 주세요
+          {t("preferences.chooseLanguage")}
         </legend>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {LANGUAGES.map((language) => {
@@ -187,7 +189,7 @@ export function CountryForm() {
         disabled={isLoading}
         className={authButtonClassName()}
       >
-        {isLoading ? "저장 중..." : "계속하기"}{" "}
+        {isLoading ? t("common.saving") : t("common.continue")}{" "}
         {!isLoading ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>

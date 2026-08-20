@@ -1,15 +1,18 @@
 import { realtimeKeywords } from "@/lib/fixtures/home";
 import { SectionHeading } from "@/components/home/section-heading";
+import { getTranslations } from "next-intl/server";
 
-export function KeywordSection() {
+export async function KeywordSection() {
+  const t = await getTranslations("home");
+
   return (
     <section className="bg-background px-10 sm:px-14 py-16 lg:px-52 xl:px-60 2xl:px-72">
       <SectionHeading
         eyebrow="REALTIME TREND"
-        title="실시간 주목 키워드"
-        description="지금 이 순간 여행자들이 가장 많이 찾는 키워드예요."
+        title={t("keywordTitle")}
+        description={t("keywordDescription")}
         href="/news"
-        linkLabel="전체 보기"
+        linkLabel={t("viewAll")}
       />
       <div className="flex flex-wrap gap-3">
         {realtimeKeywords.map((keyword, index) => {

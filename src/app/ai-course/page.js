@@ -1,6 +1,10 @@
 import { CourseRecommend } from "@/components/ai-course/recommend/course-recommend";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = { title: "코스 추천" };
+export async function generateMetadata() {
+  const t = await getTranslations("aiCourse");
+  return { title: t("title") };
+}
 
 export default function AiCoursePage() {
   return <CourseRecommend />;
