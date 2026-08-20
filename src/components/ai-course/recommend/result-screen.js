@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   Zap,
@@ -49,6 +50,7 @@ function sameOrder(a, b) {
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
 export function ResultScreen({ chat, onPlaceClick, initialCourse }) {
+  const t = useTranslations("aiCourse");
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
