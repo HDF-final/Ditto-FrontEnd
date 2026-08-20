@@ -138,8 +138,8 @@ export function MypageCourseCard({ course, onAuthRequired }) {
       {/* Top Header Overlay */}
       <div className="relative z-10 p-4 flex items-start justify-between">
         <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-xs">
-            {course.badge === "MY COURSE" ? "ME" : "★"}
+          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-xs">
+            {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
           </span>
           <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
           <div className="flex flex-col leading-tight">

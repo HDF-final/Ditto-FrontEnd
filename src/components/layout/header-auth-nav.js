@@ -49,11 +49,14 @@ export function HeaderAuthNav() {
           <HeartIcon />
         </Link>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-ink">
+          <Link
+            href="/mypage"
+            className="text-sm font-bold text-ink hover:text-brand transition cursor-pointer"
+          >
             {t("common.memberGreeting", {
               name: user.nickname || user.name || t("common.member"),
             })}
-          </span>
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

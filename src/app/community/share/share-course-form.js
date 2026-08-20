@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createCoursePost } from "@/lib/api/community";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 
@@ -45,35 +46,29 @@ function CourseOption({ course, selected, onSelect }) {
   );
 }
 
-function PhotoTile({ image, label, onRemove }) {
-  if (image) {
-    return (
-      <div className="group relative h-[166px] w-[118px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-xs">
-        <img
-          src={image}
-          alt="첨부 사진"
-          className="h-full w-full object-cover"
-        />
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label="사진 삭제"
-          className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/65 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black cursor-pointer"
-        >
-          ✕
-        </button>
-      </div>
-    );
-  }
-
+function PhotoTile({ image, onRemove }) {
+  if (!image) return null;
   return (
-    <div className="flex h-[166px] w-[118px] shrink-0 items-center justify-center rounded-[18px] bg-linear-to-br from-[#2d1b8e] to-[#7c3ff2] p-4 text-center">
-      <span className="text-[11px] font-bold text-white/80">{label}</span>
+    <div className="group relative h-[166px] w-[118px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-xs">
+      <img
+        src={image}
+        alt="첨부 사진"
+        className="h-full w-full object-cover"
+      />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="사진 삭제"
+        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/65 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black cursor-pointer"
+      >
+        ✕
+      </button>
     </div>
   );
 }
 
 export function ShareCourseForm({ courses = [], loading = false }) {
+  const t = useTranslations("community");
   const router = useRouter();
   const fileInputRef = useRef(null);
 
@@ -82,9 +77,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
 
   const [customTitle, setCustomTitle] = useState("");
   const title = customTitle || selectedCourse?.title || "";
-  const [caption, setCaption] = useState(
-    "처음 온 친구랑 따라가기 좋은 코스였어요. 사진 순서대로 보면 동선이 바로 이해됩니다.",
-  );
+  const [caption, setCaption] = useState("");
   const [photos, setPhotos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -347,13 +340,6 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                       onRemove={() => handleRemovePhoto(idx)}
                     />
                   ))}
-
-                  {photos.length === 0 && (
-                    <>
-                      <PhotoTile label="PHOTO 02" />
-                      <PhotoTile label="PHOTO 03" />
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -369,16 +355,26 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 rows={5}
-                className="mt-2 w-full resize-none rounded-[20px] border border-line bg-surface-soft p-5 text-sm font-medium leading-6 text-ink outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
-                placeholder="코스 방문 후기를 작성해보세요."
+                className="mt-2 w-full resize-none rounded-[20px] border border-line bg-surface-soft p-5 text-sm font-medium leading-6 text-ink outline-none placeholder:text-ink-muted/50 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition"
+                placeholder="코스에 대한 방문 후기 및 동선 꿀팁을 작성해보세요. (예: 사진 순서대로 이동하면 동선이 편리해요)"
               />
 
               {/* 하단 공유 미리보기 및 게시 버튼 */}
               <div className="mt-10 flex flex-col gap-5 rounded-[24px] bg-surface-soft p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-5">
-                  <div
-                    className={`size-[100px] rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
-                  />
+                  {photos.length > 0 ? (
+                    <div className="relative size-[100px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-slate-950 shadow-xs">
+                      <img
+                        src={photos[0]}
+                        alt="대표 사진 미리보기"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={`size-[100px] shrink-0 rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
+                    />
+                  )}
                   <div>
                     <p className="text-sm font-black text-brand">
                       공유 미리보기

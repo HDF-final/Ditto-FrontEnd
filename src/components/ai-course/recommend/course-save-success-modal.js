@@ -11,6 +11,7 @@ export function CourseSaveSuccessModal({
   isUpdate = false,
   onClose,
 }) {
+  const t = useTranslations("aiCourse");
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
@@ -27,10 +28,15 @@ export function CourseSaveSuccessModal({
 
   if (!open) return null;
 
-  const title = isUpdate ? "코스 수정 완료!" : "코스 저장 완료!";
+  const title = isUpdate
+    ? "코스 수정 완료!"
+    : (t && t.has("saveComplete") ? t("saveComplete") : "코스 저장 완료!");
   const description = isUpdate
     ? "의 변경사항을 마이페이지에 저장했어요."
     : "을(를) 마이페이지에 저장했어요.";
+
+  const continueEditingText = t && t.has("continueEditing") ? t("continueEditing") : "계속 편집";
+  const viewMypageText = t && t.has("viewMypage") ? t("viewMypage") : "마이페이지 보기";
 
   return (
     <div
@@ -72,13 +78,13 @@ export function CourseSaveSuccessModal({
             onClick={onClose}
             className="rounded-full border border-[#d8d3e8] bg-white px-4 py-3 text-[12px] font-bold text-[#6b6685] transition-colors hover:border-[#5c2ef5] hover:text-[#5c2ef5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            {t("continueEditing")}
+            {continueEditingText}
           </button>
           <Link
             href="/mypage"
             className="rounded-full bg-[#5c2ef5] px-4 py-3 text-[12px] font-bold text-white transition-colors hover:bg-[#4a22d4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c2ef5]"
           >
-            {t("viewMypage")}
+            {viewMypageText}
           </Link>
         </div>
       </section>

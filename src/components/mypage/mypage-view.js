@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
-import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import { getPublicCourses } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
+import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
 import { mypageTabs } from "@/lib/fixtures/mypage";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -31,6 +33,56 @@ function normalizePage(data) {
       ? totalElements
       : content.length,
   };
+}
+
+function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러버") {
+  const userCourseMap = new Map();
+  (userCourses || []).forEach((c) => {
+    userCourseMap.set(Number(c.courseId || c.id || c.postId), c);
+  });
+
+  const list = Array.isArray(publicPosts)
+    ? publicPosts
+    : Array.isArray(publicPosts?.content)
+      ? publicPosts.content
+      : [];
+
+  return list
+    .filter((post) => userCourseMap.has(Number(post.courseId)))
+    .map((post) => {
+      const linkedCourse = userCourseMap.get(Number(post.courseId));
+      const stops = linkedCourse?.stops || [];
+      const spotCount =
+        linkedCourse?.spotCount ||
+        (stops.length > 0 ? `${stops.length}개 스팟` : "맞춤 코스");
+
+      return {
+        id: post.postId,
+        postId: post.postId,
+        courseId: post.courseId,
+        slug: String(post.postId),
+        href: `/community/${post.postId}`,
+        badge: "SHARED",
+        name: userName,
+        country: "KR",
+        flag: "KR",
+        hash: "#공유한코스 #더현대",
+        title: post.title || linkedCourse?.title || "공유한 코스",
+        description:
+          post.content ||
+          linkedCourse?.description ||
+          "커뮤니티에 공유한 코스입니다.",
+        image:
+          post.representativeImageUrl ||
+          linkedCourse?.image ||
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        likes: Number(post.likeCount) || 0,
+        comments: Number(post.commentCount) || 0,
+        saves: Number(post.bookmarkCount) || 0,
+        spotCount,
+        stops,
+      };
+    });
 }
 
 async function hydrateMyCourses(data, userName = "디또러버") {
@@ -142,6 +194,7 @@ export function MypageView() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [sharedCourses, setSharedCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
@@ -149,6 +202,24 @@ export function MypageView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+
+  const handleConfirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    const targetId = courseToDelete.courseId || courseToDelete.id;
+    setIsDeletingCourse(true);
+    try {
+      await deleteCourse(targetId);
+      setCourses((prev) => prev.filter((c) => (c.courseId || c.id) !== targetId));
+      setCourseTotal((prev) => Math.max(0, prev - 1));
+      setCourseToDelete(null);
+    } catch (err) {
+      alert(err.message || "코스를 삭제하지 못했습니다.");
+    } finally {
+      setIsDeletingCourse(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -169,23 +240,42 @@ export function MypageView() {
       }
 
       try {
-        const [myCoursesResult, bookmarksResult] = await Promise.allSettled([
+        const [myCoursesResult, bookmarksResult, publicCoursesResult] = await Promise.allSettled([
           getMyCourses(),
           getMyBookmarks(),
+          getPublicCourses({ page: 0, size: 100 }),
         ]);
 
         if (isMounted) {
           const failures = [];
+          let hydratedCourses = [];
 
           if (myCoursesResult.status === "fulfilled") {
             const hydrated = await hydrateMyCourses(myCoursesResult.value, currentUserName);
             if (!isMounted) return;
+            hydratedCourses = hydrated.courses;
             setCourses(hydrated.courses);
             setCourseTotal(hydrated.totalElements);
           } else {
             setCourses([]);
             setCourseTotal(0);
             failures.push("내 코스");
+          }
+
+          if (publicCoursesResult.status === "fulfilled") {
+            const publicList = Array.isArray(publicCoursesResult.value?.content)
+              ? publicCoursesResult.value.content
+              : Array.isArray(publicCoursesResult.value)
+                ? publicCoursesResult.value
+                : [];
+            const normalizedShared = normalizeSharedCourses(
+              publicList,
+              hydratedCourses,
+              currentUserName,
+            );
+            setSharedCourses(normalizedShared);
+          } else {
+            setSharedCourses([]);
           }
 
           if (bookmarksResult.status === "fulfilled") {
@@ -299,10 +389,11 @@ export function MypageView() {
   // Displayed courses list based on active tab
   const displayedCourses = useMemo(() => {
     if (activeTab === "내 코스") return courses;
+    if (activeTab === "공유한 코스") return sharedCourses;
     if (activeTab === "찜한 코스") return likedCourses;
     if (activeTab === "저장한 코스") return bookmarkedCourses;
     return [];
-  }, [activeTab, courses, likedCourses, bookmarkedCourses]);
+  }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
 
   // Pagination calculation: 3 items per page (1 row of 3) - Unconditional Hook Call
   const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
@@ -371,9 +462,10 @@ export function MypageView() {
   };
 
   const displayStats = [
-    { value: courseTotal.toLocaleString(locale), label: t("createdCourses") },
-    { value: likedCourses.length.toLocaleString(locale), label: t("likedCourses") },
-    { value: bookmarkedCourses.length.toLocaleString(locale), label: t("savedCourses") },
+    { value: courseTotal.toLocaleString(locale || "ko-KR"), label: t ? t("createdCourses") : "만든 코스" },
+    { value: sharedCourses.length.toLocaleString(locale || "ko-KR"), label: "공유한 코스" },
+    { value: likedCourses.length.toLocaleString(locale || "ko-KR"), label: t ? t("likedCourses") : "찜한 코스" },
+    { value: bookmarkedCourses.length.toLocaleString(locale || "ko-KR"), label: t ? t("savedCourses") : "저장한 코스" },
   ];
 
   const emptyState = {
@@ -382,6 +474,12 @@ export function MypageView() {
       description: t("emptyMineDescription"),
       actionLabel: t("createCourse"),
       actionHref: "/ai-course",
+    },
+    "공유한 코스": {
+      title: "아직 커뮤니티에 공유한 코스가 없어요",
+      description: "내가 만든 맞춤 코스를 여행자 커뮤니티에 공유해보세요!",
+      actionLabel: "코스 공유하러 가기",
+      actionHref: "/community/share",
     },
     "찜한 코스": {
       title: t("emptyLikedTitle"),
@@ -419,11 +517,13 @@ export function MypageView() {
             const count =
               tab === "내 코스"
                 ? courses.length
-                : tab === "찜한 코스"
-                  ? likedCourses.length
-                  : tab === "저장한 코스"
-                    ? bookmarkedCourses.length
-                    : null;
+                : tab === "공유한 코스"
+                  ? sharedCourses.length
+                  : tab === "찜한 코스"
+                    ? likedCourses.length
+                    : tab === "저장한 코스"
+                      ? bookmarkedCourses.length
+                      : null;
 
             return (
               <button
@@ -464,13 +564,21 @@ export function MypageView() {
           {paginatedCourses.length > 0 ? (
             <>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {paginatedCourses.map((course) => (
-                  <MypageCourseCard
-                    key={course.id || course.slug}
-                    course={course}
-                    onAuthRequired={() => setIsLoginModalOpen(true)}
-                  />
-                ))}
+                {paginatedCourses.map((course) =>
+                  activeTab === "내 코스" ? (
+                    <MyCoursePrivateCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onDelete={(c) => setCourseToDelete(c)}
+                    />
+                  ) : (
+                    <MypageCourseCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                    />
+                  ),
+                )}
               </div>
 
               {/* 페이징 컨트롤 */}
@@ -588,6 +696,64 @@ export function MypageView() {
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
                 {communityT("login")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Course Delete Confirmation Modal */}
+      {courseToDelete ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingCourse) setCourseToDelete(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" x2="10" y1="11" y2="17" />
+                <line x1="14" x2="14" y1="11" y2="17" />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-base font-black text-ink">코스 삭제</h3>
+            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+              <strong className="text-ink font-bold">{courseToDelete.title || "이 코스"}</strong>를 정말 삭제하시겠습니까?<br />
+              삭제한 코스는 복구할 수 없습니다.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isDeletingCourse}
+                onClick={() => setCourseToDelete(null)}
+                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingCourse}
+                onClick={handleConfirmDeleteCourse}
+                className="flex-1 rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingCourse ? "삭제 중..." : "삭제하기"}
               </button>
             </div>
           </div>
