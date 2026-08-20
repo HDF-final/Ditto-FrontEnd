@@ -12,8 +12,8 @@ function moveItem(items, fromIndex, toIndex) {
 }
 
 export const useCourseEditorStore = create((set) => ({
-  title: aiCourseFixture.title,
-  stops: aiCourseFixture.stops,
+  title: "",
+  stops: [],
   history: [],
   selectedIds: [],
   addOpen: false,
