@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "./recommend-icons";
 import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
+import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
 
 const ALL = "__all__";
 
@@ -195,25 +196,17 @@ export function AddPlaceModal({
                         isAiRecommended: false,
                         aiReason: null,
                         isAiVersion: false,
+                        onAddPlace: () => handleAdd(place),
                       });
                     }}
                     className="flex items-center gap-3.5 rounded-[18px] border border-[#ede8fc] p-3.5 hover:border-[#5c2ef5]/40 hover:bg-[#faf8ff] transition-all cursor-pointer group shadow-2xs hover:shadow-xs"
                     title={t("viewStore")}
                   >
-                    {place.image ? (
-                      <img
-                        src={place.image}
-                        alt={place.name}
-                        className="w-[54px] h-[54px] rounded-[14px] object-cover shrink-0 pointer-events-none"
-                      />
-                    ) : (
-                      <div
-                        className="w-[54px] h-[54px] rounded-[14px] shrink-0 pointer-events-none"
-                        style={{
-                          background: `linear-gradient(135deg,${place.accentColor}22,${place.accentColor}0a)`,
-                        }}
-                      />
-                    )}
+                    <img
+                      src={place.image || getFallbackPlaceImage(place)}
+                      alt={place.name}
+                      className="w-[54px] h-[54px] rounded-[14px] object-cover shrink-0 pointer-events-none bg-[#f0ecfa]"
+                    />
                     <div className="flex-1 min-w-0 pointer-events-none">
                       <div className="flex items-center gap-1.5 mb-1">
                         <span
