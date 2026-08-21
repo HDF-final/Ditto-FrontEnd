@@ -43,6 +43,7 @@ export function CourseNavigationMap({
         routeGraph={routeGraph}
         placeLogos={placeLogos}
         overlayOccluderRef={overlayOccluderRef}
+        showFloorSelector
       />
     </section>
   );

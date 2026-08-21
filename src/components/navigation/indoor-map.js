@@ -1094,10 +1094,14 @@ function MapCamera({
   const controlsRef = useRef(null);
   const appliedPresetRef = useRef("");
   const readySentRef = useRef(false);
+  const applyingPresetRef = useRef(false);
   // Once the user drags/zooms the overview we stop auto-refitting; until then we
   // keep the stack fitted to the *live* canvas size every frame, so a late layout
   // settle (side panel, header, flex) can't leave it small or riding high.
   const interactedRef = useRef(false);
+  const markInteracted = () => {
+    if (!applyingPresetRef.current) interactedRef.current = true;
+  };
   const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
   const focusY = singleFloor?.y ?? 0;
   const viewportReady = size.width >= 8 && size.height >= 8;
@@ -1133,6 +1137,7 @@ function MapCamera({
         ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
         : overviewFit.position.clone();
 
+    applyingPresetRef.current = true;
     controls.enabled = false;
     controls.enableDamping = false;
     // Both modes pan on drag (Naver-map style) so every place stays reachable
@@ -1170,6 +1175,7 @@ function MapCamera({
     controls.enabled = true;
     interactedRef.current = false;
     appliedPresetRef.current = presetKey;
+    applyingPresetRef.current = false;
     if (!readySentRef.current) {
       readySentRef.current = true;
       onReady?.();
@@ -1184,6 +1190,26 @@ function MapCamera({
     if (appliedPresetRef.current === presetKey) return;
     applyPreset();
   });
+
+  useEffect(() => {
+    const canvas = gl?.domElement;
+    if (!canvas) return undefined;
+    const host = canvas.parentElement;
+    const onUserInput = () => markInteracted();
+    const targets = [canvas, host].filter(Boolean);
+    targets.forEach((node) => {
+      node.addEventListener("pointerdown", onUserInput);
+      node.addEventListener("wheel", onUserInput, { passive: true });
+      node.addEventListener("touchstart", onUserInput, { passive: true });
+    });
+    return () => {
+      targets.forEach((node) => {
+        node.removeEventListener("pointerdown", onUserInput);
+        node.removeEventListener("wheel", onUserInput);
+        node.removeEventListener("touchstart", onUserInput);
+      });
+    };
+  }, [gl]);
 
   useFrame(() => {
     if (appliedPresetRef.current !== presetKey) {
@@ -1273,54 +1299,49 @@ function MapCamera({
         near={0.1}
         far={800}
       />
-      {gl?.domElement ? (
-        <OrbitControls
-          ref={controlsRef}
-          makeDefault
-          domElement={gl.domElement}
-          onStart={() => {
-            interactedRef.current = true;
-          }}
-          enableDamping={!singleFloor}
-          dampingFactor={0.08}
-          enablePan
-          enableRotate={!singleFloor}
-          enableZoom
-          screenSpacePanning
-          minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
-          maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
-          minAzimuthAngle={-Infinity}
-          maxAzimuthAngle={Infinity}
-          minZoom={OVERVIEW_MIN_ZOOM}
-          maxZoom={34}
-          rotateSpeed={0.62}
-          zoomSpeed={0.72}
-          mouseButtons={
-            singleFloor
-              ? {
-                  LEFT: THREE.MOUSE.PAN,
-                  MIDDLE: THREE.MOUSE.DOLLY,
-                  RIGHT: THREE.MOUSE.PAN,
-                }
-              : {
-                  LEFT: THREE.MOUSE.PAN,
-                  MIDDLE: THREE.MOUSE.DOLLY,
-                  RIGHT: THREE.MOUSE.ROTATE,
-                }
-          }
-          touches={
-            singleFloor
-              ? {
-                  ONE: THREE.TOUCH.PAN,
-                  TWO: THREE.TOUCH.DOLLY_PAN,
-                }
-              : {
-                  ONE: THREE.TOUCH.PAN,
-                  TWO: THREE.TOUCH.DOLLY_ROTATE,
-                }
-          }
-        />
-      ) : null}
+      <OrbitControls
+        ref={controlsRef}
+        makeDefault
+        onStart={markInteracted}
+        enableDamping={!singleFloor}
+        dampingFactor={0.08}
+        enablePan
+        enableRotate={!singleFloor}
+        enableZoom
+        screenSpacePanning
+        minPolarAngle={singleFloor ? 0 : OVERVIEW_MIN_POLAR_ANGLE}
+        maxPolarAngle={singleFloor ? Math.PI : OVERVIEW_MAX_POLAR_ANGLE}
+        minAzimuthAngle={-Infinity}
+        maxAzimuthAngle={Infinity}
+        minZoom={OVERVIEW_MIN_ZOOM}
+        maxZoom={34}
+        rotateSpeed={0.62}
+        zoomSpeed={0.72}
+        mouseButtons={
+          singleFloor
+            ? {
+                LEFT: THREE.MOUSE.PAN,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.PAN,
+              }
+            : {
+                LEFT: THREE.MOUSE.PAN,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.ROTATE,
+              }
+        }
+        touches={
+          singleFloor
+            ? {
+                ONE: THREE.TOUCH.PAN,
+                TWO: THREE.TOUCH.DOLLY_PAN,
+              }
+            : {
+                ONE: THREE.TOUCH.PAN,
+                TWO: THREE.TOUCH.DOLLY_ROTATE,
+              }
+        }
+      />
     </>
   );
 }
@@ -1421,7 +1442,7 @@ function FloorSelector({ selectedView, onSelect }) {
   };
 
   return (
-    <div className="absolute right-3 top-3 z-20 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
+    <div className="pointer-events-auto absolute right-3 top-3 z-40 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
       <button
         type="button"
         aria-expanded={expanded}
@@ -1498,7 +1519,7 @@ export function IndoorMap({
   routeGraph,
   placeLogos = null,
   overlayOccluderRef = null,
-  showFloorSelector = false,
+  showFloorSelector = true,
 }) {
   // Default to the "route floors" view: with no course it equals the full stack
   // (routeFloorIds falls back to every floor), and once a course exists it shows
@@ -1607,8 +1628,8 @@ export function IndoorMap({
           ref={containerRef}
           className={
             viewMode === "floor"
-              ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
-              : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab active:cursor-grabbing [transform:translateZ(0)]"
+              ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
+              : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)]"
           }
         >
           <Canvas
@@ -1639,7 +1660,7 @@ export function IndoorMap({
           <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
         ) : null}
 
-        <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
+        <div className="pointer-events-none absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
           <button
             type="button"
             aria-pressed={overlayOnTop}
@@ -1649,7 +1670,7 @@ export function IndoorMap({
                 : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
             }
             onClick={() => setOverlayOnTop((value) => !value)}
-            className={`rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
+            className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
               overlayOnTop
                 ? "border-[#00815a]/30 bg-[#00815a] text-white"
                 : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
@@ -1660,7 +1681,7 @@ export function IndoorMap({
           <button
             type="button"
             onClick={() => setResetSignal((value) => value + 1)}
-            className="rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[9px] font-semibold text-[#8C817A] shadow-sm transition-colors hover:text-[#00815a] md:text-[10px]"
+            className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[9px] font-semibold text-[#8C817A] shadow-sm transition-colors hover:text-[#00815a] md:text-[10px]"
           >
             시점 초기화
           </button>
