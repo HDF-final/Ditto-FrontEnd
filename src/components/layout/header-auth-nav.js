@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 import { logout } from "@/lib/api/auth";
 
 function HeartIcon() {
@@ -24,6 +25,7 @@ function HeartIcon() {
 
 export function HeaderAuthNav() {
   const t = useTranslations();
+  const mounted = useIsMounted();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const clearUser = useAuthStore((state) => state.clearUser);
@@ -45,7 +47,10 @@ export function HeaderAuthNav() {
     }
   };
 
-  if (isAuthenticated && user) {
+  const activeUser = user || MOCK_USER;
+  const isAuth = mounted ? isAuthenticated : true;
+
+  if (isAuth && activeUser) {
     return (
       <div className="flex items-center gap-6">
         <Link
@@ -61,7 +66,7 @@ export function HeaderAuthNav() {
             className="text-sm font-bold text-ink hover:text-brand transition cursor-pointer"
           >
             {t("common.memberGreeting", {
-              name: user.nickname || user.name || t("common.member"),
+              name: activeUser.nickname || activeUser.name || "사토 유키",
             })}
           </Link>
           <button
