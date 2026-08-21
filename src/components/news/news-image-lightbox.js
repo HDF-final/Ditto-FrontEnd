@@ -69,7 +69,7 @@ export function NewsImageLightbox({
 
       {/* 2. Card mode (in Article Body) */}
       {mode === "card" && (
-        <figure className="my-4 w-full">
+        <figure className="my-2 w-full max-w-2xl mx-auto">
           <div
             role="button"
             tabIndex={0}
@@ -80,7 +80,7 @@ export function NewsImageLightbox({
                 setIsOpen(true);
               }
             }}
-            className="relative block w-full aspect-[16/10] min-h-[360px] sm:min-h-[460px] lg:min-h-[520px] cursor-zoom-in overflow-hidden rounded-[28px] border border-line bg-surface-soft shadow-card transition-all hover:shadow-xl group"
+            className="relative block w-full aspect-[16/9] min-h-[220px] sm:min-h-[260px] lg:min-h-[300px] max-h-[340px] cursor-zoom-in overflow-hidden rounded-[20px] border border-line bg-surface-soft shadow-sm transition-all hover:shadow-md group"
           >
             <Image
               src={src}
@@ -92,10 +92,10 @@ export function NewsImageLightbox({
             />
             {/* Hover overlay hint */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/25">
-              <span className="inline-flex items-center gap-2 rounded-full bg-black/75 px-5 py-2.5 text-xs font-black text-white opacity-0 backdrop-blur-xs transition duration-300 group-hover:opacity-100 shadow-lg scale-95 group-hover:scale-100">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 px-4 py-2 text-xs font-black text-white opacity-0 backdrop-blur-xs transition duration-300 group-hover:opacity-100 shadow-md scale-95 group-hover:scale-100">
                 <svg
                   aria-hidden="true"
-                  className="size-4"
+                  className="size-3.5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -110,12 +110,11 @@ export function NewsImageLightbox({
               </span>
             </div>
           </div>
-          {caption ? (
-            <figcaption className="mt-2.5 px-2 text-xs font-semibold text-ink-muted flex items-start gap-1.5 leading-relaxed">
-              <span className="text-[10px] text-ink-muted/80 mt-0.5 select-none">▲</span>
-              <span>{caption}</span>
+          {caption && (
+            <figcaption className="mt-2 text-center text-xs text-muted font-medium">
+              ▲ {caption}
             </figcaption>
-          ) : null}
+          )}
         </figure>
       )}
 
