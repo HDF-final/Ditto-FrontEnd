@@ -112,12 +112,13 @@ export function useCourseChat() {
   const [pending, setPending] = useState(null); // { message, isFirstTurn } | null
   const [error, setError] = useState(null);
 
-  useEffect(() => () => controllerRef.current?.abort(), []);
-
   const send = useCallback(async (rawMessage) => {
     const raw = typeof rawMessage === "string" ? rawMessage.trim() : "";
     if (!raw) return;
-    if (controllerRef.current) return; // 한 번에 한 turn만 보냅니다.
+
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
 
     const message = raw.slice(0, COURSE_CHAT_MAX_MESSAGE_LENGTH);
     const controller = new AbortController();

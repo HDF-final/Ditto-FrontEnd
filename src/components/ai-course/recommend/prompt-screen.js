@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Mic, MapPin, ImagePlus, CalendarDays } from "./recommend-icons";
 import { suggestions, BONI_IMAGE } from "./recommend-data";
 import { useTransparentBg } from "./use-transparent-bg";
@@ -70,8 +70,20 @@ function ModeToggle({ mode, onModeChange }) {
   );
 }
 
-export function PromptScreen({ mode = "auto", onModeChange, onStart }) {
-  const [input, setInput] = useState("");
+export function PromptScreen({
+  mode = "auto",
+  initialPrompt = "",
+  onModeChange,
+  onStart,
+}) {
+  const [input, setInput] = useState(initialPrompt || "");
+  const [prevInitial, setPrevInitial] = useState(initialPrompt);
+
+  if (initialPrompt !== prevInitial) {
+    setPrevInitial(initialPrompt);
+    setInput(initialPrompt);
+  }
+
   const [menuOpen, setMenuOpen] = useState(false);
   const boniSrc = useTransparentBg(BONI_IMAGE);
 
