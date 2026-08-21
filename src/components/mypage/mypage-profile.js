@@ -56,7 +56,12 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           <button
             type="button"
             onClick={onEditClick}
-            className="w-full cursor-pointer rounded-full border border-[#e0d8ff] bg-brand-soft px-5 py-2.5 text-sm font-black text-brand transition hover:bg-[#e7ddff] lg:w-fit lg:px-6 lg:py-3"
+            style={{
+              backgroundColor: persona.softButtonBg || persona.badgeBg || "#f5f3ff",
+              borderColor: persona.softButtonBorder || persona.badgeBorder || "#e0d8ff",
+              color: persona.softButtonText || persona.badgeText || "#5c2ef5",
+            }}
+            className="w-full cursor-pointer rounded-full border px-5 py-2.5 text-sm font-black transition-all hover:opacity-90 lg:w-fit lg:px-6 lg:py-3 shadow-xs"
           >
             프로필 편집
           </button>
@@ -66,7 +71,11 @@ export function MypageProfile({ profile, stats, onEditClick }) {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-[16px] border border-line bg-surface-soft p-3 text-center lg:rounded-[20px] lg:p-6"
+              style={{
+                backgroundColor: persona.statBg || "#f9f7ff",
+                borderColor: persona.statBorder || "#ede9fe",
+              }}
+              className="rounded-[16px] border p-3 text-center transition-all duration-200 lg:rounded-[20px] lg:p-6 shadow-xs"
             >
               <p className="text-xl font-black leading-none text-ink lg:text-[28px]">
                 {stat.value}
