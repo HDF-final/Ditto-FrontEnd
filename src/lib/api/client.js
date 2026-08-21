@@ -2,6 +2,7 @@ import "client-only";
 
 import axios from "axios";
 import { applyApiLanguageHeader } from "./request-language";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1",
@@ -14,12 +15,22 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   applyApiLanguageHeader(config.headers, document.cookie);
-  if (process.env.NODE_ENV !== "production") {
-    const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim();
-    if (localUserId && !config.headers.get("X-User-Id")) {
-      config.headers.set("X-User-Id", localUserId);
+
+  const authUser = useAuthStore.getState()?.user;
+  const userId =
+    authUser?.id ||
+    authUser?.userId ||
+    process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
+    "1";
+
+  if (userId) {
+    if (typeof config.headers?.set === "function") {
+      config.headers.set("X-User-Id", String(userId));
+    } else if (config.headers) {
+      config.headers["X-User-Id"] = String(userId);
     }
   }
+
   return config;
 });
 
