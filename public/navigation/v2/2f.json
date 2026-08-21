@@ -13,9 +13,9 @@
     "uniqueSegmentCount": 54,
     "removedDuplicateSegments": 3,
     "zeroLengthSegmentCount": 1,
-    "splitCorridorSegmentCount": 86,
+    "splitCorridorSegmentCount": 85,
     "corridorComponentCount": 1,
-    "attachmentCount": 35,
+    "attachmentCount": 34,
     "maximumAccessDistancePixels": 87.04
   },
   "nodes": [
@@ -911,18 +911,6 @@
       "id": "2F_N0075",
       "kind": "corridor",
       "pixel": {
-        "x": 970.9761,
-        "y": 513.944
-      },
-      "uv": {
-        "u": 0.404573,
-        "v": 0.342629
-      }
-    },
-    {
-      "id": "2F_N0076",
-      "kind": "corridor",
-      "pixel": {
         "x": 969.83,
         "y": 513.95
       },
@@ -932,7 +920,7 @@
       }
     },
     {
-      "id": "2F_N0077",
+      "id": "2F_N0076",
       "kind": "corridor",
       "pixel": {
         "x": 360.59,
@@ -944,7 +932,7 @@
       }
     },
     {
-      "id": "2F_N0078",
+      "id": "2F_N0077",
       "kind": "corridor",
       "pixel": {
         "x": 582.44,
@@ -956,7 +944,7 @@
       }
     },
     {
-      "id": "2F_N0079",
+      "id": "2F_N0078",
       "kind": "corridor",
       "pixel": {
         "x": 583.28,
@@ -1293,18 +1281,6 @@
     },
     {
       "id": "2F_A0047",
-      "kind": "store",
-      "pixel": {
-        "x": 971.09,
-        "y": 535.8
-      },
-      "uv": {
-        "u": 0.404621,
-        "v": 0.3572
-      }
-    },
-    {
-      "id": "2F_A0048",
       "kind": "restroom",
       "pixel": {
         "x": 193.78,
@@ -1316,7 +1292,7 @@
       }
     },
     {
-      "id": "2F_A0049",
+      "id": "2F_A0048",
       "kind": "restroom",
       "pixel": {
         "x": 2284.12,
@@ -1328,7 +1304,7 @@
       }
     },
     {
-      "id": "2F_A0050",
+      "id": "2F_A0049",
       "kind": "elevator",
       "pixel": {
         "x": 408.07,
@@ -1340,7 +1316,7 @@
       }
     },
     {
-      "id": "2F_A0051",
+      "id": "2F_A0050",
       "kind": "elevator",
       "pixel": {
         "x": 2010.4,
@@ -1352,7 +1328,7 @@
       }
     },
     {
-      "id": "2F_A0052",
+      "id": "2F_A0051",
       "kind": "elevator",
       "pixel": {
         "x": 407.1,
@@ -1364,7 +1340,7 @@
       }
     },
     {
-      "id": "2F_A0053",
+      "id": "2F_A0052",
       "kind": "elevator",
       "pixel": {
         "x": 1545.3,
@@ -1376,7 +1352,7 @@
       }
     },
     {
-      "id": "2F_A0054",
+      "id": "2F_A0053",
       "kind": "elevator",
       "pixel": {
         "x": 1992.7,
@@ -2043,23 +2019,23 @@
       "to": "2F_N0075",
       "kind": "corridor",
       "bidirectional": true,
-      "weightPixels": 225.247
+      "weightPixels": 226.3931
     },
     {
       "id": "2F_E0083",
-      "from": "2F_N0075",
+      "from": "2F_N0038",
       "to": "2F_N0076",
       "kind": "corridor",
       "bidirectional": true,
-      "weightPixels": 1.1461
+      "weightPixels": 70.2299
     },
     {
       "id": "2F_E0084",
-      "from": "2F_N0038",
+      "from": "2F_N0076",
       "to": "2F_N0077",
       "kind": "corridor",
       "bidirectional": true,
-      "weightPixels": 70.2299
+      "weightPixels": 221.85
     },
     {
       "id": "2F_E0085",
@@ -2067,18 +2043,10 @@
       "to": "2F_N0078",
       "kind": "corridor",
       "bidirectional": true,
-      "weightPixels": 221.85
-    },
-    {
-      "id": "2F_E0086",
-      "from": "2F_N0078",
-      "to": "2F_N0079",
-      "kind": "corridor",
-      "bidirectional": true,
       "weightPixels": 0.84
     },
     {
-      "id": "2F_E0087",
+      "id": "2F_E0086",
       "from": "2F_A0000",
       "to": "2F_N0068",
       "kind": "access",
@@ -2086,7 +2054,7 @@
       "weightPixels": 23.5775
     },
     {
-      "id": "2F_E0088",
+      "id": "2F_E0087",
       "from": "2F_A0001",
       "to": "2F_N0069",
       "kind": "access",
@@ -2094,7 +2062,7 @@
       "weightPixels": 23.6209
     },
     {
-      "id": "2F_E0089",
+      "id": "2F_E0088",
       "from": "2F_A0002",
       "to": "2F_N0015",
       "kind": "access",
@@ -2102,7 +2070,7 @@
       "weightPixels": 48.9868
     },
     {
-      "id": "2F_E0090",
+      "id": "2F_E0089",
       "from": "2F_A0003",
       "to": "2F_N0014",
       "kind": "access",
@@ -2110,7 +2078,7 @@
       "weightPixels": 25.9868
     },
     {
-      "id": "2F_E0091",
+      "id": "2F_E0090",
       "from": "2F_A0004",
       "to": "2F_N0013",
       "kind": "access",
@@ -2118,7 +2086,7 @@
       "weightPixels": 22.41
     },
     {
-      "id": "2F_E0092",
+      "id": "2F_E0091",
       "from": "2F_A0005",
       "to": "2F_N0012",
       "kind": "access",
@@ -2126,7 +2094,7 @@
       "weightPixels": 45.51
     },
     {
-      "id": "2F_E0093",
+      "id": "2F_E0092",
       "from": "2F_A0006",
       "to": "2F_N0026",
       "kind": "access",
@@ -2134,7 +2102,7 @@
       "weightPixels": 44.37
     },
     {
-      "id": "2F_E0094",
+      "id": "2F_E0093",
       "from": "2F_A0007",
       "to": "2F_N0027",
       "kind": "access",
@@ -2142,7 +2110,7 @@
       "weightPixels": 66.57
     },
     {
-      "id": "2F_E0095",
+      "id": "2F_E0094",
       "from": "2F_A0008",
       "to": "2F_N0040",
       "kind": "access",
@@ -2150,7 +2118,7 @@
       "weightPixels": 24.18
     },
     {
-      "id": "2F_E0096",
+      "id": "2F_E0095",
       "from": "2F_A0009",
       "to": "2F_N0072",
       "kind": "access",
@@ -2158,7 +2126,7 @@
       "weightPixels": 25.25
     },
     {
-      "id": "2F_E0097",
+      "id": "2F_E0096",
       "from": "2F_A0010",
       "to": "2F_N0017",
       "kind": "access",
@@ -2166,7 +2134,7 @@
       "weightPixels": 24.7213
     },
     {
-      "id": "2F_E0098",
+      "id": "2F_E0097",
       "from": "2F_A0011",
       "to": "2F_N0016",
       "kind": "access",
@@ -2174,7 +2142,7 @@
       "weightPixels": 47.5214
     },
     {
-      "id": "2F_E0099",
+      "id": "2F_E0098",
       "from": "2F_A0012",
       "to": "2F_N0011",
       "kind": "access",
@@ -2182,7 +2150,7 @@
       "weightPixels": 45.41
     },
     {
-      "id": "2F_E0100",
+      "id": "2F_E0099",
       "from": "2F_A0013",
       "to": "2F_N0011",
       "kind": "access",
@@ -2190,7 +2158,7 @@
       "weightPixels": 22.51
     },
     {
-      "id": "2F_E0101",
+      "id": "2F_E0100",
       "from": "2F_A0014",
       "to": "2F_N0025",
       "kind": "access",
@@ -2198,7 +2166,7 @@
       "weightPixels": 67.37
     },
     {
-      "id": "2F_E0102",
+      "id": "2F_E0101",
       "from": "2F_A0015",
       "to": "2F_N0024",
       "kind": "access",
@@ -2206,7 +2174,7 @@
       "weightPixels": 44.67
     },
     {
-      "id": "2F_E0103",
+      "id": "2F_E0102",
       "from": "2F_A0034",
       "to": "2F_N0045",
       "kind": "access",
@@ -2214,7 +2182,7 @@
       "weightPixels": 34.8675
     },
     {
-      "id": "2F_E0104",
+      "id": "2F_E0103",
       "from": "2F_A0035",
       "to": "2F_N0048",
       "kind": "access",
@@ -2222,7 +2190,7 @@
       "weightPixels": 25.25
     },
     {
-      "id": "2F_E0105",
+      "id": "2F_E0104",
       "from": "2F_A0036",
       "to": "2F_N0067",
       "kind": "access",
@@ -2230,7 +2198,7 @@
       "weightPixels": 31.2087
     },
     {
-      "id": "2F_E0106",
+      "id": "2F_E0105",
       "from": "2F_A0037",
       "to": "2F_N0020",
       "kind": "access",
@@ -2238,7 +2206,7 @@
       "weightPixels": 33.7014
     },
     {
-      "id": "2F_E0107",
+      "id": "2F_E0106",
       "from": "2F_A0038",
       "to": "2F_N0055",
       "kind": "access",
@@ -2246,7 +2214,7 @@
       "weightPixels": 87.0448
     },
     {
-      "id": "2F_E0108",
+      "id": "2F_E0107",
       "from": "2F_A0039",
       "to": "2F_N0057",
       "kind": "access",
@@ -2254,7 +2222,7 @@
       "weightPixels": 20.0948
     },
     {
-      "id": "2F_E0109",
+      "id": "2F_E0108",
       "from": "2F_A0040",
       "to": "2F_N0032",
       "kind": "access",
@@ -2262,7 +2230,7 @@
       "weightPixels": 30.5858
     },
     {
-      "id": "2F_E0110",
+      "id": "2F_E0109",
       "from": "2F_A0041",
       "to": "2F_N0034",
       "kind": "access",
@@ -2270,7 +2238,7 @@
       "weightPixels": 41.3294
     },
     {
-      "id": "2F_E0111",
+      "id": "2F_E0110",
       "from": "2F_A0042",
       "to": "2F_N0035",
       "kind": "access",
@@ -2278,7 +2246,7 @@
       "weightPixels": 65.78
     },
     {
-      "id": "2F_E0112",
+      "id": "2F_E0111",
       "from": "2F_A0043",
       "to": "2F_N0039",
       "kind": "access",
@@ -2286,72 +2254,64 @@
       "weightPixels": 17.55
     },
     {
-      "id": "2F_E0113",
+      "id": "2F_E0112",
       "from": "2F_A0046",
-      "to": "2F_N0078",
+      "to": "2F_N0077",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 26.47
     },
     {
-      "id": "2F_E0114",
+      "id": "2F_E0113",
       "from": "2F_A0047",
-      "to": "2F_N0075",
-      "kind": "access",
-      "bidirectional": true,
-      "weightPixels": 21.8563
-    },
-    {
-      "id": "2F_E0115",
-      "from": "2F_A0048",
       "to": "2F_N0051",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 23.9
     },
     {
-      "id": "2F_E0116",
-      "from": "2F_A0049",
+      "id": "2F_E0114",
+      "from": "2F_A0048",
       "to": "2F_N0059",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 59.14
     },
     {
-      "id": "2F_E0117",
-      "from": "2F_A0050",
+      "id": "2F_E0115",
+      "from": "2F_A0049",
       "to": "2F_N0053",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 24.8813
     },
     {
-      "id": "2F_E0118",
-      "from": "2F_A0051",
+      "id": "2F_E0116",
+      "from": "2F_A0050",
       "to": "2F_N0056",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 25.6245
     },
     {
-      "id": "2F_E0119",
-      "from": "2F_A0052",
+      "id": "2F_E0117",
+      "from": "2F_A0051",
       "to": "2F_N0064",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 17.098
     },
     {
-      "id": "2F_E0120",
-      "from": "2F_A0053",
+      "id": "2F_E0118",
+      "from": "2F_A0052",
       "to": "2F_N0063",
       "kind": "access",
       "bidirectional": true,
       "weightPixels": 70.8871
     },
     {
-      "id": "2F_E0121",
-      "from": "2F_A0054",
+      "id": "2F_E0119",
+      "from": "2F_A0053",
       "to": "2F_N0061",
       "kind": "access",
       "bidirectional": true,
@@ -2531,67 +2491,67 @@
       "sourceCvatId": 46
     },
     {
+      "id": "2F_RESTROOM_0047",
+      "navigationKey": "2F_RESTROOM_0047",
+      "name": "2층 서쪽 화장실",
+      "nodeId": "2F_A0047",
+      "verified": "cvat",
+      "placeType": "RESTROOM",
+      "sourceCvatId": 47
+    },
+    {
       "id": "2F_RESTROOM_0048",
       "navigationKey": "2F_RESTROOM_0048",
-      "name": "2층 서쪽 화장실",
+      "name": "2층 동쪽 화장실",
       "nodeId": "2F_A0048",
       "verified": "cvat",
       "placeType": "RESTROOM",
       "sourceCvatId": 48
     },
     {
-      "id": "2F_RESTROOM_0049",
-      "navigationKey": "2F_RESTROOM_0049",
-      "name": "2층 동쪽 화장실",
-      "nodeId": "2F_A0049",
-      "verified": "cvat",
-      "placeType": "RESTROOM",
-      "sourceCvatId": 49
-    },
-    {
       "id": "2F_EV_NW",
       "navigationKey": "2F_EV_NW",
       "name": "북서 엘리베이터",
+      "nodeId": "2F_A0049",
+      "verified": "cvat",
+      "placeType": "ELEVATOR",
+      "sourceCvatId": 49
+    },
+    {
+      "id": "2F_EV_NE",
+      "navigationKey": "2F_EV_NE",
+      "name": "북동 엘리베이터",
       "nodeId": "2F_A0050",
       "verified": "cvat",
       "placeType": "ELEVATOR",
       "sourceCvatId": 50
     },
     {
-      "id": "2F_EV_NE",
-      "navigationKey": "2F_EV_NE",
-      "name": "북동 엘리베이터",
+      "id": "2F_EV_SW",
+      "navigationKey": "2F_EV_SW",
+      "name": "남서 엘리베이터",
       "nodeId": "2F_A0051",
       "verified": "cvat",
       "placeType": "ELEVATOR",
       "sourceCvatId": 51
     },
     {
-      "id": "2F_EV_SW",
-      "navigationKey": "2F_EV_SW",
-      "name": "남서 엘리베이터",
+      "id": "2F_EV_STROLLER",
+      "navigationKey": "2F_EV_STROLLER",
+      "name": "유아차 전용 엘리베이터",
       "nodeId": "2F_A0052",
       "verified": "cvat",
       "placeType": "ELEVATOR",
       "sourceCvatId": 52
     },
     {
-      "id": "2F_EV_STROLLER",
-      "navigationKey": "2F_EV_STROLLER",
-      "name": "유아차 전용 엘리베이터",
+      "id": "2F_EV_SE",
+      "navigationKey": "2F_EV_SE",
+      "name": "남동 엘리베이터",
       "nodeId": "2F_A0053",
       "verified": "cvat",
       "placeType": "ELEVATOR",
       "sourceCvatId": 53
-    },
-    {
-      "id": "2F_EV_SE",
-      "navigationKey": "2F_EV_SE",
-      "name": "남동 엘리베이터",
-      "nodeId": "2F_A0054",
-      "verified": "cvat",
-      "placeType": "ELEVATOR",
-      "sourceCvatId": 54
     }
   ],
   "connectors": [
@@ -2774,7 +2734,7 @@
     {
       "id": "EV_NW",
       "type": "elevator",
-      "nodeId": "2F_A0050",
+      "nodeId": "2F_A0049",
       "direction": "both",
       "servedFloors": [
         "B2",
@@ -2788,10 +2748,29 @@
       ],
       "verified": "cvat",
       "name": "북서 엘리베이터",
-      "sourceCvatId": 50
+      "sourceCvatId": 49
     },
     {
       "id": "EV_NE",
+      "type": "elevator",
+      "nodeId": "2F_A0050",
+      "direction": "both",
+      "servedFloors": [
+        "B2",
+        "B1",
+        "1F",
+        "2F",
+        "3F",
+        "4F",
+        "5F",
+        "6F"
+      ],
+      "verified": "cvat",
+      "name": "북동 엘리베이터",
+      "sourceCvatId": 50
+    },
+    {
+      "id": "EV_SW",
       "type": "elevator",
       "nodeId": "2F_A0051",
       "direction": "both",
@@ -2806,11 +2785,11 @@
         "6F"
       ],
       "verified": "cvat",
-      "name": "북동 엘리베이터",
+      "name": "남서 엘리베이터",
       "sourceCvatId": 51
     },
     {
-      "id": "EV_SW",
+      "id": "EV_STROLLER",
       "type": "elevator",
       "nodeId": "2F_A0052",
       "direction": "both",
@@ -2825,11 +2804,11 @@
         "6F"
       ],
       "verified": "cvat",
-      "name": "남서 엘리베이터",
+      "name": "유아차 전용 엘리베이터",
       "sourceCvatId": 52
     },
     {
-      "id": "EV_STROLLER",
+      "id": "EV_SE",
       "type": "elevator",
       "nodeId": "2F_A0053",
       "direction": "both",
@@ -2844,27 +2823,8 @@
         "6F"
       ],
       "verified": "cvat",
-      "name": "유아차 전용 엘리베이터",
-      "sourceCvatId": 53
-    },
-    {
-      "id": "EV_SE",
-      "type": "elevator",
-      "nodeId": "2F_A0054",
-      "direction": "both",
-      "servedFloors": [
-        "B2",
-        "B1",
-        "1F",
-        "2F",
-        "3F",
-        "4F",
-        "5F",
-        "6F"
-      ],
-      "verified": "cvat",
       "name": "남동 엘리베이터",
-      "sourceCvatId": 54
+      "sourceCvatId": 53
     }
   ]
 }

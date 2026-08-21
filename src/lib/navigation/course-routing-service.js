@@ -15,7 +15,7 @@ const CATEGORY_STYLES = {
 };
 
 const DEFAULT_COURSE_KEYS = [
-  "B2_STORE_0032",
+  "B2_STORE_0031",
   "1F_STORE_0031",
   "4F_STORE_0044",
   "6F_STORE_0033",
@@ -69,8 +69,8 @@ async function loadDataset(options) {
     placesByNavigationKey.get(key),
   ).filter(Boolean);
 
-  if (places.length !== 124) {
-    throw new Error(`Expected 124 navigable stores, received ${places.length}.`);
+  if (places.length !== 147) {
+    throw new Error(`Expected 147 navigable stores, received ${places.length}.`);
   }
 
   return {

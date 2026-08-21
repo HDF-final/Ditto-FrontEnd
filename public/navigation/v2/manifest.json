@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-12T07:07:35.103Z",
+  "generatedAt": "2026-08-21T09:41:40.341Z",
   "floorOrder": [
     "B2",
     "B1",
@@ -13,53 +13,55 @@
   ],
   "summary": {
     "floorCount": 8,
-    "storePlaceCount": 124,
-    "databasePlaceCandidateCount": 232,
+    "storePlaceCount": 147,
+    "databasePlaceCandidateCount": 255,
     "elevatorShaftCount": 5,
     "escalatorConnectorCount": 52,
-    "warningCount": 4,
+    "warningCount": 6,
     "issueCount": 0
   },
   "warnings": [
     "B1: removed 30 duplicate corridor segment(s).",
+    "1F: removed 5 duplicate corridor segment(s).",
+    "1F: normalized place name '크리스챤 티올' to '크리스챤 디올'.",
     "2F: removed 1 zero-length corridor segment(s).",
     "2F: removed 3 duplicate corridor segment(s).",
     "4F: removed 1 duplicate corridor segment(s)."
   ],
   "routeChecks": [
     {
-      "startId": "B2_STORE_0021",
-      "destinationId": "6F_STORE_0027",
+      "startId": "B2_STORE_0020",
+      "destinationId": "6F_STORE_0024",
       "mode": "all",
       "found": true
     },
     {
-      "startId": "B2_STORE_0021",
-      "destinationId": "6F_STORE_0027",
+      "startId": "B2_STORE_0020",
+      "destinationId": "6F_STORE_0024",
       "mode": "elevator_only",
       "found": true
     },
     {
-      "startId": "B2_STORE_0021",
-      "destinationId": "6F_STORE_0027",
+      "startId": "B2_STORE_0020",
+      "destinationId": "6F_STORE_0024",
       "mode": "escalator_only",
       "found": true
     },
     {
-      "startId": "6F_STORE_0027",
-      "destinationId": "B2_STORE_0021",
+      "startId": "6F_STORE_0024",
+      "destinationId": "B2_STORE_0020",
       "mode": "all",
       "found": true
     },
     {
-      "startId": "6F_STORE_0027",
-      "destinationId": "B2_STORE_0021",
+      "startId": "6F_STORE_0024",
+      "destinationId": "B2_STORE_0020",
       "mode": "elevator_only",
       "found": true
     },
     {
-      "startId": "6F_STORE_0027",
-      "destinationId": "B2_STORE_0021",
+      "startId": "6F_STORE_0024",
+      "destinationId": "B2_STORE_0020",
       "mode": "escalator_only",
       "found": true
     }
@@ -88,20 +90,20 @@
     },
     "B1": {
       "file": "b1.json",
-      "sourceArchive": "b1_navigation_v1.zip",
+      "sourceArchive": "b1_navigation_v2.zip",
       "stats": {
         "polylineCount": 14,
         "rawSegmentCount": 82,
         "uniqueSegmentCount": 52,
         "removedDuplicateSegments": 30,
         "zeroLengthSegmentCount": 0,
-        "splitCorridorSegmentCount": 91,
+        "splitCorridorSegmentCount": 97,
         "corridorComponentCount": 1,
-        "attachmentCount": 45,
-        "maximumAccessDistancePixels": 154.93
+        "attachmentCount": 52,
+        "maximumAccessDistancePixels": 171.74
       },
       "placeCounts": {
-        "STORE": 21,
+        "STORE": 28,
         "RESTROOM": 3,
         "ELEVATOR": 5,
         "ESCALATOR": 8
@@ -109,20 +111,20 @@
     },
     "1F": {
       "file": "1f.json",
-      "sourceArchive": "1f_navigation_v1.zip",
+      "sourceArchive": "1f_navigation_v2.zip",
       "stats": {
-        "polylineCount": 12,
-        "rawSegmentCount": 31,
-        "uniqueSegmentCount": 31,
-        "removedDuplicateSegments": 0,
+        "polylineCount": 25,
+        "rawSegmentCount": 70,
+        "uniqueSegmentCount": 65,
+        "removedDuplicateSegments": 5,
         "zeroLengthSegmentCount": 0,
-        "splitCorridorSegmentCount": 63,
+        "splitCorridorSegmentCount": 113,
         "corridorComponentCount": 1,
-        "attachmentCount": 40,
+        "attachmentCount": 56,
         "maximumAccessDistancePixels": 143.75
       },
       "placeCounts": {
-        "STORE": 18,
+        "STORE": 34,
         "RESTROOM": 1,
         "ELEVATOR": 5,
         "ESCALATOR": 8
@@ -137,9 +139,9 @@
         "uniqueSegmentCount": 54,
         "removedDuplicateSegments": 3,
         "zeroLengthSegmentCount": 1,
-        "splitCorridorSegmentCount": 86,
+        "splitCorridorSegmentCount": 85,
         "corridorComponentCount": 1,
-        "attachmentCount": 35,
+        "attachmentCount": 34,
         "maximumAccessDistancePixels": 87.04
       },
       "placeCounts": {

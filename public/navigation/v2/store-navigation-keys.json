@@ -31,75 +31,75 @@
   },
   {
     "floor_code": "B2",
-    "place_name": "노메뉴얼",
-    "navigation_key": "B2_STORE_0025",
-    "cvat_object_id": 51
-  },
-  {
-    "floor_code": "B2",
     "place_name": "산산기어",
-    "navigation_key": "B2_STORE_0026",
+    "navigation_key": "B2_STORE_0025",
     "cvat_object_id": 25
   },
   {
     "floor_code": "B2",
     "place_name": "포인트 오브 뷰",
-    "navigation_key": "B2_STORE_0027",
+    "navigation_key": "B2_STORE_0026",
     "cvat_object_id": 26
   },
   {
     "floor_code": "B2",
     "place_name": "스타벅스 리저브",
-    "navigation_key": "B2_STORE_0028",
+    "navigation_key": "B2_STORE_0027",
     "cvat_object_id": 27
   },
   {
     "floor_code": "B2",
     "place_name": "29CM HOME",
-    "navigation_key": "B2_STORE_0029",
+    "navigation_key": "B2_STORE_0028",
     "cvat_object_id": 28
   },
   {
     "floor_code": "B2",
     "place_name": "틸아이다이",
-    "navigation_key": "B2_STORE_0030",
+    "navigation_key": "B2_STORE_0029",
     "cvat_object_id": 29
   },
   {
     "floor_code": "B2",
     "place_name": "뉴발란스",
-    "navigation_key": "B2_STORE_0031",
+    "navigation_key": "B2_STORE_0030",
     "cvat_object_id": 30
   },
   {
     "floor_code": "B2",
     "place_name": "MLB",
-    "navigation_key": "B2_STORE_0032",
+    "navigation_key": "B2_STORE_0031",
     "cvat_object_id": 31
   },
   {
     "floor_code": "B2",
     "place_name": "LMC",
-    "navigation_key": "B2_STORE_0033",
+    "navigation_key": "B2_STORE_0032",
     "cvat_object_id": 32
   },
   {
     "floor_code": "B2",
     "place_name": "지하 2층 팝업 아이코닉",
-    "navigation_key": "B2_STORE_0041",
+    "navigation_key": "B2_STORE_0040",
     "cvat_object_id": 40
   },
   {
     "floor_code": "B2",
     "place_name": "시에",
-    "navigation_key": "B2_STORE_0042",
+    "navigation_key": "B2_STORE_0041",
     "cvat_object_id": 41
   },
   {
     "floor_code": "B2",
     "place_name": "ETF 베이커리",
-    "navigation_key": "B2_STORE_0051",
+    "navigation_key": "B2_STORE_0049",
     "cvat_object_id": 49
+  },
+  {
+    "floor_code": "B2",
+    "place_name": "노메뉴얼",
+    "navigation_key": "B2_STORE_0051",
+    "cvat_object_id": 51
   },
   {
     "floor_code": "B1",
@@ -228,6 +228,48 @@
     "cvat_object_id": 37
   },
   {
+    "floor_code": "B1",
+    "place_name": "요즘김밥",
+    "navigation_key": "B1_STORE_0059",
+    "cvat_object_id": 59
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "여왕떡볶이",
+    "navigation_key": "B1_STORE_0060",
+    "cvat_object_id": 60
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "전주선비빔",
+    "navigation_key": "B1_STORE_0061",
+    "cvat_object_id": 61
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "한솔냉면",
+    "navigation_key": "B1_STORE_0062",
+    "cvat_object_id": 62
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "샤브미담",
+    "navigation_key": "B1_STORE_0063",
+    "cvat_object_id": 63
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "한정선",
+    "navigation_key": "B1_STORE_0064",
+    "cvat_object_id": 64
+  },
+  {
+    "floor_code": "B1",
+    "place_name": "삼성혈해물탕",
+    "navigation_key": "B1_STORE_0065",
+    "cvat_object_id": 65
+  },
+  {
     "floor_code": "1F",
     "place_name": "발렌시아가",
     "navigation_key": "1F_STORE_0028",
@@ -265,7 +307,7 @@
   },
   {
     "floor_code": "1F",
-    "place_name": "크리스챤 티올",
+    "place_name": "크리스챤 디올",
     "navigation_key": "1F_STORE_0034",
     "cvat_object_id": 34
   },
@@ -334,6 +376,102 @@
     "place_name": "템버린즈",
     "navigation_key": "1F_STORE_0045",
     "cvat_object_id": 45
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "르 라보",
+    "navigation_key": "1F_STORE_0065",
+    "cvat_object_id": 65
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "딥디크",
+    "navigation_key": "1F_STORE_0066",
+    "cvat_object_id": 66
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "에스티로더",
+    "navigation_key": "1F_STORE_0067",
+    "cvat_object_id": 67
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "입생로랑",
+    "navigation_key": "1F_STORE_0068",
+    "cvat_object_id": 68
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "바이레도",
+    "navigation_key": "1F_STORE_0069",
+    "cvat_object_id": 69
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "샤넬 뷰티",
+    "navigation_key": "1F_STORE_0070",
+    "cvat_object_id": 70
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "에르메스 뷰티",
+    "navigation_key": "1F_STORE_0071",
+    "cvat_object_id": 71
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "프라다 뷰티",
+    "navigation_key": "1F_STORE_0072",
+    "cvat_object_id": 72
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "아르마니 뷰티",
+    "navigation_key": "1F_STORE_0073",
+    "cvat_object_id": 73
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "디올 뷰티",
+    "navigation_key": "1F_STORE_0074",
+    "cvat_object_id": 74
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "오휘",
+    "navigation_key": "1F_STORE_0075",
+    "cvat_object_id": 75
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "톰포드 뷰티",
+    "navigation_key": "1F_STORE_0076",
+    "cvat_object_id": 76
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "록시땅",
+    "navigation_key": "1F_STORE_0077",
+    "cvat_object_id": 77
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "조 말론 런던",
+    "navigation_key": "1F_STORE_0078",
+    "cvat_object_id": 78
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "키엘",
+    "navigation_key": "1F_STORE_0079",
+    "cvat_object_id": 79
+  },
+  {
+    "floor_code": "1F",
+    "place_name": "헤라",
+    "navigation_key": "1F_STORE_0080",
+    "cvat_object_id": 80
   },
   {
     "floor_code": "2F",
