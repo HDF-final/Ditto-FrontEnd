@@ -7,7 +7,10 @@ import { useTranslations } from "next-intl";
 import {
   X,
   MapPin,
+  Plus,
+  Clock,
 } from "./recommend-icons";
+import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
 
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
@@ -216,19 +219,16 @@ function StandardPlaceModalContent({ place, onClose }) {
     place.heroImage ||
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop";
 
-  // 매장 사진 3장
+  // 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출)
   const storeImages =
     place.brandImages ||
     place.galleryImages ||
-    [
-      rightImage,
-      "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=400&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=400&auto=format&fit=crop",
-    ];
+    null;
 
   const storeDescription =
     place.longDesc ||
     place.desc ||
+    place.description ||
     t("indoorStoreDescription", { location: locationText, name: place.name });
 
   return (
@@ -275,38 +275,60 @@ function StandardPlaceModalContent({ place, onClose }) {
 
           {/* 매장 안내 카드 */}
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
-            <div className="flex items-center gap-2 text-[13px] font-black text-[#5c2ef5] mb-2.5">
+            <div className="flex items-center gap-2 text-[16px] font-black text-[#5c2ef5] mb-2.5">
               <span>💡</span>
               <span>{t("storeGuide")}</span>
             </div>
-            <p className="text-[14px] font-medium leading-[1.7] text-[#2d2745] break-keep">
+            <p className="text-[17px] font-medium leading-[1.7] text-[#2d2745] break-keep">
               {storeDescription}
             </p>
           </div>
 
-          {/* 매장 사진 3장 */}
-          <div className="mt-6">
-            <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-              {t("storePhotos")}
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {storeImages.slice(0, 3).map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
-                >
-                  <img
-                    src={imgUrl}
-                    alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                </div>
-              ))}
+          {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
+          {storeImages && storeImages.length > 0 ? (
+            <div className="mt-6">
+              <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
+                {t("storePhotos")}
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {storeImages.slice(0, 3).map((imgUrl, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.src = getFallbackPlaceImage(place);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
-      </div>
+
+          {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
+          {place.onAddPlace ? (
+            <div className="mt-6 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  place.onAddPlace();
+                  onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-[20px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[15px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
+              >
+                <Plus size={17} strokeWidth={2.5} />
+                <span>이 장소 코스에 추가하기</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
 
       {/* Right Column: 매장 대표 사진 카드 (place 테이블의 image url 사용) */}
       <div className="relative min-h-[320px] md:min-h-[620px] bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] overflow-hidden flex flex-col p-6 md:p-7">
@@ -349,73 +371,149 @@ function StandardPlaceModalContent({ place, onClose }) {
 }
 
 /**
- * 원본 컴팩트 매장 모달 (장소 추가 목록에서 매장 클릭 시 사진 없이 깔끔하게 뜨는 모달)
+ * 매장 상세 팝업 (장소 추가 목록 등에서 매장 클릭 시 뜨는 사진 포함 모달)
  */
 function CompactPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
-  const accent = place.accentColor ?? "#5c2ef5";
   const locationText =
-    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
+    place.location ||
+    (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
+
+  const placeImage =
+    place.image ||
+    place.imageUrl ||
+    place.placeImg ||
+    getFallbackPlaceImage(place);
+
+  const descText =
+    place.desc ||
+    place.description ||
+    t("compactStoreDescription", {
+      location: locationText,
+      name: place.name,
+    }) ||
+    `${place.floor ? `${place.floor} ` : ""}${place.name} · 실내 길찾기 지원 매장`.trim();
 
   return (
     <div
-      className="relative w-full max-w-[400px] max-h-[85vh] rounded-[24px] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.45)] bg-white flex flex-col"
+      className="relative w-full max-w-[460px] max-h-[90vh] rounded-[26px] overflow-hidden shadow-2xl bg-white flex flex-col animate-in zoom-in-95 duration-150"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Header Gradient */}
-      <div
-        className="relative px-6 pt-6 pb-5 shrink-0"
-        style={{
-          background: `linear-gradient(135deg, ${accent}, #1a142e)`,
-        }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-white/20 text-white backdrop-blur-xs border border-white/20">
-            {place.category || t("store")} {place.floor ? `· ${place.floor}` : ""}
-          </span>
+      {/* Top Banner Image with Clean Dark Overlay */}
+      <div className="relative w-full h-[230px] sm:h-[260px] bg-gray-900 shrink-0 overflow-hidden">
+        {/* Background Image */}
+        <img
+          src={placeImage}
+          alt={place.name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = getFallbackPlaceImage(place);
+          }}
+        />
+        {/* Soft Dark Bottom Gradient */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[140px] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
+          }}
+        />
+
+        {/* Top Badges & Close Button */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center text-[11.5px] font-bold px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-md">
+              {place.category || t("store")}
+            </span>
+            {place.floor && (
+              <span className="inline-flex items-center text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-[#5c2ef5] text-white">
+                {place.floor}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="size-8 rounded-full flex items-center justify-center bg-black/20 text-white hover:bg-black/40 transition cursor-pointer"
+            className="size-8.5 rounded-full flex items-center justify-center bg-black/40 text-white hover:bg-black/60 backdrop-blur-md transition-all cursor-pointer"
             aria-label={t("close")}
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">
-          {place.name}
-        </h2>
-        <div className="flex items-center gap-1.5 text-white/80 text-[12px] mt-1">
-          <MapPin size={13} className="shrink-0" />
-          <span>{locationText}</span>
+
+        {/* Bottom Title in Header */}
+        <div className="absolute bottom-4 left-5 right-5 z-10">
+          <h2 className="text-[22px] sm:text-[24px] font-black text-white tracking-tight drop-shadow-md">
+            {place.name}
+          </h2>
+          <div className="flex items-center gap-1.5 text-white/90 text-[13px] font-medium mt-1">
+            <MapPin size={13.5} className="shrink-0 text-white/80" />
+            <span>{locationText}</span>
+          </div>
         </div>
       </div>
 
-      {/* Body Info */}
-      <div className="p-6 flex flex-col gap-4 overflow-y-auto">
-        <div className="rounded-[16px] bg-[#faf8ff] border border-[#e0d9f8] p-4">
-          <p className="text-[10px] font-bold text-[#5c2ef5] tracking-wide mb-1.5 uppercase">
+      {/* Body Info - Clean, Minimalist & Modern */}
+      <div className="p-5 sm:p-6 flex flex-col gap-4.5 overflow-y-auto min-h-0 bg-white">
+        {/* Store Intro */}
+        <div>
+          <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">
             {t("storeIntro")}
-          </p>
-          <p className="text-[13px] text-[#2d2745] leading-relaxed">
-            {place.desc || t("compactStoreDescription", { location: locationText, name: place.name })}
+          </h3>
+          <p className="text-[14px] font-normal text-gray-700 leading-[1.65] break-keep">
+            {descText}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-[12px]">
-          <div className="rounded-xl bg-[#f8f7fc] p-3">
-            <span className="text-[10px] font-semibold text-[#9994ad] block mb-1">
-              {t("hours")}
-            </span>
-            <span className="text-[#1a142e] font-bold">10:30 - 20:00</span>
+        {/* Store Details Container */}
+        <div className="rounded-2xl bg-[#f8f9fc] p-4 space-y-3">
+          {/* Hours */}
+          <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center gap-2 text-gray-500 font-medium">
+              <Clock size={15} className="text-gray-400 shrink-0" />
+              <span>{t("hours")}</span>
+            </div>
+            <div className="text-right">
+              <span className="font-bold text-gray-900">10:30 ~ 20:00</span>
+              <span className="text-[11.5px] text-gray-400 font-normal ml-1.5">
+                (금~일 ~20:30)
+              </span>
+            </div>
           </div>
-          <div className="rounded-xl bg-[#f8f7fc] p-3">
-            <span className="text-[10px] font-semibold text-[#9994ad] block mb-1">
-              {t("locationInfo")}
-            </span>
-            <span className="text-[#1a142e] font-bold">{place.floor || t("departmentStore")}</span>
+
+          <div className="h-px bg-gray-200/60" />
+
+          {/* Location */}
+          <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center gap-2 text-gray-500 font-medium">
+              <MapPin size={15} className="text-gray-400 shrink-0" />
+              <span>{t("locationInfo")}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-gray-900">
+                더현대 서울 {place.floor || ""}
+              </span>
+              <span className="text-[11px] font-semibold text-[#5c2ef5] bg-[#5c2ef5]/8 px-2 py-0.5 rounded-md">
+                3D 길찾기
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Action Button: [+ 이 장소 코스에 담기] */}
+        {place.onAddPlace ? (
+          <button
+            type="button"
+            onClick={() => {
+              place.onAddPlace();
+              onClose();
+            }}
+            className="w-full mt-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.99] text-white text-[14.5px] font-bold shadow-sm transition-all cursor-pointer"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>이 장소 코스에 추가하기</span>
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -423,36 +521,21 @@ function CompactPlaceModalContent({ place, onClose }) {
 
 /**
  * PlaceModal Entry Component
- * - 장소 추가 목록에서 클릭 시: CompactPlaceModalContent (사진 없는 원본 모달)
- * - 코스 타임라인에서 AI 추천 장소 클릭 시: AiPlaceModalContent (2컬럼 앰버서더 뷰)
- * - 코스 타임라인에서 일반 매장 클릭 시: StandardPlaceModalContent (2컬럼 일반 매장 상세 뷰, place 테이블 이미지 반영)
+ * - 장소 추가 모달 및 코스 타임라인 전반에서 통일된 디또 시그니처 2컬럼 상세 모달 제공
  */
 export function PlaceModal({ place, onClose }) {
   if (!place) return null;
 
-  // 1. 장소 추가 목록에서 매장 클릭 시 -> 원래 사진 없는 컴팩트 모달 표시 (z-index 105)
-  if (place.modalMode === "compact") {
-    return (
-      <div
-        className="fixed inset-0 z-[105] flex items-center justify-center p-4 animate-in fade-in duration-150"
-        style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(6px)" }}
-        onClick={onClose}
-      >
-        <CompactPlaceModalContent place={place} onClose={onClose} />
-      </div>
-    );
-  }
-
-  // 2. 코스에 담긴 장소 중 AI 추천 장소 -> AI 추천 2컬럼 모달
   const isAiMode = Boolean(
     place.aiReason || place.isAiRecommended || place.isAiVersion,
   );
 
-  // 3. 코스에 담긴 일반 매장 -> 일반 매장 상세 2컬럼 모달 (우측에 place 테이블 이미지 반영)
+  const zIndexClass = place.modalMode === "compact" ? "z-[105]" : "z-[100]";
+
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-5 animate-in fade-in duration-150"
-      style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(6px)" }}
+      className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4 sm:p-5 animate-in fade-in duration-150`}
+      style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       {isAiMode ? (
