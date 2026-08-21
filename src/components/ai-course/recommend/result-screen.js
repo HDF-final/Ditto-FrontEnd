@@ -162,6 +162,15 @@ export function ResultScreen({ chat, onPlaceClick }) {
     });
     setAppliedCourse(aiCourse);
     setItems(hydratedPlaces);
+    if (!courseTitle) {
+      const userPrompt = chat?.messages?.find((m) => m.role === "user")?.text;
+      if (userPrompt) {
+        const cleaned = userPrompt
+          .replace(/(관련한|관련|맞춤)?\s*(코스|추천)?\s*(만들어줘|생성해줘|짜줘|추천해줘).*/, "")
+          .trim();
+        setCourseTitle(cleaned ? `${cleaned} 코스` : "K-Culture 추천 코스");
+      }
+    }
     setSavedCourse(null);
     setSaveStatus("idle");
     setSaveSuccessOpen(false);

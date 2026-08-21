@@ -135,7 +135,8 @@
     "share": "기사 공유",
     "copyToast": "기사 링크가 클립보드에 복사되었습니다!",
     "originalArticle": "원문 기사",
-    "viewLargePhoto": "사진 크게 보기"
+    "viewLargePhoto": "사진 크게 보기",
+    "createCourse": "코스 생성하기"
   },
   "auth": {
     "welcomeBack": "다시 오셨네요",

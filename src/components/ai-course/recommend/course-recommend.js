@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { PromptScreen } from "./prompt-screen";
 import { ResultScreen } from "./result-screen";
 import { PlaceModal } from "./place-modal";
@@ -23,16 +24,29 @@ import { useCourseChat } from "./use-course-chat";
  * this route so the editor can fill the remaining viewport.
  */
 export function CourseRecommend() {
-  const [phase, setPhase] = useState("prompt");
+  const searchParams = useSearchParams();
+  const promptParam = searchParams?.get("prompt")?.trim() || "";
+  const handledPromptRef = useRef("");
+
+  const [phase, setPhase] = useState(() => (promptParam ? "result" : "prompt"));
   const [mode, setMode] = useState("auto"); // "auto" (Boni) | "manual"
   const [activePlace, setActivePlace] = useState(null);
   const chat = useCourseChat();
+
+  useEffect(() => {
+    if (promptParam && handledPromptRef.current !== promptParam) {
+      handledPromptRef.current = promptParam;
+      setPhase("result");
+      chat.send(promptParam);
+    }
+  }, [promptParam, chat]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white lg:min-h-[calc(100dvh-72px)]">
       {phase === "prompt" ? (
         <PromptScreen
           mode={mode}
+          initialPrompt={promptParam}
           onModeChange={setMode}
           onStart={(prompt) => {
             // 화면 전환이 먼저, 요청은 그 위 오버레이가 받습니다.

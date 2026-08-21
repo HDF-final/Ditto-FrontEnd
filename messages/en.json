@@ -135,7 +135,8 @@
     "share": "Share article",
     "copyToast": "The article link was copied to your clipboard!",
     "originalArticle": "Original article",
-    "viewLargePhoto": "View Large Photo"
+    "viewLargePhoto": "View Large Photo",
+    "createCourse": "Create Course"
   },
   "auth": {
     "welcomeBack": "Welcome back",

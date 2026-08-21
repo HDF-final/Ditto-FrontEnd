@@ -144,6 +144,14 @@ export default async function NewsDetailPage({ params }) {
   const body = news.body;
   const summaryPoints = news.summaryPoints;
   const tags = news.tags || news.keywords || [];
+  const primaryTag = tags[0] || categoryLabel || "";
+  const coursePrompt = primaryTag
+    ? `${primaryTag} 관련한 코스 생성해줘`
+    : "K-컬처 추천 코스 생성해줘";
+  const createCourseLabel =
+    typeof t?.has === "function" && t.has("createCourse")
+      ? t("createCourse")
+      : "코스 생성하기";
 
   return (
     <main className="bg-surface-soft min-h-screen">
@@ -192,14 +200,24 @@ export default async function NewsDetailPage({ params }) {
                 title={news.title}
                 summary={news.summary}
               />
-              {news.representativeImageUrl ? (
-                <NewsImageLightbox
-                  src={news.representativeImageUrl}
-                  alt={news.title}
-                  caption={news.imageCaption || news.summary}
-                  mode="button"
-                />
-              ) : null}
+              <Link
+                href={`/ai-course?prompt=${encodeURIComponent(coursePrompt)}`}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-control border border-white/80 bg-black/40 backdrop-blur-xs px-6 text-sm font-black text-white transition hover:bg-white/25 cursor-pointer shadow-xs group"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="size-4.5 text-brand-light transition-transform group-hover:scale-110"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+                <span>{createCourseLabel}</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -256,17 +274,19 @@ export default async function NewsDetailPage({ params }) {
               {tags.length > 0 ? (
                 <div className="flex flex-wrap gap-3 pt-4">
                   {tags.map((tag, index) => (
-                    <span
+                    <Link
                       key={tag}
+                      href={`/ai-course?prompt=${encodeURIComponent(`${tag} 관련한 코스 생성해줘`)}`}
                       className={[
-                        "rounded-control px-5 py-2 text-xs font-black",
+                        "rounded-control px-5 py-2 text-xs font-black transition-all hover:scale-105 active:scale-95 cursor-pointer",
                         index === 0
-                          ? "bg-brand text-white"
-                          : "bg-brand-soft text-brand",
+                          ? "bg-brand text-white shadow-sm hover:bg-brand-dark"
+                          : "bg-brand-soft text-brand hover:bg-brand-soft/80",
                       ].join(" ")}
+                      title={`${tag} 관련 코스 생성하기`}
                     >
                       #{tag}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               ) : null}

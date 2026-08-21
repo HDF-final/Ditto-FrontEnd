@@ -135,7 +135,8 @@
     "share": "記事をシェア",
     "copyToast": "記事のリンクをクリップボードにコピーしました！",
     "originalArticle": "元の記事",
-    "viewLargePhoto": "写真を拡大"
+    "viewLargePhoto": "写真を拡大",
+    "createCourse": "コース作成"
   },
   "auth": {
     "welcomeBack": "おかえりなさい",
