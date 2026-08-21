@@ -6,6 +6,7 @@ import {
   sendCourseChatMessage,
 } from "@/lib/api/ai-course";
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
+import { resolvePlaceCategory } from "@/lib/navigation/place-category";
 import { useTranslations } from "next-intl";
 
 /**
@@ -58,7 +59,7 @@ function toErrorMessage(error, t) {
  *               일반 <img>를 쓰는 곳만 읽도록 `image`/`placeImg`는 건드리지 않습니다.
  */
 function toAiImageFields(item) {
-  const url = item?.imageUrl || item?.image?.url || null;
+  const url = item?.imageUrl || item?.image_url || item?.image?.url || null;
   if (!url) return null;
 
   const kind = item?.image?.kind ?? null;
@@ -82,14 +83,23 @@ async function toCoursePlaces(apiPlaces) {
 
   const resolved = await Promise.all(
     apiPlaces.map(async (item) => {
+      // 응답 필드가 camelCase(navigationKey)로 오지만, 원본 플래닝 페이로드가
+      // 그대로 실려 오는 turn이 있어 snake_case도 같이 받습니다.
       const place = await resolveCoursePlace({
-        navigationKey: item?.navigationKey,
+        navigationKey: item?.navigationKey ?? item?.navigation_key,
       });
       if (!place) return null;
       const reason = item?.reason?.trim() || "";
+      // 실내 지도 원장에는 카테고리 필드가 없어 모든 장소가 "매장"으로만 채워집니다.
+      // 응답이 준 카테고리(음식점 / 카페 / 여가 …)가 유일한 실제 값이라, 있으면
+      // 그걸로 덮어써야 태그가 카테고리별 색으로 나옵니다.
+      const category = resolvePlaceCategory(item?.category ?? place.category, {
+        placeName: place.name,
+      });
       // 추천 이유가 카드 설명보다 훨씬 유용해서 있으면 그걸 보여줍니다.
       return {
         ...place,
+        ...category,
         desc: reason || place.desc,
         aiReason: reason || null,
         isAiRecommended: true,

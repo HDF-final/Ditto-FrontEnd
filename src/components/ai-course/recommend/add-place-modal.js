@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "./recommend-icons";
 import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
+import { PLACE_CATEGORY_FILTERS } from "@/lib/navigation/place-category";
 
 const ALL = "__all__";
 
@@ -46,7 +47,7 @@ export function AddPlaceModal({
 
   // Category options: default categories + any unique categories from places
   const categoryOptions = useMemo(() => {
-    const defaults = ["매장", "팝업", "카페", "음식점"];
+    const defaults = PLACE_CATEGORY_FILTERS;
     const fromPlaces = Array.from(
       new Set(places.map((place) => place.category).filter(Boolean)),
     );

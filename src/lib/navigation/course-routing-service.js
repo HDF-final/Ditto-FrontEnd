@@ -8,11 +8,8 @@ import {
   buildItineraryRoute,
   optimizeOpenItinerary,
 } from "./routing-engine";
-
-const CATEGORY_STYLES = {
-  매장: "bg-[#ede9f8] text-[#5c2ef5]",
-  팝업: "bg-[#1a142e] text-white",
-};
+import { resolvePlaceCategory } from "./place-category";
+import { STORE_CATEGORY_BY_NAVIGATION_KEY } from "./store-categories";
 
 const DEFAULT_COURSE_KEYS = [
   "B2_STORE_0031",
@@ -24,7 +21,13 @@ const DEFAULT_COURSE_KEYS = [
 let datasetPromise;
 
 function toCoursePlace(record) {
-  const category = record.place_name?.includes("팝업") ? "팝업" : (record.category ?? "매장");
+  const name = record.place_name ?? record.name;
+  const navigationKey = record.navigation_key ?? record.navigationKey;
+  // 원장 JSON에는 카테고리 필드가 없어서 로컬 분류표로 채웁니다.
+  const { category, categoryStyle, accentColor } = resolvePlaceCategory(
+    record.category ?? STORE_CATEGORY_BY_NAVIGATION_KEY[navigationKey],
+    { placeName: name },
+  );
   const img =
     record.image_url ??
     record.imageUrl ??
@@ -34,18 +37,18 @@ function toCoursePlace(record) {
     record.image ??
     null;
   return {
-    id: record.navigation_key ?? record.place_id ?? record.id,
+    id: navigationKey ?? record.place_id ?? record.id,
     placeId: record.place_id ?? null,
-    navigationKey: record.navigation_key,
+    navigationKey,
     floor: record.floor_code ?? record.floor,
-    name: record.place_name ?? record.name,
+    name,
     category,
-    categoryStyle: CATEGORY_STYLES[category] ?? "bg-[#f0ecfa] text-[#5c2ef5]",
-    desc: record.desc ?? `${record.floor_code ?? record.floor ?? ""} ${record.place_name ?? record.name} · 실내 길찾기 지원 매장`,
+    categoryStyle,
+    desc: record.desc ?? `${record.floor_code ?? record.floor ?? ""} ${name} · 실내 길찾기 지원 매장`,
     image: img,
     imageUrl: img,
     placeImg: img,
-    accentColor: category === "팝업" ? "#1a142e" : "#5c2ef5",
+    accentColor,
     location: `더현대서울 ${record.floor_code ?? record.floor ?? ""}`.trim(),
   };
 }
@@ -102,8 +105,19 @@ export function attachPlaceIdsToCourseDataset(dataset, navigationPlaces) {
       .filter((place) => place.navigationKey && place.imageUrl)
       .map((place) => [place.navigationKey, place.imageUrl]),
   );
+  // 로컬 원장에는 카테고리 필드가 아예 없어 전부 "매장"으로 채워집니다.
+  // 장소 목록 API가 카테고리를 주면 그걸로 덮어써야 태그 색이 구분됩니다.
+  const categoryByNavigationKey = new Map(
+    navigationPlaces
+      .filter((place) => place.navigationKey && place.category)
+      .map((place) => [place.navigationKey, place.category]),
+  );
   const places = dataset.places.map((place) => ({
     ...place,
+    ...resolvePlaceCategory(
+      categoryByNavigationKey.get(place.navigationKey) ?? place.category,
+      { placeName: place.name },
+    ),
     placeId: placeIdByNavigationKey.get(place.navigationKey) ?? null,
     image: imageUrlByNavigationKey.get(place.navigationKey) ?? place.image,
   }));
