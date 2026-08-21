@@ -81,7 +81,7 @@ test("header exposes the primary product navigation items", async () => {
   const items = [...source.matchAll(/href: "([^"]+)", labelKey: "([^"]+)"/g)]
     .map(([, href, labelKey]) => ({ href, labelKey }));
 
-  assert.deepEqual(items.slice(0, 4), [
+  assert.deepEqual(items, [
     { href: "/ai-course", labelKey: "createCourse" },
     { href: "/#picks", labelKey: "courseRecommendations" },
     { href: "/#community", labelKey: "community" },

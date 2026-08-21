@@ -6,24 +6,6 @@ import { useTranslations } from "next-intl";
 
 import { HeaderNavLinks } from "./header-nav-links";
 import { HeaderAuthNav } from "./header-auth-nav";
-import { CountrySelector } from "@/components/common/country-selector";
-
-function GlobeIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-[27px]"
-      viewBox="0 0 27 27"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    >
-      <circle cx="13.5" cy="13.5" r="11.25" />
-      <path d="M2.25 13.5h22.5" />
-      <path d="M13.5 2.25c3.15 3.08 4.73 6.83 4.73 11.25s-1.58 8.17-4.73 11.25c-3.15-3.08-4.73-6.83-4.73-11.25s1.58-8.17 4.73-11.25Z" />
-    </svg>
-  );
-}
 
 export function SiteHeader() {
   const t = useTranslations("navigation");
@@ -54,16 +36,6 @@ export function SiteHeader() {
         </div>
 
         <div className="flex items-center justify-end gap-3 text-ink sm:gap-5">
-          <div className="hidden xl:block">
-            <CountrySelector />
-          </div>
-          <Link
-            href="/country"
-            aria-label={t("preferences")}
-            className="hover:text-brand xl:hidden"
-          >
-            <GlobeIcon />
-          </Link>
           <HeaderAuthNav />
         </div>
       </div>

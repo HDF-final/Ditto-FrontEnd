@@ -4,8 +4,6 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useAuthStore } from "@/stores/use-auth-store";
-import { useIsMounted } from "@/hooks/use-is-mounted";
 
 const baseNavigation = [
   { href: "/ai-course", labelKey: "createCourse", badge: "NEW" },
@@ -31,9 +29,6 @@ function isItemActive(item, pathname, currentHash) {
   if (item.href === "/ai-course") {
     return pathname.startsWith("/ai-course");
   }
-  if (item.href === "/mypage") {
-    return pathname.startsWith("/mypage");
-  }
   if (item.href === "/#picks" || item.href === "/courses") {
     if (pathname.startsWith("/courses")) return true;
     if (pathname === "/" && currentHash === "#picks") return true;
@@ -55,41 +50,33 @@ function isItemActive(item, pathname, currentHash) {
 export function HeaderNavLinks() {
   const t = useTranslations("navigation");
   const pathname = usePathname();
-  const isMounted = useIsMounted();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
   const currentHash = useSyncExternalStore(
     subscribeHash,
     getHashSnapshot,
     getHashServerSnapshot,
   );
 
-  const navigation = [
-    ...baseNavigation,
-    ...(isMounted && isAuthenticated && user
-      ? [{ href: "/mypage", labelKey: "mypage" }]
-      : []),
-  ];
-
   return (
-    <nav className="hidden items-center gap-7 text-[17px] font-black lg:flex xl:gap-9 xl:text-lg 2xl:gap-11">
-      {navigation.map((item) => {
-        const active = isMounted && isItemActive(item, pathname, currentHash);
+    <nav className="hidden items-center gap-10 text-[17px] font-black lg:flex xl:gap-14 xl:text-lg 2xl:gap-16">
+      {baseNavigation.map((item) => {
+        const active = isItemActive(item, pathname, currentHash);
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex items-center gap-2 transition-colors ${
-              active ? "text-brand" : "text-ink hover:text-brand"
+            className={`group inline-flex items-center transition-colors duration-300 ease-out hover:text-brand focus-visible:text-brand focus-visible:outline-none ${
+              active ? "text-brand" : "text-ink"
             }`}
           >
-            {t(item.labelKey)}
-            {item.badge ? (
-              <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
-                {item.badge}
-              </span>
-            ) : null}
+            <span className="inline-flex transform-gpu items-center gap-2 will-change-transform transition-transform duration-700 ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:-translate-y-[3px] motion-reduce:transform-none motion-reduce:transition-none">
+              {t(item.labelKey)}
+              {item.badge ? (
+                <span className="rounded-full bg-brand px-3 py-1 text-[10px] font-bold text-white">
+                  {item.badge}
+                </span>
+              ) : null}
+            </span>
           </Link>
         );
       })}
