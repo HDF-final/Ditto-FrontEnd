@@ -31,27 +31,33 @@ function FilterChip({ label, active, onClick }) {
  * Place picker shown when the user taps "장소 추가".
  * Exact proportions matching the user's floor sidebar reference screenshot.
  */
-export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
+export function AddPlaceModal({
+  open,
+  places = [],
+  loading = false,
+  onAdd,
+  onClose,
+  onPlaceClick,
+}) {
   const t = useTranslations("aiCourse");
   const [category, setCategory] = useState(ALL);
   const [floor, setFloor] = useState(ALL);
   const [query, setQuery] = useState("");
 
-  // Only show categories that actually have candidates available.
-  const categoryOptions = useMemo(
-    () => [ALL, ...new Set(places.map((place) => place.category))],
-    [places]
-  );
+  // Category options: default categories + any unique categories from places
+  const categoryOptions = useMemo(() => {
+    const defaults = ["매장", "팝업", "카페", "음식점"];
+    const fromPlaces = Array.from(
+      new Set(places.map((place) => place.category).filter(Boolean)),
+    );
+    const merged = Array.from(new Set([...defaults, ...fromPlaces]));
+    return [ALL, ...merged];
+  }, [places]);
 
-  // Show floors in descending order (6F → 5F → ... → 1F → B1 → B2)
+  // Show all floors in descending order (6F → 5F → ... → 1F → B1 → B2)
   const floorOptions = useMemo(
-    () => [
-      ALL,
-      ...FLOOR_ORDER.slice()
-        .reverse()
-        .filter((f) => places.some((p) => p.floor === f)),
-    ],
-    [places]
+    () => [ALL, ...FLOOR_ORDER.slice().reverse()],
+    [],
   );
 
   const filtered = useMemo(
@@ -60,11 +66,11 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
         (p) =>
           (category === ALL || p.category === category) &&
           (floor === ALL || p.floor === floor) &&
-          p.name
+          (p.name || "")
             .toLocaleLowerCase("ko")
-            .includes(query.trim().toLocaleLowerCase("ko"))
+            .includes(query.trim().toLocaleLowerCase("ko")),
       ),
-    [places, category, floor, query]
+    [places, category, floor, query],
   );
 
   const handleAdd = (place) => {
@@ -164,7 +170,14 @@ export function AddPlaceModal({ open, places, onAdd, onClose, onPlaceClick }) {
 
             {/* Candidate Places List */}
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
-              {filtered.length === 0 ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                  <div className="size-7 animate-spin rounded-full border-2 border-[#5c2ef5] border-t-transparent" />
+                  <p className="text-[12px] font-bold text-[#9994ad]">
+                    매장 목록을 불러오는 중...
+                  </p>
+                </div>
+              ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
                   <span className="text-3xl">🗺️</span>
                   <p className="text-[12px] font-bold text-[#6b6685]">
