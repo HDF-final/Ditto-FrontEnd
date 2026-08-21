@@ -32,8 +32,9 @@ export function AppFrame({ children }) {
           setUser(profile);
         }
       } catch {
+        // Fallback to permanent default Sato Yuki login
         if (isMounted) {
-          clearUser();
+          setUser();
         }
       }
     }
@@ -43,7 +44,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, clearUser]);
+  }, [setUser]);
 
   if (isAuthRoute) {
     return children;

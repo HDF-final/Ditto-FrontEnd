@@ -321,16 +321,20 @@ export function MypageView() {
     async function loadMypageData() {
       setLoading(true);
       setLoadError("");
-      let currentUserName = "디또러버";
+      let currentUserName = "사토 유키";
       try {
         const userProfile = await getMyProfile();
         if (isMounted && userProfile) {
           setProfile(userProfile);
           setUser(userProfile);
-          currentUserName = userProfile.nickname || userProfile.name || "디또러버";
+          currentUserName = userProfile.nickname || userProfile.name || "사토 유키";
+        } else if (isMounted) {
+          setUser();
         }
       } catch {
-        // Profile fetch error
+        if (isMounted) {
+          setUser();
+        }
       }
 
       try {
