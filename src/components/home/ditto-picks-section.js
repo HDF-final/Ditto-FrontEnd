@@ -40,24 +40,21 @@ export async function DittoPicksSection() {
           <CourseCard key={course.rank} course={course} />
         ))}
 
-        <aside className="col-span-2 flex h-full min-h-[400px] flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.08)] lg:col-span-1 lg:min-h-[540px] lg:rounded-[32px]">
-          <div className="flex min-h-[150px] flex-col justify-end bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 py-6 text-white lg:min-h-[190px] lg:px-8 lg:py-8">
+        <aside className="col-span-2 flex h-full min-h-[360px] flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.08)] lg:col-span-1 lg:min-h-0 lg:rounded-[32px]">
+          <div className="flex min-h-[112px] flex-col justify-end bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 py-5 text-white lg:px-7">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-200 lg:text-xs">
               REALTIME TREND
             </p>
-            <h3 className="mt-2 text-xl font-black tracking-tight lg:text-[28px] lg:leading-9">
+            <h3 className="mt-1.5 text-xl font-black tracking-tight lg:text-[22px] lg:leading-7">
               {t("keywordTitle")}
             </h3>
-            <p className="mt-2 text-[11px] leading-5 text-violet-100 lg:text-sm lg:leading-6">
-              {t("keywordDescription")}
-            </p>
           </div>
 
-          <ol className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 lg:gap-2 lg:px-8 lg:py-7">
+          <ol className="flex flex-1 flex-col justify-center gap-0.5 px-6 py-4 lg:px-7">
             {realtimeKeywords.map((keyword, index) => (
               <li
                 key={keyword}
-                className="flex min-h-10 flex-1 items-center gap-4 lg:min-h-12 lg:gap-5"
+                className="flex min-h-8 flex-1 items-center gap-4 lg:gap-5"
               >
                 <span
                   className={`w-8 shrink-0 text-left text-lg font-black tabular-nums tracking-tight lg:w-10 lg:text-2xl ${
