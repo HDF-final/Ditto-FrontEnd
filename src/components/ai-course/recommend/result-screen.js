@@ -746,6 +746,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     <AddPlaceModal
       open={addOpen}
       places={availablePlaces}
+      loading={datasetStatus === "loading"}
       onAdd={handleAddPlace}
       onClose={() => setAddOpen(false)}
       onPlaceClick={onPlaceClick}
