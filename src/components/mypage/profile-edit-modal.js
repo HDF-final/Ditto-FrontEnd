@@ -8,21 +8,33 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { CountrySelector } from "@/components/common/country-selector";
 import { useLocale, useTranslations } from "next-intl";
 
-export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpdated }) {
+export function ProfileEditModal({
+  isOpen = true,
+  onClose,
+  currentProfile,
+  profile,
+  onProfileUpdated,
+  onSuccess,
+}) {
   const t = useTranslations("mypage");
   const preferenceT = useTranslations("preferences");
   const locale = useLocale();
   const setUser = useAuthStore((state) => state.setUser);
   const authUser = useAuthStore((state) => state.user);
 
-  const initialPersonaId = normalizePersonaId(currentProfile?.persona?.id || authUser?.persona);
-  const [nickname, setNickname] = useState(currentProfile?.name || authUser?.nickname || authUser?.name || "");
+  const targetProfile = currentProfile || profile || authUser;
+  const initialPersonaId = normalizePersonaId(
+    targetProfile?.persona?.id || targetProfile?.persona || targetProfile?.shoppingType || authUser?.persona
+  );
+  const [nickname, setNickname] = useState(
+    targetProfile?.nickname || targetProfile?.name || authUser?.nickname || authUser?.name || ""
+  );
   const [password, setPassword] = useState("");
   const [selectedPersona, setSelectedPersona] = useState(initialPersonaId);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!isOpen) return null;
+  if (isOpen === false) return null;
 
   const copy = getPersonaPageCopy(locale);
   const selectedPersonaTheme = getPersonaById(selectedPersona, locale)?.theme;
@@ -55,6 +67,9 @@ export function ProfileEditModal({ isOpen, onClose, currentProfile, onProfileUpd
       setUser(nextUser);
       if (onProfileUpdated) {
         onProfileUpdated(nextUser);
+      }
+      if (onSuccess) {
+        onSuccess(nextUser);
       }
       onClose();
     } catch (err) {

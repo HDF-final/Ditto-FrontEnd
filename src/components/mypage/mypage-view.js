@@ -359,10 +359,18 @@ export function MypageView() {
       name: personaData.name,
       description: personaData.description,
       image: personaImage,
+      primaryColor: personaData.theme?.primaryColor || "#5c2ef5",
+      primaryHover: personaData.theme?.primaryHover || "#4c1dd4",
       bgColor: personaData.theme?.bgColor || "#fff1e6",
       badgeBg: personaData.theme?.badgeBg || "#f5f3ff",
       badgeBorder: personaData.theme?.badgeBorder || "#e0d8ff",
       badgeText: personaData.theme?.badgeText || "#5c2ef5",
+      statBg: personaData.theme?.statBg || "#f9f7ff",
+      statBorder: personaData.theme?.statBorder || "#ede9fe",
+      softButtonBg: personaData.theme?.softButtonBg || "#f5f3ff",
+      softButtonBorder: personaData.theme?.softButtonBorder || "#e0d8ff",
+      softButtonText: personaData.theme?.softButtonText || "#5c2ef5",
+      softButtonHover: personaData.theme?.softButtonHover || "#ede9fe",
     },
   };
 
@@ -425,18 +433,25 @@ export function MypageView() {
                 key={tab}
                 type="button"
                 onClick={() => handleTabChange(tab)}
+                style={{
+                  borderColor: activeTab === tab ? displayProfile.persona.primaryColor : "transparent",
+                  color: activeTab === tab ? displayProfile.persona.primaryColor : undefined,
+                }}
                 className={`-mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 pb-2.5 text-[13px] font-black transition lg:pb-3.5 lg:text-[15px] ${
                   activeTab === tab
-                    ? "border-brand text-brand"
-                    : "border-transparent text-ink-muted hover:text-ink"
+                    ? ""
+                    : "text-ink-muted hover:text-ink"
                 }`}
               >
                 <span>{tab}</span>
                 {count !== null && (
                   <span
+                    style={{
+                      backgroundColor: activeTab === tab ? displayProfile.persona.primaryColor : undefined,
+                    }}
                     className={`rounded-full px-2 py-0.5 text-xs font-bold transition ${
                       activeTab === tab
-                        ? "bg-brand text-white"
+                        ? "text-white"
                         : "bg-surface-soft text-ink-muted"
                     }`}
                   >
@@ -478,7 +493,7 @@ export function MypageView() {
                     className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
                       currentPage === 1
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                        : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                        : "cursor-pointer border border-line bg-white text-ink hover:border-line-strong shadow-xs"
                     }`}
                     aria-label="이전 페이지"
                   >
@@ -490,10 +505,13 @@ export function MypageView() {
                       key={pageNum}
                       type="button"
                       onClick={() => handlePageChange(pageNum)}
+                      style={{
+                        backgroundColor: currentPage === pageNum ? displayProfile.persona.primaryColor : undefined,
+                      }}
                       className={`flex size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
                         currentPage === pageNum
-                          ? "bg-brand text-white shadow-md"
-                          : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
+                          ? "text-white shadow-md"
+                          : "border border-line bg-white text-ink-muted hover:border-line-strong shadow-xs"
                       }`}
                       aria-current={currentPage === pageNum ? "page" : undefined}
                     >
@@ -508,7 +526,7 @@ export function MypageView() {
                     className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
                       currentPage === totalPages
                         ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                        : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
+                        : "cursor-pointer border border-line bg-white text-ink hover:border-line-strong shadow-xs"
                     }`}
                     aria-label="다음 페이지"
                   >
@@ -526,7 +544,8 @@ export function MypageView() {
               {emptyState?.actionLabel && emptyState?.actionHref && (
                 <Link
                   href={emptyState.actionHref}
-                  className="mt-6 rounded-full bg-brand px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
+                  style={{ backgroundColor: displayProfile.persona.primaryColor }}
+                  className="mt-6 rounded-full px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:opacity-90"
                 >
                   {emptyState.actionLabel}
                 </Link>
@@ -540,6 +559,7 @@ export function MypageView() {
       {isEditModalOpen && (
         <ProfileEditModal
           isOpen={isEditModalOpen}
+          profile={currentUser}
           currentProfile={currentUser}
           onClose={() => setIsEditModalOpen(false)}
           onProfileUpdated={(updatedProfile) => {
