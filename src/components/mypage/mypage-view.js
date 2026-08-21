@@ -562,10 +562,6 @@ export function MypageView() {
           profile={currentUser}
           currentProfile={currentUser}
           onClose={() => setIsEditModalOpen(false)}
-          onSuccess={(updatedProfile) => {
-            setProfile(updatedProfile);
-            setUser(updatedProfile);
-          }}
           onProfileUpdated={(updatedProfile) => {
             setProfile(updatedProfile);
             setUser(updatedProfile);

@@ -12,7 +12,7 @@ import { updateMyPreferences } from "@/lib/api/users";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 
-export function CountrySelector() {
+export function CountrySelector({ showCountry = true, variant = "default" }) {
   const router = useRouter();
   const t = useTranslations("preferences");
   const countryCode = usePreferenceStore((state) => state.countryCode);
@@ -48,37 +48,43 @@ export function CountrySelector() {
     languageCode,
     languageWasManuallySelected,
   };
+  const languageSelectClassName =
+    variant === "profile"
+      ? "w-full rounded-xl border border-line bg-surface-soft px-4 py-3 text-sm font-bold text-ink outline-none transition focus:border-brand focus:bg-white"
+      : "max-w-28 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand";
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
-      <label>
-        <span className="sr-only">{t("countryLabel")}</span>
-        <select
-          className="max-w-32 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand"
-          value={countryCode}
-          disabled={isSaving}
-          onChange={(event) => {
-            const nextCountryCode = event.target.value;
-            const nextPreferences = getPreferencesAfterCountryChange(
-              currentPreferences,
-              nextCountryCode,
-            );
-            savePreferences(nextPreferences, () =>
-              setCountryCode(nextCountryCode),
-            );
-          }}
-        >
-          {COUNTRIES.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.flag} {country.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {showCountry ? (
+        <label>
+          <span className="sr-only">{t("countryLabel")}</span>
+          <select
+            className="max-w-32 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand"
+            value={countryCode}
+            disabled={isSaving}
+            onChange={(event) => {
+              const nextCountryCode = event.target.value;
+              const nextPreferences = getPreferencesAfterCountryChange(
+                currentPreferences,
+                nextCountryCode,
+              );
+              savePreferences(nextPreferences, () =>
+                setCountryCode(nextCountryCode),
+              );
+            }}
+          >
+            {COUNTRIES.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.flag} {country.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <label>
         <span className="sr-only">{t("languageLabel")}</span>
         <select
-          className="max-w-28 rounded-full border border-line bg-white px-2.5 py-2 font-bold text-ink outline-none transition focus:border-brand"
+          className={languageSelectClassName}
           value={languageCode}
           disabled={isSaving}
           onChange={(event) => {

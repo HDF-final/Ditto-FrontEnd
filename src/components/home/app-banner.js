@@ -12,17 +12,16 @@ function isStandaloneDisplay() {
 
 export function AppBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [installed, setInstalled] = useState(false);
-  const [iosHint, setIosHint] = useState(false);
-
-  useEffect(() => {
-    setInstalled(isStandaloneDisplay());
-
+  const [installed, setInstalled] = useState(isStandaloneDisplay);
+  const [iosHint] = useState(() => {
+    if (typeof window === "undefined") return false;
     const isIos =
       /iphone|ipad|ipod/i.test(window.navigator.userAgent) &&
       !window.MSStream;
-    setIosHint(isIos && !isStandaloneDisplay());
+    return isIos && !isStandaloneDisplay();
+  });
 
+  useEffect(() => {
     function onBeforeInstall(event) {
       event.preventDefault();
       setDeferredPrompt(event);
