@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   categoryChips,
   pickCourses,
@@ -41,43 +40,33 @@ export async function DittoPicksSection() {
           <CourseCard key={course.rank} course={course} />
         ))}
 
-        <aside className="col-span-2 flex h-full min-h-[300px] flex-col overflow-hidden rounded-[24px] border border-brand/10 bg-white shadow-[0_8px_20px_rgba(43,28,89,0.08)] lg:col-span-1 lg:min-h-[390px] lg:rounded-[32px]">
-          <div className="bg-linear-to-br from-[#2d1b8e] to-[#6d28d9] px-5 py-5 text-white lg:px-6 lg:py-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-violet-200 lg:text-xs">
-                  REALTIME TREND
-                </p>
-                <h3 className="mt-1 text-lg font-black tracking-tight lg:text-[22px]">
-                  {t("keywordTitle")}
-                </h3>
-              </div>
-              <Link
-                href="/news"
-                className="mt-0.5 shrink-0 text-[11px] font-black text-violet-100 transition hover:text-white lg:text-xs"
-              >
-                {t("viewAll")} <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-            <p className="mt-1.5 text-[11px] leading-4 text-violet-100 lg:text-xs">
+        <aside className="col-span-2 flex h-full min-h-[400px] flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.08)] lg:col-span-1 lg:min-h-[540px] lg:rounded-[32px]">
+          <div className="flex min-h-[150px] flex-col justify-end bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 py-6 text-white lg:min-h-[190px] lg:px-8 lg:py-8">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-200 lg:text-xs">
+              REALTIME TREND
+            </p>
+            <h3 className="mt-2 text-xl font-black tracking-tight lg:text-[28px] lg:leading-9">
+              {t("keywordTitle")}
+            </h3>
+            <p className="mt-2 text-[11px] leading-5 text-violet-100 lg:text-sm lg:leading-6">
               {t("keywordDescription")}
             </p>
           </div>
 
-          <ol className="flex flex-1 flex-col justify-center px-5 py-2 lg:px-6 lg:py-3">
+          <ol className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 lg:gap-2 lg:px-8 lg:py-7">
             {realtimeKeywords.map((keyword, index) => (
               <li
                 key={keyword}
-                className="flex min-h-9 flex-1 items-center gap-3 border-b border-brand/10 last:border-b-0 lg:min-h-10"
+                className="flex min-h-10 flex-1 items-center gap-4 lg:min-h-12 lg:gap-5"
               >
                 <span
-                  className={`w-6 shrink-0 text-center text-sm font-black tabular-nums lg:text-base ${
-                    index < 3 ? "text-brand" : "text-ink-muted"
+                  className={`w-8 shrink-0 text-left text-lg font-black tabular-nums tracking-tight lg:w-10 lg:text-2xl ${
+                    index < 3 ? "text-brand" : "text-[#aaa4bc]"
                   }`}
                 >
-                  {index + 1}
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="truncate text-xs font-black text-ink lg:text-sm">
+                <span className="truncate text-sm font-black text-ink lg:text-base">
                   {keyword}
                 </span>
               </li>
