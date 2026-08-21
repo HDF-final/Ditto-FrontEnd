@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CameraScanner } from "./camera-scanner";
+import { ScanResult } from "./scan-result";
 
 function HomeIcon({ active }) {
   return (
@@ -73,6 +74,7 @@ const sideTabs = [
 export function BottomTabBar() {
   const pathname = usePathname();
   const [scanOpen, setScanOpen] = useState(false);
+  const [scanImage, setScanImage] = useState(null);
 
   return (
     <>
@@ -132,7 +134,21 @@ export function BottomTabBar() {
       </ul>
     </nav>
 
-    <CameraScanner open={scanOpen} onClose={() => setScanOpen(false)} />
+    <CameraScanner
+      open={scanOpen}
+      onClose={() => setScanOpen(false)}
+      onCapture={(dataUrl) => setScanImage(dataUrl)}
+    />
+
+    <ScanResult
+      open={Boolean(scanImage)}
+      image={scanImage}
+      onClose={() => setScanImage(null)}
+      onRescan={() => {
+        setScanImage(null);
+        setScanOpen(true);
+      }}
+    />
     </>
   );
 }

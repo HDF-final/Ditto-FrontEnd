@@ -1,8 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
+import { getPersonaById } from "@/lib/fixtures/personas";
 import { CommunityDetailActions } from "./community-detail-actions";
+import { CommunityDetailHeroImage } from "./community-detail-hero-image";
+import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
+import { CommunityStopList } from "@/components/community/community-stop-list";
 
 export const dynamic = "force-dynamic";
 
@@ -11,159 +17,110 @@ export async function generateMetadata({ params }) {
   const course = await fetchPublicCourseDetailServer(postId);
 
   if (!course) {
-    return { title: "커뮤니티 코스" };
+    const t = await getTranslations("community");
+    return {
+      title: t.has("communityCourse") ? t("communityCourse") : "커뮤니티 코스",
+    };
   }
 
   return { title: course.title };
 }
 
-const defaultReviewCards = [
-  {
-    name: "Yuki_T",
-    country: "JAPAN",
-    text: "친구가 처음 서울 왔을 때 이 순서 그대로 돌았어요. 사진 순서대로 따라가니까 길 찾느라 헤맬 일이 없더라고요.",
-    tag: "#1F워터폴가든 #5F사운즈포레스트",
-    likes: 42,
-    replies: 3,
-  },
-  {
-    name: "Chen_Li",
-    country: "CHINA",
-    text: "5층 정원에서 쉬는 구간이 있어서 좋았어요. 다만 주말 오후엔 사람이 많으니 오전에 가는 걸 추천해요.",
-    tag: "#5F사운즈포레스트",
-    likes: 31,
-    replies: 1,
-  },
-  {
-    name: "Emma_R",
-    country: "USA",
-    text: "B2 편집숍이 생각보다 볼 게 많아서 시간을 더 잡았어요. 2시간보다 3시간 정도가 여유로울 것 같아요.",
-    tag: "#B2크리에이티브그라운드",
-    likes: 28,
-    replies: 2,
-  },
-];
+function AuthorNote({ course, t, locale }) {
+  const travelerText = t && t.has("traveler") ? t("traveler") : "여행자";
+  const authorRecordText =
+    t && t.has("authorRecord") ? t("authorRecord") : "작성자가 남긴 기록";
+  const authorRecordDescText =
+    t && t.has("authorRecordDescription")
+      ? t("authorRecordDescription", { name: course.name || travelerText })
+      : `이 코스를 만든 ${course.name || travelerText}님이 직접 쓴 글이에요.`;
+  const otherCoursesText =
+    t && t.has("otherCourses")
+      ? t("otherCourses")
+      : "다른 커뮤니티 코스 둘러보기 →";
+  const authoredOnText =
+    t && t.has("authoredOn")
+      ? t("authoredOn", {
+          date: course.createdAt
+            ? new Date(course.createdAt).toLocaleDateString(locale)
+            : "2026.03.02",
+        })
+      : `${course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02"} 작성`;
 
-function ActionButton({ children, variant = "primary" }) {
-  const className =
-    variant === "outline"
-      ? "border border-line bg-white text-brand"
-      : "bg-brand text-white";
-
-  return (
-    <button
-      type="button"
-      className={`inline-flex h-12 min-w-[142px] items-center justify-center rounded-full px-8 text-sm font-black transition hover:shadow-control ${className}`}
-    >
-      {children}
-    </button>
+  const authorPersona = getPersonaById(
+    course.persona || course.shoppingType || course.personaId || "sohwak",
+    locale,
   );
-}
 
-function GradientBlock({ className = "", children, gradient }) {
   return (
-    <div
-      className={`bg-linear-to-br ${gradient} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function StopList({ stops = [] }) {
-  return (
-    <section className="rounded-[28px] bg-surface-soft p-6 lg:p-7">
-      <h2 className="text-lg font-black text-ink">코스 장소</h2>
-      <div className="mt-4 flex flex-col gap-3">
-        {stops.map((stop, index) => (
-          <div
-            key={`stop-${stop.placeId || stop.name || index}-${index}`}
-            className="flex items-center gap-4 rounded-[16px] bg-white px-4 py-3"
-          >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
-              {index + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-black text-ink">
-                {stop.floor ? `${stop.floor} ` : ""}{stop.name}
-              </p>
-              {stop.description ? (
-                <p className="mt-1 text-xs font-medium text-ink-muted">
-                  {stop.description}
-                </p>
-              ) : null}
-            </div>
-            <Link
-              href="/courses"
-              className="text-sm font-black text-brand transition hover:text-brand-dark"
-            >
-              보기
-            </Link>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function AuthorNote({ course }) {
-  return (
-    <section className="bg-surface-soft px-5 py-6">
+    <section className="bg-surface-soft px-5 py-8 sm:px-14 lg:px-52 lg:py-16 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black text-brand">COURSE NOTE</p>
-            <h2 className="mt-3 text-[32px] font-black text-ink">
-              작성자가 남긴 기록
+            <h2 className="mt-3 text-[24px] font-black text-ink lg:text-[32px]">
+              {authorRecordText}
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
-              이 코스를 만든 {course.name || "여행자"}가 직접 쓴 글이에요.
+              {authorRecordDescText}
             </p>
           </div>
           <Link
             href="/community"
             className="text-sm font-black text-brand transition hover:text-brand-dark"
           >
-            이 사람의 다른 코스 →
+            {otherCoursesText}
           </Link>
         </div>
 
-        <article className="mt-8 rounded-[28px] bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-          <div className="grid gap-5 p-5">
+        <article className="mt-8 rounded-[28px] bg-white p-5 shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:p-8">
+          <div className="flex items-center gap-4 border-b border-line/60 pb-6">
+            <div
+              className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+              style={{
+                backgroundColor: authorPersona.theme?.bgColor || "#fff1e6",
+              }}
+            >
+              <Image
+                src={authorPersona.imageSrc}
+                alt={course.name || travelerText}
+                width={40}
+                height={40}
+                className="size-10 object-contain"
+                unoptimized
+              />
+            </div>
             <div>
-              <div className="flex items-center gap-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-black text-brand">
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-black text-ink">
+                  {course.name || travelerText}
+                </p>
+                <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
                   {course.country || "KR"}
                 </span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-ink">{course.name || "여행자"}</p>
-                    <span className="font-black text-ink">·</span>
-                    <span className="text-sm font-black text-ink">{course.country || "KR"}</span>
-                  </div>
-                  <p className="mt-1 text-xs font-medium text-ink-muted">
-                    {course.createdAt ? new Date(course.createdAt).toLocaleDateString("ko-KR") : "2026.03.02"} 작성
-                  </p>
-                </div>
               </div>
-              <GradientBlock
-                gradient={course.gradient || "from-[#2d1b8e] to-[#8c57fa]"}
-                className="mt-6 flex h-[164px] items-center justify-center rounded-[18px] text-sm font-black text-white"
-              >
-                사진
-              </GradientBlock>
+              <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                {authoredOnText}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid items-stretch gap-7 lg:grid-cols-[0.86fr_1fr]">
+            <div className="relative min-h-[320px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md md:min-h-[380px]">
+              <CommunityDetailHeroImage
+                postId={course.postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt="작성자 첨부 사진"
+                className="h-full w-full object-cover"
+              />
             </div>
 
-            <div className="rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink">
-              <p>{course.note || course.description}</p>
-              <p className="mt-5">
-                1층 워터폴 가든은 입구에서 바로 보여요. 사람이 몰리기 전인 오전
-                11시쯤이 가장 한산합니다. 사진은 물이 떨어지는 쪽을 등지고
-                찍으면 조명이 예쁘게 들어와요.
-              </p>
-              <p className="mt-5">
-                마지막은 B2 크리에이티브 그라운드예요. 선물 살 만한 게 많아서
-                일부러 마지막에 넣었어요.
+            <div className="flex h-full min-h-[320px] flex-col justify-start rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink md:min-h-[380px]">
+              <p className="whitespace-pre-line leading-relaxed text-ink">
+                {course.note ||
+                  course.description ||
+                  "작성자가 남긴 후기가 없습니다."}
               </p>
             </div>
           </div>
@@ -173,21 +130,9 @@ function AuthorNote({ course }) {
   );
 }
 
-function ReviewCard({ review }) {
-  return (
-    <article className="rounded-[20px] bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-black text-ink">{review.name}</h3>
-      <p className="mt-5 min-h-[54px] text-sm font-medium leading-6 text-ink">
-        {review.text}
-      </p>
-      {review.tag ? (
-        <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
-      ) : null}
-    </article>
-  );
-}
-
 export default async function CommunityCourseDetailPage({ params }) {
+  const t = await getTranslations("community");
+  const locale = await getLocale();
   const { postId } = await params;
   const course = await fetchPublicCourseDetailServer(postId);
 
@@ -195,109 +140,125 @@ export default async function CommunityCourseDetailPage({ params }) {
     notFound();
   }
 
-  return (
-    <main className="bg-background">
-      <section className="px-5 pb-6 pt-6">
-        <div className="grid gap-6">
-          <div className="relative flex aspect-[4/3] lg:aspect-[3/4] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
-            <img
-              src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
-              alt={course.title}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+  const travelerText = t.has("traveler") ? t("traveler") : "여행자";
+  const breadcrumbHomeText = t.has("breadcrumbHome") ? t("breadcrumbHome") : "홈";
+  const breadcrumbCommunityText = t.has("breadcrumbCommunity")
+    ? t("breadcrumbCommunity")
+    : "커뮤니티";
+  const listText = t.has("list") ? t("list") : "목록";
+  const viewAllCoursesText = t.has("viewAllCourses")
+    ? t("viewAllCourses")
+    : "코스 목록 전체보기 →";
 
-            <div className="relative z-10 p-6">
-              <span className="rounded-full bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs border border-white/10">
+  const authorPersona = getPersonaById(
+    course.persona || course.shoppingType || course.personaId || "sohwak",
+    locale,
+  );
+
+  return (
+    <main className="bg-white">
+      <section className="bg-surface-soft px-5 py-6 sm:px-14 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="hover:text-brand">
+              {breadcrumbHomeText}
+            </Link>
+            <span>›</span>
+            <Link href="/community" className="hover:text-brand">
+              {breadcrumbCommunityText}
+            </Link>
+            <span>›</span>
+            <span className="text-ink">{course.title}</span>
+          </div>
+          <Link
+            href="/community"
+            className="text-xs font-black text-brand transition hover:text-brand-dark"
+          >
+            {listText}
+          </Link>
+        </div>
+      </section>
+
+      <section className="px-5 pb-10 pt-6 sm:px-14 lg:px-52 lg:pb-16 lg:pt-[40px] xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.32fr] lg:items-center lg:gap-12">
+          <div className="relative flex aspect-[4/3] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] lg:aspect-[3/4]">
+            <div className="absolute inset-0">
+              <CommunityDetailHeroImage
+                postId={course.postId || postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt={course.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
+
+            <div className="pointer-events-none relative z-10 p-6">
+              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs">
                 {course.label || "THE HYUNDAI SEOUL"}
               </span>
-            </div>
-
-            <div className="relative z-10 p-6 flex flex-col gap-1">
-              <h1 className="text-2xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                {course.title}
-              </h1>
-              <p className="text-xs font-medium text-white/85 line-clamp-1 drop-shadow-sm">
-                {course.description}
-              </p>
             </div>
           </div>
 
           <div>
-            <div className="flex items-center gap-4">
-              <span className="flex size-7 items-center justify-center rounded-full bg-brand text-xs font-black text-white">
-                1
-              </span>
-              <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-xs font-black text-brand">
-                {course.country || "KR"}
-              </span>
-              <div>
-                <p className="text-sm font-black text-ink">{course.name || "여행자"}</p>
-                <p className="mt-1 text-[11px] font-black text-brand">
-                  {course.hash || "#공개코스"}
+            <div className="flex items-center gap-3.5">
+              <div
+                className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+                style={{
+                  backgroundColor: authorPersona.theme?.bgColor || "#fff1e6",
+                }}
+              >
+                <Image
+                  src={authorPersona.imageSrc}
+                  alt={course.name || travelerText}
+                  width={40}
+                  height={40}
+                  className="size-10 object-contain"
+                  unoptimized
+                />
+              </div>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-black text-ink">
+                    {course.name || travelerText}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+                    {course.country || "KR"}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                  DITTO {travelerText} ·{" "}
+                  {course.createdAt
+                    ? new Date(course.createdAt).toLocaleDateString(locale)
+                    : "2026.03.02"}
                 </p>
               </div>
             </div>
-            <h2 className="mt-4 text-[22px] font-black leading-tight text-ink">
+            <h2 className="mt-6 text-[26px] font-black leading-tight text-ink lg:text-[38px]">
               {course.title}
             </h2>
-            <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-ink-muted">
-              {course.description}
-            </p>
             <CommunityDetailActions course={course} />
           </div>
         </div>
       </section>
 
-      <section className="px-5 py-5">
-        <div className="grid gap-4">
-          <StopList stops={course.stops} />
-          <div className="relative min-h-[260px] overflow-hidden rounded-[28px] bg-slate-950 shadow-md">
-            <img
-              src={course.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop"}
-              alt="코스 대표 사진"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-            <span className="absolute bottom-4 left-5 text-xs font-bold text-white/90 drop-shadow-sm">
-              코스 대표 사진 · {course.stops?.[0]?.name || "더현대 서울"}
-            </span>
-          </div>
+      <section className="px-5 py-6 sm:px-14 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+          <CommunityStopList stops={course.stops} courseId={course.courseId} />
+          <CommunityCourseDetailMap stops={course.stops} />
         </div>
       </section>
 
-      <AuthorNote course={course} />
+      <AuthorNote course={course} t={t} locale={locale} />
 
-      <section className="bg-surface-soft px-5 pb-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-black text-brand">REVIEWS</p>
-              <h2 className="mt-3 text-[30px] font-black text-ink">
-                이 코스 다녀온 사람들
-              </h2>
-            </div>
-            <Link
-              href="/community/share"
-              className="text-sm font-black text-brand transition hover:text-brand-dark"
-            >
-              후기 쓰기 →
-            </Link>
-          </div>
-          <div className="mt-5 grid gap-4">
-            {defaultReviewCards.map((review, idx) => (
-              <ReviewCard key={`review-card-${review.name || idx}-${idx}`} review={review} />
-            ))}
-          </div>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/community"
-              className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand transition hover:bg-brand hover:text-white"
-            >
-              코스 목록 전체보기 →
-            </Link>
-          </div>
+      <section className="bg-surface-soft px-5 pb-10 sm:px-14 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-7xl justify-center">
+          <Link
+            href="/community"
+            className="cursor-pointer rounded-full border border-brand bg-white px-8 py-3 text-sm font-black text-brand shadow-xs transition hover:bg-brand hover:text-white"
+          >
+            {viewAllCoursesText}
+          </Link>
         </div>
       </section>
     </main>

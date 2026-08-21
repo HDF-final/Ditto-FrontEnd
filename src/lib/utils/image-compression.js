@@ -51,3 +51,22 @@ export function compressImage(file, maxWidth = 1000, quality = 0.8) {
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * data URL(base64) 을 Blob 으로 변환합니다.
+ * 카메라 캡처본(dataURL)을 멀티파트 업로드용 바이너리로 바꿀 때 사용합니다.
+ * 형식이 올바르지 않으면 null 을 반환합니다.
+ */
+export function dataUrlToBlob(dataUrl) {
+  const [meta, base64] = String(dataUrl ?? "").split(",");
+  if (!base64) return null;
+  const mime = meta.match(/data:(.*?);/)?.[1] || "image/jpeg";
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  } catch {
+    return null;
+  }
+}

@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+/* eslint-disable @next/next/no-img-element */
+
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
-import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import {
+  deleteCoursePost,
+  getPublicCourses,
+  updateCoursePost,
+} from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { compressImage } from "@/lib/utils/image-compression";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
+import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
 import { mypageTabs } from "@/lib/fixtures/mypage";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -30,6 +40,56 @@ function normalizePage(data) {
       ? totalElements
       : content.length,
   };
+}
+
+function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러버") {
+  const userCourseMap = new Map();
+  (userCourses || []).forEach((c) => {
+    userCourseMap.set(Number(c.courseId || c.id || c.postId), c);
+  });
+
+  const list = Array.isArray(publicPosts)
+    ? publicPosts
+    : Array.isArray(publicPosts?.content)
+      ? publicPosts.content
+      : [];
+
+  return list
+    .filter((post) => userCourseMap.has(Number(post.courseId)))
+    .map((post) => {
+      const linkedCourse = userCourseMap.get(Number(post.courseId));
+      const stops = linkedCourse?.stops || [];
+      const spotCount =
+        linkedCourse?.spotCount ||
+        (stops.length > 0 ? `${stops.length}개 스팟` : "맞춤 코스");
+
+      return {
+        id: post.postId,
+        postId: post.postId,
+        courseId: post.courseId,
+        slug: String(post.postId),
+        href: `/community/${post.postId}`,
+        badge: "SHARED",
+        name: userName,
+        country: "KR",
+        flag: "KR",
+        hash: "#공유한코스 #더현대",
+        title: post.title || linkedCourse?.title || "공유한 코스",
+        description:
+          post.content ||
+          linkedCourse?.description ||
+          "커뮤니티에 공유한 코스입니다.",
+        image:
+          post.representativeImageUrl ||
+          linkedCourse?.image ||
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        likes: Number(post.likeCount) || 0,
+        comments: Number(post.commentCount) || 0,
+        saves: Number(post.bookmarkCount) || 0,
+        spotCount,
+        stops,
+      };
+    });
 }
 
 async function hydrateMyCourses(data, userName = "디또러버") {
@@ -138,6 +198,7 @@ export function MypageView() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [sharedCourses, setSharedCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
@@ -145,6 +206,114 @@ export function MypageView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [postToEdit, setPostToEdit] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editPhotos, setEditPhotos] = useState([]);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const fileInputRef = useRef(null);
+  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
+  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
+
+  const handleEditFileChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          setEditPhotos((prev) => [...prev, compressed].slice(0, 10));
+        }
+      } catch (err) {
+        console.warn("[Edit Photo Compress] Error:", err);
+      }
+    }
+
+    e.target.value = "";
+  };
+
+  const handleRemoveEditPhoto = (indexToRemove) => {
+    setEditPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleConfirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    const targetId = courseToDelete.courseId || courseToDelete.id;
+    setIsDeletingCourse(true);
+    try {
+      await deleteCourse(targetId);
+      setCourses((prev) => prev.filter((c) => (c.courseId || c.id) !== targetId));
+      setCourseTotal((prev) => Math.max(0, prev - 1));
+      setCourseToDelete(null);
+    } catch (err) {
+      alert(err.message || "코스를 삭제하지 못했습니다.");
+    } finally {
+      setIsDeletingCourse(false);
+    }
+  };
+
+  const handleConfirmDeletePost = async () => {
+    if (!postToDelete) return;
+    const targetId = postToDelete.postId || postToDelete.id;
+    setIsDeletingPost(true);
+    try {
+      await deleteCoursePost(targetId);
+      setSharedCourses((prev) =>
+        prev.filter((p) => (p.postId || p.id) !== targetId),
+      );
+      setPostToDelete(null);
+    } catch (err) {
+      alert(err.message || "공유한 코스 게시글을 삭제하지 못했습니다.");
+    } finally {
+      setIsDeletingPost(false);
+    }
+  };
+
+  const handleConfirmEditPost = async (e) => {
+    e?.preventDefault();
+    if (!postToEdit) return;
+    const targetId = postToEdit.postId || postToEdit.id;
+    if (!editTitle.trim()) {
+      alert("게시글 제목을 입력해주세요.");
+      return;
+    }
+    setIsEditingPost(true);
+    try {
+      await updateCoursePost(targetId, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        representativeImageUrl: editPhotos[0] || undefined,
+      });
+
+      setPostImages(targetId, editPhotos);
+      if (postToEdit.courseId) {
+        setPostImages(postToEdit.courseId, editPhotos);
+      }
+
+      setSharedCourses((prev) =>
+        prev.map((p) =>
+          (p.postId || p.id) === targetId
+            ? {
+                ...p,
+                title: editTitle.trim(),
+                description: editContent.trim(),
+                image: editPhotos[0] || p.image,
+              }
+            : p,
+        ),
+      );
+      setPostToEdit(null);
+    } catch (err) {
+      alert(err.message || "게시글 수정에 실패했습니다.");
+    } finally {
+      setIsEditingPost(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -165,23 +334,44 @@ export function MypageView() {
       }
 
       try {
-        const [myCoursesResult, bookmarksResult] = await Promise.allSettled([
-          getMyCourses(),
-          getMyBookmarks(),
-        ]);
+        const [myCoursesResult, bookmarksResult, publicCoursesResult] =
+          await Promise.allSettled([
+            getMyCourses(),
+            getMyBookmarks(),
+            getPublicCourses({ page: 0, size: 100 }),
+          ]);
 
         if (isMounted) {
           const failures = [];
+          let hydratedCourses = [];
 
           if (myCoursesResult.status === "fulfilled") {
             const hydrated = await hydrateMyCourses(myCoursesResult.value, currentUserName);
             if (!isMounted) return;
+            hydratedCourses = hydrated.courses;
             setCourses(hydrated.courses);
             setCourseTotal(hydrated.totalElements);
           } else {
             setCourses([]);
             setCourseTotal(0);
             failures.push("내 코스");
+          }
+
+          if (publicCoursesResult.status === "fulfilled") {
+            const publicList = Array.isArray(publicCoursesResult.value?.content)
+              ? publicCoursesResult.value.content
+              : Array.isArray(publicCoursesResult.value)
+                ? publicCoursesResult.value
+                : [];
+            setSharedCourses(
+              normalizeSharedCourses(
+                publicList,
+                hydratedCourses,
+                currentUserName,
+              ),
+            );
+          } else {
+            setSharedCourses([]);
           }
 
           if (bookmarksResult.status === "fulfilled") {
@@ -295,10 +485,11 @@ export function MypageView() {
   // Displayed courses list based on active tab
   const displayedCourses = useMemo(() => {
     if (activeTab === "내 코스") return courses;
+    if (activeTab === "공유한 코스") return sharedCourses;
     if (activeTab === "찜한 코스") return likedCourses;
     if (activeTab === "저장한 코스") return bookmarkedCourses;
     return [];
-  }, [activeTab, courses, likedCourses, bookmarkedCourses]);
+  }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
 
   // Pagination calculation: 3 items per page (1 row of 3) - Unconditional Hook Call
   const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
@@ -376,6 +567,7 @@ export function MypageView() {
 
   const displayStats = [
     { value: courseTotal.toLocaleString("ko-KR"), label: "만든 코스" },
+    { value: sharedCourses.length.toLocaleString("ko-KR"), label: "공유한 코스" },
     { value: likedCourses.length.toLocaleString("ko-KR"), label: "찜한 코스" },
     { value: bookmarkedCourses.length.toLocaleString("ko-KR"), label: "저장한 코스" },
   ];
@@ -386,6 +578,12 @@ export function MypageView() {
       description: "AI 추천 또는 직접 추가로 나만의 첫 코스를 만들어보세요!",
       actionLabel: "+ 코스 만들러 가기",
       actionHref: "/ai-course",
+    },
+    "공유한 코스": {
+      title: "아직 커뮤니티에 공유한 코스가 없어요",
+      description: "내가 만든 맞춤 코스를 여행자 커뮤니티에 공유해보세요!",
+      actionLabel: "코스 공유하러 가기",
+      actionHref: "/community/share",
     },
     "찜한 코스": {
       title: "아직 찜한(좋아요한) 코스가 없어요",
@@ -422,11 +620,13 @@ export function MypageView() {
             const count =
               tab === "내 코스"
                 ? courses.length
-                : tab === "찜한 코스"
-                  ? likedCourses.length
-                  : tab === "저장한 코스"
-                    ? bookmarkedCourses.length
-                    : null;
+                : tab === "공유한 코스"
+                  ? sharedCourses.length
+                  : tab === "찜한 코스"
+                    ? likedCourses.length
+                    : tab === "저장한 코스"
+                      ? bookmarkedCourses.length
+                      : null;
 
             return (
               <button
@@ -474,13 +674,44 @@ export function MypageView() {
           {paginatedCourses.length > 0 ? (
             <>
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
-                {paginatedCourses.map((course) => (
-                  <MypageCourseCard
-                    key={course.id || course.slug}
-                    course={course}
-                    onAuthRequired={() => setIsLoginModalOpen(true)}
-                  />
-                ))}
+                {paginatedCourses.map((course) =>
+                  activeTab === "내 코스" ? (
+                    <MyCoursePrivateCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onDelete={(c) => setCourseToDelete(c)}
+                    />
+                  ) : activeTab === "공유한 코스" ? (
+                    <MypageCourseCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                      onEdit={(post) => {
+                        setPostToEdit(post);
+                        setEditTitle(post.title || "");
+                        setEditContent(post.description || "");
+                        const images = getPostImages(post.postId || post.id);
+                        if (images && images.length > 0) {
+                          setEditPhotos(images);
+                        } else if (
+                          post.image &&
+                          !post.image.includes("unsplash.com")
+                        ) {
+                          setEditPhotos([post.image]);
+                        } else {
+                          setEditPhotos([]);
+                        }
+                      }}
+                      onDelete={(post) => setPostToDelete(post)}
+                    />
+                  ) : (
+                    <MypageCourseCard
+                      key={course.id || course.slug}
+                      course={course}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                    />
+                  ),
+                )}
               </div>
 
               {/* 페이징 컨트롤 */}
@@ -566,6 +797,10 @@ export function MypageView() {
             setProfile(updatedProfile);
             setUser(updatedProfile);
           }}
+          onSuccess={(updatedProfile) => {
+            setProfile(updatedProfile);
+            setUser(updatedProfile);
+          }}
         />
       )}
 
@@ -605,6 +840,232 @@ export function MypageView() {
                 로그인하기 →
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {courseToDelete ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingCourse) {
+              setCourseToDelete(null);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-center shadow-2xl animate-in zoom-in-95 duration-150"
+          >
+            <h3 className="text-base font-black text-ink">코스 삭제</h3>
+            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              <strong className="font-bold text-ink">
+                {courseToDelete.title || "이 코스"}
+              </strong>
+              를 정말 삭제하시겠습니까?
+              <br />
+              삭제한 코스는 복구할 수 없습니다.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isDeletingCourse}
+                onClick={() => setCourseToDelete(null)}
+                className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingCourse}
+                onClick={handleConfirmDeleteCourse}
+                className="flex-1 cursor-pointer rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeletingCourse ? "삭제 중..." : "삭제하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {postToDelete ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingPost) {
+              setPostToDelete(null);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-center shadow-2xl animate-in zoom-in-95 duration-150"
+          >
+            <h3 className="text-base font-black text-ink">공유한 코스 삭제</h3>
+            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              <strong className="font-bold text-ink">
+                {postToDelete.title || "이 게시글"}
+              </strong>
+              을 정말 삭제하시겠습니까?
+              <br />
+              삭제 시 커뮤니티 공개 목록에서 사라집니다.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={() => setPostToDelete(null)}
+                className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingPost}
+                onClick={handleConfirmDeletePost}
+                className="flex-1 cursor-pointer rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeletingPost ? "삭제 중..." : "삭제하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {postToEdit ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isEditingPost) {
+              setPostToEdit(null);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="max-h-[90vh] w-full max-w-[500px] overflow-y-auto rounded-[28px] bg-white p-7 text-left shadow-2xl animate-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-ink">공유한 코스 수정</h3>
+              <button
+                type="button"
+                onClick={() => setPostToEdit(null)}
+                className="text-sm font-bold text-ink-muted transition hover:text-ink"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmEditPost} className="mt-5 flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-ink">
+                  게시글 제목
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="코스 제목을 입력하세요"
+                  required
+                  className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-bold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-ink">
+                  후기 및 코스 설명
+                </label>
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  rows={3}
+                  placeholder="코스에 대한 후기나 팁을 작성하세요"
+                  className="w-full resize-none rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
+                />
+              </div>
+
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-bold text-ink">
+                    첨부 사진
+                  </label>
+                  <span className="text-[11px] font-medium text-ink-muted">
+                    {editPhotos.length}/10장
+                  </span>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleEditFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex gap-2.5 overflow-x-auto rounded-xl bg-surface-soft p-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex h-20 w-20 shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-line bg-white text-center transition hover:border-brand hover:bg-brand-soft/20"
+                  >
+                    <span className="text-xl font-black leading-none text-brand">
+                      +
+                    </span>
+                    <span className="mt-1 text-[11px] font-bold text-ink">
+                      사진 추가
+                    </span>
+                  </button>
+
+                  {editPhotos.map((photoUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="group/photo relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-slate-950 shadow-xs"
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={`첨부 사진 ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      {idx === 0 && (
+                        <span className="pointer-events-none absolute bottom-1 left-1 rounded bg-brand/90 px-1 py-0.5 text-[9px] font-black text-white">
+                          대표
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditPhoto(idx)}
+                        aria-label="사진 삭제"
+                        className="absolute right-1 top-1 flex size-5 cursor-pointer items-center justify-center rounded-full bg-black/70 text-xs font-bold leading-none text-white shadow-sm transition hover:bg-red-500"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isEditingPost}
+                  onClick={() => setPostToEdit(null)}
+                  className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingPost}
+                  className="flex-1 cursor-pointer rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-brand-dark disabled:opacity-50"
+                >
+                  {isEditingPost ? "저장 중..." : "수정 완료"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

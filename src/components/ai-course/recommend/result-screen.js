@@ -406,7 +406,7 @@ export function ResultScreen({ chat, onPlaceClick }) {
     <>
     <main className="course-studio flex-1 gap-3 bg-[#f0ecfa] p-3">
       <div className="course-studio-map relative min-h-0 overflow-hidden rounded-[20px]">
-        <div className="h-full min-h-[220px] w-full lg:min-h-0">
+        <div className="h-full min-h-[280px] w-full lg:min-h-0">
           <CourseNavigationMap
             route={routeState.itinerary}
             routeFloorIds={routeState.itinerary?.floorIds}
