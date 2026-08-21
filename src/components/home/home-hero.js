@@ -21,6 +21,38 @@ function ArrowRightIcon({ className = "" }) {
   );
 }
 
+function SlideIndicators({
+  slides,
+  activeIndex,
+  onSelect,
+  compact = false,
+}) {
+  return (
+    <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
+      {slides.map((slide, index) => (
+        <button
+          key={slide.titleLine}
+          type="button"
+          aria-label={`${index + 1}번째 배너 보기`}
+          aria-current={activeIndex === index}
+          onClick={() => onSelect(index)}
+          className={`rounded-full transition-all ${
+            compact ? "h-1.5" : "h-2.5"
+          } ${
+            activeIndex === index
+              ? compact
+                ? "w-5 bg-brand"
+                : "w-7 bg-brand"
+              : compact
+                ? "w-1.5 bg-line-strong hover:bg-brand/50"
+                : "w-2.5 bg-line-strong hover:bg-brand/50"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function HomeHero({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -34,33 +66,6 @@ export function HomeHero({ slides }) {
 
   const activeSlide = slides[activeIndex];
   const heroMinHeight = "clamp(480px, 44vw, 640px)";
-
-  function SlideIndicators({ compact = false }) {
-    return (
-      <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
-        {slides.map((slide, index) => (
-          <button
-            key={slide.titleLine}
-            type="button"
-            aria-label={`${index + 1}번째 배너 보기`}
-            aria-current={activeIndex === index}
-            onClick={() => setActiveIndex(index)}
-            className={`rounded-full transition-all ${
-              compact ? "h-1.5" : "h-2.5"
-            } ${
-              activeIndex === index
-                ? compact
-                  ? "w-5 bg-brand"
-                  : "w-7 bg-brand"
-                : compact
-                  ? "w-1.5 bg-line-strong hover:bg-brand/50"
-                  : "w-2.5 bg-line-strong hover:bg-brand/50"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  }
 
   return (
     <>
@@ -102,7 +107,12 @@ export function HomeHero({ slides }) {
         </div>
 
         <div className="mt-3">
-          <SlideIndicators compact />
+          <SlideIndicators
+            slides={slides}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            compact
+          />
         </div>
       </section>
 
@@ -150,7 +160,11 @@ export function HomeHero({ slides }) {
                 <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
             </div>
-            <SlideIndicators />
+            <SlideIndicators
+              slides={slides}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+            />
           </div>
         </div>
       </section>
