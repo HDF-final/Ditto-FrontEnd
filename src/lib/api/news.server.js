@@ -81,6 +81,7 @@ export function normalizeNewsSummary(item, index = 0) {
     views: item.views || "10만+",
     representativeImageUrl: item.representativeImageUrl || null,
     gradient: item.gradient || getGradientForSlug(slug),
+    sourceUrl: item.sourceUrl || null,
   };
 }
 
@@ -178,6 +179,7 @@ export function normalizeNewsDetail(feed) {
     gradient: feed.gradient || getGradientForSlug(slug),
     quote,
     quoteSource,
+    sourceUrl: feed.sourceUrl || null,
     insight:
       feed.insight ||
       (keywords[0] ? `${keywords[0]} 키워드` : "인터랙션 많은 기사"),
