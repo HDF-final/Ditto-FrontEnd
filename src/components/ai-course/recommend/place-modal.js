@@ -11,6 +11,7 @@ import {
   Clock,
 } from "./recommend-icons";
 import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
+import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
 
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
@@ -115,7 +116,9 @@ function AiPlaceModalContent({ place, onClose }) {
               {place.category ? (
                 <>
                   <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">{place.category}</span>
+                  <span className="text-[#6b6685] font-semibold">
+                    {getPlaceCategoryLabel(place.category, t)}
+                  </span>
                 </>
               ) : null}
             </div>
@@ -242,7 +245,7 @@ function StandardPlaceModalContent({ place, onClose }) {
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              {place.category || t("store")}
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
               {place.floor ? ` · ${place.floor}` : ""}
             </span>
             <button
@@ -267,7 +270,9 @@ function StandardPlaceModalContent({ place, onClose }) {
               {place.category ? (
                 <>
                   <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">{place.category}</span>
+                  <span className="text-[#6b6685] font-semibold">
+                    {getPlaceCategoryLabel(place.category, t)}
+                  </span>
                 </>
               ) : null}
             </div>
@@ -423,7 +428,7 @@ function CompactPlaceModalContent({ place, onClose }) {
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-1.5">
             <span className="inline-flex items-center text-[11.5px] font-bold px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-md">
-              {place.category || t("store")}
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
             </span>
             {place.floor && (
               <span className="inline-flex items-center text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-[#5c2ef5] text-white">

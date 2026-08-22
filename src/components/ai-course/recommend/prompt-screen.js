@@ -2,33 +2,23 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Mic, MapPin, ImagePlus, CalendarDays } from "./recommend-icons";
-import { suggestions, BONI_IMAGE } from "./recommend-data";
+import { BONI_IMAGE } from "./recommend-data";
 import { useTransparentBg } from "./use-transparent-bg";
-
-const plusMenuItems = [
-  { icon: <ImagePlus size={15} />, label: "사진 첨부", desc: "사진으로 비슷한 장소 추천" },
-  { icon: <MapPin size={15} />, label: "장소 추가", desc: "직접 장소를 검색해서 고정" },
-  { icon: <CalendarDays size={15} />, label: "날짜/시간 설정", desc: "운영 중인 곳만 필터링" },
-];
-
-const MODE_OPTIONS = [
-  { value: "auto", label: "자동", desc: "챗봇 Boni" },
-  { value: "manual", label: "수동", desc: "직접 만들기" },
-];
 
 // Segmented 자동/수동 switch. 자동 lets Boni build the course, 수동 starts empty.
 // A white indicator slides between the two options on change.
-function ModeToggle({ mode, onModeChange }) {
-  const activeIndex = MODE_OPTIONS.findIndex((option) => option.value === mode);
+function ModeToggle({ mode, onModeChange, options, label }) {
+  const activeIndex = options.findIndex((option) => option.value === mode);
 
   return (
     <div
       className="relative flex items-center p-[4px] rounded-full mb-6 md:mb-7"
       style={{ background: "#f0ecfa", border: "1px solid #e0d9f8" }}
       role="tablist"
-      aria-label="코스 만들기 방식"
+      aria-label={label}
     >
       {/* Sliding highlight — one option wide, translated to the active slot. */}
       <span
@@ -41,7 +31,7 @@ function ModeToggle({ mode, onModeChange }) {
           transition: "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       />
-      {MODE_OPTIONS.map((option) => {
+      {options.map((option) => {
         const active = mode === option.value;
         return (
           <button
@@ -76,6 +66,7 @@ export function PromptScreen({
   onModeChange,
   onStart,
 }) {
+  const t = useTranslations("aiCourse");
   const [input, setInput] = useState(initialPrompt || "");
   const [prevInitial, setPrevInitial] = useState(initialPrompt);
 
@@ -88,6 +79,33 @@ export function PromptScreen({
   const boniSrc = useTransparentBg(BONI_IMAGE);
 
   const isManual = mode === "manual";
+  const plusMenuItems = [
+    {
+      icon: <ImagePlus size={15} />,
+      label: t("attachPhoto"),
+      desc: t("attachPhotoDetail"),
+    },
+    {
+      icon: <MapPin size={15} />,
+      label: t("addPlace"),
+      desc: t("addPlaceDetail"),
+    },
+    {
+      icon: <CalendarDays size={15} />,
+      label: t("setDateTime"),
+      desc: t("setDateTimeDetail"),
+    },
+  ];
+  const modeOptions = [
+    { value: "auto", label: t("auto"), desc: t("autoDetail") },
+    { value: "manual", label: t("manual"), desc: t("manualDetail") },
+  ];
+  const suggestions = [
+    t("suggestion1"),
+    t("suggestion2"),
+    t("suggestion3"),
+    t("suggestion4"),
+  ];
 
   const submit = (val) => {
     if (val.trim()) onStart(val.trim());
@@ -115,15 +133,18 @@ export function PromptScreen({
       </div>
 
       <h1 className="mb-2 text-center text-[24px] font-bold text-[#1a142e] md:mb-3 md:text-[36px]">
-        오늘은 무엇을 해볼까요?
+        {t("promptTitle")}
       </h1>
       <p className="mb-6 text-center text-[14px] text-[#9994ad] md:mb-8 md:text-[16px]">
-        {isManual
-          ? "빈 코스에서 시작해 원하는 장소를 직접 담아보세요"
-          : "Boni가 최적의 K-Culture 코스를 만들어 드릴게요"}
+        {isManual ? t("manualDescription") : t("autoDescription")}
       </p>
 
-      <ModeToggle mode={mode} onModeChange={onModeChange} />
+      <ModeToggle
+        mode={mode}
+        onModeChange={onModeChange}
+        options={modeOptions}
+        label={t("modeLabel")}
+      />
 
       {/* Fixed-height region: auto and manual content differ in height, so we
           reserve the taller (auto) height to keep the toggle from shifting.
@@ -136,10 +157,10 @@ export function PromptScreen({
             onClick={() => onStart("")}
             className="flex items-center gap-2 rounded-full px-8 py-[15px] text-[16px] font-bold text-white bg-[#1a142e] hover:bg-[#2a2140] transition-all hover:scale-[1.02] active:scale-95"
           >
-            <Plus size={18} /> 빈 코스로 시작하기
+            <Plus size={18} /> {t("emptyCourse")}
           </button>
           <p className="text-[12px] text-[#9994ad] mt-4 text-center">
-            다음 화면에서 &lsquo;장소 추가&rsquo;로 백화점 안 상점을 골라 담을 수 있어요
+            {t("emptyCourseHelp")}
           </p>
         </div>
       ) : (
@@ -198,7 +219,7 @@ export function PromptScreen({
             <input
               className="flex-1 text-[17px] text-[#1a142e] outline-none bg-transparent placeholder-[#ccc8d8]"
               style={{ outline: "none" }}
-              placeholder="무엇이든 물어보세요"
+              placeholder={t("askAnything")}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit(input)}
