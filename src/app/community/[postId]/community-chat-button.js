@@ -438,7 +438,7 @@ export function CommunityChatButton({ course = {} }) {
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex h-12 min-w-[142px] items-center justify-center gap-2 rounded-full bg-brand px-8 text-sm font-black text-white shadow-control transition hover:bg-brand-dark cursor-pointer"
+        className="inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full bg-brand px-3 text-xs font-black text-white shadow-control transition hover:bg-brand-dark cursor-pointer sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm"
       >
         <svg
           aria-hidden="true"
@@ -456,7 +456,7 @@ export function CommunityChatButton({ course = {} }) {
       {/* 인스타그램 피드 형태 대화 참여 모달 (스플릿 레이아웃) */}
       {isOpen ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-0 sm:items-center sm:p-6 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsOpen(false);
           }}
@@ -465,10 +465,10 @@ export function CommunityChatButton({ course = {} }) {
             role="dialog"
             aria-modal="true"
             aria-label={course?.title || "코스 대화"}
-            className="flex flex-col md:flex-row w-full max-w-[1020px] h-[92vh] max-h-[720px] rounded-[24px] bg-white shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150"
+            className="relative flex h-[min(92dvh,720px)] max-h-[calc(100dvh-0.5rem)] w-full max-w-[1020px] flex-col overflow-hidden rounded-t-[24px] bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150 sm:rounded-[24px] md:flex-row"
           >
             {/* 좌측: 인스타그램 피드 포스트 비주얼 카드 (Full Photo Carousel) */}
-            <div className="relative md:w-[56%] h-[280px] md:h-full bg-slate-950 flex flex-col justify-between p-6 overflow-hidden select-none">
+            <div className="relative flex h-[180px] shrink-0 flex-col justify-between overflow-hidden bg-slate-950 p-4 select-none sm:h-[280px] sm:p-6 md:h-full md:w-[56%]">
               <div className="absolute inset-0">
                 <CommunityDetailHeroImage
                   postId={postId}
@@ -490,7 +490,7 @@ export function CommunityChatButton({ course = {} }) {
             </div>
 
             {/* 우측: 인스타그램 피드 댓글 패널 */}
-            <div className="flex flex-col md:w-[44%] h-full bg-white border-t md:border-t-0 md:border-l border-line min-w-0">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col border-t border-line bg-white md:h-full md:w-[44%] md:border-t-0 md:border-l">
               {/* 1. 상단 프로필 헤더 */}
               <div className="flex items-center justify-between px-5 pt-4 pb-2 bg-white shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
@@ -726,7 +726,7 @@ export function CommunityChatButton({ course = {} }) {
                     }
                     handleSend(e);
                   }}
-                  className="flex items-center gap-2 border-t border-line px-4 py-2.5 bg-white"
+                  className="flex items-center gap-2 border-t border-line bg-white px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]"
                 >
                   <button
                     type="button"

@@ -73,7 +73,7 @@ export function CommunityStopList({ stops = [], courseId }) {
   const list = hydratedStops.length > 0 ? hydratedStops : stops;
 
   return (
-    <section className="flex flex-col justify-between rounded-[28px] bg-surface-soft p-6 lg:p-7">
+    <section className="flex min-w-0 flex-col justify-between rounded-[22px] bg-surface-soft p-4 sm:rounded-[28px] sm:p-6 lg:p-7">
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-ink">
@@ -89,12 +89,12 @@ export function CommunityStopList({ stops = [], courseId }) {
             return (
               <div
                 key={`stop-${stop.placeId || stop.name || index}-${index}`}
-                className="relative flex items-center gap-4 rounded-[18px] bg-white px-4 py-3.5 shadow-xs border border-line/40 transition hover:shadow-md"
+                className="relative flex min-w-0 items-center gap-3 rounded-[18px] border border-line/40 bg-white px-3 py-3 shadow-xs transition hover:shadow-md sm:gap-4 sm:px-4 sm:py-3.5"
               >
                 {/* 다음 스팟 번호로 이어지는 수직 점선 (다음 번호 배지 내부까지 완전 연결) */}
                 {!isLast && (
                   <div
-                    className="absolute left-[29.5px] top-7 -bottom-[36px] w-0 border-l-2 border-dashed border-brand/50 z-10 pointer-events-none"
+                    className="pointer-events-none absolute top-7 -bottom-[36px] left-[25.5px] z-10 w-0 border-l-2 border-dashed border-brand/50 sm:left-[29.5px]"
                     aria-hidden="true"
                   />
                 )}
@@ -103,7 +103,7 @@ export function CommunityStopList({ stops = [], courseId }) {
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black text-ink">
+                  <p className="truncate text-sm font-black text-ink">
                     {stop.floor ? `${stop.floor} ` : ""}{stop.name || `스팟 #${index + 1}`}
                   </p>
                   {stop.description ? (
@@ -114,7 +114,7 @@ export function CommunityStopList({ stops = [], courseId }) {
                 </div>
                 <Link
                   href={courseId ? `/ai-course?courseId=${courseId}` : "/ai-course"}
-                  className="text-sm font-black text-brand transition hover:text-brand-dark"
+                  className="shrink-0 text-sm font-black text-brand transition hover:text-brand-dark"
                 >
                   {t.has("view") ? t("view") : "보기"}
                 </Link>

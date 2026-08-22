@@ -461,9 +461,9 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
 
   return (
     <>
-    <main className="course-studio flex-1 gap-3 bg-[#f0ecfa] p-3">
-      <div className="course-studio-map relative min-h-0 overflow-hidden rounded-[20px]">
-        <div className="h-full min-h-[280px] w-full lg:min-h-0">
+    <main className="course-studio min-h-0 flex-1 gap-2 bg-[#f0ecfa] p-2 sm:gap-3 sm:p-3">
+      <div className="course-studio-map relative min-h-0 overflow-hidden rounded-[16px] sm:rounded-[20px]">
+        <div className="h-full min-h-0 w-full">
           <CourseNavigationMap
             route={routeState.itinerary}
             routeFloorIds={
@@ -485,7 +485,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
           <button
             type="button"
             onClick={() => setLocateOpen(true)}
-            className="absolute bottom-3 right-3 z-30 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-2 text-[11px] font-black text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.18)]"
+            className="absolute bottom-2 right-2 z-30 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.18)] sm:bottom-3 sm:right-3 sm:px-3 sm:py-2 sm:text-[11px]"
           >
             <span className="size-2 rounded-full bg-[#2563EB]" />
             {scanLocation ? t("locateMeAgain") : t("locateMe")}
@@ -494,12 +494,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
       </div>
 
       <div
-        className="course-studio-list flex min-h-0 flex-col gap-[14px] overflow-visible rounded-[20px] px-4 py-4 lg:px-7 lg:py-6"
+        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-3 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
         <input
-          className="text-[22px] md:text-[26px] font-bold text-[#1a142e] bg-transparent outline-none placeholder-[#ccc8d8] border-b-2 border-transparent focus:border-[#5c2ef5] transition-colors pb-1"
+          className="w-full min-w-0 pb-1 text-[18px] font-bold text-[#1a142e] bg-transparent outline-none placeholder-[#ccc8d8] border-b-2 border-transparent focus:border-[#5c2ef5] transition-colors sm:text-[22px] md:text-[26px]"
           style={{ outline: "none" }}
           placeholder={t("courseTitlePlaceholder")}
           value={courseTitle}
@@ -507,32 +507,32 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         />
 
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-[8px]">
+        <div className="flex min-w-0 flex-wrap gap-1.5 sm:gap-[8px]">
           <button
             onClick={undo}
             disabled={history.length === 0}
             title={t("undoTitle")}
-            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
+            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-3 py-1.5 text-[11px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white sm:px-[14px] sm:py-[7px] sm:text-[12px]"
           >
             <RotateCcw size={12} /> {t("undo")}
           </button>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors"
+            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-3 py-1.5 text-[11px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors sm:px-[14px] sm:py-[7px] sm:text-[12px]"
           >
             <Plus size={12} /> {t("addPlace")}
           </button>
           <button
             onClick={handleOptimize}
             disabled={items.length < 2 || routeState.status === "loading"}
-            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-[14px] py-[7px] text-[12px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-[5px] border border-[#ccc8d8] rounded-full px-3 py-1.5 text-[11px] text-[#1a142e] bg-white hover:bg-[#f7f5ff] transition-colors disabled:cursor-not-allowed disabled:opacity-40 sm:px-[14px] sm:py-[7px] sm:text-[12px]"
           >
             <Zap size={12} className="text-yellow-500" /> {t("optimize")}
           </button>
           <button
             onClick={handleSave}
             disabled={saveStatus === "saving" || datasetStatus !== "ready"}
-            className="flex items-center gap-[5px] rounded-full px-[14px] py-[7px] text-[12px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-[5px] rounded-full px-3 py-1.5 text-[11px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:px-[14px] sm:py-[7px] sm:text-[12px]"
           >
             <Save size={12} /> {saveStatus === "saving" ? t("savingShort") : t("saveShort")}
           </button>
@@ -653,7 +653,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
             return (
             <div
               key={place.id}
-              className="flex items-start gap-[12px]"
+              className="flex min-w-0 items-start gap-2 sm:gap-[12px]"
               draggable
               onDragStart={(e) => handleDragStart(e, index)}
               onDragEnter={() => handleDragEnter(index)}
@@ -664,9 +664,9 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 cursor: "grab",
               }}
             >
-              <div className="flex flex-col items-center shrink-0 mt-[14px]">
+              <div className="mt-2 flex shrink-0 flex-col items-center sm:mt-[14px]">
                 <div
-                  className="w-[28px] h-[28px] rounded-full flex items-center justify-center text-[12px] font-bold transition-all duration-150"
+                  className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px]"
                   style={{
                     backgroundColor: visited.has(place.id)
                       ? "#4a2fa8"
@@ -692,7 +692,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 </span>
               </div>
               <button
-                className="flex-1 bg-white rounded-[14px] p-[16px] flex items-center gap-[12px] text-left transition-all duration-150 border-2"
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-3 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
                 style={{
                   borderColor: hoveredId === place.id ? "#5c2ef5" : "transparent",
                   boxShadow:
@@ -707,12 +707,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
               >
                 <div className="flex-1 min-w-0">
                   <span
-                    className={`inline-block text-[11px] font-medium px-[9px] py-[3px] rounded-full mb-[7px] ${place.categoryStyle}`}
+                    className={`mb-1.5 inline-block max-w-full truncate rounded-full px-2 py-[3px] text-[10px] font-medium sm:mb-[7px] sm:px-[9px] sm:text-[11px] ${place.categoryStyle}`}
                   >
                     {getPlaceCategoryLabel(place.category, t)}
                   </span>
                   <h3
-                    className={`text-[14px] font-bold mb-[4px] truncate ${
+                    className={`mb-1 truncate text-[13px] font-bold sm:mb-[4px] sm:text-[14px] ${
                       visited.has(place.id)
                         ? "line-through text-[#9994ad]"
                         : "text-[#1a142e]"
@@ -720,7 +720,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                   >
                     {place.name}
                   </h3>
-                  <p className="text-[12px] text-[#6b6685] leading-[1.5] line-clamp-2">
+                  <p className="line-clamp-2 text-[11px] leading-[1.5] text-[#6b6685] sm:text-[12px]">
                     {place.desc}
                   </p>
                 </div>
@@ -731,11 +731,11 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                     // 경우가 많아 추천 응답이 준 사진이 있으면 그쪽이 우선입니다.
                     src={place.aiImage || place.image}
                     alt={place.name}
-                    className="w-[68px] h-[68px] rounded-[10px] object-cover shrink-0 pointer-events-none"
+                    className="pointer-events-none size-12 shrink-0 rounded-[10px] object-cover sm:size-[68px]"
                   />
                 ) : (
                   <div
-                    className="w-[68px] h-[68px] rounded-[10px] shrink-0"
+                    className="size-12 shrink-0 rounded-[10px] sm:size-[68px]"
                     style={{
                       background: `linear-gradient(135deg,${place.accentColor}22,${place.accentColor}0a)`,
                     }}
@@ -744,12 +744,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
               </button>
 
               {/* Per-card controls: visited toggle + order lock + delete */}
-              <div className="flex flex-col gap-[6px] shrink-0 mt-[14px]">
+              <div className="mt-2 flex shrink-0 flex-col gap-1 sm:mt-[14px] sm:gap-[6px]">
                 <button
                   onClick={() => toggleVisited(place.id)}
                   title={visited.has(place.id) ? t("visitedOff") : t("visitedOn")}
                   aria-pressed={visited.has(place.id)}
-                  className="w-[26px] h-[26px] rounded-full border flex items-center justify-center transition-colors cursor-pointer"
+                  className="flex size-6 items-center justify-center rounded-full border transition-colors cursor-pointer sm:size-[26px]"
                   style={
                     visited.has(place.id)
                       ? { backgroundColor: "#22c55e", borderColor: "#22c55e", color: "white" }
@@ -780,7 +780,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                         })
                   }
                   aria-pressed={isLocked}
-                  className="w-[26px] h-[26px] rounded-full border flex items-center justify-center transition-colors cursor-pointer disabled:cursor-default"
+                  className="flex size-6 items-center justify-center rounded-full border transition-colors cursor-pointer disabled:cursor-default sm:size-[26px]"
                   style={
                     isLocked
                       ? { backgroundColor: "#5c2ef5", borderColor: "#5c2ef5", color: "white" }
@@ -793,7 +793,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                   onClick={() => handleDelete(place.id)}
                   title={t("deleteFromCourse")}
                   aria-label={t("deletePlace", { name: place.name })}
-                  className="w-[26px] h-[26px] rounded-full border border-[#ccc8d8] text-[#9994ad] flex items-center justify-center transition-colors cursor-pointer hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2]"
+                  className="flex size-6 items-center justify-center rounded-full border border-[#ccc8d8] text-[#9994ad] transition-colors cursor-pointer hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2] sm:size-[26px]"
                 >
                   <Trash2 size={13} />
                 </button>

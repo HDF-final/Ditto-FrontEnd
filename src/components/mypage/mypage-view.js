@@ -668,7 +668,7 @@ export function MypageView() {
         <div className="max-w-[1020px] mx-auto">
           {paginatedCourses.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) =>
                   activeTab === "내 코스" ? (
                     <MyCoursePrivateCard

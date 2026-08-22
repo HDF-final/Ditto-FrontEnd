@@ -53,7 +53,7 @@ function AuthorNote({ course, t, locale }) {
   );
 
   return (
-    <section className="bg-surface-soft px-5 py-8 sm:px-14 lg:px-52 lg:py-16 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-4 py-8 sm:px-14 lg:px-52 lg:py-16 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -73,7 +73,7 @@ function AuthorNote({ course, t, locale }) {
           </Link>
         </div>
 
-        <article className="mt-8 rounded-[28px] bg-white p-5 shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:p-8">
+        <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
           <div className="flex items-center gap-4 border-b border-line/60 pb-6">
             <div
               className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
@@ -106,7 +106,7 @@ function AuthorNote({ course, t, locale }) {
           </div>
 
           <div className="mt-6 grid items-stretch gap-7 lg:grid-cols-[0.86fr_1fr]">
-            <div className="relative min-h-[320px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md md:min-h-[380px]">
+            <div className="relative min-h-[220px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md sm:min-h-[320px] md:min-h-[380px]">
               <CommunityDetailHeroImage
                 postId={course.postId}
                 courseId={course.courseId}
@@ -116,7 +116,7 @@ function AuthorNote({ course, t, locale }) {
               />
             </div>
 
-            <div className="flex h-full min-h-[320px] flex-col justify-start rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink md:min-h-[380px]">
+            <div className="flex h-full min-h-[200px] flex-col justify-start rounded-[20px] bg-surface-soft p-4 text-sm font-medium leading-7 text-ink sm:min-h-[320px] sm:rounded-[24px] sm:p-7 sm:text-base md:min-h-[380px]">
               <p className="whitespace-pre-line leading-relaxed text-ink">
                 {course.note ||
                   course.description ||
@@ -156,19 +156,19 @@ export default async function CommunityCourseDetailPage({ params }) {
   );
 
   return (
-    <main className="bg-white">
-      <section className="bg-surface-soft px-5 py-6 sm:px-14 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="hover:text-brand">
+    <main className="min-w-0 overflow-x-hidden bg-white">
+      <section className="bg-surface-soft px-4 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href="/" className="shrink-0 hover:text-brand">
               {breadcrumbHomeText}
             </Link>
-            <span>›</span>
-            <Link href="/community" className="hover:text-brand">
+            <span className="shrink-0">›</span>
+            <Link href="/community" className="shrink-0 hover:text-brand">
               {breadcrumbCommunityText}
             </Link>
-            <span>›</span>
-            <span className="text-ink">{course.title}</span>
+            <span className="shrink-0">›</span>
+            <span className="min-w-0 truncate text-ink">{course.title}</span>
           </div>
           <Link
             href="/community"
@@ -179,8 +179,8 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-5 pb-10 pt-6 sm:px-14 lg:px-52 lg:pb-16 lg:pt-[40px] xl:px-60 2xl:px-72">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.32fr] lg:items-center lg:gap-12">
+      <section className="px-4 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-16 lg:pt-[40px] xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl min-w-0 gap-6 sm:gap-8 lg:grid-cols-[0.78fr_1.32fr] lg:items-center lg:gap-12">
           <div className="relative flex aspect-[4/3] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] lg:aspect-[3/4]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
@@ -234,7 +234,7 @@ export default async function CommunityCourseDetailPage({ params }) {
                 </p>
               </div>
             </div>
-            <h2 className="mt-6 text-[26px] font-black leading-tight text-ink lg:text-[38px]">
+            <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
               {course.title}
             </h2>
             <CommunityDetailActions course={course} />
@@ -242,8 +242,8 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-5 py-6 sm:px-14 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
-        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+      <section className="px-4 py-5 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl min-w-0 gap-4 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
           <CommunityStopList stops={course.stops} courseId={course.courseId} />
           <CommunityCourseDetailMap stops={course.stops} />
         </div>
@@ -251,7 +251,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
       <AuthorNote course={course} t={t} locale={locale} />
 
-      <section className="bg-surface-soft px-5 pb-10 sm:px-14 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-4 pb-10 sm:px-14 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
         <div className="mx-auto flex max-w-7xl justify-center">
           <Link
             href="/community"

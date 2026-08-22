@@ -152,7 +152,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+      className="group relative flex aspect-[3/4] w-full min-w-0 flex-col justify-between overflow-hidden rounded-[18px] bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] sm:rounded-[22px]"
     >
       {/* Full Background Image */}
       <img
@@ -168,44 +168,44 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+      <div className="relative z-10 flex min-w-0 items-start justify-between p-2.5 sm:p-4">
+        <div className="flex min-w-0 max-w-full items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 px-2 py-1 backdrop-blur-xs sm:gap-2 sm:px-2.5 sm:py-1.5">
           {/* Rank Badge */}
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm sm:size-6 sm:text-[11px]">
             {rank}
           </span>
           {/* Flag */}
-          <span className="text-sm leading-none">{getFlagEmoji(card.country || card.flag)}</span>
+          <span className="shrink-0 text-sm leading-none">{getFlagEmoji(card.country || card.flag)}</span>
           {/* Name & Tag */}
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-sm">{card.name || t("traveler")}</span>
-            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-sm">{card.hash || "#더현대"}</span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-[10px] font-bold text-white drop-shadow-sm sm:text-[11px]">{card.name || t("traveler")}</span>
+            <span className="truncate text-[9px] font-semibold text-violet-200 drop-shadow-sm sm:text-[10px]">{card.hash || "#더현대"}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
+      <div className="relative z-10 flex min-w-0 flex-col gap-1.5 p-2.5 pt-0 sm:gap-2.5 sm:p-4">
         {/* Title & Description */}
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] sm:text-[19px] md:text-[20px]">
             {card.title}
           </h3>
           {card.description && (
-            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="line-clamp-1 text-[10px] font-medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] sm:text-[11px]">
               {card.description}
             </p>
           )}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white/95 pt-1">
+        <div className="flex flex-wrap items-center justify-end gap-0.5 pt-1 text-[10px] font-bold text-white/95 sm:gap-2 sm:text-[11px]">
           {/* Like button */}
           <button
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -228,7 +228,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
+            className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90 sm:gap-1 sm:px-2.5"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -241,7 +241,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -311,8 +311,8 @@ export function CommunityCoursePage({ initialCards = [] }) {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="bg-white px-5 pb-6 pt-6 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
+    <main className="min-h-screen min-w-0 overflow-x-hidden bg-background">
+      <section className="bg-white px-4 pb-6 pt-6 sm:px-5 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
             <p className="text-[11px] font-black text-brand lg:text-xs">
@@ -350,9 +350,9 @@ export function CommunityCoursePage({ initialCards = [] }) {
         </div>
       </section>
 
-      <section className="bg-surface-soft px-5 py-6 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-4 py-6 sm:px-5 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
         <div className="lg:mx-auto lg:max-w-[1020px]">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.map((card, index) => {
               const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
               return (
@@ -368,7 +368,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
 
           {/* 페이징 컨트롤 바 렌더링 */}
           {totalPages > 1 && (
-            <div className="mt-12 flex items-center justify-center gap-2">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:mt-12 sm:gap-2">
               {/* 이전 버튼 */}
               <button
                 type="button"

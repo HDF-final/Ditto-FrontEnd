@@ -108,7 +108,7 @@ export function CommunityCourseDetailMap({ stops = [], className = "" }) {
 
   return (
     <div
-      className={`relative min-h-[380px] h-[380px] sm:h-[440px] lg:h-full lg:min-h-[380px] w-full overflow-hidden rounded-[28px] bg-[#F7F3EF] shadow-sm border border-line ${className}`}
+      className={`relative h-[280px] min-h-[240px] w-full overflow-hidden rounded-[20px] border border-line bg-[#F7F3EF] shadow-sm sm:h-[380px] sm:min-h-[380px] sm:rounded-[28px] lg:h-full ${className}`}
     >
       <CourseNavigationMap
         route={routeState.itinerary}

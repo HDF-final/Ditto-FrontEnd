@@ -13,17 +13,17 @@ export function MyCoursePrivateCard({ course, onDelete }) {
   return (
     <Link
       href={href}
-      className="group relative flex h-[255px] flex-col justify-between rounded-[24px] border border-line bg-white p-6 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer"
+      className="group relative flex h-[255px] min-w-0 flex-col justify-between rounded-[20px] border border-line bg-white p-4 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer sm:rounded-[24px] sm:p-6"
     >
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col">
         {/* Top Header */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-black text-brand">
-            <span className="size-1.5 rounded-full bg-brand animate-pulse" />
-            내 맞춤 코스
+        <div className="flex min-w-0 items-center justify-between gap-1.5">
+          <span className="inline-flex min-w-0 max-w-[58%] items-center gap-1 rounded-full bg-brand-soft px-2 py-1 text-[10px] font-black text-brand sm:max-w-none sm:gap-1.5 sm:px-3 sm:text-xs">
+            <span className="size-1.5 shrink-0 rounded-full bg-brand animate-pulse" />
+            <span className="truncate whitespace-nowrap">내 맞춤 코스</span>
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="rounded-full bg-surface-soft px-2.5 py-1 text-xs font-bold text-ink-muted">
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="whitespace-nowrap rounded-full bg-surface-soft px-2 py-1 text-[10px] font-bold text-ink-muted sm:px-2.5 sm:text-xs">
               {spotCountText}
             </span>
             {onDelete ? (

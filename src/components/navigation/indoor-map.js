@@ -331,7 +331,7 @@ class MapErrorBoundary extends Component {
   render() {
     if (this.state.failed) {
       return (
-        <div className="flex h-full min-h-[260px] w-full items-center justify-center bg-[#F7F3EF] px-6 text-center">
+        <div className="flex h-full min-h-0 w-full items-center justify-center bg-[#F7F3EF] px-4 text-center sm:px-6">
           <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
             <p className="text-sm font-bold text-[#433C38]">
               지도를 불러오지 못했습니다
@@ -1615,8 +1615,8 @@ function FloorChip({ id, label, selected, onSelect }) {
 
 function CompactFloorBar({ selectedView, onSelect, showRoute = false }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/35 to-transparent px-3 pb-6 pt-[max(0.7rem,env(safe-area-inset-top))]">
-      <div className="pointer-events-auto flex flex-nowrap items-center gap-[4px] pb-1">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/35 to-transparent px-2 pb-6 pt-[max(0.7rem,env(safe-area-inset-top))] sm:px-3">
+      <div className="hide-scrollbar pointer-events-auto flex flex-nowrap items-center gap-[4px] overflow-x-auto pb-1">
         {showRoute ? (
           <FloorChip
             id="route"
@@ -1663,7 +1663,7 @@ function FloorSelector({ selectedView, onSelect }) {
   };
 
   return (
-    <div className="pointer-events-auto absolute right-3 top-3 z-40 w-[220px] rounded-[20px] border border-white/80 bg-white/95 p-3 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md md:right-5 md:top-5 md:w-[240px]">
+    <div className="pointer-events-auto absolute right-2 top-2 z-40 w-[min(200px,calc(100%-1rem))] rounded-[20px] border border-white/80 bg-white/95 p-2.5 shadow-[0_14px_38px_rgba(96,78,66,0.16)] backdrop-blur-md sm:right-3 sm:top-3 sm:w-[220px] sm:p-3 md:right-5 md:top-5 md:w-[240px]">
       <button
         type="button"
         aria-expanded={expanded}
@@ -1856,13 +1856,13 @@ export function IndoorMap({
 
   if (datasetStatus === "loading") {
     return (
-      <MapLoadingNotice className="h-full min-h-[260px] w-full" />
+      <MapLoadingNotice className="h-full min-h-0 w-full" />
     );
   }
 
   if (datasetStatus === "error") {
     return (
-      <div className="flex h-full min-h-[260px] w-full items-center justify-center bg-[#F7F3EF] px-6 text-center">
+      <div className="flex h-full min-h-0 w-full items-center justify-center bg-[#F7F3EF] px-4 text-center sm:px-6">
         <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
           <p className="text-sm font-bold text-[#433C38]">
             지도 원장 데이터를 확인할 수 없습니다
@@ -1877,7 +1877,7 @@ export function IndoorMap({
 
   return (
     <MapErrorBoundary>
-      <div className={`relative isolate z-0 h-full w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)] ${isScanView ? "min-h-full" : "min-h-[260px]"}`}>
+      <div className={`relative isolate z-0 h-full min-h-0 w-full overflow-hidden bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)] ${isScanView ? "min-h-full" : ""}`}>
         <div
           ref={containerRef}
           className={
@@ -1916,14 +1916,16 @@ export function IndoorMap({
         </div>
 
         {userLocation?.name && !isScanView ? (
-          <div className="pointer-events-none absolute left-3 top-3 z-20 md:left-5 md:top-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.16)]">
+          <div className="pointer-events-none absolute left-2 top-2 z-20 max-w-[calc(100%-5.5rem)] sm:left-3 sm:top-3 md:left-5 md:top-5">
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[10px] font-bold text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.16)] sm:px-3">
               <span
                 className="size-2 shrink-0 animate-pulse rounded-full"
                 style={{ backgroundColor: USER_LOCATION_COLOR }}
               />
-              내 위치 · {userLocation.name}
-              {userLocation.floor ? ` (${userLocation.floor})` : ""}
+              <span className="min-w-0 truncate">
+                내 위치 · {userLocation.name}
+                {userLocation.floor ? ` (${userLocation.floor})` : ""}
+              </span>
             </span>
           </div>
         ) : null}
