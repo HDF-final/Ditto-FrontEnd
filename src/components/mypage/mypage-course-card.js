@@ -125,7 +125,7 @@ export function MypageCourseCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+      className="group relative flex aspect-[3/4] w-full min-w-0 flex-col justify-between overflow-hidden rounded-[18px] bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] sm:rounded-[22px]"
     >
       {/* Full Background Image */}
       <img
@@ -141,15 +141,15 @@ export function MypageCourseCard({
       <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay */}
-      <div className="relative z-10 p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-xs">
+      <div className="relative z-10 flex min-w-0 items-start justify-between gap-1.5 p-2.5 sm:p-4">
+        <div className="flex min-w-0 max-w-full items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 px-2 py-1 backdrop-blur-xs sm:gap-2 sm:px-2.5 sm:py-1.5">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-xs sm:size-6">
             {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
           </span>
-          <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || t("traveler")}</span>
-            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
+          <span className="shrink-0 text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-[10px] font-bold text-white drop-shadow-xs sm:text-[11px]">{course.name || t("traveler")}</span>
+            <span className="truncate text-[9px] font-semibold text-violet-200 drop-shadow-xs sm:text-[10px]">{course.hash || "#더현대 #추천코스"}</span>
           </div>
         </div>
 
@@ -194,9 +194,9 @@ export function MypageCourseCard({
       </div>
 
       {/* Bottom Content Area */}
-      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+      <div className="relative z-10 flex min-w-0 flex-col gap-1.5 p-2.5 pt-0 sm:gap-2.5 sm:p-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] sm:text-[19px] md:text-[20px]">
             {course.title}
           </h3>
           {course.description && (
@@ -207,13 +207,13 @@ export function MypageCourseCard({
         </div>
 
         {/* Bottom Stats Toolbar */}
-        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white pt-1">
+        <div className="flex flex-nowrap items-center justify-end gap-0.5 pt-1 text-[10px] font-bold text-white sm:gap-2 sm:text-[11px]">
           {/* 좋아요 버튼 */}
           <button
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
@@ -235,7 +235,7 @@ export function MypageCourseCard({
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
+            className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-black/40 px-1.5 py-1 text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer sm:gap-1 sm:px-2.5"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -248,7 +248,7 @@ export function MypageCourseCard({
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
               isBookmarked
                 ? "bg-brand text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"

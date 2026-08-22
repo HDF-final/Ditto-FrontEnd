@@ -7,7 +7,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
     <section className="border-b border-line bg-white px-5 pt-6 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-5 pb-6 lg:gap-10 lg:pb-[60px]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <div className="flex items-center gap-3.5 lg:gap-5">
+          <div className="flex min-w-0 items-center gap-3.5 lg:gap-5">
             <div
               className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200 lg:size-[78px]"
               style={{ backgroundColor: persona.bgColor || "#fff1e6" }}
@@ -21,13 +21,13 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 unoptimized
               />
             </div>
-            <div>
-              <h1 className="text-xl font-black text-ink lg:text-[26px]">{profile.name}</h1>
-              <p className="mt-1 text-sm font-medium text-ink-muted">
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-xl font-black text-ink lg:text-[26px]">{profile.name}</h1>
+              <p className="mt-1 truncate text-sm font-medium text-ink-muted">
                 {profile.description}
               </p>
               <div
-                className="mt-3 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition-colors duration-200"
+                className="mt-3 flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 transition-colors duration-200 sm:inline-flex sm:w-auto sm:gap-2 sm:px-3.5"
                 style={{
                   backgroundColor: persona.badgeBg || "#f5f3ff",
                   borderColor: persona.badgeBorder || "#e0d8ff",
@@ -38,22 +38,22 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                   alt=""
                   width={22}
                   height={22}
-                  className="size-[22px] object-contain"
+                  className="size-[22px] shrink-0 object-contain"
                   unoptimized
                 />
                 <span
-                  className="text-sm font-black"
+                  className="shrink-0 whitespace-nowrap text-sm font-black"
                   style={{ color: persona.badgeText || "#5c2ef5" }}
                 >
                   {persona.name}
                 </span>
-                <span className="text-xs font-medium text-ink-muted">
+                <span className="min-w-0 truncate text-xs font-medium text-ink-muted">
                   {persona.description}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 w-full lg:w-fit">
+          <div className="flex w-full min-w-0 items-center gap-2.5 lg:w-fit">
             <button
               type="button"
               onClick={onEditClick}
@@ -62,7 +62,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 borderColor: persona.softButtonBorder || persona.badgeBorder || "#e0d8ff",
                 color: persona.softButtonText || persona.badgeText || "#5c2ef5",
               }}
-              className="flex-1 cursor-pointer rounded-full border px-5 py-2.5 text-sm font-black transition-all hover:opacity-90 lg:flex-initial lg:px-6 lg:py-3 shadow-xs"
+              className="flex-1 cursor-pointer whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-black shadow-xs transition-all hover:opacity-90 lg:flex-initial lg:px-6 lg:py-3"
             >
               프로필 편집
             </button>
@@ -70,7 +70,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
               <button
                 type="button"
                 onClick={onLogoutClick}
-                className="cursor-pointer rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-3 shadow-xs"
+                className="shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted shadow-xs transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-3"
               >
                 로그아웃
               </button>

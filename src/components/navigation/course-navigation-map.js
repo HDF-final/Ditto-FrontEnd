@@ -8,7 +8,7 @@ import { useScanLocationStore } from "@/stores/use-scan-location-store";
 function MapLoadingState() {
   const t = useTranslations("aiCourse");
   return (
-    <div className="flex h-full min-h-[260px] w-full items-center justify-center bg-[#F7F3EF]">
+    <div className="flex h-full min-h-0 w-full items-center justify-center bg-[#F7F3EF]">
       <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#8C817A] shadow-sm">
         <span className="h-2 w-2 animate-pulse rounded-full bg-[#00815a]" />
         {t("mapLoading")}
@@ -47,7 +47,7 @@ export function CourseNavigationMap({
   return (
     <section
       aria-label={t("mapLabel")}
-      className={`relative z-0 h-full min-h-[260px] w-full overflow-hidden bg-[#F7F3EF] ${className}`}
+      className={`relative z-0 h-full min-h-0 w-full overflow-hidden bg-[#F7F3EF] ${className}`}
     >
       <IndoorMap
         route={route}

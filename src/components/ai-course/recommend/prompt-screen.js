@@ -113,7 +113,7 @@ export function PromptScreen({
 
   return (
     <main
-      className="flex flex-1 flex-col items-center justify-center bg-white px-4 py-8 min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] lg:min-h-[calc(100dvh-94px)]"
+      className="flex min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] w-full min-w-0 flex-1 flex-col items-center justify-center overflow-x-hidden bg-white px-4 py-6 sm:py-8 lg:min-h-[calc(100dvh-94px)]"
     >
       {/* Boni */}
       <div className="relative mb-6 md:mb-8">
@@ -132,10 +132,10 @@ export function PromptScreen({
         )}
       </div>
 
-      <h1 className="mb-2 text-center text-[24px] font-bold text-[#1a142e] md:mb-3 md:text-[36px]">
+      <h1 className="mb-2 max-w-full px-2 text-center text-[22px] font-bold break-keep text-[#1a142e] sm:text-[24px] md:mb-3 md:text-[36px]">
         {t("promptTitle")}
       </h1>
-      <p className="mb-6 text-center text-[14px] text-[#9994ad] md:mb-8 md:text-[16px]">
+      <p className="mb-6 max-w-full px-2 text-center text-[13px] leading-relaxed text-[#9994ad] sm:text-[14px] md:mb-8 md:text-[16px]">
         {isManual ? t("manualDescription") : t("autoDescription")}
       </p>
 
@@ -149,7 +149,7 @@ export function PromptScreen({
       {/* Fixed-height region: auto and manual content differ in height, so we
           reserve the taller (auto) height to keep the toggle from shifting.
           Content is top-aligned so it hugs the toggle instead of floating. */}
-      <div className="flex w-full max-w-[720px] flex-col items-center justify-start min-h-[165px] md:min-h-[122px]">
+      <div className="flex w-full min-w-0 max-w-[720px] flex-col items-center justify-start min-h-[165px] md:min-h-[122px]">
       {isManual ? (
         /* 수동: skip the prompt bar and jump straight into an empty course. */
         <div className="w-full flex flex-col items-center">
@@ -172,11 +172,10 @@ export function PromptScreen({
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
               <div
-                className="absolute left-0 bottom-[calc(100%+10px)] z-20 bg-white rounded-[16px] overflow-hidden"
+                className="absolute bottom-[calc(100%+10px)] left-0 right-0 z-20 overflow-hidden rounded-[16px] bg-white sm:right-auto sm:min-w-[220px]"
                 style={{
                   boxShadow: "0 8px 32px rgba(92,46,245,0.14)",
                   border: "1px solid #ede9f5",
-                  minWidth: "220px",
                 }}
               >
                 {plusMenuItems.map((item, i) => (
@@ -203,7 +202,7 @@ export function PromptScreen({
           )}
 
           <div
-            className="flex items-center gap-3 rounded-full px-6 py-[16px] bg-white transition-all"
+            className="flex min-w-0 items-center gap-2 rounded-full bg-white px-4 py-3 transition-all sm:gap-3 sm:px-6 sm:py-[16px]"
             style={{
               border: "1.5px solid #e0d9f8",
               boxShadow: "0 4px 20px rgba(92,46,245,0.08)",
@@ -217,7 +216,7 @@ export function PromptScreen({
               <Plus size={18} />
             </button>
             <input
-              className="flex-1 text-[17px] text-[#1a142e] outline-none bg-transparent placeholder-[#ccc8d8]"
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-[#1a142e] outline-none placeholder-[#ccc8d8] sm:text-[17px]"
               style={{ outline: "none" }}
               placeholder={t("askAnything")}
               value={input}
@@ -231,7 +230,7 @@ export function PromptScreen({
             />
             <button
               onClick={() => submit(input)}
-              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-105 active:scale-95"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95 sm:size-9"
               style={{ background: input.trim() ? "#1a142e" : "#e8e4f5" }}
             >
               <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
@@ -245,7 +244,7 @@ export function PromptScreen({
         </div>
 
         {/* Suggestion chips */}
-        <div className="flex flex-wrap gap-2 mt-4 justify-center">
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
           {suggestions.map((s) => (
             <button
               key={s}

@@ -32,11 +32,11 @@ export function CommunityShareButton() {
   };
 
   return (
-    <div className="relative inline-flex items-center">
+    <div className="relative inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center sm:flex-none sm:basis-auto">
       <button
         type="button"
         onClick={handleShare}
-        className={`inline-flex h-12 min-w-[142px] items-center justify-center gap-2 rounded-full border px-8 text-sm font-black transition cursor-pointer ${
+        className={`inline-flex h-11 w-full min-w-0 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-black transition cursor-pointer sm:h-12 sm:min-w-[142px] sm:gap-2 sm:px-8 sm:text-sm ${
           copied
             ? "border-brand bg-brand text-white shadow-control scale-102"
             : "border-line bg-white text-brand hover:border-brand/40 hover:bg-brand-soft/20 shadow-xs"
@@ -63,7 +63,7 @@ export function CommunityShareButton() {
 
       {/* Floating Toast Notification */}
       {copied ? (
-        <div className="fixed bottom-10 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-brand/40 bg-[#161324]/95 px-6 py-3.5 text-sm font-bold text-white shadow-2xl backdrop-blur-md transition-all animate-bounce">
+        <div className="fixed bottom-[calc(var(--app-tabbar)+0.75rem)] left-1/2 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full border border-brand/40 bg-[#161324]/95 px-4 py-3 text-xs font-bold text-white shadow-2xl backdrop-blur-md transition-all animate-bounce sm:bottom-10 sm:px-6 sm:py-3.5 sm:text-sm lg:bottom-10">
           <span className="flex size-6 items-center justify-center rounded-full bg-brand text-white">
             <svg
               aria-hidden="true"

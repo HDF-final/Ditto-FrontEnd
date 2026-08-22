@@ -53,7 +53,7 @@ export function PanelChat({ messages = [], pending = null, onSend }) {
   if (!isDesktop) {
     return (
       <div
-        className="panel-chat w-full overflow-hidden rounded-[20px] bg-white"
+        className="panel-chat w-full min-w-0 overflow-hidden rounded-[16px] bg-white sm:rounded-[20px]"
         style={{ boxShadow: "0 8px 28px rgba(92,46,245,0.14)" }}
       >
         <div className="flex items-center gap-2 px-3 py-2.5">

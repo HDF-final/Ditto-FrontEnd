@@ -10,7 +10,7 @@ function HeartIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-[27px]"
+      className="size-5 lg:size-[27px]"
       viewBox="0 0 27 27"
       fill="none"
       stroke="currentColor"
@@ -52,18 +52,18 @@ export function HeaderAuthNav() {
 
   if (isAuth && activeUser) {
     return (
-      <div className="flex items-center gap-6">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4 lg:gap-6">
         <Link
           href="/community/bookmarks"
           aria-label={t("navigation.likedCourses")}
-          className="text-ink transition hover:text-brand"
+          className="shrink-0 text-ink transition hover:text-brand"
         >
           <HeartIcon />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/mypage"
-            className="text-sm font-bold text-ink hover:text-brand transition cursor-pointer"
+            className="hidden whitespace-nowrap text-sm font-bold text-ink transition hover:text-brand cursor-pointer sm:inline"
           >
             {t("common.memberGreeting", {
               name: activeUser.nickname || activeUser.name || "디또러버",
@@ -72,7 +72,7 @@ export function HeaderAuthNav() {
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer"
+            className="shrink-0 whitespace-nowrap rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer sm:px-4 sm:py-2 sm:text-xs"
           >
             {t("common.logout")}
           </button>
@@ -84,7 +84,7 @@ export function HeaderAuthNav() {
   return (
     <Link
       href="/login"
-      className="rounded-full bg-brand px-5 py-3 text-base font-black leading-none text-white transition hover:bg-brand-dark"
+      className="shrink-0 rounded-full bg-brand px-3.5 py-2 text-sm font-black leading-none text-white transition hover:bg-brand-dark lg:px-5 lg:py-3 lg:text-base"
     >
       {t("common.login")}
     </Link>
