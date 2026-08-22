@@ -112,9 +112,24 @@
     "newsletterDescription": "Kカルチャーやブランド、社会に前向きな変化を生み出すニュースをお届けします。",
     "allNews": "ニュースをすべて見る",
     "appTitle": "モバイルアプリでもっとスマートな旅を！",
-    "appDescription": "2.5Dリアルタイムマップから旅の記録まで、アプリひとつで便利に。",
+    "appDescription": "アプリのようにすぐ開いて、館内ナビとカスタムコースをよりスムーズに続けられます。",
     "downloadApp": "アプリをダウンロード",
-    "appPreview": "アプリ画面・QR画像エリア"
+    "appPreview": "アプリ画面・QR画像エリア",
+    "addToHomeTitle": "ホーム画面にDITTOを追加",
+    "installNow": "今すぐインストール",
+    "iosInstallHint": "Safariの共有ボタン →「ホーム画面に追加」を押すとアプリのように使えます。",
+    "browserInstallHint": "ブラウザメニューから「アプリをインストール」または「ホーム画面に追加」を選んでください。",
+    "communityCourses": {
+      "first-timer-photo-route": { "hash": "#初訪問 #フォトスポット", "title": "初めてならこのコースから", "description": "ザ・ヒュンダイ・ソウルが初めての旅行者向け写真＆ショッピングコース" },
+      "hyundai-dessert-cafe-route": { "hash": "#アイドル #ミニマル", "title": "ザ・ヒュンダイのポップアップ攻略", "description": "スパイダーマンのポップアップから漢江ビューのデザートまで楽しめる充実コース" },
+      "k-beauty-shopping-finish": { "hash": "#ポップアップ #フードトラック", "title": "本当におすすめのヴィンテージショップ", "description": "ヴィンテージTシャツからリーバイスまで！" },
+      "mz-brand-select-shop": { "hash": "#ビューティー #癒やし", "title": "お肌をリフレッシュするついでに！", "description": "Kビューティーの旗艦店とスキンケアを中心に巡る癒やしコース" },
+      "sunny-photo-route": { "hash": "#ルーフトップ #ベストショット", "title": "晴れた日の写真コース", "description": "自然光あふれるサウンズフォレストと屋上展望台" },
+      "foodcourt-local-route": { "hash": "#フードコート #ローカルグルメ", "title": "ランチから夜まで食べ歩き", "description": "ザ・ヒュンダイ地下1階のグルメをまるごと攻略" },
+      "weekend-popup-run": { "hash": "#ポップアップ #オープンラン", "title": "今日オープンのポップアップを早巡り", "description": "週末限定グッズとポップアップゾーンを完全攻略" },
+      "gift-shopping-route": { "hash": "#グッズ #ギフト", "title": "友だちへのギフト探しコース", "description": "センスのよい雑貨店とKライフスタイルグッズをまとめてチェック" },
+      "kpop-goods-holy-land": { "hash": "#KPOP #アルバム", "title": "推しのアルバム＆グッズ聖地", "description": "地下2階クリエイティブグラウンドの推し活コース" }
+    }
   },
   "news": {
     "title": "ニュース",
@@ -187,6 +202,8 @@
     "coverPhoto": "コースのメイン写真"
   },
   "community": {
+    "publicCourseDescription": "{title}につながるカスタムおすすめコースです。",
+    "publicCourseHash": "#おすすめコース #ザヒュンダイ",
     "title": "ザ・ヒュンダイ コース",
     "description": "ザ・ヒュンダイ・ソウルを巡ったコースを共有し、旅行者の場所や会話をチェックしましょう。",
     "popular": "人気順",
@@ -337,6 +354,11 @@
     "searchStore": "店舗名を検索",
     "searchPlaceholder": "{count}店舗から名前で検索",
     "category": "カテゴリー",
+    "categoryLabels": {
+      "store": "ショップ", "restaurant": "レストラン", "cafe": "カフェ", "leisure": "レジャー",
+      "popup": "ポップアップ", "fashion": "ファッション", "beauty": "ビューティー", "amenity": "施設・サービス"
+    },
+    "loadingStores": "ショップ一覧を読み込み中...",
     "floor": "階",
     "allAdded": "おすすめできる場所をすべて追加しました",
     "noMatches": "条件に合う場所がありません",
@@ -351,6 +373,9 @@
     "sendToBoni": "Boniに送信",
     "saveComplete": "コースを保存しました！",
     "unnamedCourse": "名称未設定のコース",
+    "courseStartingAt": "{name}から始まるコース",
+    "courseNameFromPrompt": "{name}コース",
+    "recommendedCourseName": "Kカルチャーおすすめコース",
     "savedToMypage": "{name}をマイページに保存しました。",
     "continueEditing": "編集を続ける",
     "viewMypage": "マイページを見る",

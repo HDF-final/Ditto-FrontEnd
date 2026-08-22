@@ -112,9 +112,24 @@
     "newsletterDescription": "Stories about K-culture, brands and positive changes in our community.",
     "allNews": "View all news",
     "appTitle": "Travel smarter with the mobile app!",
-    "appDescription": "Use a live 2.5D map and keep your entire travel journey in one convenient app.",
+    "appDescription": "Open DITTO like an app and continue indoor navigation and custom courses faster.",
     "downloadApp": "Download the app",
-    "appPreview": "App preview · QR image area"
+    "appPreview": "App preview · QR image area",
+    "addToHomeTitle": "Add DITTO to your home screen",
+    "installNow": "Install now",
+    "iosInstallHint": "In Safari, tap Share → Add to Home Screen to use DITTO like an app.",
+    "browserInstallHint": "Choose Install app or Add to Home Screen from your browser menu.",
+    "communityCourses": {
+      "first-timer-photo-route": { "hash": "#FirstVisit #PhotoSpot", "title": "Start with this course", "description": "A photo and shopping route for first-time visitors to The Hyundai Seoul" },
+      "hyundai-dessert-cafe-route": { "hash": "#Idol #Minimal", "title": "Conquer The Hyundai pop-ups", "description": "A packed route from the Spider-Man pop-up to dessert with a Han River view" },
+      "k-beauty-shopping-finish": { "hash": "#PopUp #FoodTruck", "title": "A genuinely great vintage shop route", "description": "From vintage T-shirts to Levi's!" },
+      "mz-brand-select-shop": { "hash": "#Beauty #Relaxation", "title": "Refresh your skin while you're here!", "description": "A relaxing route centered on K-beauty flagships and skincare" },
+      "sunny-photo-route": { "hash": "#Rooftop #BestShot", "title": "Photo route for a sunny day", "description": "Sounds Forest and the rooftop observatory filled with natural light" },
+      "foodcourt-local-route": { "hash": "#FoodCourt #LocalFlavor", "title": "An all-day food crawl", "description": "Conquer every bite on B1 of The Hyundai Seoul" },
+      "weekend-popup-run": { "hash": "#PopUp #OpenRun", "title": "Quick tour of today's pop-ups", "description": "A complete weekend-only goods and pop-up zone route" },
+      "gift-shopping-route": { "hash": "#Goods #Gifts", "title": "Best route for buying gifts", "description": "Charming lifestyle shops and K-lifestyle goods in one route" },
+      "kpop-goods-holy-land": { "hash": "#KPOP #Albums", "title": "The ultimate idol album and merch route", "description": "A K-pop fan route through Creative Ground on B2" }
+    }
   },
   "news": {
     "title": "News",
@@ -187,6 +202,8 @@
     "coverPhoto": "Course cover photo"
   },
   "community": {
+    "publicCourseDescription": "A custom recommended course connected to {title}.",
+    "publicCourseHash": "#RecommendedCourse #TheHyundai",
     "title": "The Hyundai courses",
     "description": "Share your route through The Hyundai Seoul and explore places and conversations from other travelers.",
     "popular": "Popular",
@@ -337,6 +354,11 @@
     "searchStore": "Search stores",
     "searchPlaceholder": "Search {count} stores by name",
     "category": "Category",
+    "categoryLabels": {
+      "store": "Store", "restaurant": "Restaurant", "cafe": "Cafe", "leisure": "Leisure",
+      "popup": "Pop-up", "fashion": "Fashion", "beauty": "Beauty", "amenity": "Amenities"
+    },
+    "loadingStores": "Loading stores...",
     "floor": "Floor",
     "allAdded": "You've added every available place",
     "noMatches": "No places match these filters",
@@ -351,6 +373,9 @@
     "sendToBoni": "Send to Boni",
     "saveComplete": "Course saved!",
     "unnamedCourse": "Untitled course",
+    "courseStartingAt": "Course starting at {name}",
+    "courseNameFromPrompt": "{name} course",
+    "recommendedCourseName": "Recommended K-Culture course",
     "savedToMypage": "{name} was saved to My page.",
     "continueEditing": "Keep editing",
     "viewMypage": "View My page",

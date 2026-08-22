@@ -6,7 +6,10 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "./recommend-icons";
 import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
-import { PLACE_CATEGORY_FILTERS } from "@/lib/navigation/place-category";
+import {
+  getPlaceCategoryLabel,
+  PLACE_CATEGORY_FILTERS,
+} from "@/lib/navigation/place-category";
 import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
 
 const ALL = "__all__";
@@ -162,7 +165,7 @@ export function AddPlaceModal({
                 {categoryOptions.map((c) => (
                   <FilterChip
                     key={c}
-                    label={c === ALL ? t("all") : c}
+                    label={c === ALL ? t("all") : getPlaceCategoryLabel(c, t)}
                     active={category === c}
                     onClick={() => setCategory(c)}
                   />
@@ -176,7 +179,7 @@ export function AddPlaceModal({
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                   <div className="size-7 animate-spin rounded-full border-2 border-[#5c2ef5] border-t-transparent" />
                   <p className="text-[12px] font-bold text-[#9994ad]">
-                    매장 목록을 불러오는 중...
+                    {t("loadingStores")}
                   </p>
                 </div>
               ) : filtered.length === 0 ? (
@@ -213,7 +216,7 @@ export function AddPlaceModal({
                         <span
                           className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${place.categoryStyle}`}
                         >
-                          {place.category}
+                          {getPlaceCategoryLabel(place.category, t)}
                         </span>
                         {place.floor && (
                           <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f0ecfa] text-[#5c2ef5]">

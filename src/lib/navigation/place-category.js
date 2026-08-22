@@ -43,6 +43,24 @@ export const PLACE_CATEGORY_FILTERS = [
   "편의시설",
 ];
 
+const PLACE_CATEGORY_MESSAGE_KEYS = {
+  매장: "store",
+  음식점: "restaurant",
+  카페: "cafe",
+  여가: "leisure",
+  전시: "leisure",
+  팝업: "popup",
+  패션: "fashion",
+  뷰티: "beauty",
+  편의시설: "amenity",
+};
+
+/** 내부 카테고리 값은 유지하고, 화면에 보여줄 이름만 현재 언어로 바꿉니다. */
+export function getPlaceCategoryLabel(category, translate) {
+  const key = PLACE_CATEGORY_MESSAGE_KEYS[category];
+  return key ? translate(`categoryLabels.${key}`) : category;
+}
+
 /**
  * 카테고리 문자열을 정규화하고 색까지 함께 돌려줍니다.
  *

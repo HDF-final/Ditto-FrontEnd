@@ -112,9 +112,24 @@
     "newsletterDescription": "带来有关K文化、品牌及社会积极变化的消息。",
     "allNews": "查看全部资讯",
     "appTitle": "用移动应用开启更智能的旅行！",
-    "appDescription": "从2.5D实时地图到旅行记录，一个应用更加方便。",
+    "appDescription": "像应用一样快速打开，更顺畅地继续室内导航和定制路线。",
     "downloadApp": "下载应用",
-    "appPreview": "应用画面 · 二维码图片区域"
+    "appPreview": "应用画面 · 二维码图片区域",
+    "addToHomeTitle": "将DITTO添加到主屏幕",
+    "installNow": "立即安装",
+    "iosInstallHint": "在Safari中点击分享 →“添加到主屏幕”，即可像应用一样使用。",
+    "browserInstallHint": "请从浏览器菜单选择“安装应用”或“添加到主屏幕”。",
+    "communityCourses": {
+      "first-timer-photo-route": { "hash": "#初次到访 #拍照点", "title": "第一次来就从这条路线开始", "description": "为初次到访The Hyundai Seoul的旅行者准备的拍照与购物路线" },
+      "hyundai-dessert-cafe-route": { "hash": "#偶像 #极简", "title": "玩转The Hyundai快闪店", "description": "从蜘蛛侠快闪店到汉江景观甜品的充实路线" },
+      "k-beauty-shopping-finish": { "hash": "#快闪 #餐车", "title": "真心推荐的古着店路线", "description": "从复古T恤到Levi's一网打尽！" },
+      "mz-brand-select-shop": { "hash": "#美妆 #疗愈", "title": "顺便给肌肤焕个新！", "description": "以K-Beauty旗舰店和护肤体验为主的疗愈路线" },
+      "sunny-photo-route": { "hash": "#屋顶 #人生照片", "title": "晴天拍照路线", "description": "充满自然光的Sounds Forest与屋顶观景台" },
+      "foodcourt-local-route": { "hash": "#美食广场 #本地风味", "title": "从午餐吃到晚餐", "description": "一次吃遍The Hyundai地下一层美食" },
+      "weekend-popup-run": { "hash": "#快闪 #开门冲", "title": "快速逛完今天开幕的快闪店", "description": "周末限定周边与快闪区完整攻略" },
+      "gift-shopping-route": { "hash": "#周边 #礼物", "title": "适合买朋友礼物的路线", "description": "集合氛围杂货店与K-Lifestyle周边" },
+      "kpop-goods-holy-land": { "hash": "#KPOP #专辑", "title": "本命偶像专辑与周边圣地", "description": "地下二层Creative Ground追星路线" }
+    }
   },
   "news": {
     "title": "资讯",
@@ -187,6 +202,8 @@
     "coverPhoto": "路线封面图"
   },
   "community": {
+    "publicCourseDescription": "与{title}关联的定制推荐路线。",
+    "publicCourseHash": "#推荐路线 #TheHyundai",
     "title": "现代首尔路线",
     "description": "分享你在现代首尔走过的路线，查看旅行者分享的地点与交流。",
     "popular": "热门",
@@ -337,6 +354,11 @@
     "searchStore": "搜索店铺",
     "searchPlaceholder": "按名称搜索{count}家店铺",
     "category": "分类",
+    "categoryLabels": {
+      "store": "店铺", "restaurant": "餐厅", "cafe": "咖啡馆", "leisure": "休闲",
+      "popup": "快闪", "fashion": "时尚", "beauty": "美妆", "amenity": "便利设施"
+    },
+    "loadingStores": "正在加载店铺列表...",
     "floor": "楼层",
     "allAdded": "所有可推荐地点都已添加",
     "noMatches": "没有符合条件的地点",
@@ -351,6 +373,9 @@
     "sendToBoni": "发送给Boni",
     "saveComplete": "路线已保存！",
     "unnamedCourse": "未命名路线",
+    "courseStartingAt": "从{name}开始的路线",
+    "courseNameFromPrompt": "{name}路线",
+    "recommendedCourseName": "K-Culture推荐路线",
     "savedToMypage": "{name}已保存至个人主页。",
     "continueEditing": "继续编辑",
     "viewMypage": "查看个人主页",
