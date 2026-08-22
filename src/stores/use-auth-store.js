@@ -3,7 +3,7 @@ import { create } from "zustand";
 export const MOCK_USER = {
   id: 1,
   userId: 1,
-  email: "yuki@ditto.kr",
+  email: "yuki@example.com",
   name: "사토 유키",
   nickname: "사토 유키",
   country: "JP",
@@ -18,17 +18,19 @@ export const MOCK_USER = {
 };
 
 export const useAuthStore = create((set) => ({
-  user: MOCK_USER,
-  isAuthenticated: true,
-  setUser: (user) =>
+  user: null,
+  isAuthenticated: false,
+  setUser: (user) => {
+    const nextUser = user === undefined ? MOCK_USER : user;
     set({
-      user: user ? { ...MOCK_USER, ...user } : MOCK_USER,
-      isAuthenticated: true,
-    }),
+      user: nextUser,
+      isAuthenticated: Boolean(nextUser),
+    });
+  },
   clearUser: () =>
     set({
-      user: MOCK_USER,
-      isAuthenticated: true,
+      user: null,
+      isAuthenticated: false,
     }),
 }));
 

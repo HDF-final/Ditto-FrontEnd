@@ -47,8 +47,8 @@ export function HeaderAuthNav() {
     }
   };
 
-  const activeUser = user || MOCK_USER;
-  const isAuth = mounted ? isAuthenticated : true;
+  const activeUser = user;
+  const isAuth = mounted ? Boolean(isAuthenticated && user) : false;
 
   if (isAuth && activeUser) {
     return (
@@ -66,7 +66,7 @@ export function HeaderAuthNav() {
             className="text-sm font-bold text-ink hover:text-brand transition cursor-pointer"
           >
             {t("common.memberGreeting", {
-              name: activeUser.nickname || activeUser.name || "사토 유키",
+              name: activeUser.nickname || activeUser.name || "디또러버",
             })}
           </Link>
           <button

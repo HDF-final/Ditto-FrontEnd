@@ -16,18 +16,26 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   applyApiLanguageHeader(config.headers, document.cookie);
 
+  const isExplicitlyLoggedOut =
+    typeof window !== "undefined" &&
+    window.sessionStorage?.getItem("ditto_logged_out") === "true";
+
   const authUser = useAuthStore.getState()?.user;
-  const userId =
-    authUser?.id ||
-    authUser?.userId ||
-    process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
-    "1";
+  const userId = !isExplicitlyLoggedOut
+    ? (authUser?.id || authUser?.userId || process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() || "1")
+    : (authUser?.id || authUser?.userId || null);
 
   if (userId) {
     if (typeof config.headers?.set === "function") {
       config.headers.set("X-User-Id", String(userId));
     } else if (config.headers) {
       config.headers["X-User-Id"] = String(userId);
+    }
+  } else {
+    if (typeof config.headers?.delete === "function") {
+      config.headers.delete("X-User-Id");
+    } else if (config.headers) {
+      delete config.headers["X-User-Id"];
     }
   }
 
