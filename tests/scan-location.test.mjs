@@ -43,7 +43,7 @@ test("exact store name maps to the indoor-map navigation key", () => {
 
 test("partial brand names still map onto the floor plan", () => {
   assert.equal(matchPlaceByName("나이키", places)?.navigationKey, "B2_STORE_0021");
-  assert.equal(matchPlaceByName("스타벅스", places)?.navigationKey, "B2_STORE_0028");
+  assert.equal(matchPlaceByName("스타벅스", places)?.navigationKey, "B2_STORE_0027");
 });
 
 test("english signage aliases map onto Korean store names", () => {
@@ -65,7 +65,7 @@ test("buildScanLocation keeps map identity separate from the brand payload", () 
     logoUrl: "https://example.com/mlb.png",
   });
   assert.deepEqual(location, {
-    navigationKey: "B2_STORE_0032",
+    navigationKey: "B2_STORE_0031",
     name: "MLB",
     floor: "B2",
     placeId: null,

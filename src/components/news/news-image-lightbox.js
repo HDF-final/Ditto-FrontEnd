@@ -69,7 +69,7 @@ export function NewsImageLightbox({
 
       {/* 2. Card mode (in Article Body) */}
       {mode === "card" && (
-        <figure className="my-2 w-full max-w-2xl mx-auto">
+        <figure className="my-2 w-full max-w-2xl mx-auto overflow-hidden">
           <div
             role="button"
             tabIndex={0}
@@ -80,7 +80,7 @@ export function NewsImageLightbox({
                 setIsOpen(true);
               }
             }}
-            className="relative block w-full aspect-[16/9] min-h-[220px] sm:min-h-[260px] lg:min-h-[300px] max-h-[340px] cursor-zoom-in overflow-hidden rounded-[20px] border border-line bg-surface-soft shadow-sm transition-all hover:shadow-md group"
+            className="relative block w-full aspect-[16/9] min-h-[190px] sm:min-h-[260px] lg:min-h-[300px] max-h-[340px] cursor-zoom-in overflow-hidden rounded-[16px] sm:rounded-[20px] border border-line bg-surface-soft shadow-sm transition-all hover:shadow-md group"
           >
             <Image
               src={src}
@@ -111,7 +111,7 @@ export function NewsImageLightbox({
             </div>
           </div>
           {caption && (
-            <figcaption className="mt-2 text-center text-xs text-muted font-medium">
+            <figcaption className="mt-2 text-center text-xs text-ink-muted font-medium break-keep px-1">
               ▲ {caption}
             </figcaption>
           )}

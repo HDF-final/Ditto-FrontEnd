@@ -104,8 +104,10 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     const place = placeCatalog.find((entry) => entry.navigationKey === key);
     if (!place) return;
     seededFromScanRef.current = true;
-    setItems([place]);
-    setCourseTitle(`${place.name}에서 시작하는 코스`);
+    queueMicrotask(() => {
+      setItems([place]);
+      setCourseTitle(`${place.name}에서 시작하는 코스`);
+    });
   }, [
     datasetStatus,
     items.length,

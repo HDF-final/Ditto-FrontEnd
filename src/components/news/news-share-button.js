@@ -32,11 +32,11 @@ export function NewsShareButton() {
   };
 
   return (
-    <div className="relative inline-flex items-center">
+    <div className="relative inline-flex items-center w-full sm:w-auto">
       <button
         type="button"
         onClick={handleShare}
-        className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-control px-7 text-sm font-black transition cursor-pointer ${
+        className={`inline-flex min-h-11 sm:min-h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-control px-5 sm:px-7 text-xs sm:text-sm font-black transition cursor-pointer ${
           copied
             ? "bg-brand-dark text-white shadow-lg scale-105"
             : "bg-brand text-white shadow-control hover:bg-brand-dark"

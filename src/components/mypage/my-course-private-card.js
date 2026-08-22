@@ -13,17 +13,17 @@ export function MyCoursePrivateCard({ course, onDelete }) {
   return (
     <Link
       href={href}
-      className="group relative flex h-[255px] flex-col justify-between rounded-[24px] border border-line bg-white p-6 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer"
+      className="group relative flex min-h-[220px] sm:h-[255px] flex-col justify-between rounded-[20px] sm:rounded-[24px] border border-line bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer"
     >
       <div className="flex flex-col">
         {/* Top Header */}
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-black text-brand">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] sm:text-xs font-black text-brand whitespace-nowrap shrink-0">
             <span className="size-1.5 rounded-full bg-brand animate-pulse" />
             내 맞춤 코스
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="rounded-full bg-surface-soft px-2.5 py-1 text-xs font-bold text-ink-muted">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="rounded-full bg-surface-soft px-2 py-0.5 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-bold text-ink-muted whitespace-nowrap shrink-0">
               {spotCountText}
             </span>
             {onDelete ? (
@@ -57,13 +57,13 @@ export function MyCoursePrivateCard({ course, onDelete }) {
         </div>
 
         {/* Course Title */}
-        <h3 className="mt-3.5 text-lg font-black text-ink group-hover:text-brand transition-colors line-clamp-1">
+        <h3 className="mt-3 text-base sm:text-lg font-black text-ink group-hover:text-brand transition-colors line-clamp-1">
           {course.title || "나만의 코스"}
         </h3>
 
-        {/* Course Stops Timeline (2개 높이 고정, 2개 초과 시 스크롤) */}
+        {/* Course Stops Timeline */}
         <div
-          className="mt-3.5 flex flex-col gap-2 max-h-[72px] overflow-y-auto pr-1.5 scrollbar-thin [scrollbar-width:thin] [scrollbar-color:#d4d0ec_transparent]"
+          className="mt-3 flex flex-col gap-1.5 sm:gap-2 max-h-[76px] overflow-y-auto pr-1.5 scrollbar-thin [scrollbar-width:thin] [scrollbar-color:#d4d0ec_transparent]"
           onClick={(e) => {
             // 스크롤 조작 중 불필요한 링크 점프 방지 (스크롤바 클릭 시)
             e.stopPropagation();
@@ -71,8 +71,8 @@ export function MyCoursePrivateCard({ course, onDelete }) {
         >
           {stops.length > 0 ? (
             stops.map((stop, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 text-xs shrink-0 py-0.5">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-soft font-black text-ink-muted text-[10px]">
+              <div key={idx} className="flex items-center gap-2 text-xs shrink-0 py-0.5">
+                <span className="flex size-4.5 sm:size-5 shrink-0 items-center justify-center rounded-md bg-surface-soft font-black text-ink-muted text-[10px]">
                   {idx + 1}
                 </span>
                 <span className="shrink-0 rounded-md bg-[#f0ecfc] px-1.5 py-0.5 text-[10px] font-bold text-brand">
@@ -90,7 +90,7 @@ export function MyCoursePrivateCard({ course, onDelete }) {
       </div>
 
       {/* Bottom Action Footer */}
-      <div className="mt-4 flex items-center justify-end border-t border-line/70 pt-3.5">
+      <div className="mt-3 sm:mt-4 flex items-center justify-end border-t border-line/70 pt-3">
         <div className="inline-flex items-center gap-1 text-xs font-black text-brand group-hover:translate-x-0.5 transition-transform">
           <span>지도에서 보기</span>
           <span>→</span>

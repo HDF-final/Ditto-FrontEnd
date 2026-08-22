@@ -1784,7 +1784,9 @@ export function IndoorMap({
     // 코스가 있으면 경로 스택을 유지하고 내 위치 핀만 얹습니다.
     // OCR 전용(전체층) 화면은 층을 바꾸지 않습니다.
     if (route || isScanView) return;
-    setSelectedView(userLocationFloorId);
+    queueMicrotask(() => {
+      setSelectedView(userLocationFloorId);
+    });
   }, [isScanView, route, userLocation?.navigationKey, userLocationFloorId]);
 
   const viewMode = FLOOR_ORDER.includes(selectedView) ? "floor" : selectedView;

@@ -634,7 +634,7 @@ export function MypageView() {
         onEditClick={() => setIsEditModalOpen(true)}
         onLogoutClick={handleLogout}
       />
-      <section className="px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
+      <section className="px-4 py-5 sm:px-8 sm:py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
         <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-[40px] lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {mypageTabs.map((tab) => {
             return (
@@ -668,7 +668,7 @@ export function MypageView() {
         <div className="max-w-[1020px] mx-auto">
           {paginatedCourses.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) =>
                   activeTab === "내 코스" ? (
                     <MyCoursePrivateCard
