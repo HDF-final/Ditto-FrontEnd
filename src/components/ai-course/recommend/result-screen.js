@@ -18,6 +18,10 @@ import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseSaveSuccessModal } from "./course-save-success-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
+import { CameraScanner } from "@/components/layout/camera-scanner";
+import { ScanResult } from "@/components/layout/scan-result";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
+import { useScanLocationStore } from "@/stores/use-scan-location-store";
 import {
   attachPlaceIdsToCourseDataset,
   calculateCourseRoute,
@@ -46,7 +50,7 @@ function sameOrder(a, b) {
  * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
-export function ResultScreen({ chat, onPlaceClick }) {
+export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
   const [placeLogos, setPlaceLogos] = useState(null);
@@ -73,13 +77,42 @@ export function ResultScreen({ chat, onPlaceClick }) {
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
+  const [locateOpen, setLocateOpen] = useState(false);
+  const [locateImage, setLocateImage] = useState(null);
+  const scanLocation = useScanLocationStore((state) => state.location);
+  const hydrateLocation = useScanLocationStore((state) => state.hydrate);
+  const isDesktop = useIsDesktop();
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
   const chatOccluderRef = useRef(null);
+  const seededFromScanRef = useRef(false);
+
+  useEffect(() => {
+    hydrateLocation();
+  }, [hydrateLocation]);
 
   const aiCourse = chat?.course ?? null;
   const chatPending = chat?.pending ?? null;
+
+  useEffect(() => {
+    if (!seedFromScan || seededFromScanRef.current) return;
+    if (datasetStatus !== "ready") return;
+    if (items.length > 0) return;
+    const key = scanLocation?.navigationKey;
+    if (!key) return;
+    const place = placeCatalog.find((entry) => entry.navigationKey === key);
+    if (!place) return;
+    seededFromScanRef.current = true;
+    setItems([place]);
+    setCourseTitle(`${place.name}에서 시작하는 코스`);
+  }, [
+    datasetStatus,
+    items.length,
+    placeCatalog,
+    scanLocation?.navigationKey,
+    seedFromScan,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -418,12 +451,31 @@ export function ResultScreen({ chat, onPlaceClick }) {
         <div className="h-full min-h-[280px] w-full lg:min-h-0">
           <CourseNavigationMap
             route={routeState.itinerary}
-            routeFloorIds={routeState.itinerary?.floorIds}
+            routeFloorIds={
+              routeState.itinerary?.floorIds ??
+              (seedFromScan && scanLocation?.floor
+                ? [scanLocation.floor]
+                : undefined)
+            }
             routeGraph={routeState.graph}
             placeLogos={placeLogos}
             overlayOccluderRef={chatOccluderRef}
+            initialView="route"
+            variant={isDesktop ? "course" : "scan"}
+            fitPreset={isDesktop ? undefined : "course-mobile"}
+            showUserLocation={!seedFromScan}
           />
         </div>
+        {items.length > 0 && !seedFromScan ? (
+          <button
+            type="button"
+            onClick={() => setLocateOpen(true)}
+            className="absolute bottom-3 right-3 z-30 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-2 text-[11px] font-black text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.18)]"
+          >
+            <span className="size-2 rounded-full bg-[#2563EB]" />
+            {scanLocation ? "내 위치 다시 확인" : "내 위치 확인"}
+          </button>
+        ) : null}
       </div>
 
       <div
@@ -765,6 +817,24 @@ export function ResultScreen({ chat, onPlaceClick }) {
         onCancel={chat?.cancel}
       />
     ) : null}
+
+    <CameraScanner
+      open={locateOpen}
+      overlayClassName=""
+      onClose={() => setLocateOpen(false)}
+      onCapture={(dataUrl) => setLocateImage(dataUrl)}
+    />
+    <ScanResult
+      open={Boolean(locateImage)}
+      image={locateImage}
+      afterMatch="stay"
+      overlayClassName=""
+      onClose={() => setLocateImage(null)}
+      onRescan={() => {
+        setLocateImage(null);
+        setLocateOpen(true);
+      }}
+    />
     </>
   );
 }

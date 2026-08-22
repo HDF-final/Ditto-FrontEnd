@@ -26,10 +26,13 @@ import { useCourseChat } from "./use-course-chat";
 export function CourseRecommend() {
   const searchParams = useSearchParams();
   const promptParam = searchParams?.get("prompt")?.trim() || "";
+  const fromScan = searchParams?.get("from") === "scan";
   const handledPromptRef = useRef("");
 
-  const [phase, setPhase] = useState(() => (promptParam ? "result" : "prompt"));
-  const [mode, setMode] = useState("auto"); // "auto" (Boni) | "manual"
+  const [phase, setPhase] = useState(() =>
+    promptParam || fromScan ? "result" : "prompt",
+  );
+  const [mode, setMode] = useState(() => (fromScan ? "manual" : "auto"));
   const [activePlace, setActivePlace] = useState(null);
   const chat = useCourseChat();
 
@@ -49,14 +52,16 @@ export function CourseRecommend() {
           initialPrompt={promptParam}
           onModeChange={setMode}
           onStart={(prompt) => {
-            // 화면 전환이 먼저, 요청은 그 위 오버레이가 받습니다.
             setPhase("result");
-            // 수동 모드는 빈 문자열로 들어오므로 요청을 보내지 않습니다.
             if (prompt) chat.send(prompt);
           }}
         />
       ) : (
-        <ResultScreen chat={chat} onPlaceClick={setActivePlace} />
+        <ResultScreen
+          chat={chat}
+          onPlaceClick={setActivePlace}
+          seedFromScan={fromScan}
+        />
       )}
 
       {activePlace && (

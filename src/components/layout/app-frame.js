@@ -19,10 +19,13 @@ export function AppFrame({ children }) {
   const pathname = usePathname();
   const isAuthRoute = AUTH_PATHS.has(pathname);
   const isCourseStudio = pathname.startsWith("/ai-course");
+  const isScanMap = pathname.startsWith("/scan-map");
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
 
   useEffect(() => {
+    if (AUTH_PATHS.has(pathname)) return undefined;
+
     let isMounted = true;
 
     async function restoreSession() {
@@ -39,13 +42,14 @@ export function AppFrame({ children }) {
         const profile = await getMyProfile();
         if (isMounted && profile) {
           setUser(profile);
-        } else if (isMounted) {
-          setUser();
+        } else if (isMounted && !useAuthStore.getState().isAuthenticated) {
+          clearUser();
         }
       } catch {
-        if (isMounted) {
-          setUser();
-        }
+        if (!isMounted) return;
+        // 로그인 직후 세션 복원이 한발 늦어도, 방금 세팅한 로그인 상태를 지우지 않습니다.
+        if (useAuthStore.getState().isAuthenticated) return;
+        clearUser();
       }
     }
 
@@ -54,7 +58,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, clearUser]);
+  }, [pathname, setUser, clearUser]);
 
   if (isAuthRoute) {
     return children;
@@ -62,12 +66,18 @@ export function AppFrame({ children }) {
 
   return (
     <>
-      <SiteHeader />
-      <div className="flex min-h-0 flex-1 flex-col pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0">
+      {isScanMap ? null : <SiteHeader />}
+      <div
+        className={`flex min-h-0 flex-1 flex-col ${
+          isScanMap
+            ? "h-dvh overflow-hidden"
+            : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
+        }`}
+      >
         {children}
       </div>
-      <BottomTabBar />
-      {isCourseStudio ? null : <SiteFooter />}
+      {isScanMap ? null : <BottomTabBar />}
+      {isCourseStudio || isScanMap ? null : <SiteFooter />}
     </>
   );
 }
