@@ -1,16 +1,22 @@
 "use client";
 
-import { pickBestOcrCandidate, recognizeOcrLocation } from "@/lib/api/ocr";
+import {
+  normalizeOcrCandidate,
+  pickBestOcrCandidate,
+  recognizeOcrLocation,
+} from "@/lib/api/ocr";
 import {
   getNavigablePlaces,
   getPlaceNavigation,
+  normalizePlaceNavigation,
 } from "@/lib/api/place-navigation";
 import {
   attachPlaceIdsToCourseDataset,
   loadCourseRoutingDataset,
 } from "@/lib/navigation/course-routing-service";
+import { loadStoreNavigationKeys } from "@/lib/navigation/navigation-dataset";
 import { compressImage, dataUrlToBlob } from "@/lib/utils/image-compression";
-import { buildScanLocation, matchPlaceByName } from "./scan-location";
+import { buildScanLocation, resolvePlaceFromScan } from "./scan-location";
 
 function assertNotAborted(signal) {
   if (signal?.aborted) {
@@ -20,11 +26,71 @@ function assertNotAborted(signal) {
   }
 }
 
+function catalogPlacesFromRecords(records) {
+  return (Array.isArray(records) ? records : []).map((record) => ({
+    navigationKey: record.navigation_key ?? record.navigationKey ?? null,
+    name: record.place_name ?? record.name,
+    floor: record.floor_code ?? record.floor,
+    placeId: record.place_id ?? record.placeId ?? null,
+  }));
+}
+
+function indexPlaces(places) {
+  return {
+    places,
+    placesByNavigationKey: new Map(
+      places
+        .filter((place) => place.navigationKey)
+        .map((place) => [place.navigationKey, place]),
+    ),
+    placesByPlaceId: new Map(
+      places
+        .filter((place) => place.placeId != null)
+        .map((place) => [String(place.placeId), place]),
+    ),
+  };
+}
+
+function nameFromNavigationPlaces(navigationPlaces, placeId) {
+  if (placeId == null) return null;
+  const match = (navigationPlaces || []).find(
+    (place) => String(place?.placeId) === String(placeId),
+  );
+  return match?.name ?? null;
+}
+
+async function loadScanPlaces(signal) {
+  const [dataset, navigationPlaces] = await Promise.all([
+    loadCourseRoutingDataset().catch(() => null),
+    getNavigablePlaces().catch(() => []),
+  ]);
+  assertNotAborted(signal);
+
+  const normalizedPlaces = (Array.isArray(navigationPlaces) ? navigationPlaces : [])
+    .map(normalizePlaceNavigation)
+    .filter(Boolean);
+
+  if (dataset) {
+    return {
+      ...attachPlaceIdsToCourseDataset(dataset, normalizedPlaces),
+      navigationPlaces: normalizedPlaces,
+    };
+  }
+
+  // 층 그래프가 깨져도 매장명 매칭은 되게, 키 원장만 따로 읽습니다.
+  const records = await loadStoreNavigationKeys().catch(() => []);
+  assertNotAborted(signal);
+  return {
+    ...indexPlaces(catalogPlacesFromRecords(records)),
+    navigationPlaces: normalizedPlaces,
+  };
+}
+
 /**
  * 촬영본(data URL)을 OCR 한 뒤 실내 지도 매장으로 붙입니다.
  *
- * 매장 매칭은 백엔드 `POST /ocr/locations/recognize` 후보가 담당합니다.
- * 프론트는 후보의 placeId·navigationKey 로 지도 원장만 이어 붙입니다.
+ * 백엔드 후보의 placeId·navigationKey 를 우선하고, 원장에 없으면
+ * 인식된 상호(이탈리 / EATALY)로 다시 찾습니다.
  */
 export async function resolveOcrLocationFromDataUrl(dataUrl, { signal } = {}) {
   const blob = dataUrlToBlob(dataUrl);
@@ -42,42 +108,51 @@ export async function resolveOcrLocationFromDataUrl(dataUrl, { signal } = {}) {
   const result = await recognizeOcrLocation(file);
   assertNotAborted(signal);
 
-  const candidate = pickBestOcrCandidate(result);
-  const recognizedName = result?.recognizedBrandName || null;
+  const recognizedName =
+    result?.recognizedBrandName || result?.recognized_brand_name || null;
+  const candidates = (Array.isArray(result?.candidates) ? result.candidates : [])
+    .map(normalizeOcrCandidate)
+    .filter(Boolean)
+    .sort((a, b) => (Number(b.confidence) || 0) - (Number(a.confidence) || 0));
+  const candidate = candidates[0] || pickBestOcrCandidate(result);
   if (!candidate && !recognizedName) {
     return { brand: null, place: null, location: null };
   }
 
-  const [dataset, navigationPlaces] = await Promise.all([
-    loadCourseRoutingDataset().catch(() => null),
-    getNavigablePlaces().catch(() => []),
-  ]);
-  assertNotAborted(signal);
+  const hydrated = await loadScanPlaces(signal);
 
-  const hydrated = dataset
-    ? attachPlaceIdsToCourseDataset(dataset, navigationPlaces || [])
-    : null;
-
-  let navigationKey = candidate?.navigationKey || null;
-  if (!navigationKey && candidate?.placeId != null) {
-    const nav = await getPlaceNavigation(candidate.placeId).catch(() => null);
+  if (candidate && !candidate.navigationKey && candidate.placeId != null) {
+    const nav = normalizePlaceNavigation(
+      await getPlaceNavigation(candidate.placeId).catch(() => null),
+    );
     assertNotAborted(signal);
-    navigationKey = nav?.navigationKey || null;
+    if (nav?.navigationKey) candidate.navigationKey = nav.navigationKey;
     if (!candidate.floor && nav?.floorCode) candidate.floor = nav.floorCode;
     if (!candidate.name && nav?.name) candidate.name = nav.name;
   }
 
   let place = null;
-  if (hydrated && navigationKey) {
-    place = hydrated.placesByNavigationKey.get(navigationKey) ?? null;
+  const lookupNames = [
+    candidate?.name,
+    recognizedName,
+    nameFromNavigationPlaces(hydrated.navigationPlaces, candidate?.placeId),
+    ...candidates.map((item) => item.name),
+  ];
+
+  for (const item of [candidate, ...candidates].filter(Boolean)) {
+    place = resolvePlaceFromScan({
+      ...hydrated,
+      navigationKey: item.navigationKey,
+      placeId: item.placeId,
+      names: lookupNames,
+    });
+    if (place) break;
   }
-  if (!place && hydrated && candidate?.placeId != null) {
-    place = hydrated.placesByPlaceId.get(String(candidate.placeId)) ?? null;
-  }
-  if (!place && hydrated) {
-    place =
-      matchPlaceByName(candidate?.name, hydrated.places) ||
-      matchPlaceByName(recognizedName, hydrated.places);
+  if (!place) {
+    place = resolvePlaceFromScan({
+      ...hydrated,
+      names: lookupNames,
+    });
   }
 
   const brand = {
