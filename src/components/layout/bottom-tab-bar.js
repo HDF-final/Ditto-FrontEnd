@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { CameraScanner } from "./camera-scanner";
 import { ScanResult } from "./scan-result";
 
@@ -71,10 +72,80 @@ const sideTabs = [
   },
 ];
 
+function ScanLoginPrompt({ open, onClose, onLogin }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5 lg:hidden"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scan-login-title"
+        className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-center shadow-2xl"
+      >
+        <h3 id="scan-login-title" className="text-base font-black text-ink">
+          로그인이 필요해요
+        </h3>
+        <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+          로고 스캔으로 내 위치를 찾으려면 먼저 로그인해주세요.
+        </p>
+        <div className="mt-5 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink"
+          >
+            닫기
+          </button>
+          <button
+            type="button"
+            onClick={onLogin}
+            className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white"
+          >
+            로그인하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function BottomTabBar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hydrated = useAuthStore((state) => state.hydrated);
   const [scanOpen, setScanOpen] = useState(false);
   const [scanImage, setScanImage] = useState(null);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("scan") !== "1") return undefined;
+    if (!hydrated) return undefined;
+
+    if (!isAuthenticated) {
+      router.replace("/login?next=scan");
+      return undefined;
+    }
+
+    setScanOpen(true);
+    router.replace(pathname);
+    return undefined;
+  }, [hydrated, isAuthenticated, pathname, router]);
+
+  function handleScanClick() {
+    if (hydrated && !isAuthenticated) {
+      setLoginPromptOpen(true);
+      return;
+    }
+    setScanOpen(true);
+  }
 
   return (
     <>
@@ -104,7 +175,7 @@ export function BottomTabBar() {
         <li className="relative flex justify-center">
           <button
             type="button"
-            onClick={() => setScanOpen(true)}
+            onClick={handleScanClick}
             aria-label="카메라로 텍스트 스캔 (OCR)"
             className="-mt-5 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(92,46,245,0.35)] transition hover:bg-brand-dark"
           >
@@ -147,6 +218,15 @@ export function BottomTabBar() {
       onRescan={() => {
         setScanImage(null);
         setScanOpen(true);
+      }}
+    />
+
+    <ScanLoginPrompt
+      open={loginPromptOpen}
+      onClose={() => setLoginPromptOpen(false)}
+      onLogin={() => {
+        setLoginPromptOpen(false);
+        router.push("/login?next=scan");
       }}
     />
     </>

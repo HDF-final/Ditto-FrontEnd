@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   AuthAltLink,
@@ -18,6 +18,19 @@ import { useAuthStore } from "@/stores/use-auth-store";
 
 const LOGIN_SUCCESS_HREF = "/";
 
+function loginRedirectPath(next) {
+  if (next === "scan") return "/?scan=1";
+  if (
+    typeof next === "string" &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.includes("://")
+  ) {
+    return next;
+  }
+  return LOGIN_SUCCESS_HREF;
+}
+
 const initialErrors = {
   email: "",
   password: "",
@@ -26,6 +39,7 @@ const initialErrors = {
 export function LoginForm() {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setUser = useAuthStore((state) => state.setUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +77,7 @@ export function LoginForm() {
       if (userData) {
         setUser(userData);
       }
-      router.push(LOGIN_SUCCESS_HREF);
+      router.push(loginRedirectPath(searchParams.get("next")));
     } catch (error) {
       setServerError(
         error?.message || t("auth.loginError"),

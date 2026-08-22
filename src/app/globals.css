@@ -145,7 +145,7 @@ body {
 .course-studio {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: minmax(280px, 32vh) auto auto;
+  grid-template-rows: minmax(440px, 58vh) auto auto;
   grid-template-areas:
     "map"
     "list"

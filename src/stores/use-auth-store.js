@@ -20,17 +20,19 @@ export const MOCK_USER = {
 export const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
+  hydrated: false,
   setUser: (user) => {
     const nextUser = user === undefined ? MOCK_USER : user;
     set({
       user: nextUser,
       isAuthenticated: Boolean(nextUser),
+      hydrated: true,
     });
   },
   clearUser: () =>
     set({
       user: null,
       isAuthenticated: false,
+      hydrated: true,
     }),
 }));
-

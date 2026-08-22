@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
 import { getTranslations } from "next-intl/server";
@@ -15,7 +16,15 @@ export default async function LoginPage() {
       title={t("welcomeBack")}
       description={t("loginDescription")}
     >
-      <LoginForm />
+      <Suspense
+        fallback={
+          <div className="flex justify-center py-8">
+            <span className="size-6 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          </div>
+        }
+      >
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }

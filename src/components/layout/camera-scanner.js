@@ -7,7 +7,12 @@ import { useEffect, useRef, useState } from "react";
  * Opens the rear camera via getUserMedia, lets the user frame + shoot (or pick
  * from the gallery), and hands the captured still back through `onCapture`.
  */
-export function CameraScanner({ open, onClose, onCapture }) {
+export function CameraScanner({
+  open,
+  onClose,
+  onCapture,
+  overlayClassName = "lg:hidden",
+}) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -105,7 +110,7 @@ export function CameraScanner({ open, onClose, onCapture }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black lg:hidden">
+    <div className={`fixed inset-0 z-[100] flex flex-col bg-black ${overlayClassName}`}>
       <div className="flex items-center justify-between px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white">
         <span className="text-sm font-bold">로고 스캔 (OCR)</span>
         <button

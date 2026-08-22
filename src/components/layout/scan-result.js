@@ -2,13 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getBrands,
-  isBrandMatch,
-  matchBrandByText,
-  scanBrandLogo,
-} from "@/lib/api/brands";
-import { dataUrlToBlob } from "@/lib/utils/image-compression";
+import { resolveOcrLocationFromDataUrl } from "@/lib/navigation/resolve-ocr-location";
+import { useScanLocationStore } from "@/stores/use-scan-location-store";
 
 // 로고를 같은 오리진 프록시로 받는 URL. (S3 원본은 CORS가 없어 <img> 표시는
 // 되지만, 지도와 동일하게 프록시를 거쳐 일관되게 불러옵니다.)
@@ -17,51 +12,62 @@ function logoProxyUrl(logoUrl) {
 }
 
 /**
- * OCR 스캔 결과 오버레이 (모바일 전용).
- * 카메라/갤러리에서 넘어온 로고 이미지를 서버로 보내 브랜드를 인식하고,
- * 매칭된 브랜드를 보여준 뒤 관련 코스 탐색으로 이동시킵니다.
+ * OCR 스캔 결과 오버레이.
+ * 하단 + 버튼은 3D 지도 전용 페이지로, 코스 화면의 내 위치 확인은
+ * 현재 지도에 바로 핑을 올립니다.
+ *
+ * @param {"map" | "stay"} afterMatch map: `/scan-map` 으로 이동, stay: 현재 화면 유지
  */
-export function ScanResult({ open, image, onClose, onRescan }) {
+export function ScanResult({
+  open,
+  image,
+  onClose,
+  onRescan,
+  afterMatch = "map",
+  overlayClassName = "lg:hidden",
+}) {
   const router = useRouter();
-  // "loading" | "matched" | "notfound" | "error"
+  const setLocation = useScanLocationStore((state) => state.setLocation);
+  // "loading" | "matched" | "notfound" | "auth" | "error"
   const [status, setStatus] = useState("loading");
   const [brand, setBrand] = useState(null);
+  const [mappedPlace, setMappedPlace] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!open || !image) return undefined;
 
     let cancelled = false;
+    const abort = new AbortController();
 
     async function run() {
       setStatus("loading");
       setBrand(null);
+      setMappedPlace(null);
       setError(null);
       try {
-        const blob = dataUrlToBlob(image);
-        if (!blob) throw new Error("이미지를 읽을 수 없어요. 다시 촬영해주세요.");
-        const file = new File([blob], "scan.jpg", { type: blob.type });
-
-        const result = await scanBrandLogo(file);
+        const resolved = await resolveOcrLocationFromDataUrl(image, {
+          signal: abort.signal,
+        });
         if (cancelled) return;
 
-        // 서버가 브랜드를 직접 매칭해 주면 그대로 사용하고, 인식 텍스트만
-        // 돌려주면 브랜드 목록과 클라이언트에서 대조합니다.
-        let matched = isBrandMatch(result) ? result : null;
-        if (!matched && result?.text) {
-          const brands = await getBrands().catch(() => []);
-          if (cancelled) return;
-          matched = matchBrandByText(result.text, brands);
+        if (!resolved.brand?.name) {
+          setStatus("notfound");
+          return;
         }
 
-        if (matched) {
-          setBrand(matched);
-          setStatus("matched");
-        } else {
-          setStatus("notfound");
-        }
+        if (resolved.location) setLocation(resolved.location);
+        setBrand(resolved.brand);
+        setMappedPlace(resolved.place);
+        setStatus("matched");
       } catch (err) {
-        if (!cancelled) {
+        if (!cancelled && err?.name !== "AbortError") {
+          const statusCode = Number(err?.status);
+          if (statusCode === 401 || statusCode === 403) {
+            setError("로고 스캔은 로그인 후 사용할 수 있어요.");
+            setStatus("auth");
+            return;
+          }
           setError(err?.message || "인식에 실패했어요. 잠시 후 다시 시도해주세요.");
           setStatus("error");
         }
@@ -72,18 +78,25 @@ export function ScanResult({ open, image, onClose, onRescan }) {
 
     return () => {
       cancelled = true;
+      abort.abort();
     };
-  }, [open, image]);
+  }, [open, image, setLocation]);
 
   if (!open) return null;
 
-  function goToCourses() {
+  function goToMap() {
     onClose();
-    router.push("/community");
+    if (afterMatch === "stay") return;
+    router.push("/scan-map");
+  }
+
+  function goToLogin() {
+    onClose();
+    router.push("/login?next=scan");
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/90 lg:hidden">
+    <div className={`fixed inset-0 z-[100] flex flex-col bg-black/90 ${overlayClassName}`}>
       <div className="flex items-center justify-between px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white">
         <span className="text-sm font-bold">로고 스캔 결과</span>
         <button
@@ -125,8 +138,19 @@ export function ScanResult({ open, image, onClose, onRescan }) {
                 </span>
               )}
               <div className="min-w-0">
-                <p className="text-[11px] font-bold text-brand">브랜드를 찾았어요</p>
+                <p className="text-[11px] font-bold text-brand">
+                  {mappedPlace ? "내 위치를 찾았어요" : "브랜드를 찾았어요"}
+                </p>
                 <p className="truncate text-lg font-black text-ink">{brand.name}</p>
+                {mappedPlace ? (
+                  <p className="mt-0.5 truncate text-xs font-bold text-ink-subtle">
+                    더현대서울 {mappedPlace.floor} · {mappedPlace.name}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-xs leading-5 text-ink-subtle">
+                    실내 지도에서 이 매장 위치를 찾지 못했어요.
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-4 flex gap-3">
@@ -139,10 +163,14 @@ export function ScanResult({ open, image, onClose, onRescan }) {
               </button>
               <button
                 type="button"
-                onClick={goToCourses}
+                onClick={mappedPlace ? goToMap : onClose}
                 className="flex-[1.6] rounded-full bg-brand py-3 text-sm font-black text-white"
               >
-                관련 코스 보기
+                {mappedPlace
+                  ? afterMatch === "stay"
+                    ? "지도에 표시"
+                    : "지도에서 보기"
+                  : "닫기"}
               </button>
             </div>
           </>
@@ -153,12 +181,18 @@ export function ScanResult({ open, image, onClose, onRescan }) {
         ) : (
           <>
             <p className="text-lg font-black text-ink">
-              {status === "error" ? "인식에 실패했어요" : "브랜드를 찾지 못했어요"}
+              {status === "auth"
+                ? "로그인이 필요해요"
+                : status === "error"
+                  ? "인식에 실패했어요"
+                  : "브랜드를 찾지 못했어요"}
             </p>
             <p className="mt-1 text-sm leading-6 text-ink-subtle">
-              {status === "error"
+              {status === "auth"
                 ? error
-                : "로고가 사각형 안에 또렷하게 들어오도록 다시 촬영해보세요."}
+                : status === "error"
+                  ? error
+                  : "로고가 사각형 안에 또렷하게 들어오도록 다시 촬영해보세요."}
             </p>
             <div className="mt-4 flex gap-3">
               <button
@@ -170,10 +204,10 @@ export function ScanResult({ open, image, onClose, onRescan }) {
               </button>
               <button
                 type="button"
-                onClick={onRescan}
+                onClick={status === "auth" ? goToLogin : onRescan}
                 className="flex-[1.6] rounded-full bg-brand py-3 text-sm font-black text-white"
               >
-                다시 스캔
+                {status === "auth" ? "로그인하기" : "다시 스캔"}
               </button>
             </div>
           </>

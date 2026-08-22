@@ -23,6 +23,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { CirculationModels } from "@/components/navigation/circulation-models";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import {
   FLOOR_DEFINITIONS,
   FLOOR_ORDER,
@@ -46,6 +47,8 @@ const ROUTE_MARKER_COLOR = "#BC7C22"; // travelling marker (white halo, ochre co
 // Stop-chip badge gradient: 출발 light ochre → 도착 deep earth-brown.
 const MARKER_START_COLOR = "#D6A44C";
 const MARKER_END_COLOR = "#7E4E12";
+// OCR "you are here" ping — blue GPS mark, never the ochre 출발/도착 chips.
+const USER_LOCATION_COLOR = "#2563EB";
 
 // Rooms are lifted off each floor plan by COLOUR GROUP (segmented from the PNG):
 // grey stores sit low, green vertical-circulation rises to a middle band, and the
@@ -128,6 +131,9 @@ const ROUTE_CORE_LINE_WIDTH = 6;
 // Generous spacing so the tiers read as distinct floating layers, not a
 // crammed deck. Used for every view mode in `IndoorMap`.
 const TIER_GAP = 32;
+// OCR 전체층 화면은 모든 층을 한눈에 보이게 유지하되, 각 층이 겹쳐 보이지 않도록
+// 일반 코스 뷰보다 약간 더 넓은 간격을 둡니다.
+const SCAN_TIER_GAP = 36;
 const OVERVIEW_CAMERA_OFFSET = new THREE.Vector3(112, 58, 152);
 const FLOOR_CAMERA_HEIGHT = 118;
 const CAMERA_EPSILON = 0.0001;
@@ -139,8 +145,42 @@ const OVERVIEW_ROOM_LIFT = 2.3;
 // slight negative value lifts the deck so the bottom tier clears the chat bar.
 // Fraction of the deck height (negative = shift the stack up on screen).
 const OVERVIEW_VERTICAL_BIAS = -0.1;
-const OVERVIEW_MIN_ZOOM = 0.32;
+const SCAN_VERTICAL_BIAS = -0.02;
+const OVERVIEW_MIN_ZOOM = 0.18;
 const OVERVIEW_MAX_ZOOM = 12;
+const SCAN_CAMERA_FIT = {
+  // Fill the full-screen scan canvas: chips at the top, place card overlaid at
+  // the bottom. Slight over-fill so the stack reads large instead of floating
+  // in empty cream space.
+  fill: 1.06,
+  verticalBias: SCAN_VERTICAL_BIAS,
+  topHud: 52,
+  bottomHud: 128,
+  pad: 2,
+};
+const SCAN_MOBILE_CAMERA_FIT = {
+  ...SCAN_CAMERA_FIT,
+  // Mobile scan view was over-filling the canvas enough to crop the right edge.
+  // Pull the default overview back slightly and keep a small horizontal margin.
+  fill: 0.88,
+  verticalBias: -0.08,
+  horizontalBias: 0.06,
+  pad: 18,
+};
+const COURSE_MOBILE_CAMERA_FIT = {
+  fill: 0.96,
+  verticalBias: -0.01,
+  topHud: 52,
+  bottomHud: 18,
+  pad: 10,
+};
+
+function getCameraFitOptions(fitPreset) {
+  if (fitPreset === "course-mobile") return COURSE_MOBILE_CAMERA_FIT;
+  if (fitPreset === "scan-mobile") return SCAN_MOBILE_CAMERA_FIT;
+  if (fitPreset === "scan") return SCAN_CAMERA_FIT;
+  return undefined;
+}
 
 // Chat (and similar HUD) sits above the canvas. Floor / 출발 / 도착 HTML
 // labels hide themselves when they overlap that opaque overlay.
@@ -222,7 +262,7 @@ function overviewViewBasis() {
   return { forward, right, up };
 }
 
-function fitOverviewCamera(floors, viewport) {
+function fitOverviewCamera(floors, viewport, options = {}) {
   const bounds = collectFloorBounds(floors);
   const { min, max, center } = bounds;
   const position = center.clone().add(OVERVIEW_CAMERA_OFFSET);
@@ -242,14 +282,19 @@ function fitOverviewCamera(floors, viewport) {
     }
   }
 
-  const pad = 24;
+  const pad = options.pad ?? 24;
+  const topHud = options.topHud ?? 0;
+  const bottomHud = options.bottomHud ?? 0;
+  const verticalBias = options.verticalBias ?? OVERVIEW_VERTICAL_BIAS;
+  const horizontalBias = options.horizontalBias ?? 0;
   const fitW = Math.max(160, viewport.width - pad * 2);
-  const fitH = Math.max(160, viewport.height - pad * 2);
+  const fitH = Math.max(160, viewport.height - pad * 2 - topHud - bottomHud);
   // Fill the frame with the whole stack (6F included), centered on the deck's
   // centroid. A tall isometric deck is bound by height, so keep the margin thin
   // — just enough that the top/bottom tiers and their labels never clip.
   const fill =
-    floors.length >= 8 ? 0.86 : floors.length >= 6 ? 0.9 : floors.length >= 3 ? 0.92 : 0.94;
+    options.fill ??
+    (floors.length >= 8 ? 0.86 : floors.length >= 6 ? 0.9 : floors.length >= 3 ? 0.92 : 0.94);
   const zoom = THREE.MathUtils.clamp(
     Math.min(
       fitW / (2 * Math.max(maxX, 0.01)),
@@ -261,8 +306,10 @@ function fitOverviewCamera(floors, viewport) {
 
   // Re-centre vertically: nudge the framing point up the Y axis so the deck sits
   // dead-centre instead of riding high with empty space beneath it.
-  const framedCenter = center.clone();
-  framedCenter.y += (max.y - min.y) * OVERVIEW_VERTICAL_BIAS;
+  const framedCenter = center
+    .clone()
+    .add(right.clone().multiplyScalar((maxX * 2) * horizontalBias));
+  framedCenter.y += (max.y - min.y) * verticalBias;
 
   return {
     target: framedCenter,
@@ -554,7 +601,7 @@ function RoomPrisms({ floor, rooms, aspect }) {
   );
 }
 
-function FloorLabel({ floor }) {
+function FloorLabel({ floor, compact = false }) {
   return (
     <OccludingHtml
       position={[53, floor.y + 1.2, -31]}
@@ -563,7 +610,11 @@ function FloorLabel({ floor }) {
       style={{ pointerEvents: "none" }}
       zIndexRange={[4, 0]}
     >
-      <div className="whitespace-nowrap rounded-full bg-[#3A342F] px-3 py-1 text-[11px] font-bold tracking-wide text-white shadow-[0_3px_10px_rgba(60,45,35,0.22)]">
+      <div
+        className={`whitespace-nowrap rounded-full bg-[#3A342F] font-bold tracking-wide text-white shadow-[0_3px_10px_rgba(60,45,35,0.22)] ${
+          compact ? "px-2.5 py-[5px] text-[10px]" : "px-3 py-1 text-[11px]"
+        }`}
+      >
         {floor.id}
       </div>
     </OccludingHtml>
@@ -736,7 +787,14 @@ function useTrimmedLogo(logoUrl) {
 // 여백을 잘라내고 배경을 투명 처리한 브랜드 로고 마크만 뜹니다(배경 박스 없음).
 // 로고(사진)가 없으면 호버해도 아무것도 띄우지 않습니다. 3D 캔버스의 Html
 // 오버레이라 칩에만 pointer-events를 살립니다.
-function RouteMarker({ position, label, name, logoUrl, badgeColor = "#BC7C22" }) {
+function RouteMarker({
+  position,
+  label,
+  name,
+  logoUrl,
+  badgeColor = "#BC7C22",
+  compact = false,
+}) {
   const [hovered, setHovered] = useState(false);
   // 로고 로드 실패 시 빈 자리가 남지 않도록 표시 여부를 끕니다(사진 없으면 안 띄움).
   const [logoOk, setLogoOk] = useState(true);
@@ -778,8 +836,8 @@ function RouteMarker({ position, label, name, logoUrl, badgeColor = "#BC7C22" })
               style={{
                 width: "auto",
                 height: "auto",
-                maxWidth: 84,
-                maxHeight: 24,
+                maxWidth: compact ? 64 : 84,
+                maxHeight: compact ? 20 : 24,
                 display: "block",
                 filter: "drop-shadow(0 2px 3px rgba(60,40,20,0.35))",
               }}
@@ -789,21 +847,25 @@ function RouteMarker({ position, label, name, logoUrl, badgeColor = "#BC7C22" })
         ) : null}
         {/* Name chip: 출발/도착 badge + brand name. */}
         <div
-          className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/95 py-1 pl-1 pr-2.5"
+          className={`flex items-center whitespace-nowrap rounded-full bg-white/95 ${
+            compact ? "gap-1 py-[3px] pl-[3px] pr-2" : "gap-1.5 py-1 pl-1 pr-2.5"
+          }`}
           style={{
             boxShadow:
               "0 4px 12px rgba(90,55,15,0.22), 0 0 0 1px rgba(188,124,34,0.32)",
           }}
         >
           <span
-            className="rounded-full px-2 py-[3px] text-[9px] font-black leading-none text-white"
+            className={`rounded-full font-black leading-none text-white ${
+              compact ? "px-1.5 py-[3px] text-[8px]" : "px-2 py-[3px] text-[9px]"
+            }`}
             style={{ backgroundColor: badgeColor }}
           >
             {label}
           </span>
           {name ? (
             <span
-              className="text-[10px] font-bold leading-none"
+              className={`font-bold leading-none ${compact ? "text-[9px]" : "text-[10px]"}`}
               style={{ color: "#5A3E10" }}
             >
               {name}
@@ -824,6 +886,81 @@ function normalizeLogoKey(name) {
     .toLowerCase();
 }
 
+// OCR 스캔으로 잡은 현재 위치. 코스 출발/도착 칩과 섞이지 않게 작은 지도 핀만 씁니다.
+function UserLocationMarker({ position, name, compact = false }) {
+  return (
+    <OccludingHtml
+      position={position}
+      center
+      sprite
+      style={{ pointerEvents: "none" }}
+      zIndexRange={[8, 2]}
+    >
+      <div
+        className="relative flex flex-col items-center"
+        style={{ transform: "translateY(-10px)" }}
+      >
+        <svg
+          width={compact ? 16 : 20}
+          height={compact ? 22 : 28}
+          viewBox="0 0 24 34"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 0C5.4 0 0 5.1 0 11.4 0 20.2 12 34 12 34S24 20.2 24 11.4C24 5.1 18.6 0 12 0z"
+            fill={USER_LOCATION_COLOR}
+            stroke="#fff"
+            strokeWidth="1.4"
+          />
+          <circle cx="12" cy="11.2" r="3.6" fill="#fff" />
+        </svg>
+        {compact ? null : (
+          <span className="mt-0.5 max-w-[88px] truncate rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-black leading-none text-[#1E3A8A] shadow-sm">
+            {name || "내 위치"}
+          </span>
+        )}
+      </div>
+    </OccludingHtml>
+  );
+}
+
+function UserLocationOverlay({
+  floorDatasets,
+  visibleFloors,
+  flatView,
+  location,
+  compact = false,
+}) {
+  const marker = useMemo(() => {
+    if (!location?.navigationKey || !floorDatasets) return null;
+    for (const floorData of floorDatasets) {
+      const place = floorData.places?.find(
+        (entry) =>
+          entry.id === location.navigationKey ||
+          entry.navigationKey === location.navigationKey,
+      );
+      if (!place) continue;
+      const node = floorData.nodes?.find((entry) => entry.id === place.nodeId);
+      const floor = visibleFloors.find((entry) => entry.id === floorData.floorId);
+      if (!node || !floor) return null;
+      return {
+        position: toWorldPoint(
+          node,
+          floor,
+          flatView,
+          flatView ? 0.35 : ROUTE_MARKER_LIFT + 0.55,
+        ),
+        name: location.name ?? place.name,
+        floorId: floor.id,
+      };
+    }
+    return null;
+  }, [flatView, floorDatasets, location, visibleFloors]);
+
+  if (!marker) return null;
+  return <UserLocationMarker {...marker} compact={compact} />;
+}
+
 function RouteOverlay({
   graph,
   itinerary,
@@ -831,6 +968,7 @@ function RouteOverlay({
   flatView,
   overlayOnTop,
   placeLogos,
+  compactMarkers = false,
 }) {
   const markerRef = useRef(null);
   const progressRef = useRef(0);
@@ -1046,7 +1184,7 @@ function RouteOverlay({
         </group>
       ))}
       {routeGeometry.markers.map(({ key, ...marker }) => (
-        <RouteMarker key={key} {...marker} />
+        <RouteMarker key={key} {...marker} compact={compactMarkers} />
       ))}
       {routeGeometry.path.length > 1 ? (
         <group ref={markerRef}>
@@ -1088,6 +1226,7 @@ function MapCamera({
   singleFloorAspectRatio,
   resetSignal,
   onReady,
+  fitPreset = "course",
 }) {
   const { size, gl } = useThree();
   const cameraRef = useRef(null);
@@ -1105,16 +1244,29 @@ function MapCamera({
   const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
   const focusY = singleFloor?.y ?? 0;
   const viewportReady = size.width >= 8 && size.height >= 8;
+  const fitOptions = getCameraFitOptions(fitPreset);
   const overviewFit =
     !singleFloor && visibleFloors.length && viewportReady
-      ? fitOverviewCamera(visibleFloors, size)
+      ? fitOverviewCamera(
+          visibleFloors,
+          size,
+          fitOptions,
+        )
       : null;
+  const scanFit = fitOptions ?? null;
+  const singleFloorFitW = size.width - (scanFit ? (scanFit.pad ?? 0) * 2 : 0);
+  const singleFloorFitH =
+    size.height -
+    (scanFit
+      ? (scanFit.pad ?? 0) * 2 + (scanFit.topHud ?? 0) + (scanFit.bottomHud ?? 0)
+      : 0);
   const targetZoom = singleFloor
     ? Math.max(
         2.4,
         Math.min(
-          (size.width * 0.86) / FLOOR_WIDTH,
-          (size.height * 0.84) / (FLOOR_WIDTH * singleFloorAspectRatio),
+          (singleFloorFitW * (scanFit ? 0.96 : 0.86)) / FLOOR_WIDTH,
+          (Math.max(160, singleFloorFitH) * (scanFit ? 0.94 : 0.84)) /
+            (FLOOR_WIDTH * singleFloorAspectRatio),
         ),
       )
     : (overviewFit?.zoom ?? 2.2);
@@ -1231,7 +1383,11 @@ function MapCamera({
       const liveW = el.clientWidth;
       const liveH = el.clientHeight;
       if (liveW < 8 || liveH < 8) return;
-      const fit = fitOverviewCamera(visibleFloors, { width: liveW, height: liveH });
+      const fit = fitOverviewCamera(
+        visibleFloors,
+        { width: liveW, height: liveH },
+        fitOptions,
+      );
       const needsRefit =
         Math.abs(camera.zoom - fit.zoom) > 1e-3 ||
         camera.position.distanceTo(fit.position) > CAMERA_EPSILON ||
@@ -1357,6 +1513,11 @@ function FloorStack({
   floorDatasets,
   overlayOnTop,
   onCameraReady,
+  userLocation,
+  compactPin = false,
+  compactRouteMarkers = false,
+  compactFloorLabels = false,
+  fitPreset = "course",
 }) {
   const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
     DEFAULT_ASPECT_RATIO,
@@ -1395,7 +1556,9 @@ function FloorStack({
                 aspect={floorRooms.aspect}
               />
             ) : null}
-            {viewMode !== "floor" ? <FloorLabel floor={mappedFloor} /> : null}
+            {viewMode !== "floor" ? (
+              <FloorLabel floor={mappedFloor} compact={compactFloorLabels} />
+            ) : null}
           </group>
         );
       })}
@@ -1412,6 +1575,14 @@ function FloorStack({
         flatView={viewMode === "floor"}
         overlayOnTop={overlayOnTop}
         placeLogos={placeLogos}
+        compactMarkers={compactRouteMarkers}
+      />
+      <UserLocationOverlay
+        floorDatasets={floorDatasets}
+        visibleFloors={floorsWithAspect}
+        flatView={viewMode === "floor"}
+        location={userLocation}
+        compact={compactPin}
       />
       <MapCamera
         viewMode={viewMode}
@@ -1419,8 +1590,58 @@ function FloorStack({
         singleFloorAspectRatio={singleFloorAspectRatio}
         resetSignal={resetSignal}
         onReady={onCameraReady}
+        fitPreset={fitPreset}
       />
     </>
+  );
+}
+
+function FloorChip({ id, label, selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(id)}
+      className={`min-w-[32px] shrink-0 rounded-full px-1.5 py-1 text-[10px] font-black leading-none shadow-sm ${
+        selected
+          ? "bg-[#433C38] text-white"
+          : "bg-white/95 text-[#6B625B]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function CompactFloorBar({ selectedView, onSelect, showRoute = false }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/35 to-transparent px-3 pb-6 pt-[max(0.7rem,env(safe-area-inset-top))]">
+      <div className="pointer-events-auto flex flex-nowrap items-center gap-[4px] pb-1">
+        {showRoute ? (
+          <FloorChip
+            id="route"
+            label="경로층"
+            selected={selectedView === "route"}
+            onSelect={onSelect}
+          />
+        ) : null}
+        <FloorChip
+          id="all"
+          label="전체층"
+          selected={selectedView === "all"}
+          onSelect={onSelect}
+        />
+        {[...FLOOR_DEFINITIONS].reverse().map((floor) => (
+          <FloorChip
+            key={floor.id}
+            id={floor.id}
+            label={floor.id}
+            selected={selectedView === floor.id}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1520,11 +1741,21 @@ export function IndoorMap({
   placeLogos = null,
   overlayOccluderRef = null,
   showFloorSelector = true,
+  userLocation = null,
+  initialView = "route",
+  variant = "course",
+  fitPreset = null,
 }) {
+  const isScanView = variant === "scan";
+  const isDesktop = useIsDesktop();
+  const activeFitPreset =
+    fitPreset ??
+    (isScanView ? (isDesktop ? "scan" : "scan-mobile") : "course");
   // Default to the "route floors" view: with no course it equals the full stack
   // (routeFloorIds falls back to every floor), and once a course exists it shows
   // only the relevant floors — cleaner at a glance. Users can pick 전체층/단면.
-  const [selectedView, setSelectedView] = useState("route");
+  // OCR 전용 화면은 전체층 스택이 기본입니다.
+  const [selectedView, setSelectedView] = useState(initialView);
   const [overlayOnTop, setOverlayOnTop] = useState(true);
   const [resetSignal, setResetSignal] = useState(0);
   const [datasetStatus, setDatasetStatus] = useState("loading");
@@ -1535,31 +1766,54 @@ export function IndoorMap({
   const handleCameraReady = useCallback(() => {
     setViewReady(true);
   }, []);
-  const routeFloorIdSet = useMemo(
-    () =>
-      new Set(
-        routeFloorIds.filter((floorId) => FLOOR_ORDER.includes(floorId)),
-      ),
-    [routeFloorIds],
-  );
+  const userLocationFloorId =
+    userLocation?.floor && FLOOR_ORDER.includes(userLocation.floor)
+      ? userLocation.floor
+      : null;
+  const routeFloorIdSet = useMemo(() => {
+    const source = Array.isArray(routeFloorIds) ? routeFloorIds : FLOOR_ORDER;
+    const ids = source.filter((floorId) => FLOOR_ORDER.includes(floorId));
+    if (userLocationFloorId && !ids.includes(userLocationFloorId)) {
+      ids.push(userLocationFloorId);
+    }
+    return new Set(ids);
+  }, [routeFloorIds, userLocationFloorId]);
+
+  useEffect(() => {
+    if (!userLocationFloorId) return;
+    // 코스가 있으면 경로 스택을 유지하고 내 위치 핀만 얹습니다.
+    // OCR 전용(전체층) 화면은 층을 바꾸지 않습니다.
+    if (route || isScanView) return;
+    setSelectedView(userLocationFloorId);
+  }, [isScanView, route, userLocation?.navigationKey, userLocationFloorId]);
+
   const viewMode = FLOOR_ORDER.includes(selectedView) ? "floor" : selectedView;
   const visibleFloors = useMemo(() => {
-    const floors =
+    const baseFloors =
       viewMode === "floor"
         ? FLOOR_DEFINITIONS.filter((floor) => floor.id === selectedView)
         : viewMode === "route"
           ? FLOOR_DEFINITIONS.filter((floor) => routeFloorIdSet.has(floor.id))
           : FLOOR_DEFINITIONS;
+    const floors = baseFloors;
 
     if (viewMode === "floor") return floors;
 
     // Re-space the visible tiers evenly with a generous gap so overview and
     // route stacks read as distinct floating layers rather than a crammed deck.
+    const gap = isScanView ? SCAN_TIER_GAP : TIER_GAP;
     return floors.map((floor, index) => ({
       ...floor,
-      y: index * TIER_GAP,
+      y: index * gap,
     }));
-  }, [routeFloorIdSet, selectedView, viewMode]);
+  }, [
+    isDesktop,
+    isScanView,
+    routeFloorIdSet,
+    selectedView,
+    userLocationFloorId,
+    viewMode,
+  ]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1623,11 +1877,11 @@ export function IndoorMap({
 
   return (
     <MapErrorBoundary>
-      <div className="relative isolate z-0 h-full min-h-[260px] w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)]">
+      <div className={`relative isolate z-0 h-full w-full bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)] ${isScanView ? "min-h-full" : "min-h-[260px]"}`}>
         <div
           ref={containerRef}
           className={
-            viewMode === "floor"
+            viewMode === "floor" && !isScanView
               ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
               : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)]"
           }
@@ -1650,38 +1904,76 @@ export function IndoorMap({
                   floorDatasets={floorDatasets}
                   overlayOnTop={overlayOnTop}
                   onCameraReady={handleCameraReady}
+                  userLocation={userLocation}
+                  compactPin={isScanView}
+                  compactRouteMarkers={isScanView}
+                  compactFloorLabels={isScanView}
+                  fitPreset={activeFitPreset}
                 />
               </Suspense>
             </OverlayOccluderContext.Provider>
           </Canvas>
         </div>
 
-        {showFloorSelector ? (
-          <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+        {userLocation?.name && !isScanView ? (
+          <div className="pointer-events-none absolute left-3 top-3 z-20 md:left-5 md:top-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.16)]">
+              <span
+                className="size-2 shrink-0 animate-pulse rounded-full"
+                style={{ backgroundColor: USER_LOCATION_COLOR }}
+              />
+              내 위치 · {userLocation.name}
+              {userLocation.floor ? ` (${userLocation.floor})` : ""}
+            </span>
+          </div>
         ) : null}
 
-        <div className="pointer-events-none absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 md:bottom-5 md:left-5">
-          <button
-            type="button"
-            aria-pressed={overlayOnTop}
-            aria-label={
-              overlayOnTop
-                ? "경로와 마커를 층 위에 항상 표시 중. 끄면 위층에 가려집니다."
-                : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
-            }
-            onClick={() => setOverlayOnTop((value) => !value)}
-            className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
-              overlayOnTop
-                ? "border-[#00815a]/30 bg-[#00815a] text-white"
-                : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
-            }`}
-          >
-            경로 항상 위
-          </button>
+        {showFloorSelector ? (
+          isScanView ? (
+            <CompactFloorBar
+              selectedView={selectedView}
+              onSelect={setSelectedView}
+              showRoute={Boolean(route)}
+            />
+          ) : (
+            <FloorSelector selectedView={selectedView} onSelect={setSelectedView} />
+          )
+        ) : null}
+
+        <div
+          className={`pointer-events-none absolute left-3 z-20 flex flex-wrap items-center gap-1.5 ${
+            activeFitPreset === "course-mobile"
+              ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
+              : isScanView && route
+              ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
+              : isScanView
+              ? "bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))]"
+              : "bottom-3 md:bottom-5 md:left-5"
+          }`}
+        >
+          {isScanView ? null : (
+            <button
+              type="button"
+              aria-pressed={overlayOnTop}
+              aria-label={
+                overlayOnTop
+                  ? "경로와 마커를 층 위에 항상 표시 중. 끄면 위층에 가려집니다."
+                  : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
+              }
+              onClick={() => setOverlayOnTop((value) => !value)}
+              className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
+                overlayOnTop
+                  ? "border-[#00815a]/30 bg-[#00815a] text-white"
+                  : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
+              }`}
+            >
+              경로 항상 위
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setResetSignal((value) => value + 1)}
-            className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[9px] font-semibold text-[#8C817A] shadow-sm transition-colors hover:text-[#00815a] md:text-[10px]"
+            className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a]"
           >
             시점 초기화
           </button>

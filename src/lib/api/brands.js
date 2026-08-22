@@ -13,24 +13,42 @@ export function getBrands() {
 }
 
 /**
- * 로고 이미지를 서버로 보내 브랜드를 인식합니다(모바일 OCR 스캔).
- *
- * `POST /api/v1/brands/scan` 으로 멀티파트 업로드하며, 매칭된 브랜드
- * `{ brandId, name, logoUrl }` 를 돌려받습니다. 매칭 실패 시 서버는 빈 값을
- * 돌려줄 수 있습니다. 전역 multipart Content-Type을 지정하지 않아 브라우저가
- * boundary를 설정합니다.
- *
- * @param {Blob|File} image 촬영/선택한 로고 이미지
+ * 간판 OCR은 `src/lib/api/ocr.js` 의 `POST /ocr/locations/recognize` 를 씁니다.
+ * `/brands/scan` 은 백엔드에 없어 POST 시 "지원하지 않는 HTTP 메서드"가 납니다.
  */
-export function scanBrandLogo(image) {
-  const form = new FormData();
-  form.append("image", image);
-  return requestData(apiClient.post("/brands/scan", form));
+
+/**
+ * 스캔 API가 돌려준 값을 브랜드 매칭 객체로 정규화합니다.
+ * `{ name }` 뿐 아니라 `{ brandName }`, `{ brand: { name } }` 도 허용합니다.
+ */
+export function normalizeBrandMatch(result) {
+  if (!result || typeof result !== "object") return null;
+  const nested =
+    result.brand && typeof result.brand === "object" ? result.brand : null;
+  const name =
+    nested?.name ||
+    nested?.brandName ||
+    result.name ||
+    result.brandName ||
+    null;
+  const text = result.text || result.ocrText || result.recognizedText || name;
+  if (!name && !text) return null;
+  return {
+    brandId:
+      nested?.brandId ??
+      nested?.id ??
+      result.brandId ??
+      result.id ??
+      null,
+    name: name || text,
+    logoUrl: nested?.logoUrl ?? result.logoUrl ?? null,
+    text,
+  };
 }
 
 /** 서버 응답이 브랜드 객체인지(name 보유) 판별합니다. */
 export function isBrandMatch(result) {
-  return Boolean(result && typeof result === "object" && result.name);
+  return Boolean(normalizeBrandMatch(result)?.name);
 }
 
 /** 브랜드/장소 이름을 매칭용으로 정규화합니다(공백 제거 + 소문자). */

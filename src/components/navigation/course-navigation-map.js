@@ -1,7 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useScanLocationStore } from "@/stores/use-scan-location-store";
 
 function MapLoadingState() {
   const t = useTranslations("aiCourse");
@@ -30,8 +32,18 @@ export function CourseNavigationMap({
   routeGraph,
   placeLogos,
   overlayOccluderRef,
+  initialView,
+  variant = "course",
+  showUserLocation = true,
+  fitPreset,
 }) {
   const t = useTranslations("aiCourse");
+  const storedLocation = useScanLocationStore((state) => state.location);
+  const hydrateLocation = useScanLocationStore((state) => state.hydrate);
+  useEffect(() => {
+    hydrateLocation();
+  }, [hydrateLocation]);
+  const userLocation = showUserLocation ? storedLocation : null;
   return (
     <section
       aria-label={t("mapLabel")}
@@ -44,6 +56,10 @@ export function CourseNavigationMap({
         placeLogos={placeLogos}
         overlayOccluderRef={overlayOccluderRef}
         showFloorSelector
+        userLocation={userLocation}
+        initialView={initialView}
+        variant={variant}
+        fitPreset={fitPreset}
       />
     </section>
   );
