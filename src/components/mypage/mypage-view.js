@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
 import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import { logout } from "@/lib/api/auth";
 import {
   deleteCoursePost,
   getPublicCourses,
@@ -188,7 +189,21 @@ export function MypageView() {
   const authUser = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setUser = useAuthStore((state) => state.setUser);
+  const clearUser = useAuthStore((state) => state.clearUser);
   const mounted = useIsMounted();
+
+  const handleLogout = async () => {
+    clearUser();
+    try {
+      await logout();
+    } catch (err) {
+      console.warn("[MypageView] Error calling logout:", err?.message);
+    } finally {
+      if (typeof window !== "undefined") {
+        window.location.replace("/login");
+      }
+    }
+  };
 
   const isLikedStored = useCommunityInteractionsStore((state) => state.isLiked);
   const isBookmarkedStored = useCommunityInteractionsStore((state) => state.isBookmarked);
@@ -617,21 +632,11 @@ export function MypageView() {
         profile={displayProfile}
         stats={displayStats}
         onEditClick={() => setIsEditModalOpen(true)}
+        onLogoutClick={handleLogout}
       />
       <section className="px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
         <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-[40px] lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {mypageTabs.map((tab) => {
-            const count =
-              tab === "내 코스"
-                ? courses.length
-                : tab === "공유한 코스"
-                  ? sharedCourses.length
-                  : tab === "찜한 코스"
-                    ? likedCourses.length
-                    : tab === "저장한 코스"
-                      ? bookmarkedCourses.length
-                      : null;
-
             return (
               <button
                 key={tab}
@@ -648,20 +653,6 @@ export function MypageView() {
                 }`}
               >
                 <span>{tab}</span>
-                {count !== null && (
-                  <span
-                    style={{
-                      backgroundColor: activeTab === tab ? displayProfile.persona.primaryColor : undefined,
-                    }}
-                    className={`rounded-full px-2 py-0.5 text-xs font-bold transition ${
-                      activeTab === tab
-                        ? "text-white"
-                        : "bg-surface-soft text-ink-muted"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
               </button>
             );
           })}

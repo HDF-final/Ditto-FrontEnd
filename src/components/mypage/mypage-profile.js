@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export function MypageProfile({ profile, stats, onEditClick }) {
+export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
   const persona = profile.persona;
 
   return (
@@ -53,21 +53,32 @@ export function MypageProfile({ profile, stats, onEditClick }) {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onEditClick}
-            style={{
-              backgroundColor: persona.softButtonBg || persona.badgeBg || "#f5f3ff",
-              borderColor: persona.softButtonBorder || persona.badgeBorder || "#e0d8ff",
-              color: persona.softButtonText || persona.badgeText || "#5c2ef5",
-            }}
-            className="w-full cursor-pointer rounded-full border px-5 py-2.5 text-sm font-black transition-all hover:opacity-90 lg:w-fit lg:px-6 lg:py-3 shadow-xs"
-          >
-            프로필 편집
-          </button>
+          <div className="flex items-center gap-2.5 w-full lg:w-fit">
+            <button
+              type="button"
+              onClick={onEditClick}
+              style={{
+                backgroundColor: persona.softButtonBg || persona.badgeBg || "#f5f3ff",
+                borderColor: persona.softButtonBorder || persona.badgeBorder || "#e0d8ff",
+                color: persona.softButtonText || persona.badgeText || "#5c2ef5",
+              }}
+              className="flex-1 cursor-pointer rounded-full border px-5 py-2.5 text-sm font-black transition-all hover:opacity-90 lg:flex-initial lg:px-6 lg:py-3 shadow-xs"
+            >
+              프로필 편집
+            </button>
+            {onLogoutClick ? (
+              <button
+                type="button"
+                onClick={onLogoutClick}
+                className="cursor-pointer rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-3 shadow-xs"
+              >
+                로그아웃
+              </button>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 lg:gap-5">
+        <div className="grid grid-cols-4 gap-2 lg:gap-5">
           {stats.map((stat) => (
             <div
               key={stat.label}
@@ -75,12 +86,12 @@ export function MypageProfile({ profile, stats, onEditClick }) {
                 backgroundColor: persona.statBg || "#f9f7ff",
                 borderColor: persona.statBorder || "#ede9fe",
               }}
-              className="rounded-[16px] border p-3 text-center transition-all duration-200 lg:rounded-[20px] lg:p-6 shadow-xs"
+              className="rounded-[16px] border p-2.5 text-center transition-all duration-200 lg:rounded-[20px] lg:p-6 shadow-xs"
             >
-              <p className="text-xl font-black leading-none text-ink lg:text-[28px]">
+              <p className="text-lg font-black leading-none text-ink sm:text-xl lg:text-[28px]">
                 {stat.value}
               </p>
-              <p className="mt-2 text-xs font-medium text-ink-muted">
+              <p className="mt-1.5 text-[11px] font-medium text-ink-muted sm:text-xs whitespace-nowrap">
                 {stat.label}
               </p>
             </div>

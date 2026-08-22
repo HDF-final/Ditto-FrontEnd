@@ -26,13 +26,23 @@ export function AppFrame({ children }) {
     let isMounted = true;
 
     async function restoreSession() {
+      const isExplicitlyLoggedOut =
+        typeof window !== "undefined" &&
+        window.sessionStorage?.getItem("ditto_logged_out") === "true";
+
+      if (isExplicitlyLoggedOut) {
+        clearUser();
+        return;
+      }
+
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
           setUser(profile);
+        } else if (isMounted) {
+          setUser();
         }
       } catch {
-        // Fallback to permanent default Sato Yuki login
         if (isMounted) {
           setUser();
         }
@@ -44,7 +54,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [setUser]);
+  }, [setUser, clearUser]);
 
   if (isAuthRoute) {
     return children;
