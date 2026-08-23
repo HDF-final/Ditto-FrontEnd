@@ -39,7 +39,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-  # 2. 빌드, ECR 푸시 및 ASG 롤링 배포 단계
+  # 2. 빌드, ECR 푸시 및 ASG 무중단 롤링 배포 단계
   deploy:
     name: Build, Push & ASG Refresh
     needs: test
@@ -148,7 +148,7 @@ jobs:
             --auto-scaling-group-name "${TARGET_ASG}" \
             --launch-template "LaunchTemplateName=${TARGET_LT},Version=${TARGET_VER}"
 
-      # 6. ASG 인스턴스 새로고침 실행 및 모니터링 (취소 완료 대기 보장 + 4분 타임아웃)
+      # 6. ASG 인스턴스 새로고침 실행 및 모니터링 (무중단 롤링 + 웜업 60초 + 6분 타임아웃)
       - name: Trigger and monitor ASG Instance Refresh
         shell: bash
         run: |
@@ -181,16 +181,17 @@ jobs:
           fi
 
           echo "Starting Instance Refresh for ASG: ${TARGET_ASG}..."
+          # MinHealthy 100%, MaxHealthy 200%, Warmup 60s 설정
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${TARGET_ASG}" \
-            --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 0}' \
+            --preferences '{"MinHealthyPercentage": 100, "MaxHealthyPercentage": 200, "InstanceWarmup": 60}' \
             --query 'InstanceRefreshId' \
             --output text)
 
           echo "Instance Refresh ID: $REFRESH_ID"
 
-          # 4분 타임아웃 (10초 간격 * 24회 = 240초)
-          MAX_ATTEMPTS=24
+          # 6분 타임아웃 (10초 간격 * 36회 = 360초)
+          MAX_ATTEMPTS=36
           ATTEMPT=0
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
@@ -215,7 +216,7 @@ jobs:
           done
 
           if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-            echo "❌ Instance Refresh timed out after 4 minutes!"
+            echo "❌ Instance Refresh timed out after 6 minutes!"
             echo "Cancelling stuck instance refresh..."
             aws autoscaling cancel-instance-refresh --auto-scaling-group-name "${TARGET_ASG}" || true
             exit 1
