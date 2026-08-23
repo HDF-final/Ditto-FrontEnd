@@ -114,7 +114,7 @@ jobs:
           docker stop ditto-frontend || true
           docker rm ditto-frontend || true
 
-          # 환경변수 주입 및 3000번 포트로 컨테이너 단독 실행
+          # 환경변수 주입 및 3000번 포트로 컨테이너 실행
           docker run -d \
             --name ditto-frontend \
             --restart unless-stopped \
@@ -148,7 +148,7 @@ jobs:
             --auto-scaling-group-name "${TARGET_ASG}" \
             --launch-template "LaunchTemplateName=${TARGET_LT},Version=${TARGET_VER}"
 
-      # 6. ASG 인스턴스 새로고침(Instance Refresh) 실행 및 완료 대기
+      # 6. ASG 인스턴스 새로고침 실행 및 4분 타임아웃 모니터링
       - name: Trigger and monitor ASG Instance Refresh
         shell: bash
         run: |
@@ -175,14 +175,18 @@ jobs:
 
           echo "Instance Refresh ID: $REFRESH_ID"
 
-          while true; do
+          # 4분 타임아웃 설정 (10초 간격 * 24회 = 총 240초)
+          MAX_ATTEMPTS=24
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name "${TARGET_ASG}" \
               --instance-refresh-ids "${REFRESH_ID}" \
               --query 'InstanceRefreshes[0].Status' \
               --output text)
 
-            echo "[$(date +'%H:%M:%S')] Current refresh status: ${STATUS}"
+            echo "[$(date +'%H:%M:%S')] Current refresh status: ${STATUS} (Check $((ATTEMPT+1))/${MAX_ATTEMPTS})"
 
             if [ "${STATUS}" = "Successful" ]; then
               echo "✅ Instance Refresh completed successfully!"
@@ -192,5 +196,14 @@ jobs:
               exit 1
             fi
 
+            ATTEMPT=$((ATTEMPT+1))
             sleep 10
           done
+
+          # 4분이 초과되면 Refresh 취소 후 실패 처리
+          if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+            echo "❌ Instance Refresh timed out after 4 minutes!"
+            echo "Cancelling stuck instance refresh..."
+            aws autoscaling cancel-instance-refresh --auto-scaling-group-name "${TARGET_ASG}" || true
+            exit 1
+          fi
