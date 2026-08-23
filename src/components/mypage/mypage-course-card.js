@@ -125,7 +125,7 @@ export function MypageCourseCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] sm:rounded-[22px] aspect-[4/3] sm:aspect-[3/4] w-full bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] cursor-pointer"
     >
       {/* Full Background Image */}
       <img
@@ -138,18 +138,18 @@ export function MypageCourseCard({
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Bottom Gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay */}
-      <div className="relative z-10 p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] font-black text-white shadow-xs">
+      <div className="relative z-10 p-3.5 sm:p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+          <span className="flex size-5.5 sm:size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] sm:text-[11px] font-black text-white shadow-xs shrink-0">
             {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
           </span>
-          <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name || t("traveler")}</span>
-            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash || "#더현대 #추천코스"}</span>
+          <span className="text-xs sm:text-sm leading-none shrink-0">{getFlagEmoji(course.country || course.flag)}</span>
+          <div className="flex items-center gap-1.5 sm:flex-col sm:items-start leading-tight">
+            <span className="text-xs sm:text-[11px] font-bold text-white drop-shadow-xs whitespace-nowrap">{course.name || t("traveler")}</span>
+            <span className="text-[10px] sm:text-[10px] font-semibold text-violet-200 drop-shadow-xs whitespace-nowrap">{course.hash || "#더현대 #추천코스"}</span>
           </div>
         </div>
 
@@ -164,7 +164,7 @@ export function MypageCourseCard({
                   onEdit(course);
                 }}
                 title="게시글 수정"
-                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-brand border border-white/15 cursor-pointer shadow-sm"
+                className="flex size-6.5 sm:size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-brand border border-white/15 cursor-pointer shadow-sm"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9" />
@@ -181,7 +181,7 @@ export function MypageCourseCard({
                   onDelete(course);
                 }}
                 title="게시글 삭제"
-                className="flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-red-500 border border-white/15 cursor-pointer shadow-sm"
+                className="flex size-6.5 sm:size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-red-500 border border-white/15 cursor-pointer shadow-sm"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 6h18" />
@@ -194,20 +194,20 @@ export function MypageCourseCard({
       </div>
 
       {/* Bottom Content Area */}
-      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+      <div className="relative z-10 p-3.5 sm:p-4 pt-0 flex flex-col gap-2">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="text-lg sm:text-[19px] lg:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1 sm:line-clamp-2">
             {course.title}
           </h3>
           {course.description && (
-            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="text-xs sm:text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {course.description}
             </p>
           )}
         </div>
 
         {/* Bottom Stats Toolbar */}
-        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white pt-1">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-[11px] font-bold text-white pt-0.5">
           {/* 좋아요 버튼 */}
           <button
             type="button"

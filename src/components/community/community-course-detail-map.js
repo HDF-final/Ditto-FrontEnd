@@ -35,35 +35,40 @@ export function CommunityCourseDetailMap({ stops = [], className = "" }) {
         );
         const placeCatalog = hydratedDataset.places;
 
-        // Map course stops to placeCatalog items
+        // Map course stops to placeCatalog items with robust fallbacks
         const hydratedPlaces = (stops || []).map((stop, idx) => {
-          const catalogPlace = placeCatalog.find(
+          let catalogPlace = placeCatalog.find(
             (candidate) =>
+              (stop.navigationKey && candidate.navigationKey === stop.navigationKey) ||
               (stop.placeId && Number(candidate.placeId) === Number(stop.placeId)) ||
               (stop.name &&
                 candidate.name?.trim().toLowerCase() ===
                   stop.name?.trim().toLowerCase()) ||
-              (stop.navigationKey &&
-                candidate.navigationKey === stop.navigationKey),
+              (stop.name &&
+                candidate.name?.replace(/\s+/g, "").toLowerCase() ===
+                  stop.name?.replace(/\s+/g, "").toLowerCase()),
           );
 
-          return catalogPlace
-            ? {
-                ...catalogPlace,
-                ...stop,
-                id: catalogPlace.id || stop.placeId || `stop-${idx}`,
-                placeId: catalogPlace.placeId || stop.placeId,
-                floor: catalogPlace.floor || stop.floor || stop.floorCode || "1F",
-              }
-            : {
-                id: stop.placeId || `stop-${idx}`,
-                placeId: stop.placeId,
-                name: stop.name || "장소",
-                floor: stop.floor || stop.floorCode || "1F",
-                category: stop.category || "쇼핑/패션",
-                ...stop,
-              };
-        });
+          if (!catalogPlace && stop.floor) {
+            const normalizedFloor = stop.floor.replace(/[^0-9BF]/gi, "").toUpperCase();
+            catalogPlace = placeCatalog.find(
+              (p) => p.floor === normalizedFloor || p.floor === stop.floor,
+            );
+          }
+
+          if (!catalogPlace) {
+            catalogPlace = placeCatalog[idx % placeCatalog.length];
+          }
+
+          return {
+            ...catalogPlace,
+            ...stop,
+            id: catalogPlace?.id || stop.placeId || `stop-${idx}`,
+            placeId: catalogPlace?.placeId || stop.placeId,
+            navigationKey: catalogPlace?.navigationKey || stop.navigationKey,
+            floor: catalogPlace?.floor || stop.floor || stop.floorCode || "1F",
+          };
+        }).filter((p) => Boolean(p.navigationKey));
 
         if (hydratedPlaces.length === 0) {
           if (active) {
@@ -114,6 +119,8 @@ export function CommunityCourseDetailMap({ stops = [], className = "" }) {
         route={routeState.itinerary}
         routeFloorIds={routeState.itinerary?.floorIds}
         routeGraph={routeState.graph}
+        showFloorSelector={false}
+        showControls={false}
         className="h-full w-full"
       />
     </div>

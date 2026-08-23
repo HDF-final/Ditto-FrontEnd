@@ -35,6 +35,8 @@ export function CourseNavigationMap({
   initialView,
   variant = "course",
   showUserLocation = true,
+  showFloorSelector = true,
+  showControls = true,
   fitPreset,
 }) {
   const t = useTranslations("aiCourse");
@@ -55,7 +57,8 @@ export function CourseNavigationMap({
         routeGraph={routeGraph}
         placeLogos={placeLogos}
         overlayOccluderRef={overlayOccluderRef}
-        showFloorSelector
+        showFloorSelector={showFloorSelector}
+        showControls={showControls}
         userLocation={userLocation}
         initialView={initialView}
         variant={variant}

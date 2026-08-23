@@ -15,13 +15,11 @@ import {
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useTranslations } from "next-intl";
 
 const tabs = ["popular", "latest"];
 const storageKey = "ditto:shared-community-courses";
-const ITEMS_PER_PAGE_MOBILE = 4;
-const ITEMS_PER_PAGE_DESKTOP = 6;
+const ITEMS_PER_PAGE = 6;
 
 function subscribe(callback) {
   if (typeof window === "undefined") return () => {};
@@ -152,7 +150,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] sm:rounded-[22px] aspect-[4/3] sm:aspect-[3/4] w-full bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] cursor-pointer"
     >
       {/* Full Background Image */}
       <img
@@ -165,41 +163,41 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+      <div className="relative z-10 p-3.5 sm:p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
           {/* Rank Badge */}
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm">
+          <span className="flex size-5.5 sm:size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] sm:text-[11px] font-black text-white shadow-sm shrink-0">
             {rank}
           </span>
           {/* Flag */}
-          <span className="text-sm leading-none">{getFlagEmoji(card.country || card.flag)}</span>
+          <span className="text-xs sm:text-sm leading-none shrink-0">{getFlagEmoji(card.country || card.flag)}</span>
           {/* Name & Tag */}
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-sm">{card.name || t("traveler")}</span>
-            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-sm">{card.hash || "#더현대"}</span>
+          <div className="flex items-center gap-1.5 sm:flex-col sm:items-start leading-tight">
+            <span className="text-xs sm:text-[11px] font-bold text-white drop-shadow-sm whitespace-nowrap">{card.name || t("traveler")}</span>
+            <span className="text-[10px] sm:text-[10px] font-semibold text-violet-200 drop-shadow-sm whitespace-nowrap">{card.hash || "#더현대"}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
+      <div className="relative z-10 p-3.5 sm:p-4 pt-0 flex flex-col gap-2">
         {/* Title & Description */}
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="text-lg sm:text-[19px] lg:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1 sm:line-clamp-2">
             {card.title}
           </h3>
           {card.description && (
-            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="text-xs sm:text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {card.description}
             </p>
           )}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white/95 pt-1">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-[11px] font-bold text-white/95 pt-0.5">
           {/* Like button */}
           <button
             type="button"
@@ -267,21 +265,22 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 export function CommunityCoursePage({ initialCards = [] }) {
   const t = useTranslations("community");
   const router = useRouter();
-  const isDesktop = useIsDesktop();
-  const itemsPerPage = isDesktop ? ITEMS_PER_PAGE_DESKTOP : ITEMS_PER_PAGE_MOBILE;
+  const mounted = useIsMounted();
+  const itemsPerPage = ITEMS_PER_PAGE;
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const sharedCardsRaw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const sharedCards = useMemo(() => {
+    if (!mounted) return [];
     try {
       const parsed = JSON.parse(sharedCardsRaw);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
-  }, [sharedCardsRaw]);
+  }, [mounted, sharedCardsRaw]);
 
   const cards = useMemo(() => {
     const combined = [...initialCards, ...sharedCards];
@@ -350,9 +349,9 @@ export function CommunityCoursePage({ initialCards = [] }) {
         </div>
       </section>
 
-      <section className="bg-surface-soft px-5 py-6 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-4 py-5 sm:px-8 sm:py-14 lg:px-52 xl:px-60 2xl:px-72">
         <div className="lg:mx-auto lg:max-w-[1020px]">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.map((card, index) => {
               const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
               return (
@@ -368,13 +367,13 @@ export function CommunityCoursePage({ initialCards = [] }) {
 
           {/* 페이징 컨트롤 바 렌더링 */}
           {totalPages > 1 && (
-            <div className="mt-12 flex items-center justify-center gap-2">
+            <div className="mt-8 sm:mt-12 flex items-center justify-center gap-1.5 sm:gap-2">
               {/* 이전 버튼 */}
               <button
                 type="button"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
                   currentPage === 1
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
@@ -390,7 +389,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                   key={pageNum}
                   type="button"
                   onClick={() => handlePageChange(pageNum)}
-                  className={`flex size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
+                  className={`flex size-8 sm:size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
                     currentPage === pageNum
                       ? "bg-brand text-white shadow-md"
                       : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
@@ -406,7 +405,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 type="button"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
+                className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
                   currentPage === totalPages
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
