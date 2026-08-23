@@ -87,7 +87,7 @@ jobs:
           set -eux
           export DEBIAN_FRONTEND=noninteractive
           apt update -y
-          apt install -y docker.io docker-compose-v2 curl unzip jq
+          apt install -y docker.io curl unzip jq
 
           cd /tmp
           curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -102,32 +102,25 @@ jobs:
           mkdir -p "\$APP_DIR"
           chown -R ubuntu:ubuntu "\$APP_DIR"
 
-          AWS_REGION="${{ vars.AWS_REGION }}"
-          ECR_REGISTRY="${{ vars.ECR_REGISTRY }}"
-          ECR_REPOSITORY="${{ vars.ECR_REPOSITORY }}"
-
-          cat << COMPOSE_EOF > "\$APP_DIR/docker-compose.yml"
-          services:
-            frontend:
-              image: "${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest"
-              container_name: ditto-frontend
-              restart: unless-stopped
-              env_file:
-                - .env
-              ports:
-                - "3000:3000"
-              logging:
-                driver: json-file
-                options:
-                  max-size: "10m"
-                  max-file: "3"
-          COMPOSE_EOF
-
           echo "${ENV_B64}" | base64 -d > "\$APP_DIR/.env"
 
-          /usr/local/bin/aws ecr get-login-password --region "\$AWS_REGION" | docker login --username AWS --password-stdin "\$ECR_REGISTRY"
-          docker compose -f "\$APP_DIR/docker-compose.yml" pull
-          docker compose -f "\$APP_DIR/docker-compose.yml" up -d
+          # ECR 로그인
+          /usr/local/bin/aws ecr get-login-password --region "${{ vars.AWS_REGION }}" | docker login --username AWS --password-stdin "${{ vars.ECR_REGISTRY }}"
+
+          # 최신 이미지 Pull
+          docker pull "${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest"
+
+          # 기존 컨테이너가 있다면 중지 및 삭제
+          docker stop ditto-frontend || true
+          docker rm ditto-frontend || true
+
+          # 환경변수 주입 및 3000번 포트로 컨테이너 단독 실행
+          docker run -d \
+            --name ditto-frontend \
+            --restart unless-stopped \
+            --env-file "\$APP_DIR/.env" \
+            -p 3000:3000 \
+            "${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest"
           EOF
 
           ENCODED_USER_DATA=$(base64 -w 0 /tmp/user_data.sh)
