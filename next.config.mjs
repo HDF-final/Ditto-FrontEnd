@@ -17,6 +17,8 @@ const apiProxyTarget =
 const API_PROXY_TIMEOUT_MS = 150_000;
 
 const nextConfig = {
+  output: "standalone", // Docker 배포를 위한 Standalone 경량화 빌드 설정
+
   images: {
     // Place hero/product photos and S3 uploaded assets
     remotePatterns: [
