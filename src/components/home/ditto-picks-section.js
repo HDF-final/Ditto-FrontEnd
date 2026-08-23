@@ -81,12 +81,10 @@ export function DittoPicksSection() {
           </ol>
         </aside>
 
-        {/* TOP 1, 2, 3 코스 카드 (모바일에서는 실시간 키워드 아래 가로 스크롤, 데스크톱에서는 1~3열) */}
-        <div className="order-2 flex gap-3.5 overflow-x-auto pb-2 -mx-5 px-5 snap-x snap-mandatory hide-scrollbar lg:order-1 lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-5 lg:mx-0 lg:px-0 lg:pb-0 lg:overflow-visible">
+        {/* TOP 1, 2, 3 코스 카드 (모바일: 1열 세로 배치로 카드 잘림 없이 시원하게 표시, 데스크톱: 1~3열) */}
+        <div className="order-2 grid grid-cols-1 gap-3.5 sm:grid-cols-3 lg:order-1 lg:col-span-3 lg:grid-cols-3 lg:gap-5">
           {pickCourses.slice(0, 3).map((course) => (
-            <div key={course.rank} className="w-[72vw] max-w-[260px] shrink-0 snap-start lg:w-auto lg:max-w-none h-full">
-              <CourseCard course={course} />
-            </div>
+            <CourseCard key={course.rank} course={course} />
           ))}
         </div>
       </div>
