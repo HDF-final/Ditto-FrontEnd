@@ -106,16 +106,11 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     if (!key) return;
     const place = placeCatalog.find((entry) => entry.navigationKey === key);
     if (!place) return;
-    let active = true;
-    Promise.resolve().then(() => {
-      if (!active || seededFromScanRef.current) return;
-      seededFromScanRef.current = true;
+    seededFromScanRef.current = true;
+    queueMicrotask(() => {
       setItems([place]);
-      setCourseTitle(t("courseStartingAt", { name: place.name }));
+      setCourseTitle(`${place.name}에서 시작하는 코스`);
     });
-    return () => {
-      active = false;
-    };
   }, [
     datasetStatus,
     items.length,

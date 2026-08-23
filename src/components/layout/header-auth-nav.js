@@ -10,7 +10,7 @@ function HeartIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-5 lg:size-[27px]"
+      className="size-[20px] sm:size-[27px]"
       viewBox="0 0 27 27"
       fill="none"
       stroke="currentColor"
@@ -52,18 +52,18 @@ export function HeaderAuthNav() {
 
   if (isAuth && activeUser) {
     return (
-      <div className="flex shrink-0 items-center gap-2 sm:gap-4 lg:gap-6">
+      <div className="flex items-center gap-1.5 sm:gap-6">
         <Link
           href="/community/bookmarks"
           aria-label={t("navigation.likedCourses")}
-          className="shrink-0 text-ink transition hover:text-brand"
+          className="text-ink transition hover:text-brand p-1"
         >
           <HeartIcon />
         </Link>
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <Link
             href="/mypage"
-            className="hidden whitespace-nowrap text-sm font-bold text-ink transition hover:text-brand cursor-pointer sm:inline"
+            className="max-w-[68px] sm:max-w-none truncate text-xs sm:text-sm font-bold text-ink hover:text-brand transition cursor-pointer whitespace-nowrap"
           >
             {t("common.memberGreeting", {
               name: activeUser.nickname || activeUser.name || "디또러버",
@@ -72,7 +72,7 @@ export function HeaderAuthNav() {
           <button
             type="button"
             onClick={handleLogout}
-            className="shrink-0 whitespace-nowrap rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer sm:px-4 sm:py-2 sm:text-xs"
+            className="rounded-full border border-line bg-white px-2.5 py-1 text-[11px] sm:px-4 sm:py-2 sm:text-xs font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer whitespace-nowrap shrink-0"
           >
             {t("common.logout")}
           </button>
@@ -84,7 +84,7 @@ export function HeaderAuthNav() {
   return (
     <Link
       href="/login"
-      className="shrink-0 rounded-full bg-brand px-3.5 py-2 text-sm font-black leading-none text-white transition hover:bg-brand-dark lg:px-5 lg:py-3 lg:text-base"
+      className="rounded-full bg-brand px-3.5 py-1.5 text-xs sm:px-5 sm:py-3 sm:text-base font-black leading-none text-white transition hover:bg-brand-dark whitespace-nowrap"
     >
       {t("common.login")}
     </Link>

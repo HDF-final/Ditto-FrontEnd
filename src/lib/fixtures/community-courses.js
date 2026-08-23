@@ -15,9 +15,9 @@ export const communityCourses = [
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "THE HYUNDAI SEOUL",
     stops: [
-      { floor: "1F", name: "워터폴 가든", description: "입구에서 바로 보이는 포토존" },
-      { floor: "5F", name: "사운즈 포레스트", description: "실내 정원에서 쉬기 좋은 구간" },
-      { floor: "B2", name: "크리에이티브 그라운드", description: "쇼핑 후 둘러보기 좋은 편집숍" },
+      { floor: "1F", name: "구찌", navigationKey: "1F_STORE_0031", description: "1층 메인 럭셔리 & 포토존" },
+      { floor: "5F", name: "사운즈포레스트", navigationKey: "5F_STORE_0050", description: "실내 정원에서 쉬기 좋은 힐링 구간" },
+      { floor: "B2", name: "29CM HOME", navigationKey: "B2_STORE_0028", description: "쇼핑 후 둘러보기 좋은 감성 셀렉숍" },
     ],
     note:
       "작년 가을에 친구가 서울에 왔을 때 처음 이 순서로 돌았어요. 그때는 아무 계획 없이 갔다가 1층에서 한참 헤맸는데, 두 번째 방문부터 동선을 정해두고 가니까 훨씬 편하더라고요.",
@@ -38,9 +38,9 @@ export const communityCourses = [
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "DESSERT ROUTE",
     stops: [
-      { floor: "B1", name: "테이스티 서울", description: "디저트 시작점" },
-      { floor: "1F", name: "카페 레이어드", description: "인기 스콘 스팟" },
-      { floor: "5F", name: "정원 카페", description: "쉬어가기 좋은 좌석" },
+      { floor: "B1", name: "고디바 베이커리", navigationKey: "B1_STORE_0028", description: "달콤한 초콜릿 디저트 시작점" },
+      { floor: "B1", name: "아티스트베이커리", navigationKey: "B1_STORE_0027", description: "인기 소금빵 & 갓 구운 베이커리 스팟" },
+      { floor: "5F", name: "블루보틀", navigationKey: "5F_STORE_0048", description: "사운즈포레스트 뷰를 보며 즐기는 커피 휴식" },
     ],
     note:
       "점심 이후에 방문하면 디저트 매장을 여유 있게 볼 수 있었어요. 붐비는 시간만 피하면 사진 찍기도 좋고 동선도 편합니다.",
@@ -60,9 +60,9 @@ export const communityCourses = [
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "K-BEAUTY TOUR",
     stops: [
-      { floor: "B2", name: "뷰티 편집숍", description: "브랜드 비교" },
-      { floor: "1F", name: "향수 매장", description: "시향 추천" },
-      { floor: "5F", name: "라운지", description: "구매 후 휴식" },
+      { floor: "B2", name: "포인트 오브 뷰", navigationKey: "B2_STORE_0026", description: "감성 뷰티 & 문구 소품 비교" },
+      { floor: "1F", name: "크리스챤 디올", navigationKey: "1F_STORE_0034", description: "시향 및 럭셔리 코스메틱 추천" },
+      { floor: "5F", name: "사운즈포레스트", navigationKey: "5F_STORE_0050", description: "쇼핑 후 자연광 가득한 정원 휴식" },
     ],
     note:
       "처음에는 브랜드가 너무 많아서 어려웠는데, 이 순서로 돌면 필요한 제품만 빠르게 비교할 수 있었어요.",
@@ -83,9 +83,9 @@ export const communityCourses = [
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "FASHION PICKS",
     stops: [
-      { floor: "B2", name: "브랜드 팝업", description: "시즌 한정 제품" },
-      { floor: "B1", name: "편집숍", description: "트렌드 브랜드" },
-      { floor: "1F", name: "포토존", description: "착장 사진 추천" },
+      { floor: "B2", name: "산산기어", navigationKey: "B2_STORE_0025", description: "MZ 인기 고프코어 브랜드" },
+      { floor: "B2", name: "29CM HOME", navigationKey: "B2_STORE_0028", description: "트렌디한 라이프스타일 셀렉숍" },
+      { floor: "B2", name: "나이키 라이즈", navigationKey: "B2_STORE_0021", description: "스포티 스트릿 패션" },
     ],
     note:
       "팝업 일정에 맞춰 방문하면 같은 공간도 매번 다르게 느껴져요. 쇼핑 후 사진까지 남기기 좋았습니다.",
@@ -105,9 +105,9 @@ export const communityCourses = [
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "PHOTO ROUTE",
     stops: [
-      { floor: "1F", name: "워터폴 가든", description: "첫 사진 스팟" },
-      { floor: "5F", name: "사운즈 포레스트", description: "자연광 추천" },
-      { floor: "6F", name: "루프탑", description: "마무리 사진" },
+      { floor: "1F", name: "티파니앤코", navigationKey: "1F_STORE_0029", description: "1층 포토 스팟" },
+      { floor: "5F", name: "사운즈포레스트", navigationKey: "5F_STORE_0050", description: "자연광 가득한 실내 정원" },
+      { floor: "6F", name: "ALT. 1", navigationKey: "6F_STORE_0024", description: "복합 문화 예술 전시 공간" },
     ],
     note: "오후 빛이 들어오는 시간에 맞추면 사진 분위기가 훨씬 좋아요.",
   },
@@ -126,9 +126,9 @@ export const communityCourses = [
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "SEOUL TABLE",
     stops: [
-      { floor: "B1", name: "푸드홀", description: "점심 식사" },
-      { floor: "B1", name: "디저트 존", description: "간식 추천" },
-      { floor: "5F", name: "카페", description: "마무리 휴식" },
+      { floor: "B1", name: "파이브가이즈", navigationKey: "B1_STORE_0017", description: "미국 오리지널 버거 점심 식사" },
+      { floor: "B1", name: "아티스트베이커리", navigationKey: "B1_STORE_0027", description: "시그니처 베이커리 간식" },
+      { floor: "5F", name: "블루보틀", navigationKey: "5F_STORE_0048", description: "5층 정원 뷰 디저트" },
     ],
     note: "음식 종류가 많아서 일행 취향이 달라도 같이 움직이기 좋았어요.",
   },
@@ -147,9 +147,9 @@ export const communityCourses = [
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "POP-UP RUN",
     stops: [
-      { floor: "B2", name: "팝업존", description: "오픈런 추천" },
-      { floor: "B1", name: "편집숍", description: "연계 쇼핑" },
-      { floor: "1F", name: "메인 홀", description: "이벤트 확인" },
+      { floor: "B2", name: "지하 2층 팝업 아이코닉", navigationKey: "B2_STORE_0040", description: "주말 한정 팝업 오픈런" },
+      { floor: "B2", name: "팝마트", navigationKey: "B2_STORE_0022", description: "피규어 & 한정판 굿즈" },
+      { floor: "B1", name: "지하 1층 팝업 아이코닉", navigationKey: "B1_STORE_0016", description: "F&B 연계 팝업존" },
     ],
     note: "오픈 시간에 맞춰 가면 줄을 훨씬 덜 서고 볼 수 있었어요.",
   },
@@ -168,9 +168,9 @@ export const communityCourses = [
     gradient: "from-[#2d1b8e] to-[#8c57fa]",
     label: "GIFT PICKS",
     stops: [
-      { floor: "B2", name: "굿즈 매장", description: "작은 선물" },
-      { floor: "B1", name: "라이프스타일 숍", description: "실용 제품" },
-      { floor: "1F", name: "패키지 매장", description: "포장 추천" },
+      { floor: "B2", name: "포인트 오브 뷰", navigationKey: "B2_STORE_0026", description: "선물용 감성 문구 & 소품" },
+      { floor: "5F", name: "더현대 수비니어", navigationKey: "5F_STORE_0039", description: "더현대 시그니처 기념품" },
+      { floor: "5F", name: "디즈니스토어", navigationKey: "5F_STORE_0042", description: "귀여운 캐릭터 선물" },
     ],
     note: "부담 없는 가격대의 선물이 많아서 마지막 날 들르기 좋았습니다.",
   },
@@ -189,9 +189,9 @@ export const communityCourses = [
     gradient: "from-[#5c2ef5] to-[#8c57fa]",
     label: "K-POP PARADISE",
     stops: [
-      { floor: "B2", name: "K-POP 존", description: "아이돌 앨범 매장" },
-      { floor: "B2", name: "포토카드 스튜디오", description: "인증샷 촬영" },
-      { floor: "5F", name: "카페", description: "굿즈 언박싱" },
+      { floor: "B2", name: "팝마트", navigationKey: "B2_STORE_0022", description: "캐릭터 & 아이돌 굿즈 매장" },
+      { floor: "B2", name: "지하 2층 팝업 동쪽", navigationKey: "B2_STORE_0023", description: "K-POP 팝업 스튜디오" },
+      { floor: "5F", name: "사운즈포레스트", navigationKey: "5F_STORE_0050", description: "앨범 & 포토카드 언박싱" },
     ],
     note: "최신 K-POP 앨범과 한정판 포토카드를 모두 구할 수 있어서 만족스러웠습니다.",
   },
@@ -200,3 +200,4 @@ export const communityCourses = [
 export function getCommunityCourse(slug) {
   return communityCourses.find((course) => course.slug === slug);
 }
+

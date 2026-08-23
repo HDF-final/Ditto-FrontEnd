@@ -12,8 +12,8 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="flex min-h-[var(--app-header)] flex-nowrap items-center justify-between gap-3 px-4 py-2 sm:px-8 lg:grid lg:min-h-[94px] lg:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:px-10 lg:py-4 xl:px-14 2xl:px-20">
-        <div className="flex shrink-0 items-center justify-start">
+      <div className="flex lg:grid lg:grid-cols-[1fr_auto_1fr] min-h-[62px] sm:min-h-[94px] items-center justify-between gap-2 px-3.5 py-2.5 sm:gap-4 sm:px-8 sm:py-4 lg:px-10 xl:px-14 2xl:px-20">
+        <div className="flex items-center justify-start shrink-0">
           <Link href="/" className="block shrink-0" aria-label={t("dittoHome")}>
             <div className="flex flex-col">
               <Image
@@ -22,20 +22,20 @@ export function SiteHeader() {
                 width={137}
                 height={43}
                 priority
-                className="h-7 w-auto lg:h-auto lg:w-[137px]"
+                className="w-[96px] sm:w-[137px] h-auto"
               />
-              <span className="mt-1 hidden whitespace-nowrap text-[13px] font-medium leading-none text-ink-muted lg:block">
+              <span className="mt-0.5 sm:mt-1 whitespace-nowrap text-[9px] sm:text-[13px] font-medium leading-none text-ink-muted">
                 K-Culture Shopping Mate
               </span>
             </div>
           </Link>
         </div>
 
-        <div className="flex items-center justify-center">
+        <div className="hidden lg:flex items-center justify-center">
           <HeaderNavLinks />
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 text-ink sm:gap-5">
+        <div className="flex items-center justify-end gap-1.5 text-ink sm:gap-5 shrink-0">
           <HeaderAuthNav />
         </div>
       </div>

@@ -1741,6 +1741,7 @@ export function IndoorMap({
   placeLogos = null,
   overlayOccluderRef = null,
   showFloorSelector = true,
+  showControls = true,
   userLocation = null,
   initialView = "route",
   variant = "course",
@@ -1784,7 +1785,9 @@ export function IndoorMap({
     // 코스가 있으면 경로 스택을 유지하고 내 위치 핀만 얹습니다.
     // OCR 전용(전체층) 화면은 층을 바꾸지 않습니다.
     if (route || isScanView) return;
-    setSelectedView(userLocationFloorId);
+    queueMicrotask(() => {
+      setSelectedView(userLocationFloorId);
+    });
   }, [isScanView, route, userLocation?.navigationKey, userLocationFloorId]);
 
   const viewMode = FLOOR_ORDER.includes(selectedView) ? "floor" : selectedView;
@@ -1942,44 +1945,46 @@ export function IndoorMap({
           )
         ) : null}
 
-        <div
-          className={`pointer-events-none absolute left-3 z-20 flex flex-wrap items-center gap-1.5 ${
-            activeFitPreset === "course-mobile"
-              ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
-              : isScanView && route
-              ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
-              : isScanView
-              ? "bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))]"
-              : "bottom-3 md:bottom-5 md:left-5"
-          }`}
-        >
-          {isScanView ? null : (
+        {showControls ? (
+          <div
+            className={`pointer-events-none absolute left-3 z-20 flex flex-wrap items-center gap-1.5 ${
+              activeFitPreset === "course-mobile"
+                ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
+                : isScanView && route
+                ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
+                : isScanView
+                ? "bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))]"
+                : "bottom-3 md:bottom-5 md:left-5"
+            }`}
+          >
+            {isScanView ? null : (
+              <button
+                type="button"
+                aria-pressed={overlayOnTop}
+                aria-label={
+                  overlayOnTop
+                    ? "경로와 마커를 층 위에 항상 표시 중. 끄면 위층에 가려집니다."
+                    : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
+                }
+                onClick={() => setOverlayOnTop((value) => !value)}
+                className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
+                  overlayOnTop
+                    ? "border-[#00815a]/30 bg-[#00815a] text-white"
+                    : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
+                }`}
+              >
+                경로 항상 위
+              </button>
+            )}
             <button
               type="button"
-              aria-pressed={overlayOnTop}
-              aria-label={
-                overlayOnTop
-                  ? "경로와 마커를 층 위에 항상 표시 중. 끄면 위층에 가려집니다."
-                  : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
-              }
-              onClick={() => setOverlayOnTop((value) => !value)}
-              className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
-                overlayOnTop
-                  ? "border-[#00815a]/30 bg-[#00815a] text-white"
-                  : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
-              }`}
+              onClick={() => setResetSignal((value) => value + 1)}
+              className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a]"
             >
-              경로 항상 위
+              시점 초기화
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setResetSignal((value) => value + 1)}
-            className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a]"
-          >
-            시점 초기화
-          </button>
-        </div>
+          </div>
+        ) : null}
 
         {!viewReady ? (
           <MapLoadingNotice className="absolute inset-0 z-30" />

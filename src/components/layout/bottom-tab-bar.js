@@ -134,7 +134,9 @@ export function BottomTabBar() {
       return undefined;
     }
 
-    setScanOpen(true);
+    queueMicrotask(() => {
+      setScanOpen(true);
+    });
     router.replace(pathname);
     return undefined;
   }, [hydrated, isAuthenticated, pathname, router]);

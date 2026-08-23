@@ -160,7 +160,7 @@ function BookmarkCard({ course, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[22px] aspect-[3/4] w-full bg-slate-950 shadow-[0_10px_28px_rgba(30,15,70,0.2)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] sm:rounded-[22px] aspect-[4/3] sm:aspect-[3/4] w-full bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] cursor-pointer"
     >
       {/* Full Background Image */}
       <img
@@ -173,37 +173,37 @@ function BookmarkCard({ course, onAuthRequired }) {
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Bottom Gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay */}
-      <div className="relative z-10 p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/35 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[11px] font-black text-white shadow-xs">
+      <div className="relative z-10 p-3.5 sm:p-4 flex items-start justify-between">
+        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+          <span className="flex size-5.5 sm:size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] sm:text-[11px] font-black text-white shadow-xs shrink-0">
             ★
           </span>
-          <span className="text-sm leading-none">{getFlagEmoji(course.country || course.flag)}</span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-bold text-white drop-shadow-xs">{course.name}</span>
-            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs">{course.hash}</span>
+          <span className="text-xs sm:text-sm leading-none shrink-0">{getFlagEmoji(course.country || course.flag)}</span>
+          <div className="flex items-center gap-1.5 sm:flex-col sm:items-start leading-tight">
+            <span className="text-xs sm:text-[11px] font-bold text-white drop-shadow-xs whitespace-nowrap">{course.name}</span>
+            <span className="text-[10px] font-semibold text-violet-200 drop-shadow-xs whitespace-nowrap">{course.hash}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area */}
-      <div className="relative z-10 p-4 pt-0 flex flex-col gap-2.5">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[19px] sm:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+      <div className="relative z-10 p-3.5 sm:p-4 pt-0 flex flex-col gap-2">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="text-lg sm:text-[19px] lg:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1 sm:line-clamp-2">
             {course.title}
           </h3>
           {course.description && (
-            <p className="text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="text-xs sm:text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {course.description}
             </p>
           )}
         </div>
 
         {/* Bottom Stats Toolbar (Interactive Buttons: Like, Comment, Bookmark) */}
-        <div className="flex items-center justify-end gap-2 text-[11px] font-bold text-white pt-1">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-[11px] font-bold text-white pt-0.5">
           {/* 좋아요 버튼 토글 */}
           <button
             type="button"
@@ -557,10 +557,10 @@ export function CommunityBookmarksView() {
       </section>
 
       {/* Grid Content & 정렬 드롭다운 토글 */}
-      <section className="px-5 py-6 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+      <section className="px-4 py-5 sm:px-8 sm:py-14 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
         <div className="max-w-[1020px] mx-auto">
           {/* 상단 툴바: 우측 정렬 드롭다운 토글 */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-5 sm:mb-6 flex items-center justify-between">
             <p className="text-xs font-bold text-ink-muted">
               총 <span className="text-brand font-black">{displayedCourses.length}</span>개의 코스
             </p>
@@ -629,7 +629,7 @@ export function CommunityBookmarksView() {
             </div>
           ) : paginatedCourses.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
                 {paginatedCourses.map((course) => (
                   <BookmarkCard
                     key={course.postId || course.slug || course.id}
