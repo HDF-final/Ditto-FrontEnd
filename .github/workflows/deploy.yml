@@ -18,14 +18,38 @@ env:
   LAUNCH_TEMPLATE_NAME: ${{ vars.LAUNCH_TEMPLATE_NAME }}
 
 jobs:
-  deploy:
-    name: Build, Push & ASG Refresh
+  # 1. 테스트 단계 (린트, 타입 검사 및 사전 빌드 검증)
+  test:
+    name: Lint & Build Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1. Access Key 기반 AWS 인증
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Build Test
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  # 2. 배포 단계 (테스트 통과 시 실행)
+  deploy:
+    name: Build, Push & ASG Refresh
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1. AWS 인증 (Access Key)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,7 +62,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # 3. Docker 이미지 빌드 및 ECR 푸시 (x86_64 아키텍처)
-      - name: Build and push image
+      - name: Build and push Docker image
         shell: bash
         run: |
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}"
@@ -82,14 +106,14 @@ jobs:
           ECR_REGISTRY="${{ vars.ECR_REGISTRY }}"
           ECR_REPOSITORY="${{ vars.ECR_REPOSITORY }}"
 
-          cat << 'COMPOSE_EOF' > "\$APP_DIR/docker-compose.yml"
+          cat << COMPOSE_EOF > "\$APP_DIR/docker-compose.yml"
           services:
             frontend:
-              image: "\${ECR_REGISTRY}/\${ECR_REPOSITORY}:\${IMAGE_TAG:-latest}"
+              image: "${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest"
               container_name: ditto-frontend
               restart: unless-stopped
               env_file:
-                - \${ENV_FILE:-.env}
+                - .env
               ports:
                 - "3000:3000"
               logging:
@@ -152,7 +176,7 @@ jobs:
           echo "Starting Instance Refresh for ASG: ${TARGET_ASG}..."
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${TARGET_ASG}" \
-            --preferences '{"MinHealthyPercentage": 0, "InstanceWarmup": 30}' \
+            --preferences '{"MinHealthyPercentage": 0, "InstanceWarmup": 0}' \
             --query 'InstanceRefreshId' \
             --output text)
 
@@ -175,5 +199,5 @@ jobs:
               exit 1
             fi
 
-            sleep 15
+            sleep 10
           done
