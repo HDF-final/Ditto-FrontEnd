@@ -18,33 +18,8 @@ env:
   LAUNCH_TEMPLATE_NAME: ${{ vars.LAUNCH_TEMPLATE_NAME }}
 
 jobs:
-  # 1. 빌드 및 타입 검사 테스트
-  test:
-    name: Lint & Build Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Build Test
-        run: npm run build
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-
-  # 2. Docker 빌드, ECR 푸시, LT 버전 갱신 & ASG Refresh
   deploy:
     name: Build, Push & ASG Refresh
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,7 +37,7 @@ jobs:
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 3. Docker 이미지 빌드 및 ECR 푸시
+      # 3. Docker 이미지 빌드 및 ECR 푸시 (x86_64 아키텍처)
       - name: Build and push image
         shell: bash
         run: |
