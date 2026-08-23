@@ -148,7 +148,7 @@ jobs:
             --auto-scaling-group-name "${TARGET_ASG}" \
             --launch-template "LaunchTemplateName=${TARGET_LT},Version=${TARGET_VER}"
 
-      # 6. ASG 인스턴스 새로고침(Instance Refresh) 실행 및 모니터링 (4분 타임아웃)
+      # 6. ASG 인스턴스 새로고침 실행 및 모니터링 (취소 완료 대기 보장 + 4분 타임아웃)
       - name: Trigger and monitor ASG Instance Refresh
         shell: bash
         run: |
@@ -160,14 +160,27 @@ jobs:
             --query 'InstanceRefreshes[0].Status' \
             --output text 2>/dev/null || echo "None")
 
-          if [ "$EXISTING_STATUS" = "InProgress" ] || [ "$EXISTING_STATUS" = "Pending" ]; then
+          if [ "$EXISTING_STATUS" = "InProgress" ] || [ "$EXISTING_STATUS" = "Pending" ] || [ "$EXISTING_STATUS" = "Cancelling" ]; then
             echo "Cancelling previous in-progress refresh..."
             aws autoscaling cancel-instance-refresh --auto-scaling-group-name "${TARGET_ASG}" || true
-            sleep 15
+            
+            echo "Waiting for previous refresh to fully terminate..."
+            while true; do
+              CHECK_STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name "${TARGET_ASG}" \
+                --query 'InstanceRefreshes[0].Status' \
+                --output text 2>/dev/null || echo "None")
+              
+              if [ "$CHECK_STATUS" != "InProgress" ] && [ "$CHECK_STATUS" != "Pending" ] && [ "$CHECK_STATUS" != "Cancelling" ]; then
+                echo "Previous refresh successfully terminated with status: ${CHECK_STATUS}"
+                break
+              fi
+              echo "Current status: ${CHECK_STATUS} ... waiting 5s"
+              sleep 5
+            done
           fi
 
           echo "Starting Instance Refresh for ASG: ${TARGET_ASG}..."
-          # MinHealthyPercentage를 100으로 설정하여 새 EC2를 먼저 띄우도록 트리거
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${TARGET_ASG}" \
             --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 0}' \
