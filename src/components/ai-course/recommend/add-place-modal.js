@@ -6,7 +6,10 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "./recommend-icons";
 import { FLOOR_ORDER } from "@/lib/navigation/navigation-dataset";
-import { PLACE_CATEGORY_FILTERS } from "@/lib/navigation/place-category";
+import {
+  getPlaceCategoryLabel,
+  PLACE_CATEGORY_FILTERS,
+} from "@/lib/navigation/place-category";
 import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
 
 const ALL = "__all__";
@@ -87,35 +90,55 @@ export function AddPlaceModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-5"
+      className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-5"
       style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(6px)" }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[620px] h-[640px] max-h-[90vh] rounded-[28px] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.45)] bg-white flex flex-col animate-in zoom-in-95 duration-150"
+        className="relative flex h-[min(640px,calc(100dvh-0.75rem))] max-h-[calc(100dvh-0.75rem)] w-full max-w-[620px] flex-col overflow-hidden rounded-t-[24px] bg-white shadow-[0_32px_80px_rgba(0,0,0,0.45)] animate-in zoom-in-95 duration-150 sm:h-[min(640px,calc(100dvh-2.5rem))] sm:max-h-[calc(100dvh-2.5rem)] sm:rounded-[28px]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 flex items-start justify-between px-6 pt-5 pb-3.5 border-b border-[#f0ecfa] bg-white">
-          <div>
-            <h2 className="text-[19px] font-black text-[#1a142e]">{t("addPlace")}</h2>
-            <p className="text-[12px] text-[#9994ad] mt-0.5">
+        <div className="flex shrink-0 items-start justify-between border-b border-[#f0ecfa] bg-white px-4 pt-4 pb-3 sm:px-6 sm:pt-5 sm:pb-3.5">
+          <div className="min-w-0 pr-3">
+            <h2 className="text-[18px] font-black text-[#1a142e] sm:text-[19px]">{t("addPlace")}</h2>
+            <p className="mt-0.5 text-[12px] leading-snug text-[#9994ad]">
               {t("placePickerDescription")}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-[#6b6685] transition-colors hover:bg-[#f0ecfa] cursor-pointer"
           >
             <X size={16} />
           </button>
         </div>
 
-        {/* Modal Body: Left Floor Sidebar + Right Content */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left: Floor Selector Sidebar (118px width, 88px x 44px buttons, 18px font-black) */}
-          <aside className="w-[118px] shrink-0 border-r border-[#f0ecfa] bg-white flex flex-col items-center py-4 px-3 overflow-y-auto gap-2.5">
-            <p className="text-[12px] font-bold text-[#9994ad] mb-0.5">
+        {/* Modal Body: floor chips on mobile, sidebar on sm+ */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
+          <div className="hide-scrollbar flex shrink-0 gap-2 overflow-x-auto border-b border-[#f0ecfa] px-4 py-2.5 sm:hidden">
+            {floorOptions.map((f) => {
+              const active = floor === f;
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFloor(f)}
+                  aria-pressed={active}
+                  className={`h-9 shrink-0 rounded-full px-3.5 text-[13px] font-black transition-all cursor-pointer ${
+                    active
+                      ? "bg-[#5c2ef5] text-white shadow-xs"
+                      : "border border-[#e0d9f8] bg-white text-[#2d2843]"
+                  }`}
+                >
+                  {f === ALL ? t("all") : f}
+                </button>
+              );
+            })}
+          </div>
+
+          <aside className="hidden w-[100px] shrink-0 flex-col items-center gap-2.5 overflow-y-auto border-r border-[#f0ecfa] bg-white px-2 py-4 sm:flex sm:w-[118px] sm:px-3">
+            <p className="mb-0.5 text-[12px] font-bold text-[#9994ad]">
               {t("floor")}
             </p>
             {floorOptions.map((f) => {
@@ -126,7 +149,7 @@ export function AddPlaceModal({
                   type="button"
                   onClick={() => setFloor(f)}
                   aria-pressed={active}
-                  className={`w-[88px] h-[44px] shrink-0 rounded-full flex items-center justify-center text-[18px] transition-all cursor-pointer ${
+                  className={`flex h-11 w-[88px] shrink-0 items-center justify-center rounded-full text-[18px] transition-all cursor-pointer ${
                     active
                       ? "bg-[#5c2ef5] text-white font-black shadow-xs"
                       : "bg-white text-[#2d2843] border border-[#e0d9f8] font-black hover:bg-[#faf8ff]"
@@ -138,11 +161,8 @@ export function AddPlaceModal({
             })}
           </aside>
 
-          {/* Right: Main Content (Search Bar + Category Filter + Scrollable Candidate List) */}
-          <main className="flex-1 flex flex-col min-w-0 bg-white">
-            {/* Top Filter Area: Search Bar + Category Chips */}
-            <div className="shrink-0 p-4 border-b border-[#f0ecfa] flex flex-col gap-3">
-              {/* Search Bar */}
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
+            <div className="flex shrink-0 flex-col gap-3 border-b border-[#f0ecfa] p-3 sm:p-4">
               <label className="relative block">
                 <span className="sr-only">{t("searchStore")}</span>
                 <input
@@ -154,15 +174,14 @@ export function AddPlaceModal({
                 />
               </label>
 
-              {/* Category Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
-                <span className="text-[11.5px] font-bold text-[#9994ad] shrink-0">
+              <div className="hide-scrollbar flex items-center gap-2 overflow-x-auto pb-0.5">
+                <span className="shrink-0 text-[11.5px] font-bold text-[#9994ad]">
                   {t("category")}
                 </span>
                 {categoryOptions.map((c) => (
                   <FilterChip
                     key={c}
-                    label={c === ALL ? t("all") : c}
+                    label={c === ALL ? t("all") : getPlaceCategoryLabel(c, t)}
                     active={category === c}
                     onClick={() => setCategory(c)}
                   />
@@ -171,12 +190,12 @@ export function AddPlaceModal({
             </div>
 
             {/* Candidate Places List */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3 sm:p-4">
               {loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                   <div className="size-7 animate-spin rounded-full border-2 border-[#5c2ef5] border-t-transparent" />
                   <p className="text-[12px] font-bold text-[#9994ad]">
-                    매장 목록을 불러오는 중...
+                    {t("loadingStores")}
                   </p>
                 </div>
               ) : filtered.length === 0 ? (
@@ -200,20 +219,20 @@ export function AddPlaceModal({
                         onAddPlace: () => handleAdd(place),
                       });
                     }}
-                    className="flex items-center gap-3.5 rounded-[18px] border border-[#ede8fc] p-3.5 hover:border-[#5c2ef5]/40 hover:bg-[#faf8ff] transition-all cursor-pointer group shadow-2xs hover:shadow-xs"
+                    className="group flex min-w-0 cursor-pointer items-center gap-2.5 rounded-[16px] border border-[#ede8fc] p-2.5 shadow-2xs transition-all hover:border-[#5c2ef5]/40 hover:bg-[#faf8ff] hover:shadow-xs sm:gap-3.5 sm:rounded-[18px] sm:p-3.5"
                     title={t("viewStore")}
                   >
                     <img
                       src={place.image || getFallbackPlaceImage(place)}
                       alt={place.name}
-                      className="w-[54px] h-[54px] rounded-[14px] object-cover shrink-0 pointer-events-none bg-[#f0ecfa]"
+                      className="pointer-events-none size-11 shrink-0 rounded-[12px] object-cover bg-[#f0ecfa] sm:size-[54px] sm:rounded-[14px]"
                     />
-                    <div className="flex-1 min-w-0 pointer-events-none">
+                    <div className="pointer-events-none min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-1">
                         <span
                           className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${place.categoryStyle}`}
                         >
-                          {place.category}
+                          {getPlaceCategoryLabel(place.category, t)}
                         </span>
                         {place.floor && (
                           <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f0ecfa] text-[#5c2ef5]">
@@ -234,7 +253,7 @@ export function AddPlaceModal({
                         e.stopPropagation();
                         handleAdd(place);
                       }}
-                      className="shrink-0 flex items-center gap-1 rounded-full px-4 py-2 text-[12px] font-black text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-all active:scale-95 cursor-pointer shadow-xs z-10"
+                      className="z-10 flex shrink-0 items-center gap-1 rounded-full bg-[#5c2ef5] px-3 py-1.5 text-[11px] font-black text-white shadow-xs transition-all hover:bg-[#4a22d4] active:scale-95 cursor-pointer sm:px-4 sm:py-2 sm:text-[12px]"
                     >
                       <Plus size={11} /> {t("add")}
                     </button>

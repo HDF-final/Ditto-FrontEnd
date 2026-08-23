@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 function isStandaloneDisplay() {
   if (typeof window === "undefined") return false;
@@ -11,6 +12,7 @@ function isStandaloneDisplay() {
 }
 
 export function AppBanner() {
+  const t = useTranslations("home");
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(isStandaloneDisplay);
   const [iosHint] = useState(() => {
@@ -53,9 +55,9 @@ export function AppBanner() {
       {installed ? null : (
         <section className="bg-background px-5 py-8 lg:hidden">
           <div className="overflow-hidden rounded-[24px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] p-5">
-            <h2 className="text-lg font-black text-white">홈 화면에 DITTO 추가</h2>
+            <h2 className="text-lg font-black text-white">{t("addToHomeTitle")}</h2>
             <p className="mt-1.5 text-[13px] leading-6 text-violet-100">
-              앱처럼 바로 열고, 실내 길찾기와 맞춤 코스를 더 빠르게 이어가세요.
+              {t("appDescription")}
             </p>
             {deferredPrompt ? (
               <button
@@ -63,16 +65,16 @@ export function AppBanner() {
                 onClick={handleInstall}
                 className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-black text-[#4a2fa8]"
               >
-                지금 설치하기
+                {t("installNow")}
                 <span aria-hidden="true">→</span>
               </button>
             ) : iosHint ? (
               <p className="mt-4 rounded-2xl bg-white/12 px-3.5 py-3 text-[12px] font-semibold leading-5 text-violet-50">
-                Safari에서 공유 버튼 → &quot;홈 화면에 추가&quot;를 누르면 앱처럼 사용할 수 있어요.
+                {t("iosInstallHint")}
               </p>
             ) : (
               <p className="mt-4 text-[12px] font-semibold text-violet-100">
-                브라우저 메뉴에서 &quot;앱 설치&quot; 또는 &quot;홈 화면에 추가&quot;를 선택하세요.
+                {t("browserInstallHint")}
               </p>
             )}
           </div>
@@ -84,10 +86,10 @@ export function AppBanner() {
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div>
               <h2 className="text-2xl font-black text-white sm:text-[28px]">
-                모바일 버전으로 더 스마트한 여행을!
+                {t("appTitle")}
               </h2>
               <p className="mt-3 text-sm leading-7 text-violet-100 sm:text-base">
-                앱처럼 바로 열고, 실내 길찾기와 맞춤 코스를 더 빠르게 이어가세요.
+                {t("appDescription")}
               </p>
               {deferredPrompt ? (
                 <button
@@ -95,16 +97,16 @@ export function AppBanner() {
                   onClick={handleInstall}
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-black text-[#4a2fa8]"
                 >
-                  지금 설치하기
+                  {t("installNow")}
                   <span aria-hidden="true">→</span>
                 </button>
               ) : iosHint ? (
                 <p className="mt-6 inline-block rounded-2xl bg-white/12 px-4 py-3 text-[13px] font-semibold leading-5 text-violet-50">
-                  Safari에서 공유 버튼 → &quot;홈 화면에 추가&quot;를 누르면 앱처럼 사용할 수 있어요.
+                  {t("iosInstallHint")}
                 </p>
               ) : (
                 <p className="mt-6 text-[13px] font-semibold text-violet-100">
-                  브라우저 메뉴에서 &quot;홈 화면에 추가&quot;를 선택하세요.
+                  {t("browserInstallHint")}
                 </p>
               )}
             </div>

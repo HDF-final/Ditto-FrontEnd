@@ -103,8 +103,18 @@ body {
   .app-shell {
     max-width: var(--app-max);
     margin-inline: auto;
+    overflow-x: clip;
     box-shadow: 0 0 48px rgba(43, 28, 89, 0.12);
   }
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 ::selection {
@@ -144,8 +154,12 @@ body {
 
 .course-studio {
   display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: minmax(440px, 58vh) auto auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(160px, 34%) minmax(0, 1fr) auto;
   grid-template-areas:
     "map"
     "list"
@@ -154,19 +168,29 @@ body {
 
 .course-studio-map {
   grid-area: map;
+  min-height: 0;
+  min-width: 0;
 }
 
 .course-studio-list {
   grid-area: list;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .course-studio-chat {
   grid-area: chat;
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {
   .course-studio {
     height: calc(100dvh - 72px);
+    flex: none;
     grid-template-columns: minmax(340px, 33%) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     grid-template-areas: "list map";

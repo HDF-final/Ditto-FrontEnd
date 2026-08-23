@@ -204,7 +204,7 @@ export function CommunityStopList({ stops = [], courseId }) {
   const list = hydratedStops.length > 0 ? hydratedStops : stops;
 
   return (
-    <section className="flex flex-col justify-between rounded-[28px] bg-surface-soft p-6 lg:p-7">
+    <section className="flex min-w-0 flex-col justify-between rounded-[22px] bg-surface-soft p-4 sm:rounded-[28px] sm:p-6 lg:p-7">
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-ink">
@@ -226,7 +226,7 @@ export function CommunityStopList({ stops = [], courseId }) {
                 {/* 다음 스팟 번호로 이어지는 수직 점선 (다음 번호 배지 내부까지 완전 연결) */}
                 {!isLast && (
                   <div
-                    className="absolute left-[29.5px] top-7 -bottom-[36px] w-0 border-l-2 border-dashed border-brand/50 z-10 pointer-events-none"
+                    className="pointer-events-none absolute top-7 -bottom-[36px] left-[25.5px] z-10 w-0 border-l-2 border-dashed border-brand/50 sm:left-[29.5px]"
                     aria-hidden="true"
                   />
                 )}

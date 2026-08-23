@@ -7,7 +7,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
     <section className="border-b border-line bg-white px-4 pt-5 sm:px-8 sm:pt-8 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
       <div className="flex flex-col gap-4 pb-5 sm:gap-6 sm:pb-8 lg:gap-10 lg:pb-[60px]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <div className="flex items-center gap-3.5 lg:gap-5">
+          <div className="flex min-w-0 items-center gap-3.5 lg:gap-5">
             <div
               className="flex size-[58px] sm:size-[68px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200 lg:size-[78px]"
               style={{ backgroundColor: persona.bgColor || "#fff1e6" }}

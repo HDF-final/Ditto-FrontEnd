@@ -5,7 +5,10 @@
 
 export function normalizeScanName(name) {
   return String(name ?? "")
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .replace(/\s+/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "")
     .toLowerCase();
 }
 
@@ -42,11 +45,35 @@ const BRAND_ALIASES = {
   mlb: ["mlb"],
 };
 
+function addAliasTerms(terms, latin) {
+  terms.add(latin);
+  for (const local of BRAND_ALIASES[latin] ?? []) {
+    const normalized = normalizeScanName(local);
+    if (normalized) terms.add(normalized);
+  }
+}
+
 function matchTermsFor(name) {
   const target = normalizeScanName(name);
   if (!target) return [];
-  const aliases = BRAND_ALIASES[target] ?? [];
-  return [target, ...aliases.map(normalizeScanName)];
+  const terms = new Set([target]);
+
+  if (BRAND_ALIASES[target]) addAliasTerms(terms, target);
+
+  // "EATALY SEOUL" / "이탈리점" 처럼 간판 앞뒤 글자가 붙어도 별칭을 씁니다.
+  // 한 글자 OCR 오인식이 "eataly".includes("e") 로 이탈리에 붙지 않게,
+  // 별칭 쪽이 검색어에 포함될 때만 확장합니다.
+  for (const [latin, locals] of Object.entries(BRAND_ALIASES)) {
+    if (latin.length >= 4 && target.includes(latin)) addAliasTerms(terms, latin);
+    for (const local of locals) {
+      const normalized = normalizeScanName(local);
+      if (normalized.length >= 2 && target.includes(normalized)) {
+        addAliasTerms(terms, latin);
+      }
+    }
+  }
+
+  return [...terms];
 }
 
 /**
@@ -92,4 +119,36 @@ export function buildScanLocation(place, brand) {
     placeId: place.placeId ?? null,
     logoUrl: brand?.logoUrl ?? null,
   };
+}
+
+/**
+ * OCR 후보의 키·이름 중 하나로 실내 지도 매장을 찾습니다.
+ * 백엔드 navigationKey 가 원장에 없어도 한글/영문 상호로 다시 찾습니다.
+ */
+export function resolvePlaceFromScan({
+  places,
+  placesByNavigationKey,
+  placesByPlaceId,
+  navigationKey,
+  placeId,
+  names = [],
+} = {}) {
+  const byKey =
+    navigationKey && placesByNavigationKey
+      ? placesByNavigationKey.get(navigationKey)
+      : null;
+  if (byKey) return byKey;
+
+  const byId =
+    placeId != null && placesByPlaceId
+      ? placesByPlaceId.get(String(placeId))
+      : null;
+  if (byId) return byId;
+
+  for (const name of names) {
+    const matched = matchPlaceByName(name, places);
+    if (matched) return matched;
+  }
+
+  return null;
 }

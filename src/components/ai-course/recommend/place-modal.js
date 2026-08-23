@@ -2,7 +2,6 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   X,
@@ -11,6 +10,7 @@ import {
   Clock,
 } from "./recommend-icons";
 import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
+import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
 
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
@@ -81,11 +81,11 @@ function AiPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative w-full max-w-[960px] md:min-h-[620px] max-h-[92vh] rounded-[32px] overflow-hidden shadow-[0_36px_90px_rgba(0,0,0,0.5)] bg-white flex flex-col md:grid md:grid-cols-[0.88fr_1.12fr]"
+      className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[960px] flex-col overflow-hidden overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[22px] md:grid md:min-h-[620px] md:grid-cols-[0.88fr_1.12fr] md:overflow-hidden md:rounded-[32px]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Left Column: 브랜드 정보, AI 추천 이유, 브랜드 사진 3장 */}
-      <div className="flex flex-col h-full overflow-y-auto p-6 md:p-8 bg-white justify-between gap-5">
+      <div className="flex h-full flex-col justify-between gap-5 overflow-y-auto bg-white p-4 sm:p-6 md:p-8">
         <div>
           {/* Top Bar: AI Badge (Main Color) & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-5">
@@ -105,17 +105,19 @@ function AiPlaceModalContent({ place, onClose }) {
 
           {/* 브랜드명 */}
           <div>
-            <h2 className="text-2xl md:text-[30px] font-black text-[#1a142e] tracking-tight leading-snug">
+            <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
               {place.name}
             </h2>
             {/* 브랜드 위치 */}
-            <div className="flex items-center gap-2 text-[13px] font-bold text-[#5c2ef5] mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
               <MapPin size={15} className="shrink-0" />
-              <span>{locationText}</span>
+              <span className="min-w-0 break-keep">{locationText}</span>
               {place.category ? (
                 <>
                   <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">{place.category}</span>
+                  <span className="text-[#6b6685] font-semibold">
+                    {getPlaceCategoryLabel(place.category, t)}
+                  </span>
                 </>
               ) : null}
             </div>
@@ -157,7 +159,7 @@ function AiPlaceModalContent({ place, onClose }) {
       </div>
 
       {/* Right Column: 대표 사진 / 앰버서더 비주얼 카드 */}
-      <div className="relative min-h-[320px] md:min-h-[620px] bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] overflow-hidden flex flex-col p-6 md:p-7">
+      <div className="relative order-first flex h-[200px] min-h-[180px] max-h-[240px] flex-col overflow-hidden bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] p-4 sm:p-6 md:order-none md:h-auto md:min-h-[620px] md:max-h-none md:p-7">
         {/* Representative Photo */}
         {rightImage ? (
           <>
@@ -233,16 +235,16 @@ function StandardPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative w-full max-w-[960px] md:min-h-[620px] max-h-[92vh] rounded-[32px] overflow-hidden shadow-[0_36px_90px_rgba(0,0,0,0.5)] bg-white flex flex-col md:grid md:grid-cols-[0.88fr_1.12fr]"
+      className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[960px] flex-col overflow-hidden overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[22px] md:grid md:min-h-[620px] md:grid-cols-[0.88fr_1.12fr] md:overflow-hidden md:rounded-[32px]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Left Column: 매장 정보, 매장 안내, 매장 사진 3장 */}
-      <div className="flex flex-col h-full overflow-y-auto p-6 md:p-8 bg-white justify-between gap-5">
+      <div className="flex h-full flex-col justify-between gap-5 overflow-y-auto bg-white p-4 sm:p-6 md:p-8">
         <div>
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              {place.category || t("store")}
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
               {place.floor ? ` · ${place.floor}` : ""}
             </span>
             <button
@@ -257,17 +259,19 @@ function StandardPlaceModalContent({ place, onClose }) {
 
           {/* 매장명 */}
           <div>
-            <h2 className="text-2xl md:text-[30px] font-black text-[#1a142e] tracking-tight leading-snug">
+            <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
               {place.name}
             </h2>
             {/* 매장 위치 */}
-            <div className="flex items-center gap-2 text-[13px] font-bold text-[#5c2ef5] mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
               <MapPin size={15} className="shrink-0" />
-              <span>{locationText}</span>
+              <span className="min-w-0 break-keep">{locationText}</span>
               {place.category ? (
                 <>
                   <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">{place.category}</span>
+                  <span className="text-[#6b6685] font-semibold">
+                    {getPlaceCategoryLabel(place.category, t)}
+                  </span>
                 </>
               ) : null}
             </div>
@@ -331,7 +335,7 @@ function StandardPlaceModalContent({ place, onClose }) {
         </div>
 
       {/* Right Column: 매장 대표 사진 카드 (place 테이블의 image url 사용) */}
-      <div className="relative min-h-[320px] md:min-h-[620px] bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] overflow-hidden flex flex-col p-6 md:p-7">
+      <div className="relative order-first flex h-[200px] min-h-[180px] max-h-[240px] flex-col overflow-hidden bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] p-4 sm:p-6 md:order-none md:h-auto md:min-h-[620px] md:max-h-none md:p-7">
         {/* Representative Photo */}
         {rightImage ? (
           <>
@@ -396,11 +400,11 @@ function CompactPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative w-full max-w-[460px] max-h-[90vh] rounded-[26px] overflow-hidden shadow-2xl bg-white flex flex-col animate-in zoom-in-95 duration-150"
+      className="relative flex max-h-[calc(100dvh-1.25rem)] w-full max-w-[460px] flex-col overflow-hidden rounded-[22px] bg-white shadow-2xl animate-in zoom-in-95 duration-150 sm:rounded-[26px]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Top Banner Image with Clean Dark Overlay */}
-      <div className="relative w-full h-[230px] sm:h-[260px] bg-gray-900 shrink-0 overflow-hidden">
+      <div className="relative h-[180px] w-full shrink-0 overflow-hidden bg-gray-900 sm:h-[260px]">
         {/* Background Image */}
         <img
           src={placeImage}
@@ -423,7 +427,7 @@ function CompactPlaceModalContent({ place, onClose }) {
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-1.5">
             <span className="inline-flex items-center text-[11.5px] font-bold px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-md">
-              {place.category || t("store")}
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
             </span>
             {place.floor && (
               <span className="inline-flex items-center text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-[#5c2ef5] text-white">
@@ -468,14 +472,14 @@ function CompactPlaceModalContent({ place, onClose }) {
         {/* Store Details Container */}
         <div className="rounded-2xl bg-[#f8f9fc] p-4 space-y-3">
           {/* Hours */}
-          <div className="flex items-center justify-between text-[13px]">
-            <div className="flex items-center gap-2 text-gray-500 font-medium">
-              <Clock size={15} className="text-gray-400 shrink-0" />
+          <div className="flex items-start justify-between gap-2 text-[13px]">
+            <div className="flex shrink-0 items-center gap-2 font-medium text-gray-500">
+              <Clock size={15} className="shrink-0 text-gray-400" />
               <span>{t("hours")}</span>
             </div>
-            <div className="text-right">
+            <div className="min-w-0 text-right">
               <span className="font-bold text-gray-900">10:30 ~ 20:00</span>
-              <span className="text-[11.5px] text-gray-400 font-normal ml-1.5">
+              <span className="ml-1.5 block text-[11.5px] font-normal text-gray-400 sm:inline">
                 (금~일 ~20:30)
               </span>
             </div>
@@ -484,16 +488,16 @@ function CompactPlaceModalContent({ place, onClose }) {
           <div className="h-px bg-gray-200/60" />
 
           {/* Location */}
-          <div className="flex items-center justify-between text-[13px]">
-            <div className="flex items-center gap-2 text-gray-500 font-medium">
-              <MapPin size={15} className="text-gray-400 shrink-0" />
+          <div className="flex items-start justify-between gap-2 text-[13px]">
+            <div className="flex shrink-0 items-center gap-2 font-medium text-gray-500">
+              <MapPin size={15} className="shrink-0 text-gray-400" />
               <span>{t("locationInfo")}</span>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
               <span className="font-bold text-gray-900">
                 더현대 서울 {place.floor || ""}
               </span>
-              <span className="text-[11px] font-semibold text-[#5c2ef5] bg-[#5c2ef5]/8 px-2 py-0.5 rounded-md">
+              <span className="rounded-md bg-[#5c2ef5]/8 px-2 py-0.5 text-[11px] font-semibold text-[#5c2ef5]">
                 3D 길찾기
               </span>
             </div>
@@ -534,7 +538,7 @@ export function PlaceModal({ place, onClose }) {
 
   return (
     <div
-      className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4 sm:p-5 animate-in fade-in duration-150`}
+      className={`fixed inset-0 ${zIndexClass} flex items-end justify-center p-0 sm:items-center sm:p-5 animate-in fade-in duration-150`}
       style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >

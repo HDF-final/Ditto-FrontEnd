@@ -88,3 +88,30 @@ test("header exposes the primary product navigation items", async () => {
     { href: "/#newsletter", labelKey: "news" },
   ]);
 });
+
+test("AI course and home sections render copy from the locale catalog", async () => {
+  const [prompt, result, community, appBanner] = await Promise.all([
+    read("src/components/ai-course/recommend/prompt-screen.js"),
+    read("src/components/ai-course/recommend/result-screen.js"),
+    read("src/components/home/community-preview-section.js"),
+    read("src/components/home/app-banner.js"),
+  ]);
+
+  for (const source of [prompt, result]) {
+    assert.match(source, /useTranslations\("aiCourse"\)/);
+  }
+  for (const source of [community, appBanner]) {
+    assert.match(source, /useTranslations\("home"\)/);
+  }
+  assert.doesNotMatch(prompt, /오늘은 무엇을 해볼까요\?/);
+  assert.doesNotMatch(community, /지금 인기 있는 커스텀 코스/);
+  assert.doesNotMatch(appBanner, /홈 화면에 DITTO 추가/);
+});
+
+test("community server requests forward the selected language", async () => {
+  const source = await read("src/lib/api/community.server.js");
+
+  assert.match(source, /getServerApiHeaders/);
+  assert.match(source, /const headers = await getServerApiHeaders/);
+  assert.doesNotMatch(source, /headers: \{\s*Accept: "application\/json"\s*\}/);
+});

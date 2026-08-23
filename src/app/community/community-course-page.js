@@ -203,7 +203,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -226,7 +226,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
+            className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90 sm:gap-1 sm:px-2.5"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -239,7 +239,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -310,8 +310,8 @@ export function CommunityCoursePage({ initialCards = [] }) {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="bg-white px-5 pb-6 pt-6 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
+    <main className="min-h-screen min-w-0 overflow-x-hidden bg-background">
+      <section className="bg-white px-4 pb-6 pt-6 sm:px-5 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
             <p className="text-[11px] font-black text-brand lg:text-xs">

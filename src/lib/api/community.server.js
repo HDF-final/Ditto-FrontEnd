@@ -3,6 +3,8 @@ import {
   getCommunityCourse as getDefaultCommunityCourse,
 } from "@/lib/fixtures/community-courses";
 import { getServerApiBaseUrl } from "./server-base-url";
+import { getServerApiHeaders } from "./server-language";
+import { getTranslations } from "next-intl/server";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -36,7 +38,7 @@ const COURSE_IMAGES = [
   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
 ];
 
-export function normalizePublicCourseCard(post, index = 0) {
+export function normalizePublicCourseCard(post, index = 0, localizedFallbacks = {}) {
   if (!post) return null;
 
   const postId = post.postId;
@@ -47,7 +49,9 @@ export function normalizePublicCourseCard(post, index = 0) {
 
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
-  const hash = words.length > 0 ? `#${words.slice(0, 2).join(" #")}` : "#추천코스 #더현대";
+  const hash = words.length > 0
+    ? `#${words.slice(0, 2).join(" #")}`
+    : localizedFallbacks.hash || "#DITTO";
 
   return {
     postId,
@@ -58,7 +62,7 @@ export function normalizePublicCourseCard(post, index = 0) {
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
-    description: post.content || `${post.title}에 연결된 맞춤형 추천 코스입니다.`,
+    description: post.content || localizedFallbacks.description || post.title,
     image,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
@@ -146,13 +150,13 @@ export function normalizePublicCourseDetail(detail) {
 export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/api/v1/community/courses?page=${page}&size=${size}`;
+  const headers = await getServerApiHeaders({ Accept: "application/json" });
+  const t = await getTranslations("community");
 
   try {
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
+      headers,
       cache: "no-store",
     });
 
@@ -169,7 +173,10 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
       return defaultCommunityCourses;
     }
 
-    const realCourses = content.map((post, idx) => normalizePublicCourseCard(post, idx));
+    const realCourses = content.map((post, idx) => normalizePublicCourseCard(post, idx, {
+      description: t("publicCourseDescription", { title: post.title }),
+      hash: t("publicCourseHash"),
+    }));
     
     // Combine real DB courses at the top, then fallback fixtures for full richness
     return [...realCourses, ...defaultCommunityCourses];
@@ -190,13 +197,12 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
   if (isNumeric) {
     const baseUrl = getBaseUrl();
     const url = `${baseUrl}/api/v1/community/courses/${postIdOrSlug}`;
+    const headers = await getServerApiHeaders({ Accept: "application/json" });
 
     try {
       const response = await fetch(url, {
         method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
+        headers,
         cache: "no-store",
       });
 
@@ -209,7 +215,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
             try {
               const courseRes = await fetch(`${baseUrl}/api/v1/courses/${courseId}`, {
                 method: "GET",
-                headers: { Accept: "application/json" },
+                headers,
                 cache: "no-store",
               });
               if (courseRes.ok) {
@@ -234,9 +240,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
       const courseUrl = `${baseUrl}/api/v1/courses/${postIdOrSlug}`;
       const courseRes = await fetch(courseUrl, {
         method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
+        headers,
         cache: "no-store",
       });
 

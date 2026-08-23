@@ -15,7 +15,7 @@ export function MyCoursePrivateCard({ course, onDelete }) {
       href={href}
       className="group relative flex min-h-[220px] sm:h-[255px] flex-col justify-between rounded-[20px] sm:rounded-[24px] border border-line bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer"
     >
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col">
         {/* Top Header */}
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] sm:text-xs font-black text-brand whitespace-nowrap shrink-0">

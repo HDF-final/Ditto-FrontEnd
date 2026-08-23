@@ -122,12 +122,12 @@ export function CommunityDetailActions({ course = {} }) {
 
   return (
     <>
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
         {/* 좋아요 버튼 */}
         <button
           type="button"
           onClick={handleLikeToggle}
-          className={`inline-flex h-12 min-w-[130px] items-center justify-center gap-2 rounded-full border px-6 text-sm font-black transition shadow-xs hover:scale-[1.02] cursor-pointer ${
+          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
             isLiked
               ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
               : "border-line bg-white text-ink hover:border-red-300 hover:text-red-500"
@@ -150,7 +150,7 @@ export function CommunityDetailActions({ course = {} }) {
         <button
           type="button"
           onClick={handleBookmarkToggle}
-          className={`inline-flex h-12 min-w-[130px] items-center justify-center gap-2 rounded-full px-6 text-sm font-black transition shadow-xs hover:scale-[1.02] cursor-pointer ${
+          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
             isBookmarked
               ? "border border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
               : "bg-brand text-white hover:bg-brand-dark"

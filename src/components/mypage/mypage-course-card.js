@@ -213,7 +213,7 @@ export function MypageCourseCard({
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
               isLiked
                 ? "bg-red-500 text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
@@ -235,7 +235,7 @@ export function MypageCourseCard({
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/20 transition cursor-pointer text-white"
+            className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-black/40 px-1.5 py-1 text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer sm:gap-1 sm:px-2.5"
           >
             <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -248,7 +248,7 @@ export function MypageCourseCard({
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition shadow-xs cursor-pointer ${
+            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
               isBookmarked
                 ? "bg-brand text-white scale-105"
                 : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"

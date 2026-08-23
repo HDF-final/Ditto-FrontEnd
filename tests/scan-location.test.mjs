@@ -13,6 +13,7 @@ const {
   normalizeScanName,
   matchPlaceByName,
   buildScanLocation,
+  resolvePlaceFromScan,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
 );
@@ -72,4 +73,39 @@ test("buildScanLocation keeps map identity separate from the brand payload", () 
     logoUrl: "https://example.com/mlb.png",
   });
   assert.equal(buildScanLocation(null, { name: "MLB" }), null);
+});
+
+test("이탈리 maps to the 6F restaurant, not the market", () => {
+  const matched = matchPlaceByName("이탈리", places);
+  assert.equal(matched?.name, "이탈리");
+  assert.equal(matched?.floor, "6F");
+  assert.equal(matched?.navigationKey, "6F_STORE_0034");
+});
+
+test("Eataly signage aliases still pin 이탈리", () => {
+  assert.equal(matchPlaceByName("EATALY", places)?.navigationKey, "6F_STORE_0034");
+  assert.equal(matchPlaceByName("Eataly", places)?.navigationKey, "6F_STORE_0034");
+  assert.equal(
+    matchPlaceByName("EATALY SEOUL", places)?.navigationKey,
+    "6F_STORE_0034",
+  );
+  assert.equal(
+    matchPlaceByName("이탈리".normalize("NFD"), places)?.navigationKey,
+    "6F_STORE_0034",
+  );
+});
+
+test("resolvePlaceFromScan falls back to the store name when the OCR key is missing", () => {
+  const placesByNavigationKey = new Map(
+    places.map((place) => [place.navigationKey, place]),
+  );
+  const matched = resolvePlaceFromScan({
+    places,
+    placesByNavigationKey,
+    placesByPlaceId: new Map(),
+    navigationKey: "MISSING_KEY",
+    placeId: 99,
+    names: ["이탈리"],
+  });
+  assert.equal(matched?.navigationKey, "6F_STORE_0034");
 });
