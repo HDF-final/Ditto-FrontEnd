@@ -18,7 +18,7 @@ env:
   LAUNCH_TEMPLATE_NAME: ${{ vars.LAUNCH_TEMPLATE_NAME }}
 
 jobs:
-  # 1. 테스트 단계 (린트, 타입 검사 및 사전 빌드 검증)
+  # 1. 사전 빌드 및 검증 단계
   test:
     name: Lint & Build Test
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-  # 2. 배포 단계 (테스트 통과 시 실행)
+  # 2. 빌드, ECR 푸시 및 ASG 롤링 배포 단계
   deploy:
     name: Build, Push & ASG Refresh
     needs: test
@@ -148,7 +148,7 @@ jobs:
             --auto-scaling-group-name "${TARGET_ASG}" \
             --launch-template "LaunchTemplateName=${TARGET_LT},Version=${TARGET_VER}"
 
-      # 6. ASG 인스턴스 새로고침 실행 및 4분 타임아웃 모니터링
+      # 6. ASG 인스턴스 새로고침(Instance Refresh) 실행 및 모니터링 (4분 타임아웃)
       - name: Trigger and monitor ASG Instance Refresh
         shell: bash
         run: |
@@ -163,19 +163,20 @@ jobs:
           if [ "$EXISTING_STATUS" = "InProgress" ] || [ "$EXISTING_STATUS" = "Pending" ]; then
             echo "Cancelling previous in-progress refresh..."
             aws autoscaling cancel-instance-refresh --auto-scaling-group-name "${TARGET_ASG}" || true
-            sleep 10
+            sleep 15
           fi
 
           echo "Starting Instance Refresh for ASG: ${TARGET_ASG}..."
+          # MinHealthyPercentage를 100으로 설정하여 새 EC2를 먼저 띄우도록 트리거
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${TARGET_ASG}" \
-            --preferences '{"MinHealthyPercentage": 0, "InstanceWarmup": 0}' \
+            --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 0}' \
             --query 'InstanceRefreshId' \
             --output text)
 
           echo "Instance Refresh ID: $REFRESH_ID"
 
-          # 4분 타임아웃 설정 (10초 간격 * 24회 = 총 240초)
+          # 4분 타임아웃 (10초 간격 * 24회 = 240초)
           MAX_ATTEMPTS=24
           ATTEMPT=0
 
@@ -200,7 +201,6 @@ jobs:
             sleep 10
           done
 
-          # 4분이 초과되면 Refresh 취소 후 실패 처리
           if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
             echo "❌ Instance Refresh timed out after 4 minutes!"
             echo "Cancelling stuck instance refresh..."
