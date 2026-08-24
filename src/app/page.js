@@ -1,4 +1,3 @@
-import { AppBanner } from "@/components/home/app-banner";
 import { BoniLauncher } from "@/components/home/boni-launcher";
 import { CommunityPreviewSection } from "@/components/home/community-preview-section";
 import { DittoPicksSection } from "@/components/home/ditto-picks-section";
@@ -33,7 +32,6 @@ export default async function Home() {
       <DittoPicksSection initialCourses={systemCourses} />
       <CommunityPreviewSection />
       <NewsletterPreviewSection items={newsList} />
-      <AppBanner />
       <BoniLauncher />
     </main>
   );
