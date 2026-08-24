@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 function ArrowRightIcon({ className = "" }) {
@@ -55,6 +55,7 @@ function SlideIndicators({
 
 export function HomeHero({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartXRef = useRef(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -63,6 +64,23 @@ export function HomeHero({ slides }) {
 
     return () => window.clearInterval(timer);
   }, [slides.length]);
+
+  const goToNext = () =>
+    setActiveIndex((current) => (current + 1) % slides.length);
+  const goToPrev = () =>
+    setActiveIndex((current) => (current - 1 + slides.length) % slides.length);
+
+  const handleTouchStart = (event) => {
+    touchStartXRef.current = event.touches[0].clientX;
+  };
+  const handleTouchEnd = (event) => {
+    if (touchStartXRef.current === null) return;
+    const deltaX = event.changedTouches[0].clientX - touchStartXRef.current;
+    const SWIPE_THRESHOLD = 40;
+    if (deltaX <= -SWIPE_THRESHOLD) goToNext();
+    else if (deltaX >= SWIPE_THRESHOLD) goToPrev();
+    touchStartXRef.current = null;
+  };
 
   const activeSlide = slides[activeIndex];
   const heroMinHeight = "clamp(480px, 44vw, 640px)";
@@ -81,7 +99,11 @@ export function HomeHero({ slides }) {
           </span>
         </h1>
 
-        <div className="relative mt-4 overflow-hidden rounded-[22px]">
+        <div
+          className="relative mt-4 touch-pan-y select-none overflow-hidden rounded-[22px]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url("${activeSlide.image}")` }}
