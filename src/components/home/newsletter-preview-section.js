@@ -21,8 +21,8 @@ export async function NewsletterPreviewSection({ items = [] }) {
         href="/news"
         linkLabel={t("allNews")}
       />
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
-        {displayItems.map((news) => {
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
+        {displayItems.map((news, index) => {
           const category = news.label || news.category || (news.keywords?.[0] ? `${news.keywords[0]}` : null);
           const slug = news.slug || "";
           const href = slug ? `/news/${slug}` : "/news";
@@ -31,9 +31,11 @@ export async function NewsletterPreviewSection({ items = [] }) {
             <Link
               key={news.slug || news.title}
               href={href}
-              className="group flex overflow-hidden rounded-[20px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:flex-col lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
+              className={`group min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)] ${
+                index >= 2 ? "hidden lg:flex" : "flex"
+              }`}
             >
-              <div className="relative h-[92px] w-[92px] shrink-0 overflow-hidden bg-surface-muted lg:h-[210px] lg:w-full">
+              <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface-muted lg:h-[210px] lg:aspect-auto">
                 {news.representativeImageUrl ? (
                   <Image
                     src={news.representativeImageUrl}
@@ -48,18 +50,13 @@ export async function NewsletterPreviewSection({ items = [] }) {
                   />
                 )}
                 {category ? (
-                  <span className="absolute left-4 top-4 hidden rounded-full bg-white/95 px-3.5 py-1 text-xs font-black text-brand shadow-sm lg:inline-flex">
+                  <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2 py-1 text-[10px] font-black text-brand shadow-sm lg:left-4 lg:top-4 lg:px-3.5 lg:text-xs">
                     {category}
                   </span>
                 ) : null}
               </div>
-              <div className="flex min-w-0 flex-1 flex-col justify-center p-3.5 lg:justify-between lg:p-6">
-                {category ? (
-                  <span className="mb-1 text-[10px] font-black text-brand lg:hidden">
-                    {category}
-                  </span>
-                ) : null}
-                <h3 className="line-clamp-2 text-sm font-black leading-snug text-ink lg:text-lg lg:transition-colors lg:group-hover:text-brand">
+              <div className="flex min-w-0 flex-1 flex-col justify-between p-3 lg:p-6">
+                <h3 className="line-clamp-3 text-[13px] font-black leading-snug text-ink lg:line-clamp-2 lg:text-lg lg:transition-colors lg:group-hover:text-brand">
                   {news.title}
                 </h3>
                 {news.summary ? (
@@ -68,7 +65,7 @@ export async function NewsletterPreviewSection({ items = [] }) {
                   </p>
                 ) : null}
                 {news.date ? (
-                  <p className="mt-1 text-[11px] font-semibold text-ink-muted lg:mt-5 lg:border-t lg:border-line/60 lg:pt-4 lg:text-xs">
+                  <p className="mt-2 text-[10px] font-semibold text-ink-muted lg:mt-5 lg:border-t lg:border-line/60 lg:pt-4 lg:text-xs">
                     {news.date}
                   </p>
                 ) : null}

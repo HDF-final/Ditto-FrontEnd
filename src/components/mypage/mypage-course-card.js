@@ -27,7 +27,6 @@ export function MypageCourseCard({
   course,
   onAuthRequired,
   onEdit,
-  onDelete,
 }) {
   const t = useTranslations("community");
   const router = useRouter();
@@ -125,7 +124,7 @@ export function MypageCourseCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] sm:rounded-[22px] aspect-[4/3] sm:aspect-[3/4] w-full bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] cursor-pointer"
+      className="group relative flex aspect-[3/4] min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:h-full lg:min-h-[232px] lg:max-h-[276px] lg:aspect-auto lg:rounded-[22px]"
     >
       {/* Full Background Image */}
       <img
@@ -141,73 +140,60 @@ export function MypageCourseCard({
       <div className="absolute inset-x-0 bottom-0 h-48 sm:h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
 
       {/* Top Header Overlay */}
-      <div className="relative z-10 p-3.5 sm:p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
-          <span className="flex size-5.5 sm:size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] sm:text-[11px] font-black text-white shadow-xs shrink-0">
+      <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xs lg:gap-2 lg:px-2.5">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[9px] font-black leading-none whitespace-nowrap text-white shadow-xs lg:size-6 lg:rounded-lg lg:text-[11px]">
             {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
           </span>
-          <span className="text-xs sm:text-sm leading-none shrink-0">{getFlagEmoji(course.country || course.flag)}</span>
-          <div className="flex items-center gap-1.5 sm:flex-col sm:items-start leading-tight">
-            <span className="text-xs sm:text-[11px] font-bold text-white drop-shadow-xs whitespace-nowrap">{course.name || t("traveler")}</span>
-            <span className="text-[10px] sm:text-[10px] font-semibold text-violet-200 drop-shadow-xs whitespace-nowrap">{course.hash || "#더현대 #추천코스"}</span>
+          <span className="shrink-0 text-xs leading-none lg:text-sm">
+            {getFlagEmoji(course.country || course.flag)}
+          </span>
+          <div className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[11px] font-bold text-white">
+              {course.name || t("traveler")}
+            </span>
+            {course.badge === "SHARED" ? null : (
+              <span className="block truncate text-[10px] font-semibold text-violet-200">
+                {course.hash || "#더현대 #추천코스"}
+              </span>
+            )}
           </div>
         </div>
 
-        {(onEdit || onDelete) && (
-          <div className="flex items-center gap-1.5 z-20">
-            {onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onEdit(course);
-                }}
-                title="게시글 수정"
-                className="flex size-6.5 sm:size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-brand border border-white/15 cursor-pointer shadow-sm"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDelete(course);
-                }}
-                title="게시글 삭제"
-                className="flex size-6.5 sm:size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition hover:bg-red-500 border border-white/15 cursor-pointer shadow-sm"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
+        {onEdit ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit(course);
+            }}
+            title="게시글 수정"
+            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-white shadow-sm backdrop-blur-xs transition hover:bg-brand"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </button>
+        ) : null}
       </div>
 
       {/* Bottom Content Area */}
-      <div className="relative z-10 p-3.5 sm:p-4 pt-0 flex flex-col gap-2">
-        <div className="flex flex-col gap-0.5 sm:gap-1">
-          <h3 className="text-lg sm:text-[19px] lg:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1 sm:line-clamp-2">
+      <div className="relative z-10 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
+        <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
+          <h3 className="line-clamp-2 break-keep text-[13px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[20px]">
             {course.title}
           </h3>
-          {course.description && (
-            <p className="text-xs sm:text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          {course.description ? (
+            <p className="line-clamp-2 break-keep text-[10px] font-medium leading-snug text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] lg:line-clamp-1 lg:text-[11px]">
               {course.description}
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Bottom Stats Toolbar */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-[11px] font-bold text-white pt-0.5">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 pt-0.5 text-[10px] font-bold text-white lg:gap-2 lg:text-[11px]">
           {/* 좋아요 버튼 */}
           <button
             type="button"

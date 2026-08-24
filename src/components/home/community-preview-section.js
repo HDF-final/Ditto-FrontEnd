@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { communityCourses } from "@/lib/fixtures/home";
+import { CountryFlag } from "@/components/common/country-flag";
 import { SectionHeading } from "@/components/home/section-heading";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
@@ -117,7 +118,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[26px] aspect-[3/4] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)]"
+      className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] aspect-[4/3] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]"
     >
       {/* Full Background Image */}
       <img
@@ -127,44 +128,48 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       />
 
       {/* Top Gradient for text legibility */}
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-28" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-60" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 flex items-start justify-between p-4 lg:p-5">
-        <div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/30 px-3 py-1.5 backdrop-blur-xs">
+      <div className="relative z-10 flex min-w-0 items-start justify-between p-3 lg:p-5">
+        <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/30 px-2 py-1 backdrop-blur-xs lg:gap-2.5 lg:px-3 lg:py-1.5">
           {/* Rank Badge */}
-          <span className="flex size-7 items-center justify-center rounded-lg bg-[#5c2ef5] text-xs font-black text-white shadow-sm">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-7 lg:rounded-lg lg:text-xs">
             {course.rank}
           </span>
           {/* Flag */}
-          <span className="text-base leading-none">{getFlagEmoji(course.flag || course.country)}</span>
+          <CountryFlag
+            code={course.flag || course.country}
+            emoji={getFlagEmoji(course.flag || course.country)}
+            className="h-[12px] w-[18px] lg:h-[16px] lg:w-[22px]"
+          />
           {/* Name & Tag */}
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-xs font-bold text-white drop-shadow-sm">{course.name}</span>
-            <span className="truncate text-[11px] font-semibold text-violet-200 drop-shadow-sm">{course.hash}</span>
+            <span className="truncate text-[10px] font-bold text-white drop-shadow-sm lg:text-xs">{course.name}</span>
+            <span className="truncate text-[9px] font-semibold text-violet-200 drop-shadow-sm lg:text-[11px]">{course.hash}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 flex flex-col gap-3 p-4 pt-0 lg:p-5 lg:pt-0">
+      <div className="relative z-10 flex flex-col gap-2 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
         {/* Title & Description */}
-        <div className="flex flex-col gap-1.5">
-          <h3 className="line-clamp-2 min-h-[3.2rem] text-xl font-black leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:min-h-0 lg:text-2xl">
+        <div className="flex flex-col gap-0.5 lg:gap-1.5">
+          <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-2xl">
             {course.title}
           </h3>
-          {course.description && (
-            <p className="line-clamp-1 text-xs font-medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          {course.description ? (
+            <p className="line-clamp-1 text-[11px] font-medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] lg:text-xs">
               {course.description}
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-3.5 pt-1 text-xs font-bold text-white/95">
+        <div className="flex items-center justify-end gap-2 pt-0.5 text-[11px] font-bold text-white/95 lg:gap-3.5 lg:text-xs">
           {/* Like button */}
           <button
             type="button"
@@ -256,7 +261,7 @@ function CommunitySlider({
 
   return (
     <>
-      <div className="relative w-full overflow-hidden pb-4 pt-2">
+      <div className="relative w-full overflow-hidden pb-2 pt-1 lg:pb-4 lg:pt-2">
         <div
           className="flex transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -313,7 +318,7 @@ export function CommunityPreviewSection() {
   return (
     <section
       id="community"
-      className="scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-8 lg:scroll-mt-[94px] lg:px-52 lg:py-16 xl:px-60 2xl:px-72"
+      className="scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-5 lg:scroll-mt-[94px] lg:px-52 lg:py-16 xl:px-60 2xl:px-72"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >

@@ -210,3 +210,19 @@ export function CalendarDays(props) {
     </IconBase>
   );
 }
+
+export function ChevronUp(props) {
+  return (
+    <IconBase {...props}>
+      <path d="m18 15-6-6-6 6" />
+    </IconBase>
+  );
+}
+
+export function ChevronDown(props) {
+  return (
+    <IconBase {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </IconBase>
+  );
+}

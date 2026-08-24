@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 function ArrowRightIcon({ className = "" }) {
@@ -55,6 +55,7 @@ function SlideIndicators({
 
 export function HomeHero({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartXRef = useRef(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -64,24 +65,45 @@ export function HomeHero({ slides }) {
     return () => window.clearInterval(timer);
   }, [slides.length]);
 
+  const goToNext = () =>
+    setActiveIndex((current) => (current + 1) % slides.length);
+  const goToPrev = () =>
+    setActiveIndex((current) => (current - 1 + slides.length) % slides.length);
+
+  const handleTouchStart = (event) => {
+    touchStartXRef.current = event.touches[0].clientX;
+  };
+  const handleTouchEnd = (event) => {
+    if (touchStartXRef.current === null) return;
+    const deltaX = event.changedTouches[0].clientX - touchStartXRef.current;
+    const SWIPE_THRESHOLD = 40;
+    if (deltaX <= -SWIPE_THRESHOLD) goToNext();
+    else if (deltaX >= SWIPE_THRESHOLD) goToPrev();
+    touchStartXRef.current = null;
+  };
+
   const activeSlide = slides[activeIndex];
   const heroMinHeight = "clamp(480px, 44vw, 640px)";
 
   return (
     <>
-      <section className="px-5 pt-5 lg:hidden">
+      <section className="px-5 pb-2 pt-5 lg:hidden">
         <p className="text-[11px] font-black tracking-wide text-brand">
           {activeSlide.eyebrow}
         </p>
-        <h1 className="mt-1 text-[24px] font-black leading-snug text-ink">
+        <h1 className="mt-2.5 text-[24px] font-black leading-[1.5] text-ink">
           <span className="block">{activeSlide.titleLine}</span>
-          <span className="block">
+          <span className="mt-1.5 block">
             <span className="text-brand">{activeSlide.accent}</span>
             {activeSlide.suffix}
           </span>
         </h1>
 
-        <div className="relative mt-4 overflow-hidden rounded-[22px]">
+        <div
+          className="relative mt-4 touch-pan-y select-none overflow-hidden rounded-[22px]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url("${activeSlide.image}")` }}
@@ -92,7 +114,7 @@ export function HomeHero({ slides }) {
           <div className="relative flex min-h-[168px] flex-col justify-between p-5">
             <p className="text-[28px] font-black tracking-tight text-white">DITTO</p>
             <div>
-              <p className="text-[13px] font-semibold leading-5 text-white/90">
+              <p className="text-[13px] font-semibold leading-6 text-white/90">
                 {activeSlide.description.split("\n")[0]}
               </p>
               <Link

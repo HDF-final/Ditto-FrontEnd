@@ -71,7 +71,9 @@ export function AppFrame({ children }) {
         className={`flex min-h-0 flex-1 flex-col ${
           isScanMap
             ? "h-dvh overflow-hidden"
-            : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
+            : isCourseStudio
+              ? "pb-[calc(var(--app-tabbar)+0.5rem)] max-lg:h-[calc(100dvh-var(--app-header))] max-lg:overflow-hidden lg:pb-0"
+              : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
         }`}
       >
         {children}

@@ -122,6 +122,7 @@ export function BottomTabBar() {
   const [scanOpen, setScanOpen] = useState(false);
   const [scanImage, setScanImage] = useState(null);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -142,11 +143,17 @@ export function BottomTabBar() {
   }, [hydrated, isAuthenticated, pathname, router]);
 
   function handleScanClick() {
+    setMenuOpen(false);
     if (hydrated && !isAuthenticated) {
       setLoginPromptOpen(true);
       return;
     }
     setScanOpen(true);
+  }
+
+  function handleCreateCourse() {
+    setMenuOpen(false);
+    router.push("/ai-course");
   }
 
   return (
@@ -163,7 +170,7 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-0.5 text-[10px] font-black tracking-tight transition ${
+                className={`flex h-16 flex-col items-center justify-end gap-1 pb-2 text-[10px] font-black tracking-tight transition ${
                   active ? "text-brand" : "text-ink-subtle hover:text-ink"
                 }`}
               >
@@ -174,17 +181,83 @@ export function BottomTabBar() {
           );
         })}
 
-        <li className="relative flex justify-center">
+        <li className="relative flex h-16 flex-col items-center justify-end pb-2">
+          {menuOpen ? (
+            <button
+              type="button"
+              aria-hidden="true"
+              tabIndex={-1}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-40 cursor-default bg-black/25"
+            />
+          ) : null}
+
+          {/* "+" 버튼에서 좌우 위로 펼쳐지는 부채꼴 액션 */}
+          <div
+            className={`absolute bottom-[calc(100%+0.5rem)] left-1/2 z-50 h-0 w-0 transition duration-200 ${
+              menuOpen ? "opacity-100" : "translate-y-2 opacity-0"
+            }`}
+          >
+            {/* 코스 만들기 — 오른쪽 위로 */}
+            <button
+              type="button"
+              onClick={handleCreateCourse}
+              tabIndex={menuOpen ? 0 : -1}
+              className={`absolute bottom-0 left-1/2 flex translate-x-2 -translate-y-3 items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-4 ${
+                menuOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-brand/12 text-brand">
+                <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18" />
+                </svg>
+              </span>
+              코스 만들기
+            </button>
+            {/* 내 위치 찾기 — 왼쪽 위로 */}
+            <button
+              type="button"
+              onClick={handleScanClick}
+              tabIndex={menuOpen ? 0 : -1}
+              className={`absolute bottom-0 right-1/2 flex -translate-x-2 -translate-y-3 items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-4 ${
+                menuOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-brand/12 text-brand">
+                <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s6.5-5.4 6.5-10.2A6.5 6.5 0 0 0 5.5 10.8C5.5 15.6 12 21 12 21Z" />
+                  <circle cx="12" cy="10.6" r="2.2" />
+                </svg>
+              </span>
+              내 위치 찾기
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={handleScanClick}
-            aria-label="카메라로 텍스트 스캔 (OCR)"
-            className="-mt-5 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(92,46,245,0.35)] transition hover:bg-brand-dark"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "메뉴 닫기" : "코스 만들기 · 내 위치 찾기 메뉴 열기"}
+            aria-expanded={menuOpen}
+            className="relative z-50 -mt-7 mb-1 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(92,46,245,0.35)] transition hover:bg-brand-dark"
           >
-            <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              className={`size-7 transition-transform duration-200 ${menuOpen ? "rotate-45" : "rotate-0"}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              aria-hidden="true"
+            >
               <path strokeLinecap="round" d="M12 6v12M6 12h12" />
             </svg>
           </button>
+          <span
+            className={`text-[10px] font-black tracking-tight transition ${
+              menuOpen ? "text-brand" : "text-ink-subtle"
+            }`}
+          >
+            더보기
+          </span>
         </li>
 
         {sideTabs.slice(2).map((tab) => {
@@ -194,7 +267,7 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-0.5 text-[10px] font-black tracking-tight transition ${
+                className={`flex h-16 flex-col items-center justify-end gap-1 pb-2 text-[10px] font-black tracking-tight transition ${
                   active ? "text-brand" : "text-ink-subtle hover:text-ink"
                 }`}
               >

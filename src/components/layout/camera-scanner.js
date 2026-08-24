@@ -2,11 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/**
- * Full-screen camera overlay used to capture a logo for OCR (mobile only).
- * Opens the rear camera via getUserMedia, lets the user frame + shoot (or pick
- * from the gallery), and hands the captured still back through `onCapture`.
- */
 export function CameraScanner({
   open,
   onClose,
@@ -18,37 +13,75 @@ export function CameraScanner({
   const fileInputRef = useRef(null);
   const [error, setError] = useState(null);
   const [shot, setShot] = useState(null);
+  const [cameraMode, setCameraMode] = useState("live");
 
   useEffect(() => {
-    // Live preview only while open and before a shot is taken.
-    if (!open || shot) return undefined;
+    if (!open || shot || cameraMode !== "live") return undefined;
 
     let cancelled = false;
 
     async function start() {
       setError(null);
+
       if (!navigator.mediaDevices?.getUserMedia) {
-        setError("이 브라우저에서는 카메라를 사용할 수 없어요.");
+        setCameraMode("file");
+        setError("이 브라우저에서는 실시간 카메라를 사용할 수 없습니다.");
         return;
       }
+
+      const candidates = [
+        { video: { facingMode: { exact: "environment" } }, audio: false },
+        { video: { facingMode: { ideal: "environment" } }, audio: false },
+        { video: true, audio: false },
+      ];
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
+        let stream = null;
+
+        for (const constraints of candidates) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            break;
+          } catch (innerError) {
+            const name = innerError?.name;
+            if (
+              name !== "OverconstrainedError" &&
+              name !== "NotFoundError" &&
+              name !== "AbortError"
+            ) {
+              throw innerError;
+            }
+          }
+        }
+
+        if (!stream) {
+          throw new Error("camera_unavailable");
+        }
+
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
+
         streamRef.current = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
-      } catch {
-        if (!cancelled) {
-          setError("카메라를 열 수 없어요. 브라우저 권한을 허용했는지 확인해주세요.");
-        }
+      } catch (requestError) {
+        if (cancelled) return;
+
+        const denied =
+          requestError?.name === "NotAllowedError" ||
+          requestError?.name === "SecurityError";
+
+        setCameraMode("file");
+        setError(
+          denied
+            ? "카메라 권한이 차단되었습니다. 브라우저 권한을 허용하거나 아래에서 카메라를 다시 열어 주세요."
+            : "실시간 카메라를 열지 못했습니다. 아래에서 카메라 또는 사진을 선택해 주세요.",
+        );
       }
     }
 
@@ -58,7 +91,7 @@ export function CameraScanner({
       cancelled = true;
       stopStream();
     };
-  }, [open, shot]);
+  }, [cameraMode, open, shot]);
 
   function stopStream() {
     if (streamRef.current) {
@@ -70,6 +103,7 @@ export function CameraScanner({
   function capture() {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
+
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -80,10 +114,12 @@ export function CameraScanner({
   function handleClose() {
     stopStream();
     setShot(null);
+    setError(null);
+    setCameraMode("live");
     onClose();
   }
 
-  function pickFromGallery() {
+  function openFilePicker() {
     fileInputRef.current?.click();
   }
 
@@ -91,6 +127,7 @@ export function CameraScanner({
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -102,7 +139,6 @@ export function CameraScanner({
   }
 
   function useShot() {
-    // OCR 처리 연결 지점: 캡처/선택한 이미지(dataURL)를 상위로 전달합니다.
     if (onCapture && shot) onCapture(shot);
     handleClose();
   }
@@ -129,21 +165,27 @@ export function CameraScanner({
             {error}
           </div>
         ) : shot ? (
-          <img src={shot} alt="촬영본" className="h-full w-full object-contain" />
+          <img src={shot} alt="촬영한 로고 이미지" className="h-full w-full object-contain" />
         ) : (
           <>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="h-full w-full object-cover"
-            />
+            {cameraMode === "live" ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-neutral-950 px-8 text-center text-sm leading-6 text-white/70">
+                실시간 카메라 대신 기기 카메라 또는 사진 선택으로 계속할 수 있습니다.
+              </div>
+            )}
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="h-40 w-[82%] rounded-2xl border-2 border-white/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
             </div>
             <p className="absolute inset-x-0 bottom-28 text-center text-xs text-white/80">
-              인식할 로고를 사각형 안에 맞춰주세요
+              인식할 로고를 가이드 안에 맞춰 주세요.
             </p>
           </>
         )}
@@ -153,6 +195,7 @@ export function CameraScanner({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        capture="environment"
         className="hidden"
         onChange={handleFile}
       />
@@ -178,7 +221,7 @@ export function CameraScanner({
         <div className="relative flex items-center justify-center pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5">
           <button
             type="button"
-            onClick={pickFromGallery}
+            onClick={openFilePicker}
             className="absolute left-8 flex flex-col items-center gap-1 text-[11px] font-bold text-white/85"
           >
             <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -189,22 +232,14 @@ export function CameraScanner({
             갤러리
           </button>
 
-          {error ? (
-            <button
-              type="button"
-              onClick={handleClose}
-              className="rounded-full border border-white/40 px-6 py-2.5 text-sm font-bold text-white"
-            >
-              닫기
-            </button>
-          ) : (
+          {cameraMode === "live" ? (
             <button
               type="button"
               onClick={capture}
               aria-label="촬영"
               className="size-16 rounded-full border-4 border-white bg-white/25 transition active:scale-95"
             />
-          )}
+          ) : null}
         </div>
       )}
     </div>

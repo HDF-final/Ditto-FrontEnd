@@ -2,96 +2,124 @@
 
 import Link from "next/link";
 
-export function MyCoursePrivateCard({ course, onDelete }) {
-  const courseId = course.courseId || course.id;
+function shortFloor(floor) {
+  const value = String(floor || "").trim();
+  if (!value || value === "층 정보 없음") return "-";
+  return value.length > 4 ? value.slice(0, 4) : value;
+}
+
+function StopRow({ stop, idx, compact }) {
+  return (
+    <div
+      className={
+        compact
+          ? "flex h-5 shrink-0 items-center gap-1.5"
+          : "flex h-6 shrink-0 items-center gap-2 text-xs"
+      }
+    >
+      <span
+        className={
+          compact
+            ? "flex size-4 shrink-0 items-center justify-center rounded-md bg-surface-soft text-[9px] font-black text-ink-muted"
+            : "flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-soft text-[10px] font-black text-ink-muted"
+        }
+      >
+        {idx + 1}
+      </span>
+      <span
+        className={
+          compact
+            ? "max-w-[2.25rem] shrink-0 truncate rounded-md bg-[#f0ecfc] px-1 text-[9px] font-bold leading-4 text-brand"
+            : "shrink-0 rounded-md bg-[#f0ecfc] px-1.5 py-0.5 text-[10px] font-bold text-brand"
+        }
+      >
+        {compact ? shortFloor(stop.floor || "1F") : stop.floor || "1F"}
+      </span>
+      <span
+        className={
+          compact
+            ? "min-w-0 flex-1 truncate text-[11px] font-semibold leading-4 text-ink"
+            : "truncate font-semibold text-ink"
+        }
+      >
+        {stop.name || "장소명"}
+      </span>
+    </div>
+  );
+}
+
+export function MyCoursePrivateCard({ course }) {
+  const courseId = course?.courseId || course?.id;
   const href = `/ai-course?courseId=${courseId}`;
-  const stops = Array.isArray(course.stops) ? course.stops : [];
+  const stops = Array.isArray(course?.stops) ? course.stops.filter(Boolean) : [];
+  const previewStops = stops.slice(0, 3);
   const spotCountText =
-    course.spotCount ||
+    course?.spotCount ||
     (stops.length > 0 ? `${stops.length}개 스팟` : "스팟 정보 없음");
 
   return (
     <Link
       href={href}
-      className="group relative flex min-h-[220px] sm:h-[255px] flex-col justify-between rounded-[20px] sm:rounded-[24px] border border-line bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] cursor-pointer"
+      className="group relative flex aspect-[4/5] min-h-0 w-full cursor-pointer flex-col overflow-hidden rounded-[20px] border border-line bg-white p-3 shadow-[0_4px_20px_rgba(43,28,89,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_28px_rgba(92,46,245,0.12)] lg:h-full lg:min-h-[232px] lg:max-h-[276px] lg:aspect-auto lg:rounded-[24px] lg:p-5"
     >
-      <div className="flex min-w-0 flex-col">
-        {/* Top Header */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] sm:text-xs font-black text-brand whitespace-nowrap shrink-0">
-            <span className="size-1.5 rounded-full bg-brand animate-pulse" />
-            내 맞춤 코스
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 items-center justify-between gap-1 lg:gap-2">
+          <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-brand-soft px-1.5 py-0.5 text-[9px] font-black text-brand lg:gap-1.5 lg:px-2.5 lg:py-1 lg:text-xs">
+            <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-brand" />
+            <span className="truncate">내 맞춤 코스</span>
           </span>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="rounded-full bg-surface-soft px-2 py-0.5 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-bold text-ink-muted whitespace-nowrap shrink-0">
-              {spotCountText}
-            </span>
-            {onDelete ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDelete(course);
-                }}
-                title="코스 삭제"
-                className="flex size-6 items-center justify-center rounded-full text-ink-muted/50 transition hover:bg-red-50 hover:text-red-500"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-              </button>
-            ) : null}
-          </div>
+          <span className="shrink-0 rounded-full bg-surface-soft px-1.5 py-0.5 text-[9px] font-bold text-ink-muted lg:px-2.5 lg:py-1 lg:text-xs">
+            {spotCountText}
+          </span>
         </div>
 
-        {/* Course Title */}
-        <h3 className="mt-3 text-base sm:text-lg font-black text-ink group-hover:text-brand transition-colors line-clamp-1">
-          {course.title || "나만의 코스"}
+        <h3 className="mt-1.5 truncate text-[13px] font-black text-ink transition-colors group-hover:text-brand lg:mt-3 lg:line-clamp-1 lg:text-lg">
+          {course?.title || "나만의 코스"}
         </h3>
 
-        {/* Course Stops Timeline */}
-        <div
-          className="mt-3 flex flex-col gap-1.5 sm:gap-2 max-h-[76px] overflow-y-auto pr-1.5 scrollbar-thin [scrollbar-width:thin] [scrollbar-color:#d4d0ec_transparent]"
-          onClick={(e) => {
-            // 스크롤 조작 중 불필요한 링크 점프 방지 (스크롤바 클릭 시)
-            e.stopPropagation();
-          }}
-        >
+        <div className="mt-2 flex min-h-0 flex-1 flex-col gap-1 lg:hidden">
+          {stops.length > 0 ? (
+            <>
+              {previewStops.map((stop, idx) => (
+                <StopRow
+                  key={`${stop.name || "stop"}-${idx}`}
+                  stop={stop}
+                  idx={idx}
+                  compact
+                />
+              ))}
+              {stops.length > 3 ? (
+                <p className="pl-0.5 text-[11px] font-black leading-none tracking-widest text-ink-muted">
+                  ...
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="py-1 text-[11px] text-ink-muted">
+              저장된 스팟 목록이 없습니다.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-2 hidden min-h-[84px] flex-1 flex-col gap-1.5 overflow-y-auto pr-1.5 lg:flex [scrollbar-color:#d4d0ec_transparent] [scrollbar-width:thin]">
           {stops.length > 0 ? (
             stops.map((stop, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs shrink-0 py-0.5">
-                <span className="flex size-4.5 sm:size-5 shrink-0 items-center justify-center rounded-md bg-surface-soft font-black text-ink-muted text-[10px]">
-                  {idx + 1}
-                </span>
-                <span className="shrink-0 rounded-md bg-[#f0ecfc] px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                  {stop.floor || "1F"}
-                </span>
-                <span className="truncate font-semibold text-ink">
-                  {stop.name || "장소명"}
-                </span>
-              </div>
+              <StopRow
+                key={`${stop.name || "stop"}-desktop-${idx}`}
+                stop={stop}
+                idx={idx}
+              />
             ))
           ) : (
-            <p className="text-xs text-ink-muted py-1">저장된 스팟 목록이 없습니다.</p>
+            <p className="py-1 text-xs text-ink-muted">
+              저장된 스팟 목록이 없습니다.
+            </p>
           )}
         </div>
       </div>
 
-      {/* Bottom Action Footer */}
-      <div className="mt-3 sm:mt-4 flex items-center justify-end border-t border-line/70 pt-3">
-        <div className="inline-flex items-center gap-1 text-xs font-black text-brand group-hover:translate-x-0.5 transition-transform">
+      <div className="mt-2 flex shrink-0 items-center justify-end border-t border-line/70 pt-2 lg:mt-3 lg:pt-2.5">
+        <div className="inline-flex items-center gap-0.5 text-[11px] font-black text-brand transition-transform group-hover:translate-x-0.5 lg:gap-1 lg:text-xs">
           <span>지도에서 보기</span>
           <span>→</span>
         </div>
