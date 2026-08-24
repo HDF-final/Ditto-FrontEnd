@@ -170,7 +170,7 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-0.5 text-[10px] font-black tracking-tight transition ${
+                className={`flex h-16 flex-col items-center justify-end gap-1 pb-2 text-[10px] font-black tracking-tight transition ${
                   active ? "text-brand" : "text-ink-subtle hover:text-ink"
                 }`}
               >
@@ -181,7 +181,7 @@ export function BottomTabBar() {
           );
         })}
 
-        <li className="relative flex justify-center">
+        <li className="relative flex h-16 flex-col items-center justify-end pb-2">
           {menuOpen ? (
             <button
               type="button"
@@ -192,18 +192,20 @@ export function BottomTabBar() {
             />
           ) : null}
 
-          {/* 위쪽으로 펼쳐지는 두 갈래 액션 */}
+          {/* "+" 버튼에서 좌우 위로 펼쳐지는 부채꼴 액션 */}
           <div
-            className={`absolute bottom-[calc(100%+0.75rem)] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2.5 transition duration-200 ${
-              menuOpen
-                ? "pointer-events-auto translate-y-0 opacity-100"
-                : "pointer-events-none translate-y-2 opacity-0"
+            className={`absolute bottom-[calc(100%+0.5rem)] left-1/2 z-50 h-0 w-0 transition duration-200 ${
+              menuOpen ? "opacity-100" : "translate-y-2 opacity-0"
             }`}
           >
+            {/* 코스 만들기 — 오른쪽 위로 */}
             <button
               type="button"
               onClick={handleCreateCourse}
-              className="flex items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-0.5"
+              tabIndex={menuOpen ? 0 : -1}
+              className={`absolute bottom-0 left-1/2 flex translate-x-2 -translate-y-3 items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-4 ${
+                menuOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-brand/12 text-brand">
                 <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -212,10 +214,14 @@ export function BottomTabBar() {
               </span>
               코스 만들기
             </button>
+            {/* 내 위치 찾기 — 왼쪽 위로 */}
             <button
               type="button"
               onClick={handleScanClick}
-              className="flex items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-0.5"
+              tabIndex={menuOpen ? 0 : -1}
+              className={`absolute bottom-0 right-1/2 flex -translate-x-2 -translate-y-3 items-center gap-2 whitespace-nowrap rounded-full bg-white py-2.5 pl-3 pr-4 text-xs font-black text-ink shadow-[0_10px_24px_rgba(15,23,42,0.16)] ring-1 ring-line transition hover:-translate-y-4 ${
+                menuOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-brand/12 text-brand">
                 <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
@@ -232,7 +238,7 @@ export function BottomTabBar() {
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? "메뉴 닫기" : "코스 만들기 · 내 위치 찾기 메뉴 열기"}
             aria-expanded={menuOpen}
-            className="relative z-50 -mt-5 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(92,46,245,0.35)] transition hover:bg-brand-dark"
+            className="relative z-50 -mt-7 mb-1 flex size-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(92,46,245,0.35)] transition hover:bg-brand-dark"
           >
             <svg
               viewBox="0 0 24 24"
@@ -245,6 +251,13 @@ export function BottomTabBar() {
               <path strokeLinecap="round" d="M12 6v12M6 12h12" />
             </svg>
           </button>
+          <span
+            className={`text-[10px] font-black tracking-tight transition ${
+              menuOpen ? "text-brand" : "text-ink-subtle"
+            }`}
+          >
+            더보기
+          </span>
         </li>
 
         {sideTabs.slice(2).map((tab) => {
@@ -254,7 +267,7 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-0.5 text-[10px] font-black tracking-tight transition ${
+                className={`flex h-16 flex-col items-center justify-end gap-1 pb-2 text-[10px] font-black tracking-tight transition ${
                   active ? "text-brand" : "text-ink-subtle hover:text-ink"
                 }`}
               >
