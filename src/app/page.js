@@ -6,13 +6,15 @@ import { HomeHero } from "@/components/home/home-hero";
 import { NewsletterPreviewSection } from "@/components/home/newsletter-preview-section";
 import { heroSlides } from "@/lib/fixtures/home";
 import { fetchNewsFeedsServer } from "@/lib/api/news.server";
+import { fetchSystemCoursesServer } from "@/lib/api/courses.server";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [newsList, t] = await Promise.all([
+  const [newsList, systemCourses, t] = await Promise.all([
     fetchNewsFeedsServer({ page: 0, size: 3 }),
+    fetchSystemCoursesServer({ size: 3 }).catch(() => []),
     getTranslations("home"),
   ]);
   const localizedHeroSlides = heroSlides.map((slide, index) => {
@@ -28,7 +30,7 @@ export default async function Home() {
   return (
     <main className="bg-background">
       <HomeHero slides={localizedHeroSlides} />
-      <DittoPicksSection />
+      <DittoPicksSection initialCourses={systemCourses} />
       <CommunityPreviewSection />
       <NewsletterPreviewSection items={newsList} />
       <AppBanner />

@@ -49,40 +49,7 @@ export const categoryChips = [
   "LOCAL",
 ];
 
-export const pickCourses = [
-  {
-    rank: "TOP 1",
-    englishTitle: "SEOUL ICONS",
-    title: "K-Star Ditto Course",
-    tags: ["KPOP", "SEONGSU"],
-    href: "/courses/first-timer-boni-route",
-    gradient: "from-[#5c2ef5] to-[#8c57fa]",
-  },
-  {
-    rank: "TOP 2",
-    englishTitle: "THE HYUNDAI SEOUL",
-    title: "K-MZ Trend Course",
-    tags: ["POPUP", "TRENDS"],
-    href: "/courses/hyundai-mz-trend",
-    gradient: "from-[#2d1b8e] to-[#5c2ef5]",
-  },
-  {
-    rank: "TOP 3",
-    englishTitle: "GLOW LAB",
-    title: "K-Beauty & Glow",
-    tags: ["BEAUTY", "GLOW"],
-    href: "/courses/k-beauty-glow",
-    gradient: "from-[#6d28d9] to-[#c084fc]",
-  },
-  {
-    rank: "TOP 4",
-    englishTitle: "SEOUL TABLE",
-    title: "Quick & Gourmet",
-    tags: ["GOURMET", "LOCAL"],
-    href: "/courses/quick-gourmet",
-    gradient: "from-[#4a2fa8] to-[#7c5cf0]",
-  },
-];
+export const pickCourses = [];
 
 export const communityCourses = [
   {
