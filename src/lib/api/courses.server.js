@@ -63,10 +63,10 @@ export async function fetchSystemCoursesServer({ size = 3 } = {}) {
       englishTitle: engTitle,
       title: c.name || c.title || "기본 추천 코스",
       tags: rawTags,
-      href: c.slug
-        ? `/courses/${c.slug}`
-        : c.courseId
-          ? `/ai-course?courseId=${c.courseId}`
+      href: c.courseId
+        ? `/courses/${c.courseId}`
+        : c.slug
+          ? `/courses/${c.slug}`
           : `/courses`,
       gradient: c.gradient || GRADIENTS[i % GRADIENTS.length],
     };

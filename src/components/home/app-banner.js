@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 function isStandaloneDisplay() {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
   return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
+    window.matchMedia("(display-mode: standalone)")?.matches ||
+    window.navigator?.standalone === true
   );
 }
 
@@ -18,12 +18,14 @@ export function AppBanner() {
   const [iosHint] = useState(() => {
     if (typeof window === "undefined") return false;
     const isIos =
-      /iphone|ipad|ipod/i.test(window.navigator.userAgent) &&
+      /iphone|ipad|ipod/i.test(window.navigator?.userAgent || "") &&
       !window.MSStream;
     return isIos && !isStandaloneDisplay();
   });
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
+
     function onBeforeInstall(event) {
       event.preventDefault();
       setDeferredPrompt(event);
@@ -38,8 +40,10 @@ export function AppBanner() {
     window.addEventListener("appinstalled", onInstalled);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-      window.removeEventListener("appinstalled", onInstalled);
+      if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+        window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+        window.removeEventListener("appinstalled", onInstalled);
+      }
     };
   }, []);
 

@@ -113,6 +113,8 @@ export function CommunityChatButton({ course = {} }) {
   const mounted = useIsMounted();
   const postId =
     course?.postId ||
+    course?.courseId ||
+    course?.id ||
     (typeof course?.slug === "number" || /^\d+$/.test(course?.slug)
       ? Number(course.slug)
       : null);
@@ -289,10 +291,14 @@ export function CommunityChatButton({ course = {} }) {
 
     if (postId) {
       try {
+        let res;
         if (nextState) {
-          await likeCourse(postId);
+          res = await likeCourse(postId);
         } else {
-          await unlikeCourse(postId);
+          res = await unlikeCourse(postId);
+        }
+        if (typeof res?.likesCount === "number") {
+          setPostLikes(res.likesCount - (nextState ? 1 : 0));
         }
       } catch (err) {
         console.warn("[Like Toggle] Failed:", err.message);
@@ -669,16 +675,16 @@ export function CommunityChatButton({ course = {} }) {
                     <button
                       type="button"
                       onClick={handleLikeToggle}
-                      className="transition hover:opacity-75 cursor-pointer"
+                      className="transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       aria-label={t("like")}
                     >
                       <svg
                         aria-hidden="true"
-                        className={`size-6 ${
-                          isLiked ? "text-danger fill-danger" : "text-ink"
+                        className={`size-6.5 transition-colors ${
+                          isLiked ? "text-red-500 fill-red-500" : "text-ink hover:text-red-400"
                         }`}
                         viewBox="0 0 24 24"
-                        fill="none"
+                        fill={isLiked ? "currentColor" : "none"}
                         stroke="currentColor"
                         strokeWidth="2"
                       >
@@ -690,16 +696,16 @@ export function CommunityChatButton({ course = {} }) {
                   <button
                     type="button"
                     onClick={handleBookmarkToggle}
-                    className="transition hover:opacity-75 cursor-pointer"
+                    className="transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                     aria-label={t("bookmarkCourse")}
                   >
                     <svg
                       aria-hidden="true"
-                      className={`size-6 ${
-                        isBookmarked ? "text-brand fill-brand" : "text-ink"
+                      className={`size-6.5 transition-colors ${
+                        isBookmarked ? "text-brand fill-brand" : "text-ink hover:text-brand"
                       }`}
                       viewBox="0 0 24 24"
-                      fill="none"
+                      fill={isBookmarked ? "currentColor" : "none"}
                       stroke="currentColor"
                       strokeWidth="2"
                     >

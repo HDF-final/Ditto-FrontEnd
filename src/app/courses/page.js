@@ -39,7 +39,11 @@ export default async function CoursesPage() {
           {systemCourses.map((course, index) => {
             const places = Array.isArray(course.places) ? course.places : [];
             const gradient = course.gradient || GRADIENTS[index % GRADIENTS.length];
-            const courseHref = course.courseId ? `/ai-course?courseId=${course.courseId}` : `/courses`;
+            const courseHref = course.courseId
+              ? `/courses/${course.courseId}`
+              : course.slug
+                ? `/courses/${course.slug}`
+                : `/courses`;
 
             return (
               <article

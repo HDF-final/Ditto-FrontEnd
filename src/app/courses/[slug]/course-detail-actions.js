@@ -1,107 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import {
-  getPublicCourse,
-  likeCourse,
-  unlikeCourse,
-  bookmarkCourse,
-  unbookmarkCourse,
-} from "@/lib/api/community";
+import { bookmarkCourse, unbookmarkCourse } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
-import { CommunityChatButton } from "./community-chat-button";
-import { CommunityShareButton } from "./community-share-button";
+import { CommunityShareButton } from "@/app/community/[postId]/community-share-button";
 import { useTranslations } from "next-intl";
 
-export function CommunityDetailActions({ course = {} }) {
+export function CourseDetailActions({ course = {} }) {
   const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
 
-  const postId =
-    course.postId ||
+  const courseId =
     course.courseId ||
+    course.postId ||
     course.id ||
     (typeof course.slug === "number" || /^\d+$/.test(course.slug)
       ? Number(course.slug)
       : 1);
 
-  const postIdentifier = String(course.postId || course.slug || postId || "1");
+  const postIdentifier = String(course.courseId || course.slug || courseId || "1");
 
-  const [liveLikes, setLiveLikes] = useState(
-    typeof course.likes === "number"
-      ? course.likes
-      : typeof course.likeCount === "number"
-        ? course.likeCount
-        : 0,
-  );
-
-  useEffect(() => {
-    if (postId) {
-      getPublicCourse(postId)
-        .then((detail) => {
-          const count =
-            typeof detail?.likeCount === "number"
-              ? detail.likeCount
-              : typeof detail?.likes === "number"
-                ? detail.likes
-                : null;
-          if (count !== null) setLiveLikes(count);
-        })
-        .catch(() => {});
-    }
-  }, [postId]);
-
-  const isLikedStored = useCommunityInteractionsStore((state) =>
-    state.isLiked(postIdentifier),
-  );
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
     state.isBookmarked(postIdentifier),
   );
-  const likesDeltaStored = useCommunityInteractionsStore((state) =>
-    state.getLikesDelta(postIdentifier),
-  );
-  const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
 
-  const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
-  const likesDelta = mounted ? likesDeltaStored : 0;
-
-  const baseLikes = liveLikes;
-  const likesCount = Math.max(0, baseLikes + likesDelta);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  async function handleLikeToggle() {
-    if (!isAuthenticated) {
-      setIsLoginModalOpen(true);
-      return;
-    }
-    const nextState = !isLiked;
-    setLiked(postIdentifier, nextState);
-
-    if (postId) {
-      try {
-        let res;
-        if (nextState) {
-          res = await likeCourse(postId);
-        } else {
-          res = await unlikeCourse(postId);
-        }
-        if (typeof res?.likesCount === "number") {
-          setLiveLikes(res.likesCount - (nextState ? 1 : 0));
-        }
-      } catch (err) {
-        console.warn("[Like Toggle] Failed:", err);
-      }
-    }
-  }
 
   async function handleBookmarkToggle() {
     if (!isAuthenticated) {
@@ -111,12 +43,12 @@ export function CommunityDetailActions({ course = {} }) {
     const nextState = !isBookmarked;
     setBookmarked(postIdentifier, nextState);
 
-    if (postId) {
+    if (courseId) {
       try {
         if (nextState) {
-          await bookmarkCourse(postId);
+          await bookmarkCourse(courseId);
         } else {
-          await unbookmarkCourse(postId);
+          await unbookmarkCourse(courseId);
         }
       } catch (err) {
         console.warn("[Bookmark Toggle] Failed:", err);
@@ -127,34 +59,11 @@ export function CommunityDetailActions({ course = {} }) {
   return (
     <>
       <div className="mt-5 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-        {/* 좋아요 버튼 */}
-        <button
-          type="button"
-          onClick={handleLikeToggle}
-          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
-            isLiked
-              ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
-              : "border-line bg-white text-ink hover:border-red-300 hover:text-red-500"
-          }`}
-        >
-          <svg
-            className={`size-4.5 transition-transform ${isLiked ? "fill-current scale-110" : ""}`}
-            viewBox="0 0 24 24"
-            fill={isLiked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2.2"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span>{t("like")}</span>
-          <span className="text-xs font-bold opacity-80">{likesCount}</span>
-        </button>
-
         {/* 코스 저장 / 북마크 버튼 */}
         <button
           type="button"
           onClick={handleBookmarkToggle}
-          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
+          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm ${
             isBookmarked
               ? "border border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
               : "bg-brand text-white hover:bg-brand-dark"
@@ -174,9 +83,6 @@ export function CommunityDetailActions({ course = {} }) {
 
         {/* 공유하기 버튼 */}
         <CommunityShareButton />
-
-        {/* 대화 참여 버튼 */}
-        <CommunityChatButton course={course} />
       </div>
 
       {/* 로그인 필요 알림 모달 */}
