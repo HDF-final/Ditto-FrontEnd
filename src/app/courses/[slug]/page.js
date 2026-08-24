@@ -3,262 +3,310 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import {
-  getRecommendedCourse,
-  recommendedCourses,
-} from "@/lib/fixtures/recommended-courses";
+  fetchCourseDetailServer,
+  fetchRawSystemCoursesServer,
+} from "@/lib/api/courses.server";
+import { recommendedCourses } from "@/lib/fixtures/recommended-courses";
+import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
+import { CommunityStopList } from "@/components/community/community-stop-list";
+import { CourseDetailActions } from "./course-detail-actions";
 
-export function generateStaticParams() {
-  return recommendedCourses.map((course) => ({ slug: course.slug }));
+export const dynamic = "force-dynamic";
+
+const DEFAULT_COURSE_IMAGE =
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+
+function normalizeCourse(rawCourse, slug) {
+  if (!rawCourse) return null;
+
+  const courseId = rawCourse.courseId || rawCourse.id || slug;
+  const title = rawCourse.name || rawCourse.title || "기본 추천 코스";
+  const description =
+    rawCourse.description ||
+    "DITTO AI 보니가 엄선한 더현대 서울 대표 추천 코스입니다.";
+  const note =
+    rawCourse.note ||
+    rawCourse.description ||
+    "더현대 서울에서 가장 인기 있는 대표 스팟들을 초행자도 이동하기 편한 최적 실내 동선으로 연결한 추천 코스입니다.";
+
+  const rawPlaces = Array.isArray(rawCourse.places)
+    ? rawCourse.places
+    : Array.isArray(rawCourse.stops)
+      ? rawCourse.stops
+      : [];
+
+  const stops = rawPlaces.map((p, idx) => ({
+    placeId: p.placeId,
+    floor: p.floorCode || p.floor || `${idx + 1}F`,
+    name: p.name || p.placeName || `스팟 #${idx + 1}`,
+    description: p.description || p.desc || "더현대 서울 내 추천 방문 스팟",
+    category: p.category,
+    image: p.imageUrl || p.image || p.placeImg,
+    navigationKey: p.navigationKey,
+    x: p.xCoordinate,
+    y: p.yCoordinate,
+  }));
+
+  const image =
+    rawCourse.representativeImageUrl ||
+    rawCourse.image ||
+    DEFAULT_COURSE_IMAGE;
+
+  const gradient =
+    rawCourse.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
+
+  return {
+    courseId,
+    title,
+    description,
+    note,
+    image,
+    gradient,
+    label: rawCourse.label || "THE HYUNDAI SEOUL",
+    stops,
+    createdAt: rawCourse.createdAt || "2026.03.02",
+  };
+}
+
+async function getCourseData(slug) {
+  // 1. 숫자 ID일 경우 백엔드 상세 API 우선 조회
+  const numericId = parseInt(slug, 10);
+  if (!Number.isNaN(numericId)) {
+    const dbCourse = await fetchCourseDetailServer(numericId).catch(() => null);
+    if (dbCourse) {
+      return normalizeCourse(dbCourse, slug);
+    }
+  }
+
+  // 2. 전체 시스템 코스 목록에서 일치하는 코스 탐색
+  const rawCourses = await fetchRawSystemCoursesServer({ size: 30 }).catch(
+    () => [],
+  );
+  const foundRaw = rawCourses.find(
+    (c) =>
+      String(c.courseId) === String(slug) ||
+      c.slug === slug ||
+      (c.name && c.name.toLowerCase() === decodeURIComponent(slug).toLowerCase()),
+  );
+  if (foundRaw) {
+    return normalizeCourse(foundRaw, slug);
+  }
+
+  // 3. 픽스처 추천 코스에서 탐색
+  const foundFixture = recommendedCourses.find(
+    (c) =>
+      c.slug === slug ||
+      String(c.rank) === String(slug) ||
+      (c.title && c.title.toLowerCase() === decodeURIComponent(slug).toLowerCase()),
+  );
+  if (foundFixture) {
+    return normalizeCourse(foundFixture, slug);
+  }
+
+  return null;
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const course = getRecommendedCourse(slug);
+  const course = await getCourseData(slug);
 
   if (!course) {
-    return { title: "추천 코스" };
+    return { title: "기본 코스 추천 | DITTO" };
   }
 
-  return { title: course.title };
-}
-
-const reviews = [
-  {
-    name: "Yuki_T",
-    text: "친구가 처음 서울 왔을 때 이 순서 그대로 돌았어요.",
-    tag: "#1F워터폴가든",
-  },
-  {
-    name: "Chen_Li",
-    text: "5층 정원에서 쉬는 구간이 있어서 좋았어요.",
-    tag: "#5F사운즈포레스트",
-  },
-  {
-    name: "Emma_R",
-    text: "B2 편집숍이 생각보다 볼 게 많아서 시간을 더 잡았어요.",
-    tag: "#B2크리에이티브그라운드",
-  },
-];
-
-function GradientPanel({ gradient, className = "", children }) {
-  return (
-    <div className={`bg-linear-to-br ${gradient} ${className}`}>{children}</div>
-  );
-}
-
-function PillButton({ children, variant = "primary" }) {
-  return (
-    <button
-      type="button"
-      className={`inline-flex h-12 min-w-[142px] items-center justify-center rounded-full px-8 text-sm font-black transition ${
-        variant === "outline"
-          ? "border border-line bg-white text-brand hover:border-brand"
-          : "bg-brand text-white hover:bg-brand-dark"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StopSection({ course }) {
-  return (
-    <section className="rounded-[28px] bg-surface-soft p-7">
-      <h2 className="text-2xl font-black text-ink">코스 장소</h2>
-      <div className="mt-5 flex flex-col gap-4">
-        {course.stops.map((stop, index) => (
-          <div
-            key={`${stop.floor}-${stop.name}`}
-            className="flex items-center gap-4 rounded-[18px] bg-white px-5 py-4"
-          >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-black text-white">
-              {index + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-black text-ink">
-                {stop.floor} {stop.name}
-              </p>
-              <p className="mt-1 text-sm font-medium text-ink-muted">
-                {stop.description}
-              </p>
-            </div>
-            <Link href="/courses" className="text-sm font-black text-brand">
-              보기
-            </Link>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function RecommendationNote({ course }) {
-  return (
-    <section className="bg-surface-soft px-5 py-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-black text-brand">BONI NOTE</p>
-          <h2 className="mt-3 text-[32px] font-black text-ink">
-            보니가 추천하는 이유
-          </h2>
-        </div>
-        <Link href="/courses" className="text-sm font-black text-brand">
-          추천 기준 보기 →
-        </Link>
-      </div>
-
-      <article className="mt-8 rounded-[28px] bg-white p-8 shadow-[0_8px_20px_rgba(43,28,89,0.06)]">
-        <div className="grid gap-5">
-          <div>
-            <div className="flex items-center gap-4">
-              <Image
-                src="/assets/common/boni-chat.svg"
-                alt="Boni"
-                width={52}
-                height={52}
-                className="size-12 rounded-full"
-              />
-              <div>
-                <h3 className="text-xl font-black text-ink">Boni 추천 코멘트</h3>
-                <p className="mt-1 text-sm font-medium text-ink-muted">
-                  초행자 · 사진 포인트 · 실내 동선 기준
-                </p>
-              </div>
-            </div>
-            <div className="mt-8 rounded-[24px] bg-surface-soft p-7 text-base font-medium leading-7 text-ink">
-              {course.note}
-            </div>
-          </div>
-
-          <div className="rounded-[24px] bg-surface-soft p-7">
-            <h3 className="text-xl font-black text-ink">추천 기준</h3>
-            <div className="mt-6 flex flex-col gap-5">
-              {course.criteria.map((criterion, index) => (
-                <div key={criterion.title} className="flex gap-4">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-black text-white">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="text-base font-black text-ink">
-                      {criterion.title}
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-ink-muted">
-                      {criterion.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </article>
-    </section>
-  );
-}
-
-function ReviewCards() {
-  return (
-    <section className="bg-surface-soft px-5 pb-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-black text-brand">REVIEWS</p>
-          <h2 className="mt-3 text-[30px] font-black text-ink">
-            이 코스 다녀온 사람들
-          </h2>
-        </div>
-        <Link href="/community/share" className="text-sm font-black text-brand">
-          후기 쓰기 →
-        </Link>
-      </div>
-      <div className="mt-5 grid gap-4">
-        {reviews.map((review) => (
-          <article key={review.name} className="rounded-[20px] bg-white p-6">
-            <h3 className="text-lg font-black text-ink">{review.name}</h3>
-            <p className="mt-5 text-sm font-medium leading-6 text-ink">
-              {review.text}
-            </p>
-            <p className="mt-8 text-sm font-black text-brand">{review.tag}</p>
-          </article>
-        ))}
-      </div>
-      <div className="mt-8 flex justify-center">
-        <Link
-          href="/community"
-          className="rounded-full border border-brand px-8 py-3 text-sm font-black text-brand"
-        >
-          후기 128개 모두 보기 →
-        </Link>
-      </div>
-    </section>
-  );
+  return { title: `${course.title} | DITTO` };
 }
 
 export default async function RecommendedCourseDetailPage({ params }) {
   const { slug } = await params;
-  const course = getRecommendedCourse(slug);
+  const course = await getCourseData(slug);
 
   if (!course) {
     notFound();
   }
 
   return (
-    <main className="bg-background">
-      <section className="bg-white px-5 pb-8 pt-6">
-        <div className="grid gap-6">
-          <GradientPanel
-            gradient={course.gradient}
-            className="flex h-[270px] flex-col justify-between rounded-[28px] p-9 text-white"
+    <main className="min-w-0 overflow-x-hidden bg-white">
+      {/* 1. 상단 브레드크럼 섹션 */}
+      <section className="bg-surface-soft px-4 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href="/" className="shrink-0 transition hover:text-brand">
+              홈
+            </Link>
+            <span className="shrink-0">›</span>
+            <Link href="/courses" className="shrink-0 transition hover:text-brand">
+              기본 코스 추천
+            </Link>
+            <span className="shrink-0">›</span>
+            <span className="min-w-0 truncate text-ink">{course.title}</span>
+          </div>
+          <Link
+            href="/courses"
+            className="text-xs font-black text-brand transition hover:text-brand-dark"
           >
-            <span className="text-xs font-black">{course.label}</span>
-            <h1 className="max-w-[300px] text-[36px] font-black leading-tight">
-              {course.title}
-            </h1>
-          </GradientPanel>
-          <div>
-            <div className="flex items-center gap-4">
-              <span className="flex size-9 items-center justify-center rounded-full bg-brand text-sm font-black text-white">
-                {course.rank}
-              </span>
-              <Image
-                src="/assets/common/boni-chat.svg"
-                alt="Boni"
-                width={52}
-                height={52}
-                className="size-12 rounded-full"
+            목록
+          </Link>
+        </div>
+      </section>
+
+      {/* 2. 히어로 정보 섹션 (좌측 대표 이미지 + 우측 Boni 작성자 정보 및 타이틀) */}
+      <section className="px-4 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-16 lg:pt-[40px] xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl min-w-0 gap-6 sm:gap-8 lg:grid-cols-[0.78fr_1.32fr] lg:items-center lg:gap-12">
+          {/* 좌측: 코스 대표 비주얼 카드 */}
+          <div className="relative flex aspect-[4/3] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] lg:aspect-[3/4]">
+            <div className="absolute inset-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={course.image}
+                alt={course.title}
+                className="h-full w-full object-cover"
               />
-              <div>
-                <p className="text-xl font-black text-ink">{course.author}</p>
-                <p className="text-sm font-black text-brand">{course.hash}</p>
+            </div>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
+
+            <div className="pointer-events-none relative z-10 p-6">
+              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs">
+                {course.label}
+              </span>
+            </div>
+
+            <div className="relative z-10 p-6">
+              <span className="inline-block rounded-lg bg-brand px-2.5 py-1 text-[11px] font-black text-white">
+                DITTO PICKS
+              </span>
+              <p className="mt-2 line-clamp-2 text-lg font-black text-white drop-shadow-md sm:text-xl">
+                {course.title}
+              </p>
+            </div>
+          </div>
+
+          {/* 우측: Boni 프로필 및 코스 안내 */}
+          <div>
+            <div className="flex items-center gap-3.5">
+              <div className="flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-full bg-violet-50 shadow-sm ring-2 ring-brand/20">
+                <Image
+                  src="/assets/ai-course/boni-profile.png"
+                  alt="Boni"
+                  width={52}
+                  height={52}
+                  className="size-13 object-cover"
+                  unoptimized
+                />
+              </div>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-black text-ink">Boni</span>
+                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+                    AI MATE
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                  DITTO AI Shopping Mate · 추천 코스
+                </p>
               </div>
             </div>
-            <h2 className="mt-7 text-[44px] font-black leading-tight text-ink">
+
+            <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
               {course.title}
             </h2>
-            <p className="mt-5 max-w-3xl text-lg font-medium leading-7 text-ink-muted">
+
+            <p className="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">
               {course.description}
             </p>
-            <div className="mt-7 flex flex-wrap gap-4">
-              <PillButton>코스 저장</PillButton>
-              <PillButton variant="outline">공유하기</PillButton>
-            </div>
+
+            {/* 액션 버튼: 코스 저장 & 공유하기만 노출 */}
+            <CourseDetailActions course={course} />
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-5 pb-6">
-        <div className="grid gap-5">
-          <StopSection course={course} />
-          <GradientPanel
-            gradient="from-[#2d1b8e] to-[#9b5cf6]"
-            className="flex min-h-[300px] items-center justify-center rounded-[28px] text-base font-black text-white/75"
-          >
-            코스 대표 사진
-          </GradientPanel>
+      {/* 3. 코스 장소 목록 & 3D 실내 맵 동선 */}
+      <section className="px-4 py-5 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto grid max-w-7xl min-w-0 gap-4 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+          <CommunityStopList stops={course.stops} courseId={course.courseId} />
+          <CommunityCourseDetailMap stops={course.stops} />
         </div>
       </section>
 
-      <RecommendationNote course={course} />
-      <ReviewCards />
+      {/* 4. BONI NOTE 섹션 (보니가 추천하는 이유) */}
+      <section className="bg-surface-soft px-4 py-8 sm:px-14 lg:px-52 lg:py-16 xl:px-60 2xl:px-72">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black text-brand">BONI NOTE</p>
+              <h2 className="mt-3 text-[24px] font-black text-ink lg:text-[32px]">
+                보니가 추천하는 이유
+              </h2>
+              <p className="mt-2 text-sm font-medium text-ink-muted">
+                이 코스를 기획한 Boni가 직접 추천하는 가이드예요.
+              </p>
+            </div>
+            <Link
+              href="/courses"
+              className="text-sm font-black text-brand transition hover:text-brand-dark"
+            >
+              다른 추천 코스 둘러보기 →
+            </Link>
+          </div>
+
+          <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
+            <div className="flex items-center gap-4 border-b border-line/60 pb-6">
+              <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-violet-50 shadow-xs ring-2 ring-brand/20">
+                <Image
+                  src="/assets/ai-course/boni-profile.png"
+                  alt="Boni"
+                  width={48}
+                  height={48}
+                  className="size-12 object-cover"
+                  unoptimized
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-black text-ink">Boni</p>
+                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+                    AI MATE
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                  초행자 · 핫플레이스 · 최적 실내 동선 기준
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid items-stretch gap-7 lg:grid-cols-[0.86fr_1fr]">
+              <div className="relative min-h-[220px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md sm:min-h-[320px] md:min-h-[380px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={course.image}
+                  alt={course.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              <div className="flex h-full min-h-[200px] flex-col justify-start rounded-[20px] bg-surface-soft p-5 text-sm font-medium leading-7 text-ink sm:min-h-[320px] sm:rounded-[24px] sm:p-7 sm:text-base md:min-h-[380px]">
+                <p className="whitespace-pre-line leading-relaxed text-ink">
+                  {course.note}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* 5. 하단 전체 목록 버튼 */}
+      <section className="bg-surface-soft px-4 pb-10 sm:px-14 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-7xl justify-center">
+          <Link
+            href="/courses"
+            className="cursor-pointer rounded-full border border-brand bg-white px-8 py-3 text-sm font-black text-brand shadow-xs transition hover:bg-brand hover:text-white"
+          >
+            코스 목록 전체보기 →
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

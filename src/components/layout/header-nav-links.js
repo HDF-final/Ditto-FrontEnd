@@ -13,12 +13,14 @@ const baseNavigation = [
 ];
 
 function subscribeHash(callback) {
+  if (typeof window === "undefined") return () => {};
   window.addEventListener("hashchange", callback);
   return () => window.removeEventListener("hashchange", callback);
 }
 
 function getHashSnapshot() {
-  return window.location.hash;
+  if (typeof window === "undefined") return "";
+  return window.location.hash || "";
 }
 
 function getHashServerSnapshot() {
