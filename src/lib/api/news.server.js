@@ -120,12 +120,14 @@ export function normalizeNewsDetail(feed) {
 
     for (let i = 0; i < rawParagraphs.length; i++) {
       const p = rawParagraphs[i];
-      if (/^[“"][^”"]+[”"]$/.test(p)) {
+      const hasQuotes = /^[“"][^”"]+[”"]$/.test(p);
+      const isNextLineSource =
+        i + 1 < rawParagraphs.length &&
+        /^-\s*(DITTO.*|Yonhap.*)/i.test(rawParagraphs[i + 1]);
+
+      if (hasQuotes || (isNextLineSource && !quote)) {
         quote = p.replace(/^[“"]|[”"]$/g, "").trim();
-        if (
-          i + 1 < rawParagraphs.length &&
-          /^-\s*(DITTO.*|Yonhap.*)/i.test(rawParagraphs[i + 1])
-        ) {
+        if (isNextLineSource) {
           quoteSource = rawParagraphs[i + 1].replace(/^-\s*/, "").trim();
           i++; // Skip source line
         } else {

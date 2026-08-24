@@ -271,6 +271,39 @@ export default async function NewsDetailPage({ params }) {
                 </p>
               ))}
 
+              {news.sourceUrl &&
+              !body.some(
+                (p) =>
+                  typeof p === "string" &&
+                  (p.includes("출처:") || p.includes(news.sourceUrl)),
+              ) ? (
+                <div className="pt-2 text-xs sm:text-sm font-medium text-ink-muted">
+                  출처:{" "}
+                  <a
+                    href={news.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
+                  >
+                    연합뉴스
+                    <svg
+                      aria-hidden="true"
+                      className="inline size-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
+              ) : null}
+
               {tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2.5 sm:gap-3 pt-2 sm:pt-4">
                   {tags.map((tag, index) => (
