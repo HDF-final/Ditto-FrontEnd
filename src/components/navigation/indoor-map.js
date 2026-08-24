@@ -1350,15 +1350,19 @@ function MapCamera({
     const onUserInput = () => markInteracted();
     const targets = [canvas, host].filter(Boolean);
     targets.forEach((node) => {
-      node.addEventListener("pointerdown", onUserInput);
-      node.addEventListener("wheel", onUserInput, { passive: true });
-      node.addEventListener("touchstart", onUserInput, { passive: true });
+      if (typeof node?.addEventListener === "function") {
+        node.addEventListener("pointerdown", onUserInput);
+        node.addEventListener("wheel", onUserInput, { passive: true });
+        node.addEventListener("touchstart", onUserInput, { passive: true });
+      }
     });
     return () => {
       targets.forEach((node) => {
-        node.removeEventListener("pointerdown", onUserInput);
-        node.removeEventListener("wheel", onUserInput);
-        node.removeEventListener("touchstart", onUserInput);
+        if (typeof node?.removeEventListener === "function") {
+          node.removeEventListener("pointerdown", onUserInput);
+          node.removeEventListener("wheel", onUserInput);
+          node.removeEventListener("touchstart", onUserInput);
+        }
       });
     };
   }, [gl]);

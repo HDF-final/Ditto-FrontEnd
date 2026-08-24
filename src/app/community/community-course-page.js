@@ -22,9 +22,13 @@ const storageKey = "ditto:shared-community-courses";
 const ITEMS_PER_PAGE = 6;
 
 function subscribe(callback) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined" || typeof window.addEventListener !== "function") return () => {};
   window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
+  return () => {
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+      window.removeEventListener("storage", callback);
+    }
+  };
 }
 
 function getSnapshot() {

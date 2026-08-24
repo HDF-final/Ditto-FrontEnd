@@ -78,26 +78,26 @@ export function SiteFooter() {
           ))}
         </div>
 
-        {/* 오른쪽: 왼쪽으로 길게 확장되어 텍스트와 우측 목업 사이에 시원한 여백이 있는 배너 */}
-        <div className="shrink-0 overflow-hidden rounded-[24px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-7.5 py-5.5 text-white shadow-[0_8px_24px_rgba(45,27,142,0.18)] lg:w-[620px] xl:w-[710px] 2xl:w-[780px]">
-          <div className="flex items-center justify-between gap-10 xl:gap-16 2xl:gap-20">
-            {/* 좌측 안내 텍스트 (문장들을 일자로 매끄럽게 배치) */}
+        {/* 오른쪽: 글자가 잘리지 않고 목업과 쾌적한 여백을 유지하는 배너 */}
+        <div className="shrink-0 overflow-hidden rounded-[24px] bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-6 py-5 text-white shadow-[0_8px_24px_rgba(45,27,142,0.18)] lg:w-[580px] xl:w-[630px] 2xl:w-[670px]">
+          <div className="flex items-center justify-between gap-6 xl:gap-8">
+            {/* 좌측 안내 텍스트 (글자가 잘리지 않도록 안전 여백 확보) */}
             <div className="min-w-0 flex-1">
-              <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[12px] font-black tracking-wider uppercase text-violet-200 backdrop-blur-xs xl:text-[13px]">
+              <span className="inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[10.5px] font-black tracking-wider uppercase text-violet-200 backdrop-blur-xs xl:text-[11px]">
                 PWA MOBILE APP
               </span>
-              <h3 className="mt-1.5 whitespace-nowrap text-[19px] font-black tracking-tight text-white sm:text-[21px] xl:text-[23px]">
+              <h3 className="mt-1.5 whitespace-nowrap text-[17px] font-black tracking-tight text-white sm:text-[19px] xl:text-[21px]">
                 {t("home.appTitle")}
               </h3>
-              <p className="mt-1.5 whitespace-nowrap text-[13.5px] leading-relaxed text-violet-100 sm:text-[14px] xl:text-[14.5px]">
+              <p className="mt-1.5 whitespace-nowrap text-[12px] leading-relaxed text-violet-100 sm:text-[12.5px] xl:text-[13px]">
                 {t("home.appDescription")}
               </p>
-              <p className="mt-2 whitespace-nowrap text-[12.5px] font-semibold text-violet-200 xl:text-[13px]">
+              <p className="mt-2 whitespace-nowrap text-[11px] font-semibold text-violet-200 xl:text-[11.5px]">
                 {t("home.browserInstallHint")}
               </p>
             </div>
 
-            {/* 우측: 사진/목업은 우측 끝에 고정 */}
+            {/* 우측: 사진/목업 */}
             <div className="relative h-[88px] w-[130px] shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-slate-900 bg-slate-900 shadow-[0_10px_25px_rgba(0,0,0,0.35)] xl:h-[92px] xl:w-[138px]">
               {/* 상단 카메라 렌즈 홈 */}
               <div className="absolute left-2 top-1/2 z-20 h-2 w-1 -translate-y-1/2 rounded-full bg-slate-700" />
