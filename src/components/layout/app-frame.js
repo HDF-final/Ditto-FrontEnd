@@ -18,6 +18,7 @@ const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
 export function AppFrame({ children }) {
   const pathname = usePathname();
   const isAuthRoute = AUTH_PATHS.has(pathname);
+  const isAdminRoute = pathname.startsWith("/admin");
   const isCourseStudio = pathname.startsWith("/ai-course");
   const isScanMap = pathname.startsWith("/scan-map");
   const setUser = useAuthStore((state) => state.setUser);
@@ -62,6 +63,10 @@ export function AppFrame({ children }) {
 
   if (isAuthRoute) {
     return children;
+  }
+
+  if (isAdminRoute) {
+    return <div className="admin-shell min-h-dvh w-full">{children}</div>;
   }
 
   return (
