@@ -129,6 +129,7 @@ export function CommunityStopList({ stops = [], courseId }) {
 
   useEffect(() => {
     let active = true;
+    setHydratedStops(stops || []);
 
     async function hydrate() {
       try {

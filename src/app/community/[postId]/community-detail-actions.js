@@ -88,10 +88,14 @@ export function CommunityDetailActions({ course = {} }) {
 
     if (postId) {
       try {
+        let res;
         if (nextState) {
-          await likeCourse(postId);
+          res = await likeCourse(postId);
         } else {
-          await unlikeCourse(postId);
+          res = await unlikeCourse(postId);
+        }
+        if (typeof res?.likesCount === "number") {
+          setLiveLikes(res.likesCount - (nextState ? 1 : 0));
         }
       } catch (err) {
         console.warn("[Like Toggle] Failed:", err);
