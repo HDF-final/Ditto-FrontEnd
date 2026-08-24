@@ -69,13 +69,13 @@ export function HomeHero({ slides }) {
 
   return (
     <>
-      <section className="px-5 pt-5 lg:hidden">
+      <section className="px-5 pb-2 pt-5 lg:hidden">
         <p className="text-[11px] font-black tracking-wide text-brand">
           {activeSlide.eyebrow}
         </p>
-        <h1 className="mt-1 text-[24px] font-black leading-snug text-ink">
+        <h1 className="mt-2.5 text-[24px] font-black leading-[1.5] text-ink">
           <span className="block">{activeSlide.titleLine}</span>
-          <span className="block">
+          <span className="mt-1.5 block">
             <span className="text-brand">{activeSlide.accent}</span>
             {activeSlide.suffix}
           </span>
@@ -92,7 +92,7 @@ export function HomeHero({ slides }) {
           <div className="relative flex min-h-[168px] flex-col justify-between p-5">
             <p className="text-[28px] font-black tracking-tight text-white">DITTO</p>
             <div>
-              <p className="text-[13px] font-semibold leading-5 text-white/90">
+              <p className="text-[13px] font-semibold leading-6 text-white/90">
                 {activeSlide.description.split("\n")[0]}
               </p>
               <Link

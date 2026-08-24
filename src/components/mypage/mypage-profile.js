@@ -4,12 +4,12 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
   const persona = profile.persona;
 
   return (
-    <section className="border-b border-line bg-white px-4 pt-5 sm:px-8 sm:pt-8 lg:px-52 lg:pt-[60px] xl:px-60 2xl:px-72">
-      <div className="flex flex-col gap-4 pb-5 sm:gap-6 sm:pb-8 lg:gap-10 lg:pb-[60px]">
+    <section className="border-b border-line bg-white px-4 pt-5 sm:px-8 sm:pt-8 lg:px-52 lg:pt-8 xl:px-60 2xl:px-72">
+      <div className="flex flex-col gap-4 pb-5 sm:gap-6 sm:pb-8 lg:gap-5 lg:pb-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <div className="flex min-w-0 items-center gap-3.5 lg:gap-5">
+          <div className="flex min-w-0 items-center gap-3.5 lg:gap-4">
             <div
-              className="flex size-[58px] sm:size-[68px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200 lg:size-[78px]"
+              className="flex size-[58px] sm:size-[68px] shrink-0 items-center justify-center overflow-hidden rounded-full transition-colors duration-200 lg:size-[68px]"
               style={{ backgroundColor: persona.bgColor || "#fff1e6" }}
             >
               <Image
@@ -17,12 +17,12 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 alt={persona.name}
                 width={66}
                 height={66}
-                className="h-[48px] w-[48px] sm:h-[58px] sm:w-[58px] object-contain lg:h-[66px] lg:w-[66px]"
+                className="h-[48px] w-[48px] sm:h-[58px] sm:w-[58px] object-contain lg:h-[58px] lg:w-[58px]"
                 unoptimized
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-black text-ink lg:text-[26px] truncate">{profile.name}</h1>
+              <h1 className="text-lg sm:text-xl font-black text-ink lg:text-[22px] truncate">{profile.name}</h1>
               <p className="mt-0.5 text-xs sm:text-sm font-medium text-ink-muted truncate">
                 {profile.description}
               </p>
@@ -62,7 +62,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 borderColor: persona.softButtonBorder || persona.badgeBorder || "#e0d8ff",
                 color: persona.softButtonText || persona.badgeText || "#5c2ef5",
               }}
-              className="w-full cursor-pointer rounded-full border px-4 py-2.5 text-xs sm:text-sm font-black transition-all hover:opacity-90 lg:w-auto lg:px-6 lg:py-3 shadow-xs whitespace-nowrap text-center"
+              className="w-full cursor-pointer rounded-full border px-4 py-2.5 text-xs sm:text-sm font-black transition-all hover:opacity-90 lg:w-auto lg:px-5 lg:py-2 shadow-xs whitespace-nowrap text-center"
             >
               프로필 편집
             </button>
@@ -70,7 +70,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
               <button
                 type="button"
                 onClick={onLogoutClick}
-                className="hidden lg:inline-flex cursor-pointer rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-3 shadow-xs whitespace-nowrap shrink-0"
+                className="hidden lg:inline-flex cursor-pointer rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-2 shadow-xs whitespace-nowrap shrink-0"
               >
                 로그아웃
               </button>
@@ -86,9 +86,9 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 backgroundColor: persona.statBg || "#f9f7ff",
                 borderColor: persona.statBorder || "#ede9fe",
               }}
-              className="rounded-[14px] border px-1.5 py-2.5 text-center transition-all duration-200 sm:p-3 lg:rounded-[20px] lg:p-6 shadow-xs"
+              className="rounded-[14px] border px-1.5 py-2.5 text-center transition-all duration-200 sm:p-3 lg:rounded-[16px] lg:px-4 lg:py-3.5 shadow-xs"
             >
-              <p className="text-base font-black leading-none text-ink sm:text-xl lg:text-[28px]">
+              <p className="text-base font-black leading-none text-ink sm:text-xl lg:text-[22px]">
                 {stat.value}
               </p>
               <p className="mt-1 text-[10px] font-medium text-ink-muted sm:text-xs whitespace-nowrap truncate">

@@ -80,7 +80,7 @@ export function NewsImageLightbox({
                 setIsOpen(true);
               }
             }}
-            className="relative block w-full aspect-[16/9] min-h-[190px] sm:min-h-[260px] lg:min-h-[300px] max-h-[340px] cursor-zoom-in overflow-hidden rounded-[16px] sm:rounded-[20px] border border-line bg-surface-soft shadow-sm transition-all hover:shadow-md group"
+            className="relative block aspect-[16/9] min-h-[140px] max-h-[200px] w-full cursor-zoom-in overflow-hidden rounded-[12px] border border-line bg-surface-soft shadow-sm transition-all hover:shadow-md group lg:min-h-[300px] lg:max-h-[340px] lg:rounded-[20px]"
           >
             <Image
               src={src}
@@ -88,7 +88,7 @@ export function NewsImageLightbox({
               fill
               unoptimized
               priority
-              className="object-cover object-top sm:object-center transition duration-500 group-hover:scale-[1.03]"
+              className="object-cover object-top transition duration-500 group-hover:scale-[1.03] lg:object-center"
             />
             {/* Hover overlay hint */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/25">

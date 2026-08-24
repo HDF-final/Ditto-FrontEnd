@@ -7,13 +7,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
-import { deleteCourse, getCourseDetail, getMyCourses } from "@/lib/api/courses";
+import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import { logout } from "@/lib/api/auth";
-import {
-  deleteCoursePost,
-  getPublicCourses,
-  updateCoursePost,
-} from "@/lib/api/community";
+import { getPublicCourses, updateCoursePost } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { compressImage } from "@/lib/utils/image-compression";
@@ -21,6 +17,7 @@ import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
+import { MypageCourseCarousel } from "@/components/mypage/mypage-course-carousel";
 import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
 import { mypageTabs } from "@/lib/fixtures/mypage";
@@ -221,10 +218,6 @@ export function MypageView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState(null);
-  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
-  const [postToDelete, setPostToDelete] = useState(null);
-  const [isDeletingPost, setIsDeletingPost] = useState(false);
   const [postToEdit, setPostToEdit] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -254,39 +247,6 @@ export function MypageView() {
 
   const handleRemoveEditPhoto = (indexToRemove) => {
     setEditPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
-  };
-
-  const handleConfirmDeleteCourse = async () => {
-    if (!courseToDelete) return;
-    const targetId = courseToDelete.courseId || courseToDelete.id;
-    setIsDeletingCourse(true);
-    try {
-      await deleteCourse(targetId);
-      setCourses((prev) => prev.filter((c) => (c.courseId || c.id) !== targetId));
-      setCourseTotal((prev) => Math.max(0, prev - 1));
-      setCourseToDelete(null);
-    } catch (err) {
-      alert(err.message || "코스를 삭제하지 못했습니다.");
-    } finally {
-      setIsDeletingCourse(false);
-    }
-  };
-
-  const handleConfirmDeletePost = async () => {
-    if (!postToDelete) return;
-    const targetId = postToDelete.postId || postToDelete.id;
-    setIsDeletingPost(true);
-    try {
-      await deleteCoursePost(targetId);
-      setSharedCourses((prev) =>
-        prev.filter((p) => (p.postId || p.id) !== targetId),
-      );
-      setPostToDelete(null);
-    } catch (err) {
-      alert(err.message || "공유한 코스 게시글을 삭제하지 못했습니다.");
-    } finally {
-      setIsDeletingPost(false);
-    }
   };
 
   const handleConfirmEditPost = async (e) => {
@@ -510,7 +470,6 @@ export function MypageView() {
     return [];
   }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
 
-  // Pagination calculation: 3 items per page (1 row of 3) - Unconditional Hook Call
   const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
   const paginatedCourses = useMemo(() => {
     const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -525,6 +484,41 @@ export function MypageView() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 350, behavior: "smooth" });
+  };
+
+  const renderCourseCard = (course) => {
+    if (activeTab === "내 코스") {
+      return <MyCoursePrivateCard course={course} />;
+    }
+
+    if (activeTab === "공유한 코스") {
+      return (
+        <MypageCourseCard
+          course={course}
+          onAuthRequired={() => setIsLoginModalOpen(true)}
+          onEdit={(post) => {
+            setPostToEdit(post);
+            setEditTitle(post.title || "");
+            setEditContent(post.description || "");
+            const images = getPostImages(post.postId || post.id);
+            if (images && images.length > 0) {
+              setEditPhotos(images);
+            } else if (post.image && !post.image.includes("unsplash.com")) {
+              setEditPhotos([post.image]);
+            } else {
+              setEditPhotos([]);
+            }
+          }}
+        />
+      );
+    }
+
+    return (
+      <MypageCourseCard
+        course={course}
+        onAuthRequired={() => setIsLoginModalOpen(true)}
+      />
+    );
   };
 
   // Loading indicator
@@ -627,29 +621,25 @@ export function MypageView() {
   }[activeTab];
 
   return (
-    <main className="bg-background">
+    <main className="min-w-0 overflow-x-hidden bg-background lg:flex lg:min-h-[calc(100dvh-94px)] lg:flex-col">
       <MypageProfile
         profile={displayProfile}
         stats={displayStats}
         onEditClick={() => setIsEditModalOpen(true)}
         onLogoutClick={handleLogout}
       />
-      <section className="px-4 py-5 sm:px-8 sm:py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72">
-        <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-[40px] lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+      <section className="min-w-0 overflow-x-hidden px-4 py-5 sm:px-8 sm:py-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-52 lg:py-6 xl:px-60 2xl:px-72">
+        <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-5 lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {mypageTabs.map((tab) => {
             return (
               <button
                 key={tab}
                 type="button"
                 onClick={() => handleTabChange(tab)}
-                style={{
-                  borderColor: activeTab === tab ? displayProfile.persona.primaryColor : "transparent",
-                  color: activeTab === tab ? displayProfile.persona.primaryColor : undefined,
-                }}
                 className={`-mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 pb-2.5 text-[13px] font-black transition lg:pb-3.5 lg:text-[15px] ${
                   activeTab === tab
-                    ? ""
-                    : "text-ink-muted hover:text-ink"
+                    ? "border-brand text-brand"
+                    : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
                 <span>{tab}</span>
@@ -664,86 +654,63 @@ export function MypageView() {
           </div>
         )}
 
-        {/* 3:4 Cards Grid (10% Reduced Size) */}
-        <div className="max-w-[1020px] mx-auto">
-          {paginatedCourses.length > 0 ? (
+        <div className="mx-auto flex w-full min-w-0 max-w-[720px] flex-1 flex-col lg:max-w-[1020px]">
+          {displayedCourses.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
-                {paginatedCourses.map((course) =>
-                  activeTab === "내 코스" ? (
-                    <MyCoursePrivateCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onDelete={(c) => setCourseToDelete(c)}
-                    />
-                  ) : activeTab === "공유한 코스" ? (
-                    <MypageCourseCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onAuthRequired={() => setIsLoginModalOpen(true)}
-                      onEdit={(post) => {
-                        setPostToEdit(post);
-                        setEditTitle(post.title || "");
-                        setEditContent(post.description || "");
-                        const images = getPostImages(post.postId || post.id);
-                        if (images && images.length > 0) {
-                          setEditPhotos(images);
-                        } else if (
-                          post.image &&
-                          !post.image.includes("unsplash.com")
-                        ) {
-                          setEditPhotos([post.image]);
-                        } else {
-                          setEditPhotos([]);
-                        }
-                      }}
-                      onDelete={(post) => setPostToDelete(post)}
-                    />
-                  ) : (
-                    <MypageCourseCard
-                      key={course.id || course.slug}
-                      course={course}
-                      onAuthRequired={() => setIsLoginModalOpen(true)}
-                    />
-                  ),
-                )}
+              <div className="lg:hidden">
+                <MypageCourseCarousel
+                  items={displayedCourses}
+                  getItemKey={(course) => course.id || course.slug}
+                  renderItem={renderCourseCard}
+                />
               </div>
 
-              {/* 페이징 컨트롤 */}
-              {totalPages > 1 && (
-                <div className="mt-10 flex items-center justify-center gap-2">
+              <div className="hidden min-h-0 lg:grid lg:flex-1 lg:grid-cols-3 lg:content-start lg:items-stretch lg:gap-5">
+                {paginatedCourses.map((course) => (
+                  <div
+                    key={course.id || course.slug}
+                    className="min-h-0 min-w-0"
+                  >
+                    {renderCourseCard(course)}
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 ? (
+                <div className="mt-5 hidden shrink-0 items-center justify-center gap-2 lg:flex">
                   <button
                     type="button"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
                       currentPage === 1
-                        ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                        : "cursor-pointer border border-line bg-white text-ink hover:border-line-strong shadow-xs"
+                        ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
+                        : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
                     }`}
                     aria-label="이전 페이지"
                   >
                     ‹
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      type="button"
-                      onClick={() => handlePageChange(pageNum)}
-                      style={{
-                        backgroundColor: currentPage === pageNum ? displayProfile.persona.primaryColor : undefined,
-                      }}
-                      className={`flex size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
-                        currentPage === pageNum
-                          ? "text-white shadow-md"
-                          : "border border-line bg-white text-ink-muted hover:border-line-strong shadow-xs"
-                      }`}
-                      aria-current={currentPage === pageNum ? "page" : undefined}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (pageNum) => (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`flex size-9 cursor-pointer items-center justify-center rounded-xl text-xs font-black transition ${
+                          currentPage === pageNum
+                            ? "bg-brand text-white shadow-md"
+                            : "border border-line bg-white text-ink-muted shadow-xs hover:border-line-strong"
+                        }`}
+                        aria-current={
+                          currentPage === pageNum ? "page" : undefined
+                        }
+                      >
+                        {pageNum}
+                      </button>
+                    ),
+                  )}
 
                   <button
                     type="button"
@@ -751,15 +718,15 @@ export function MypageView() {
                     disabled={currentPage === totalPages}
                     className={`flex size-9 items-center justify-center rounded-xl font-bold transition ${
                       currentPage === totalPages
-                        ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
-                        : "cursor-pointer border border-line bg-white text-ink hover:border-line-strong shadow-xs"
+                        ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
+                        : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
                     }`}
                     aria-label="다음 페이지"
                   >
                     ›
                   </button>
                 </div>
-              )}
+              ) : null}
             </>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-[32px] border border-dashed border-line bg-white p-16 text-center shadow-xs">
@@ -770,8 +737,7 @@ export function MypageView() {
               {emptyState?.actionLabel && emptyState?.actionHref && (
                 <Link
                   href={emptyState.actionHref}
-                  style={{ backgroundColor: displayProfile.persona.primaryColor }}
-                  className="mt-6 rounded-full px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:opacity-90"
+                  className="mt-6 rounded-full bg-brand px-8 py-3.5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
                 >
                   {emptyState.actionLabel}
                 </Link>
@@ -833,96 +799,6 @@ export function MypageView() {
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
                 로그인하기 →
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {courseToDelete ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeletingCourse) {
-              setCourseToDelete(null);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-center shadow-2xl animate-in zoom-in-95 duration-150"
-          >
-            <h3 className="text-base font-black text-ink">코스 삭제</h3>
-            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-              <strong className="font-bold text-ink">
-                {courseToDelete.title || "이 코스"}
-              </strong>
-              를 정말 삭제하시겠습니까?
-              <br />
-              삭제한 코스는 복구할 수 없습니다.
-            </p>
-            <div className="mt-5 flex items-center gap-2">
-              <button
-                type="button"
-                disabled={isDeletingCourse}
-                onClick={() => setCourseToDelete(null)}
-                className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingCourse}
-                onClick={handleConfirmDeleteCourse}
-                className="flex-1 cursor-pointer rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-red-700 disabled:opacity-50"
-              >
-                {isDeletingCourse ? "삭제 중..." : "삭제하기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {postToDelete ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeletingPost) {
-              setPostToDelete(null);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-center shadow-2xl animate-in zoom-in-95 duration-150"
-          >
-            <h3 className="text-base font-black text-ink">공유한 코스 삭제</h3>
-            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-              <strong className="font-bold text-ink">
-                {postToDelete.title || "이 게시글"}
-              </strong>
-              을 정말 삭제하시겠습니까?
-              <br />
-              삭제 시 커뮤니티 공개 목록에서 사라집니다.
-            </p>
-            <div className="mt-5 flex items-center gap-2">
-              <button
-                type="button"
-                disabled={isDeletingPost}
-                onClick={() => setPostToDelete(null)}
-                className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingPost}
-                onClick={handleConfirmDeletePost}
-                className="flex-1 cursor-pointer rounded-full bg-red-600 py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-red-700 disabled:opacity-50"
-              >
-                {isDeletingPost ? "삭제 중..." : "삭제하기"}
               </button>
             </div>
           </div>

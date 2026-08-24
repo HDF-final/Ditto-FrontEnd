@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import {
@@ -19,7 +19,8 @@ import { useTranslations } from "next-intl";
 
 const tabs = ["popular", "latest"];
 const storageKey = "ditto:shared-community-courses";
-const ITEMS_PER_PAGE = 6;
+const MOBILE_ITEMS_PER_PAGE = 1;
+const DESKTOP_ITEMS_PER_PAGE = 6;
 
 function subscribe(callback) {
   if (typeof window === "undefined") return () => {};
@@ -150,7 +151,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] sm:rounded-[22px] aspect-[4/3] sm:aspect-[3/4] w-full bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] cursor-pointer"
+      className="group relative flex h-full min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:h-auto lg:aspect-[3/4] lg:rounded-[22px]"
     >
       {/* Full Background Image */}
       <img
@@ -160,50 +161,54 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       />
 
       {/* Top Gradient for text legibility */}
-      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-24" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-52 bg-gradient-to-t from-black/95 via-black/55 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-52" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 p-3.5 sm:p-4 flex items-start justify-between">
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1.5 rounded-xl border border-white/10">
+      <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xs lg:gap-2 lg:px-2.5">
           {/* Rank Badge */}
-          <span className="flex size-5.5 sm:size-6 items-center justify-center rounded-lg bg-[#5c2ef5] text-[10px] sm:text-[11px] font-black text-white shadow-sm shrink-0">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-6 lg:rounded-lg lg:text-[11px]">
             {rank}
           </span>
           {/* Flag */}
-          <span className="text-xs sm:text-sm leading-none shrink-0">{getFlagEmoji(card.country || card.flag)}</span>
+          <span className="shrink-0 text-xs leading-none lg:text-sm">{getFlagEmoji(card.country || card.flag)}</span>
           {/* Name & Tag */}
-          <div className="flex items-center gap-1.5 sm:flex-col sm:items-start leading-tight">
-            <span className="text-xs sm:text-[11px] font-bold text-white drop-shadow-sm whitespace-nowrap">{card.name || t("traveler")}</span>
-            <span className="text-[10px] sm:text-[10px] font-semibold text-violet-200 drop-shadow-sm whitespace-nowrap">{card.hash || "#더현대"}</span>
+          <div className="min-w-0 flex-1 leading-tight lg:flex lg:flex-col lg:items-start">
+            <span className="block truncate text-[11px] font-bold text-white drop-shadow-sm">
+              {card.name || t("traveler")}
+            </span>
+            <span className="block truncate text-[10px] font-semibold text-violet-200 drop-shadow-sm">
+              {card.hash || "#더현대"}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 p-3.5 sm:p-4 pt-0 flex flex-col gap-2">
+      <div className="relative z-10 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
         {/* Title & Description */}
-        <div className="flex flex-col gap-0.5 sm:gap-1">
-          <h3 className="text-lg sm:text-[19px] lg:text-[20px] font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1 sm:line-clamp-2">
+        <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
+          <h3 className="line-clamp-2 break-keep text-[16px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[20px]">
             {card.title}
           </h3>
-          {card.description && (
-            <p className="text-xs sm:text-[11px] font-medium text-white/90 line-clamp-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          {card.description ? (
+            <p className="line-clamp-1 text-[11px] font-medium leading-snug text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {card.description}
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-[11px] font-bold text-white/95 pt-0.5">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 pt-0.5 text-[11px] font-bold text-white/95 lg:gap-2">
           {/* Like button */}
           <button
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
+            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -226,7 +231,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90 sm:gap-1 sm:px-2.5"
+            className="inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -239,7 +244,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-1 transition cursor-pointer backdrop-blur-2xs sm:gap-1 sm:px-2.5 ${
+            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -266,11 +271,23 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const t = useTranslations("community");
   const router = useRouter();
   const mounted = useIsMounted();
-  const itemsPerPage = ITEMS_PER_PAGE;
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const sharedCardsRaw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setIsDesktopLayout(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  const itemsPerPage = isDesktopLayout
+    ? DESKTOP_ITEMS_PER_PAGE
+    : MOBILE_ITEMS_PER_PAGE;
 
   const sharedCards = useMemo(() => {
     if (!mounted) return [];
@@ -304,32 +321,39 @@ export function CommunityCoursePage({ initialCards = [] }) {
     return cards.slice(startIdx, startIdx + itemsPerPage);
   }, [cards, currentPage, itemsPerPage]);
 
+  // itemsPerPage(레이아웃) 변경 시 1페이지로 리셋
+  const [prevItemsPerPage, setPrevItemsPerPage] = useState(itemsPerPage);
+  if (itemsPerPage !== prevItemsPerPage) {
+    setPrevItemsPerPage(itemsPerPage);
+    setCurrentPage(1);
+  }
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 300, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <main className="min-h-screen min-w-0 overflow-x-hidden bg-background">
-      <section className="bg-white px-4 pb-6 pt-6 sm:px-5 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+    <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
+      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
-            <p className="text-[11px] font-black text-brand lg:text-xs">
+            <p className="text-[10px] font-black text-brand lg:text-xs">
               THE HYUNDAI SEOUL COMMUNITY
             </p>
-            <h1 className="mt-2 text-[22px] font-black leading-tight text-ink lg:mt-6 lg:text-[36px] lg:leading-none">
+            <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[36px] lg:leading-none">
               {t("title")}
             </h1>
-            <p className="mt-2 text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:text-sm">
+            <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-sm">
               {t("description")}
             </p>
-            <div className="mt-4 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
+            <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => handleTabChange(tab)}
-                  className={`-mb-px border-b-2 pb-3 text-sm font-black transition cursor-pointer ${
+                  className={`-mb-px cursor-pointer border-b-2 pb-2 text-[13px] font-black transition lg:pb-3 lg:text-sm ${
                     activeTab === tab
                       ? "border-brand text-brand"
                       : "border-transparent text-ink-muted hover:text-ink"
@@ -342,32 +366,70 @@ export function CommunityCoursePage({ initialCards = [] }) {
           </div>
           <Link
             href="/community/share"
-            className="inline-flex w-full items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-black text-white shadow-control transition hover:bg-brand-dark lg:w-fit lg:px-8 lg:py-4"
+            className="inline-flex w-full items-center justify-center rounded-full bg-brand px-5 py-2 text-[11px] font-black text-white shadow-control transition hover:bg-brand-dark lg:w-fit lg:px-8 lg:py-4 lg:text-sm"
           >
             {t("shareMine")}
           </Link>
         </div>
       </section>
 
-      <section className="bg-surface-soft px-4 py-5 sm:px-8 sm:py-14 lg:px-52 xl:px-60 2xl:px-72">
-        <div className="lg:mx-auto lg:max-w-[1020px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
+      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:max-w-[1020px] lg:block">
+          <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.map((card, index) => {
               const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
               return (
-                <CommunityCard
+                <div
                   key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                  card={card}
-                  rank={actualRank}
-                  onAuthRequired={() => setIsLoginModalOpen(true)}
-                />
+                  className="min-h-0 min-w-0"
+                >
+                  <CommunityCard
+                    card={card}
+                    rank={actualRank}
+                    onAuthRequired={() => setIsLoginModalOpen(true)}
+                  />
+                </div>
               );
             })}
           </div>
 
+          {totalPages > 1 ? (
+            <div className="mt-3 flex shrink-0 items-center justify-center gap-3 lg:hidden">
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
+                  currentPage === 1
+                    ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
+                    : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
+                }`}
+                aria-label={t("previousPage")}
+              >
+                ‹
+              </button>
+              <span className="min-w-14 text-center text-xs font-black text-brand">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
+                  currentPage === totalPages
+                    ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
+                    : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
+                }`}
+                aria-label={t("nextPage")}
+              >
+                ›
+              </button>
+            </div>
+          ) : null}
+
           {/* 페이징 컨트롤 바 렌더링 */}
           {totalPages > 1 && (
-            <div className="mt-8 sm:mt-12 flex items-center justify-center gap-1.5 sm:gap-2">
+            <div className="mt-12 hidden items-center justify-center gap-2 lg:flex">
               {/* 이전 버튼 */}
               <button
                 type="button"

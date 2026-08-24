@@ -1,4 +1,3 @@
-import { AppBanner } from "@/components/home/app-banner";
 import { BoniLauncher } from "@/components/home/boni-launcher";
 import { CommunityPreviewSection } from "@/components/home/community-preview-section";
 import { DittoPicksSection } from "@/components/home/ditto-picks-section";
@@ -26,12 +25,11 @@ export default async function Home() {
   });
 
   return (
-    <main className="bg-background">
+    <main className="bg-background max-lg:space-y-5">
       <HomeHero slides={localizedHeroSlides} />
       <DittoPicksSection />
       <CommunityPreviewSection />
       <NewsletterPreviewSection items={newsList} />
-      <AppBanner />
       <BoniLauncher />
     </main>
   );
