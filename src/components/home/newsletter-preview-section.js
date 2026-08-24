@@ -22,7 +22,7 @@ export async function NewsletterPreviewSection({ items = [] }) {
         linkLabel={t("allNews")}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
-        {displayItems.map((news) => {
+        {displayItems.map((news, index) => {
           const category = news.label || news.category || (news.keywords?.[0] ? `${news.keywords[0]}` : null);
           const slug = news.slug || "";
           const href = slug ? `/news/${slug}` : "/news";
@@ -31,7 +31,9 @@ export async function NewsletterPreviewSection({ items = [] }) {
             <Link
               key={news.slug || news.title}
               href={href}
-              className="group flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
+              className={`group min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)] ${
+                index >= 2 ? "hidden lg:flex" : "flex"
+              }`}
             >
               <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface-muted lg:h-[210px] lg:aspect-auto">
                 {news.representativeImageUrl ? (
