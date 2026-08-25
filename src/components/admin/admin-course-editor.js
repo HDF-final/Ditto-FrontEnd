@@ -1,15 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
+import { calculateCourseRoute } from "@/lib/navigation/course-routing-service";
 import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
-// 초안 하나를 관리자가 손으로 고치는 편집기. ai-course 코스 편집기와 같은 결이지만
-// 화면을 통째로 바꾸지 않고 팝업 안에서만 산다.
+// 초안 하나를 관리자가 손으로 고치는 편집기. /ai-course 의 코스 스튜디오와 같은 짜임이다 —
+// 한쪽에 코스 목록, 한쪽에 실내 지도와 경로. 다른 것은 화면을 통째로 바꾸지 않고
+// 팝업 안에서만 산다는 것이고, 그래서 관리자가 목록으로 돌아오는 비용이 없다.
 //
 // **편집은 저장되지 않는다.** 백엔드에도 람다에도 초안을 고치는 창구가 아직 없다
-// (읽기와 삭제만 있다). 그래서 결과를 JSON 으로 내보내 승인 람다에 넘기는 데까지가
-// 지금의 끝이고, 화면 위쪽이 그 사실을 계속 말해 준다.
+// (읽기와 삭제만 있다). 결과를 JSON 으로 내보내 승인 람다에 넘기는 데까지가 지금의 끝이고,
+// 화면 위쪽이 그 사실을 계속 말해 준다.
 
 const KIND_STYLE = {
   매장: "bg-[#eee9ff] text-brand",
@@ -51,7 +54,7 @@ function SlotPhoto({ image, alt }) {
   const [failed, setFailed] = useState(false);
   if (!image?.url || failed) {
     return (
-      <span className="flex size-[104px] shrink-0 items-center justify-center rounded-xl border border-dashed border-[#dfe2ec] bg-[#f7f8fb] text-[11px] font-bold text-[#c0392b]">
+      <span className="flex size-[92px] shrink-0 items-center justify-center rounded-xl border border-dashed border-[#dfe2ec] bg-[#f7f8fb] text-[11px] font-bold text-[#c0392b]">
         사진 없음
       </span>
     );
@@ -63,7 +66,7 @@ function SlotPhoto({ image, alt }) {
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}
-      className="size-[104px] shrink-0 rounded-xl border border-[#e6e8f0] bg-[#f6f7fb] object-cover"
+      className="size-[92px] shrink-0 rounded-xl border border-[#e6e8f0] bg-[#f6f7fb] object-cover"
     />
   );
 }
@@ -90,11 +93,6 @@ function SlotCard({
 
   const setField = (path, value) => onChange(path, value);
 
-  const replaceWith = (picked) => {
-    onChange("__replace__", picked);
-    setPicking(false);
-  };
-
   return (
     <li
       onDragOver={onDragOver}
@@ -113,15 +111,15 @@ function SlotCard({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         aria-roledescription="드래그하여 순서를 바꿀 수 있는 자리"
-        className={`mb-3 flex-1 cursor-grab rounded-2xl border bg-white p-4 shadow-[0_6px_20px_rgba(31,36,66,0.04)] transition active:cursor-grabbing ${
+        className={`mb-3 min-w-0 flex-1 cursor-grab rounded-2xl border border-[#e5e7ef] bg-white p-4 shadow-[0_6px_20px_rgba(31,36,66,0.04)] transition active:cursor-grabbing ${
           dropTarget ? "outline outline-2 outline-dashed outline-offset-2 outline-brand" : ""
-        } border-[#e5e7ef]`}
+        }`}
       >
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <SlotPhoto image={image} alt={image.caption || place.place_name} />
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <strong className="text-[15px] text-[#20243a]">{place.place_name}</strong>
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -130,24 +128,20 @@ function SlotCard({
               >
                 {place.kind}
               </span>
-              <span className="font-mono text-[11px] text-[#a3a8b8]">{place.navigation_key}</span>
             </div>
-
-            <p className="mt-1 text-[11px] text-[#9aa0b0]">
+            <p className="mt-1 font-mono text-[10px] text-[#a3a8b8]">{place.navigation_key}</p>
+            <p className="mt-0.5 text-[11px] text-[#9aa0b0]">
               {[place.floor, place.place_type, place.category, place.price_tier]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
-
-            <p className="mt-2 line-clamp-2 text-[13px] leading-6 text-[#4c5164]">{place.reason}</p>
-
+            <p className="mt-2 line-clamp-2 text-[12.5px] leading-5 text-[#4c5164]">
+              {place.reason}
+            </p>
             {evidence.brand ? (
               <p className="mt-1.5 text-[11px] font-bold text-brand">
                 {evidence.person ? `${evidence.person} × ` : ""}
                 {evidence.brand}
-                {image.caption && image.caption !== `${evidence.person} × ${evidence.brand}` ? (
-                  <span className="ml-2 font-normal text-[#9aa0b0]">캡션 “{image.caption}”</span>
-                ) : null}
               </p>
             ) : null}
           </div>
@@ -182,7 +176,7 @@ function SlotCard({
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-[#eff1f6] pt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#eff1f6] pt-3">
           <button
             type="button"
             onClick={onToggleOpen}
@@ -202,7 +196,7 @@ function SlotCard({
               href={evidence.article}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg px-2 py-1.5 text-[11px] font-semibold text-[#6f55d9] hover:underline"
+              className="text-[11px] font-semibold text-[#6f55d9] hover:underline"
             >
               근거 기사 · {hostOf(evidence.article)}
             </a>
@@ -214,15 +208,18 @@ function SlotCard({
             <AdminCoursePlacePicker
               slot={place}
               alternates={place.alternates || []}
-              onPick={replaceWith}
+              onPick={(picked) => {
+                setField("__replace__", picked);
+                setPicking(false);
+              }}
               onClose={() => setPicking(false)}
             />
           </div>
         ) : null}
 
         {open ? (
-          <div className="mt-3 grid gap-3 rounded-2xl bg-[#f9fafd] p-4 md:grid-cols-2">
-            <div className="md:col-span-2">
+          <div className="mt-3 grid gap-3 rounded-2xl bg-[#f9fafd] p-4 xl:grid-cols-2">
+            <div className="xl:col-span-2">
               <Field
                 label="추천 사유"
                 hint="손님에게 그대로 나가는 문장"
@@ -278,7 +275,7 @@ function SlotCard({
               placeholder="프라다"
             />
 
-            <div className="md:col-span-2">
+            <div className="xl:col-span-2">
               <Field
                 label="근거 문장"
                 hint="기사에서 뽑은 사실"
@@ -287,7 +284,7 @@ function SlotCard({
                 multiline
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="xl:col-span-2">
               <Field
                 label="근거 기사 URL"
                 value={evidence.article}
@@ -296,7 +293,7 @@ function SlotCard({
               />
             </div>
 
-            <div className="md:col-span-2 mt-1 border-t border-[#e6e8f0] pt-3">
+            <div className="mt-1 border-t border-[#e6e8f0] pt-3 xl:col-span-2">
               <Field
                 label="사진 URL"
                 hint="비우면 사진 없음으로 나간다"
@@ -319,7 +316,7 @@ function SlotCard({
               onChange={(value) => setField("image.source", value)}
               placeholder="elle.co.kr"
             />
-            <div className="md:col-span-2">
+            <div className="xl:col-span-2">
               <Field
                 label="사진이 실린 기사 URL"
                 value={image.article}
@@ -327,7 +324,7 @@ function SlotCard({
                 placeholder="https://…"
               />
             </div>
-            <label className="block md:col-span-2">
+            <label className="block xl:col-span-2">
               <span className="mb-1 block text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">
                 사진 종류
               </span>
@@ -379,6 +376,72 @@ function withField(place, path, value) {
   return { ...place, [head]: { ...(place[head] || {}), [tail]: value } };
 }
 
+/**
+ * 코스의 실내 경로. 자리를 바꿀 때마다 다시 계산한다 — 관리자가 동선을 고치는 것이
+ * 이 화면의 요지라, 지도가 그 결과를 바로 보여 주지 않으면 고쳐도 알 수가 없다.
+ *
+ * 계산은 전부 브라우저에서 돈다(`course-routing-service` 가 로컬 원장 JSON 을 읽는다).
+ * 백엔드도 람다도 안 부른다.
+ */
+function useCourseRoute(navigationKeys) {
+  const routeKey = navigationKeys.join(">");
+  const [result, setResult] = useState(null);
+
+  // **의존성이 `routeKey` 하나다.** 배열을 넣으면 사유 한 글자를 칠 때마다 새 배열이
+  // 만들어져 경로를 다시 판다. 자리가 그대로면 경로도 그대로다.
+  useEffect(() => {
+    if (!routeKey) return undefined;
+
+    let active = true;
+    calculateCourseRoute(routeKey.split(">").map((navigationKey) => ({ navigationKey })))
+      .then((next) => {
+        if (active) setResult({ key: routeKey, ...next, error: null });
+      })
+      .catch((error) => {
+        if (active) setResult({ key: routeKey, error });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [routeKey]);
+
+  const fresh = result?.key === routeKey;
+  return {
+    itinerary: fresh ? result.itinerary : null,
+    graph: fresh ? result.graph : null,
+    error: fresh ? result.error : null,
+    loading: navigationKeys.length > 0 && !fresh,
+  };
+}
+
+function RouteSummary({ itinerary, error, loading, count }) {
+  if (loading) {
+    return <span className="text-[11px] text-[#8a90a3]">경로 계산 중…</span>;
+  }
+  if (error) {
+    return <span className="text-[11px] text-[#c0392b]">경로를 계산하지 못했습니다.</span>;
+  }
+  if (!count) {
+    return <span className="text-[11px] text-[#8a90a3]">자리가 없습니다.</span>;
+  }
+  if (!itinerary) {
+    return (
+      <span className="text-[11px] text-[#c0392b]">
+        경로를 만들 수 없습니다 — 지도에 없는 매장이 섞였습니다.
+      </span>
+    );
+  }
+  return (
+    <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-[#687087]">
+      <span className="font-bold text-brand">{itinerary.stopPlaceIds.length}곳</span>
+      <span>{(itinerary.floorIds || []).join(" → ")}</span>
+      <span className="text-[#c9cdd8]">·</span>
+      <span>층 이동 {itinerary.connectorSteps?.length ?? 0}회</span>
+    </span>
+  );
+}
+
 export function AdminCourseEditor({ detail, onClose }) {
   // `|| {}` 를 렌더마다 새로 만들면 아래 useMemo·useCallback 의 의존성이 매번 바뀐다.
   const original = useMemo(() => detail?.payload || {}, [detail]);
@@ -394,10 +457,13 @@ export function AdminCourseEditor({ detail, onClose }) {
     reply !== (original.reply || "") ||
     JSON.stringify(places) !== JSON.stringify(original.places || []);
 
-  const edited = useMemo(
-    () => ({ ...original, reply, places }),
-    [original, reply, places],
+  const edited = useMemo(() => ({ ...original, reply, places }), [original, reply, places]);
+
+  const navigationKeys = useMemo(
+    () => places.map((place) => place.navigation_key).filter(Boolean),
+    [places],
   );
+  const route = useCourseRoute(navigationKeys);
 
   const changeSlot = useCallback((index, path, value) => {
     setPlaces((rows) => rows.map((row, i) => (i === index ? withField(row, path, value) : row)));
@@ -456,7 +522,7 @@ export function AdminCourseEditor({ detail, onClose }) {
   }, [places]);
 
   return (
-    <div className="flex max-h-[88dvh] flex-col">
+    <div className="flex h-[92dvh] flex-col">
       <header className="flex flex-wrap items-center gap-3 border-b border-[#eceef4] px-6 py-4">
         <h2 id="admin-course-editor-title" className="text-lg font-bold text-[#171b30]">
           {detail?.celebrity}
@@ -482,87 +548,113 @@ export function AdminCourseEditor({ detail, onClose }) {
         </button>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-        <p className="mb-4 rounded-xl bg-[#fff8ea] px-4 py-3 text-xs leading-5 text-[#856c3a]">
-          <b>여기서 고친 것은 저장되지 않습니다.</b> 초안을 고치는 창구가 아직 없어(읽기와 삭제만
-          있습니다) 닫으면 사라집니다. 결과는 아래 <b>JSON 내보내기</b>로 가져가세요.
-        </p>
-
-        <label className="mb-5 block">
-          <span className="mb-1 block text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">
-            안내 문장 <span className="font-normal text-[#9aa0b0]">손님이 코스 위에서 읽는 말</span>
-          </span>
-          <textarea
-            value={reply}
-            onChange={(event) => setReply(event.target.value)}
-            rows={2}
-            className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] leading-6 text-[#20243a] outline-none focus:border-brand"
+      {/* /ai-course 의 코스 스튜디오와 같은 짜임 — 한쪽에 목록, 한쪽에 지도. */}
+      <div className="grid min-h-0 flex-1 grid-rows-[280px_minmax(0,1fr)] lg:grid-cols-[minmax(400px,40%)_minmax(0,1fr)] lg:grid-rows-1">
+        <div className="relative order-1 min-h-0 border-b border-[#eceef4] bg-[#F7F3EF] lg:order-2 lg:border-b-0 lg:border-l">
+          <CourseNavigationMap
+            route={route.itinerary}
+            routeFloorIds={route.itinerary?.floorIds}
+            routeGraph={route.graph}
+            initialView="route"
+            variant="course"
+            showFloorSelector
+            showControls
           />
-        </label>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-2 bg-gradient-to-t from-black/25 to-transparent px-4 pb-3 pt-8">
+            <span className="pointer-events-auto rounded-full bg-white/95 px-3 py-1.5 shadow-sm">
+              <RouteSummary
+                itinerary={route.itinerary}
+                error={route.error}
+                loading={route.loading}
+                count={navigationKeys.length}
+              />
+            </span>
+          </div>
+        </div>
 
-        <WarningPanel warnings={original.warnings} open label="초안 경고" />
-
-        <ol className="mt-5">
-          {places.map((place, index) => (
-            <SlotCard
-              key={place.slot_id ?? place.navigation_key ?? index}
-              place={place}
-              index={index}
-              total={places.length}
-              open={openSlot === index}
-              onToggleOpen={() => setOpenSlot((value) => (value === index ? null : index))}
-              onChange={(path, value) => changeSlot(index, path, value)}
-              onMove={(to) => moveSlot(index, to)}
-              onRemove={() => removeSlot(index)}
-              dragging={dragIndex === index}
-              dropTarget={dropIndex === index && dragIndex !== index}
-              onDragStart={() => setDragIndex(index)}
-              onDragEnd={() => {
-                setDragIndex(null);
-                setDropIndex(null);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setDropIndex(index);
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (dragIndex !== null) moveSlot(dragIndex, index);
-                setDragIndex(null);
-                setDropIndex(null);
-              }}
-            />
-          ))}
-        </ol>
-
-        {!places.length ? (
-          <p className="rounded-2xl border border-dashed border-[#dfe2ec] p-10 text-center text-sm text-[#9095a6]">
-            자리가 없습니다. 초안 상태와 경고에 사유가 있습니다.
+        <div className="order-2 min-h-0 overflow-y-auto px-6 py-5 lg:order-1">
+          <p className="mb-4 rounded-xl bg-[#fff8ea] px-4 py-3 text-xs leading-5 text-[#856c3a]">
+            <b>여기서 고친 것은 저장되지 않습니다.</b> 초안을 고치는 창구가 아직 없어(읽기와
+            삭제만 있습니다) 닫으면 사라집니다. 결과는 아래 <b>JSON 내보내기</b>로 가져가세요.
           </p>
-        ) : null}
 
-        <details className="mt-5 rounded-2xl border border-[#e5e7ef] bg-white px-5 py-4">
-          <summary className="cursor-pointer text-sm font-bold text-[#4d536a]">
-            내보낼 JSON 원문
-          </summary>
-          <pre className="mt-3 max-h-[320px] overflow-auto rounded-xl bg-[#f7f8fb] p-4 text-[11px] leading-5 text-[#4c5164]">
-            {json}
-          </pre>
-        </details>
+          <label className="mb-5 block">
+            <span className="mb-1 block text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">
+              안내 문장{" "}
+              <span className="font-normal text-[#9aa0b0]">손님이 코스 위에서 읽는 말</span>
+            </span>
+            <textarea
+              value={reply}
+              onChange={(event) => setReply(event.target.value)}
+              rows={2}
+              className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] leading-6 text-[#20243a] outline-none focus:border-brand"
+            />
+          </label>
 
-        {original.research ? (
-          <details className="mt-3 rounded-2xl border border-[#e5e7ef] bg-white px-5 py-4">
+          <WarningPanel warnings={original.warnings} open label="초안 경고" />
+
+          <ol className="mt-5">
+            {places.map((place, index) => (
+              <SlotCard
+                key={place.slot_id ?? place.navigation_key ?? index}
+                place={place}
+                index={index}
+                total={places.length}
+                open={openSlot === index}
+                onToggleOpen={() => setOpenSlot((value) => (value === index ? null : index))}
+                onChange={(path, value) => changeSlot(index, path, value)}
+                onMove={(to) => moveSlot(index, to)}
+                onRemove={() => removeSlot(index)}
+                dragging={dragIndex === index}
+                dropTarget={dropIndex === index && dragIndex !== index}
+                onDragStart={() => setDragIndex(index)}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setDropIndex(null);
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setDropIndex(index);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragIndex !== null) moveSlot(dragIndex, index);
+                  setDragIndex(null);
+                  setDropIndex(null);
+                }}
+              />
+            ))}
+          </ol>
+
+          {!places.length ? (
+            <p className="rounded-2xl border border-dashed border-[#dfe2ec] p-10 text-center text-sm text-[#9095a6]">
+              자리가 없습니다. 초안 상태와 경고에 사유가 있습니다.
+            </p>
+          ) : null}
+
+          <details className="mt-5 rounded-2xl border border-[#e5e7ef] bg-white px-5 py-4">
             <summary className="cursor-pointer text-sm font-bold text-[#4d536a]">
-              조사 원문 (research) — 승인 람다가 재조사 없이 쓸 재료
+              내보낼 JSON 원문
             </summary>
             <pre className="mt-3 max-h-[320px] overflow-auto rounded-xl bg-[#f7f8fb] p-4 text-[11px] leading-5 text-[#4c5164]">
-              {JSON.stringify(original.research, null, 2)}
+              {json}
             </pre>
           </details>
-        ) : null}
+
+          {original.research ? (
+            <details className="mt-3 rounded-2xl border border-[#e5e7ef] bg-white px-5 py-4">
+              <summary className="cursor-pointer text-sm font-bold text-[#4d536a]">
+                조사 원문 (research) — 승인 람다가 재조사 없이 쓸 재료
+              </summary>
+              <pre className="mt-3 max-h-[320px] overflow-auto rounded-xl bg-[#f7f8fb] p-4 text-[11px] leading-5 text-[#4c5164]">
+                {JSON.stringify(original.research, null, 2)}
+              </pre>
+            </details>
+          ) : null}
+        </div>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-2 border-t border-[#eceef4] bg-[#fafbfe] px-6 py-4">
+      <footer className="flex flex-wrap items-center gap-2 border-t border-[#eceef4] bg-[#fafbfe] px-6 py-3.5">
         <button
           type="button"
           onClick={reset}
