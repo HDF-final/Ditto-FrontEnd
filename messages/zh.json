@@ -461,8 +461,6 @@
     "scanMapEmptyHint": "扫描店招后，会在现代首尔室内地图上标出你的位置。",
     "scanAgain": "重新扫描",
     "goCreateCourse": "去生成 AI 路线",
-    "locateMe": "确认我的位置",
-    "locateMeAgain": "更新我的位置",
     "timeoutError": "响应时间过长，请求已中止，请重试。",
     "authError": "路线推荐需要登录，请登录后重试。",
     "engineError": "AI推荐引擎没有响应，请稍后重试。",

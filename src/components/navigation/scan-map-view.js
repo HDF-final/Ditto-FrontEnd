@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import { CameraScanner } from "@/components/layout/camera-scanner";
 import { ScanResult } from "@/components/layout/scan-result";
@@ -13,8 +13,13 @@ import { useScanLocationStore } from "@/stores/use-scan-location-store";
 export function ScanMapView() {
   const router = useRouter();
   const location = useScanLocationStore((state) => state.location);
+  const hydrateLocation = useScanLocationStore((state) => state.hydrate);
   const [scanOpen, setScanOpen] = useState(false);
   const [scanImage, setScanImage] = useState(null);
+
+  useEffect(() => {
+    hydrateLocation();
+  }, [hydrateLocation]);
 
   return (
     <div className="relative h-dvh min-h-dvh w-full overflow-hidden bg-[#F7F3EF]">
@@ -22,6 +27,7 @@ export function ScanMapView() {
         className="max-lg:!absolute max-lg:!inset-0 max-lg:!h-full max-lg:!min-h-full absolute inset-0 h-full min-h-full w-full"
         initialView="all"
         variant="scan"
+        showUserLocation
       />
 
       {!location ? (

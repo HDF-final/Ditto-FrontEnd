@@ -14,6 +14,7 @@ const {
   matchPlaceByName,
   buildScanLocation,
   resolvePlaceFromScan,
+  isScanLocationFlowRoute,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
 );
@@ -93,6 +94,18 @@ test("Eataly signage aliases still pin 이탈리", () => {
     matchPlaceByName("이탈리".normalize("NFD"), places)?.navigationKey,
     "6F_STORE_0034",
   );
+});
+
+test("scan location is kept only on /scan-map and /ai-course?from=scan", () => {
+  assert.equal(isScanLocationFlowRoute("/scan-map"), true);
+  assert.equal(isScanLocationFlowRoute("/scan-map", "destination=1F_STORE_0031"), true);
+  assert.equal(isScanLocationFlowRoute("/ai-course", "from=scan"), true);
+  assert.equal(isScanLocationFlowRoute("/ai-course", "?from=scan&prompt=hi"), true);
+  assert.equal(isScanLocationFlowRoute("/ai-course"), false);
+  assert.equal(isScanLocationFlowRoute("/ai-course", "prompt=hi"), false);
+  assert.equal(isScanLocationFlowRoute("/"), false);
+  assert.equal(isScanLocationFlowRoute("/community"), false);
+  assert.equal(isScanLocationFlowRoute("/mypage"), false);
 });
 
 test("resolvePlaceFromScan falls back to the store name when the OCR key is missing", () => {

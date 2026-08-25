@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { ScanLocationLifecycle } from "@/components/layout/scan-location-lifecycle";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -62,15 +63,26 @@ export function AppFrame({ children }) {
   }, [pathname, setUser, clearUser]);
 
   if (isAuthRoute) {
-    return children;
+    return (
+      <>
+        <ScanLocationLifecycle />
+        {children}
+      </>
+    );
   }
 
   if (isAdminRoute) {
-    return <div className="admin-shell min-h-dvh w-full">{children}</div>;
+    return (
+      <>
+        <ScanLocationLifecycle />
+        <div className="admin-shell min-h-dvh w-full">{children}</div>
+      </>
+    );
   }
 
   return (
     <>
+      <ScanLocationLifecycle />
       {isScanMap ? null : <SiteHeader />}
       <div
         className={`flex min-h-0 flex-1 flex-col ${

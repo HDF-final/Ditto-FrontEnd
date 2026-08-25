@@ -338,7 +338,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
   };
 
   return (
-    <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
+    <main className="min-w-0 overflow-x-hidden bg-background lg:min-h-screen">
       <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
@@ -377,15 +377,15 @@ export function CommunityCoursePage({ initialCards = [] }) {
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
-        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:max-w-[1020px] lg:block">
-          <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
+      <section className="bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+        <div className="lg:mx-auto lg:max-w-[1020px]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.map((card, index) => {
               const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
               return (
                 <div
                   key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                  className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
+                  className="min-w-0"
                 >
                   <CommunityCard
                     card={card}

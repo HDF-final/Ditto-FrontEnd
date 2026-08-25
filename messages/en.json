@@ -461,8 +461,6 @@
     "scanMapEmptyHint": "Scan a store sign to pin your location on The Hyundai Seoul indoor map.",
     "scanAgain": "Scan again",
     "goCreateCourse": "Create an AI course",
-    "locateMe": "Find my location",
-    "locateMeAgain": "Update my location",
     "timeoutError": "The request took too long and was stopped. Please try again.",
     "authError": "Log in to use course recommendations, then try again.",
     "engineError": "The AI recommendation engine didn't respond. Please try again shortly.",

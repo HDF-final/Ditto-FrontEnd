@@ -84,7 +84,7 @@ body {
 .app-shell {
   position: relative;
   display: flex;
-  min-height: 100dvh;
+  min-height: 100svh;
   width: 100%;
   flex-direction: column;
   background: var(--background);

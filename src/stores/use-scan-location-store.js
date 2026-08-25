@@ -31,7 +31,8 @@ function writeStoredLocation(location) {
  * OCR 로고 스캔으로 잡은 "지금 내 위치".
  *
  * 코스 추천 출발·도착 핀과 섞지 않고, 실내 지도에 별도의 내 위치 핑으로만
- * 올립니다. 탭 스캔 → 지도 페이지 이동을 위해 sessionStorage 에만 잠시 둡니다.
+ * 올립니다. `/scan-map` → `/ai-course?from=scan` 흐름과 새로고침을 위해
+ * sessionStorage 에 잠시 두되, 그 두 화면을 벗어나면 바로 지웁니다.
  */
 export const useScanLocationStore = create((set) => ({
   location: null,

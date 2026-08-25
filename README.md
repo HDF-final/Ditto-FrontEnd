@@ -211,7 +211,7 @@ Ditto-FrontEnd/
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 하단 `+` 카메라로 로고를 OCR 스캔하면 `POST /api/v1/ocr/locations/recognize`로 간판 이미지를 보내고, `/scan-map`에서 **전체층** 3D 지도에 작은 지도 핀으로 내 위치를 표시합니다. **AI 코스 생성하기**를 누르면 빈 코스 편집 화면이 열리고 1번 장소가 방금 인식한 매장으로 채워집니다. 이미 코스가 만들어진 편집 화면에서는 **내 위치 확인**으로 같은 핀을 코스 지도 위에 올립니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 하단 `+` 카메라로 로고를 OCR 스캔하면 `POST /api/v1/ocr/locations/recognize`로 간판 이미지를 보내고, `/scan-map`에서 **전체층** 3D 지도에 작은 지도 핀으로 내 위치를 표시합니다. **AI 코스 생성하기**를 누르면 `/ai-course?from=scan` 빈 코스 편집 화면이 열리고 1번 장소가 방금 인식한 매장으로 채워집니다. 이 OCR 내 위치는 그 두 화면에만 유지되고, 탭·헤더·뒤로가기로 나가면 바로 지웁니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
 
 국가·언어 설정 우선순위는 다음과 같습니다.
 
