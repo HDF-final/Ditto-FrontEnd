@@ -17,3 +17,11 @@ export function getAdminCourse(celebrity) {
     apiClient.get(`/admin/admin-courses/${encodeURIComponent(celebrity)}`),
   );
 }
+
+// 더현대 장소 전부. 관리자가 코스의 자리를 갈아 끼울 때 고를 재료다.
+// 초안이 들고 있는 차순위 후보(alternates)가 비어 있는 자리가 있어 그것만으로는 모자란다.
+export function getAdminCoursePlaces({ fresh = false } = {}) {
+  return requestData(
+    apiClient.get("/admin/admin-courses/places", { params: fresh ? { fresh: true } : undefined }),
+  );
+}
