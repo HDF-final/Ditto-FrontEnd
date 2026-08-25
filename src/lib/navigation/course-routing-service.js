@@ -248,10 +248,18 @@ export async function calculateCourseRoute(places, preferences) {
   };
 }
 
+/**
+ * `preserveEndpoints` 는 첫 자리와 마지막 자리를 둘 다 그 자리에 묶는다. 손님 화면은
+ * 출발과 도착을 손대지 않는 것이 맞아서 기본이 참이다.
+ *
+ * 관리자 화면은 **시작만 고정하고 나머지를 전부 다시 배치**하므로 거짓으로 부른다 —
+ * 배치가 짜 준 순서가 최선이라는 보장이 없고, 마지막 자리까지 옮길 수 있어야 층
+ * 이동이 실제로 줄어든다.
+ */
 export async function optimizeCourseRoute(
   places,
   preferences,
-  { lockedIndexes = [] } = {},
+  { lockedIndexes = [], preserveEndpoints = true } = {},
 ) {
   const dataset = await loadCourseRoutingDataset();
   const inputPlacesByNavigationKey = new Map(
@@ -261,7 +269,7 @@ export async function optimizeCourseRoute(
     dataset.graph,
     places.map((place) => place.navigationKey),
     routeOptions(preferences),
-    { lockedIndexes, preserveEndpoints: true },
+    { lockedIndexes, preserveEndpoints },
   );
   if (!optimized) return null;
   return {

@@ -263,7 +263,7 @@ export function AdminCourseView() {
         open={Boolean(opened)}
         onClose={close}
         labelledBy="admin-course-editor-title"
-        panelClassName="h-[92dvh] w-[96vw] max-w-[1440px] overflow-hidden rounded-[24px] border border-[#e1e4ed] bg-white shadow-[0_30px_90px_rgba(20,24,50,0.28)]"
+        panelClassName="h-[92dvh] w-[98vw] max-w-[1920px] overflow-hidden rounded-[24px] border border-[#e1e4ed] bg-white shadow-[0_30px_90px_rgba(20,24,50,0.28)]"
       >
         {openedEntry?.error ? (
           <div className="flex h-full flex-col justify-center p-8">
