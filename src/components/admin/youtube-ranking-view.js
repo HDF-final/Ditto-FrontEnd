@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { getAdminYoutube } from "@/lib/api/admin-trends";
+import {
+  buildYoutubeOverallRows,
+  rankMovement,
+  rankMovementLabel,
+} from "@/lib/admin/youtube-ranking";
 import { useAdminTrendArtifact } from "@/hooks/use-admin-trend-artifact";
 import {
   ArtifactError,
@@ -27,12 +32,12 @@ const WEEKLY_FILTERS = [
 ];
 
 const DAILY_META = {
-  rising: { label: "상승", symbol: "↑", className: "bg-[#eaf9f1] text-[#118150]" },
-  falling: { label: "하락", symbol: "↓", className: "bg-[#fff0f1] text-[#ca4050]" },
-  stable: { label: "유지", symbol: "–", className: "bg-[#f1f2f6] text-[#6d7385]" },
-  new: { label: "NEW", symbol: "+", className: "bg-[#eee8ff] text-brand" },
-  reentry: { label: "재진입", symbol: "↻", className: "bg-[#fff4dc] text-[#a96700]" },
-  unavailable: { label: "비교 불가", symbol: "·", className: "bg-[#f4f5f8] text-[#8b91a2]" },
+  rising: { className: "bg-[#eaf9f1] text-[#118150]" },
+  falling: { className: "bg-[#fff0f1] text-[#ca4050]" },
+  stable: { className: "bg-[#f1f2f6] text-[#6d7385]" },
+  new: { className: "bg-[#eee8ff] text-brand" },
+  reentry: { className: "bg-[#fff4dc] text-[#a96700]" },
+  unavailable: { className: "bg-[#f4f5f8] text-[#8b91a2]" },
 };
 
 const WEEKLY_META = {
@@ -50,60 +55,6 @@ function valueOrDash(value, digits = 0) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "-";
   return number.toFixed(digits);
-}
-
-function youtubeSignal(item) {
-  const value = item?.breakoutScore ?? item?.signalScore ?? item?.interestScore;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function overallKey(item) {
-  return item?.qid || String(item?.nameKo || item?.name || "").trim().toLocaleLowerCase();
-}
-
-function buildOverallRows(payload) {
-  if (Array.isArray(payload?.overall) && payload.overall.length) return payload.overall;
-
-  const combined = new Map();
-  ["KR", "JP", "US"].forEach((code) => {
-    const rows = Array.isArray(payload?.countries?.[code]) ? payload.countries[code] : [];
-    rows.forEach((item) => {
-      const key = overallKey(item);
-      const signal = youtubeSignal(item);
-      if (!key || signal === null) return;
-
-      const current = combined.get(key) || {
-        ...item,
-        marketScores: {},
-        marketSignals: [],
-      };
-      current.marketScores[code] = signal;
-      current.marketSignals.push(signal);
-      combined.set(key, current);
-    });
-  });
-
-  return [...combined.values()]
-    .map((item) => {
-      const breakoutScore = item.marketSignals.reduce((sum, value) => sum + value, 0) / item.marketSignals.length;
-      const { marketSignals, ...rest } = item;
-      return {
-        ...rest,
-        breakoutScore,
-        interestScore: breakoutScore,
-        marketCount: marketSignals.length,
-      };
-    })
-    .sort((a, b) => {
-      const scoreGap = Number(b.breakoutScore || 0) - Number(a.breakoutScore || 0);
-      if (scoreGap !== 0) return scoreGap;
-      const marketGap = Number(b.marketCount || 0) - Number(a.marketCount || 0);
-      if (marketGap !== 0) return marketGap;
-      return String(a.nameKo || a.name || "").localeCompare(String(b.nameKo || b.name || ""), "ko");
-    })
-    .slice(0, 10)
-    .map((item, index) => ({ ...item, ranking: index + 1 }));
 }
 
 function resolveRows(payload, country, overallRows) {
@@ -189,14 +140,17 @@ function RankBadge({ rank }) {
 
 function DailyMovementBadge({ item }) {
   const category = dailyCategory(item);
-  const meta = DAILY_META[category];
-  const change = Number(item?.rankChange);
-  const changeText = (category === "rising" || category === "falling") && Number.isFinite(change)
-    ? `${meta.symbol}${Math.abs(change)}`
-    : meta.label;
+  const movement = rankMovement(item);
+  const movementCategory = movement.value > 0 ? "rising" : movement.value < 0 ? "falling" : category;
+  const meta = DAILY_META[movementCategory] || DAILY_META.unavailable;
+  const title = movement.source === "market-net"
+    ? "관측 " + movement.count + "개국 전일 순위 변동 합계"
+    : item?.previousRanking
+      ? "전일 " + item.previousRanking + "위"
+      : "전일 순위 비교";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black ${meta.className}`} title={item?.previousRanking ? `전일 ${item.previousRanking}위` : meta.label}>
-      {changeText}
+    <span className={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black " + meta.className} title={title}>
+      {rankMovementLabel(item)}
     </span>
   );
 }
@@ -213,27 +167,6 @@ function WeeklyTrendBadge({ item }) {
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eef0f5]">
         <div className={`h-full rounded-full ${meta.bar}`} style={{ width: `${Math.max(12, Math.min(100, Math.abs(Number(item?.weeklySignalChange) || 0) * 4))}%` }} />
       </div>
-    </div>
-  );
-}
-
-function MarketSignals({ scores }) {
-  const markets = ["KR", "JP", "US"].filter((code) => {
-    const value = scores?.[code];
-    return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
-  });
-  if (!markets.length) return <span className="text-xs text-[#9aa0b0]">국가 신호 없음</span>;
-  return (
-    <div className="flex min-w-[230px] gap-2">
-      {markets.map((code) => {
-        const value = Math.max(0, Math.min(100, Number(scores[code]) || 0));
-        return (
-          <div key={code} className="flex-1" title={`${COUNTRY_META[code]?.name || code} ${value.toFixed(1)}`}>
-            <div className="mb-1 flex justify-between text-[10px] text-[#81879a]"><span>{COUNTRY_META[code]?.flag}</span><span>{value.toFixed(0)}</span></div>
-            <div className="h-12 rounded-md bg-[#f1effa] p-1"><div className="flex h-full items-end"><div className="w-full rounded bg-brand/75" style={{ height: `${Math.max(5, value)}%` }} /></div></div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -267,17 +200,34 @@ function WeeklySummary({ rows, activeFilter, onFilter }) {
 function OverallYoutubeTable({ rows }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1080px] text-left text-sm">
-        <thead className="bg-[#fafbfe] text-[11px] font-bold uppercase tracking-[0.08em] text-[#858b9e]"><tr><th className="w-20 px-6 py-4">순위</th><th className="px-4 py-4">아티스트</th><th className="w-[20%] px-4 py-4">종합 신호</th><th className="px-4 py-4">전일 대비</th><th className="px-4 py-4">최근 7일</th><th className="px-4 py-4">국가별 신호</th><th className="px-4 py-4">관측 국가</th></tr></thead>
+      <table className="w-full min-w-[900px] text-left text-sm">
+        <thead className="bg-[#fafbfe] text-[11px] font-bold uppercase tracking-[0.08em] text-[#858b9e]">
+          <tr>
+            <th className="w-20 px-6 py-4">순위</th>
+            <th className="px-4 py-4">아티스트</th>
+            <th className="w-[24%] px-4 py-4">종합 급상승 점수</th>
+            <th className="px-4 py-4">전일 순위 변동</th>
+            <th className="px-4 py-4">최근 7일</th>
+            <th className="px-4 py-4">관측 국가</th>
+          </tr>
+        </thead>
         <tbody className="divide-y divide-[#eceef4]">
-          {rows.map((item, index) => <tr key={item.qid || `${item.name}-${index}`} className="transition-colors hover:bg-[#faf9ff]"><td className="px-6 py-4"><RankBadge rank={index + 1} /></td><td className="px-4 py-4"><ArtistCell item={item} /></td><td className="px-4 py-4"><SignalBar value={item.breakoutScore ?? item.interestScore} label="통합 신호" /></td><td className="px-4 py-4"><DailyMovementBadge item={item} /></td><td className="px-4 py-4"><WeeklyTrendBadge item={item} /></td><td className="px-4 py-4"><MarketSignals scores={item.marketScores} /></td><td className="px-4 py-4 font-semibold">{valueOrDash(item.marketCount)}개국</td></tr>)}
-          {!rows.length ? <tr><td colSpan={7} className="px-6 py-16 text-center text-sm text-[#9095a6]">선택한 흐름에 해당하는 YouTube 결과가 없습니다.</td></tr> : null}
+          {rows.map((item, index) => (
+            <tr key={item.qid || (item.name || "artist") + "-" + index} className="transition-colors hover:bg-[#faf9ff]">
+              <td className="px-6 py-4"><RankBadge rank={index + 1} /></td>
+              <td className="px-4 py-4"><ArtistCell item={item} /></td>
+              <td className="px-4 py-4"><SignalBar value={item.breakoutScore ?? item.interestScore} label="종합 점수" /></td>
+              <td className="px-4 py-4"><DailyMovementBadge item={item} /></td>
+              <td className="px-4 py-4"><WeeklyTrendBadge item={item} /></td>
+              <td className="px-4 py-4 font-semibold">{valueOrDash(item.marketCount)}개국</td>
+            </tr>
+          ))}
+          {!rows.length ? <tr><td colSpan={6} className="px-6 py-16 text-center text-sm text-[#9095a6]">선택한 흐름에 해당하는 YouTube 결과가 없습니다.</td></tr> : null}
         </tbody>
       </table>
     </div>
   );
 }
-
 function CountryYoutubeTable({ rows }) {
   return (
     <div className="overflow-x-auto">
@@ -287,7 +237,7 @@ function CountryYoutubeTable({ rows }) {
           {rows.map((item, index) => {
             const videos = Array.isArray(item.videos) ? [...item.videos].sort((a, b) => Number(a.chartRank || 999) - Number(b.chartRank || 999)) : [];
             const video = videos[0];
-            return <tr key={item.qid || `${item.name}-${index}`} className="transition-colors hover:bg-[#faf9ff]"><td className="px-6 py-4"><RankBadge rank={index + 1} /></td><td className="px-4 py-4"><ArtistCell item={item} video={video} /></td><td className="px-4 py-4"><SignalBar value={item.breakoutScore ?? item.signalScore ?? item.interestScore} label="국가 신호" /></td><td className="px-4 py-4"><DailyMovementBadge item={item} /></td><td className="px-4 py-4"><WeeklyTrendBadge item={item} /></td><td className="px-4 py-4 font-semibold"><div>{rankLabel(item.bestVideoRank)}</div>{video?.chartRankChange !== null && video?.chartRankChange !== undefined ? <span className="mt-1 block text-[11px] text-[#8b91a2]">영상 {video.chartRankChange > 0 ? `↑${video.chartRankChange}` : video.chartRankChange < 0 ? `↓${Math.abs(video.chartRankChange)}` : "유지"}</span> : null}</td><td className="px-4 py-4 text-xs"><strong className="block text-[#33384d]">{compactNumber(item.totalViews)}</strong>{video?.likeCount !== null && video?.likeCount !== undefined ? <span className="mt-1 block text-[#8b91a2]">좋아요 {compactNumber(video.likeCount)}</span> : null}{video?.commentCount !== null && video?.commentCount !== undefined ? <span className="block text-[#8b91a2]">댓글 {compactNumber(video.commentCount)}</span> : null}</td><td className="px-4 py-4 font-semibold"><span>{valueOrDash(item.observedDays)}일</span><span className="mt-1 block text-[11px] font-normal text-[#8b91a2]">연속 {valueOrDash(item.consecutiveDays)}일</span></td></tr>;
+            return <tr key={item.qid || `${item.name}-${index}`} className="transition-colors hover:bg-[#faf9ff]"><td className="px-6 py-4"><RankBadge rank={index + 1} /></td><td className="px-4 py-4"><ArtistCell item={item} video={video} /></td><td className="px-4 py-4"><SignalBar value={item.breakoutScore ?? item.signalScore ?? item.interestScore} label="급상승 점수" /></td><td className="px-4 py-4"><DailyMovementBadge item={item} /></td><td className="px-4 py-4"><WeeklyTrendBadge item={item} /></td><td className="px-4 py-4 font-semibold"><div>{rankLabel(item.bestVideoRank)}</div>{video?.chartRankChange !== null && video?.chartRankChange !== undefined ? <span className="mt-1 block text-[11px] text-[#8b91a2]">영상 {video.chartRankChange > 0 ? `↑${video.chartRankChange}` : video.chartRankChange < 0 ? `↓${Math.abs(video.chartRankChange)}` : "유지"}</span> : null}</td><td className="px-4 py-4 text-xs"><strong className="block text-[#33384d]">{compactNumber(item.totalViews)}</strong>{video?.likeCount !== null && video?.likeCount !== undefined ? <span className="mt-1 block text-[#8b91a2]">좋아요 {compactNumber(video.likeCount)}</span> : null}{video?.commentCount !== null && video?.commentCount !== undefined ? <span className="block text-[#8b91a2]">댓글 {compactNumber(video.commentCount)}</span> : null}</td><td className="px-4 py-4 font-semibold"><span>{valueOrDash(item.observedDays)}일</span><span className="mt-1 block text-[11px] font-normal text-[#8b91a2]">연속 {valueOrDash(item.consecutiveDays)}일</span></td></tr>;
           })}
           {!rows.length ? <tr><td colSpan={8} className="px-6 py-16 text-center text-sm text-[#9095a6]">선택한 흐름에 해당하는 이 국가의 결과가 없습니다.</td></tr> : null}
         </tbody>
@@ -302,7 +252,7 @@ export function YoutubeRankingView() {
   const [weeklyFilter, setWeeklyFilter] = useState("all");
 
   const payload = useMemo(() => data?.payload || {}, [data?.payload]);
-  const overallRows = useMemo(() => buildOverallRows(payload), [payload]);
+  const overallRows = useMemo(() => buildYoutubeOverallRows(payload), [payload]);
   const sourceRows = resolveRows(payload, country, overallRows);
   const rows = weeklyFilter === "all" ? sourceRows : sourceRows.filter((item) => weeklyCategory(item) === weeklyFilter);
   const activeTab = TABS.find((tab) => tab.code === country) || TABS[0];
