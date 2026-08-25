@@ -6,6 +6,7 @@ import {
   fetchCourseDetailServer,
   fetchRawSystemCoursesServer,
 } from "@/lib/api/courses.server";
+import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
 import { recommendedCourses } from "@/lib/fixtures/recommended-courses";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
 import { CommunityStopList } from "@/components/community/community-stop-list";
@@ -13,8 +14,17 @@ import { CourseDetailActions } from "./course-detail-actions";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_COURSE_IMAGE =
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+const DEFAULT_SYSTEM_COURSE_IDS = ["1", "122", "21", "22", "23"];
+
+function getDefaultCourseImage(rawCourse, slug) {
+  const courseId = String(rawCourse?.courseId || rawCourse?.id || slug || "");
+  const matchedIndex = DEFAULT_SYSTEM_COURSE_IDS.indexOf(courseId);
+  const fallbackIndex = matchedIndex >= 0 ? matchedIndex : 0;
+
+  return DEFAULT_COMMUNITY_COURSE_IMAGES[
+    fallbackIndex % DEFAULT_COMMUNITY_COURSE_IMAGES.length
+  ];
+}
 
 function normalizeCourse(rawCourse, slug) {
   if (!rawCourse) return null;
@@ -50,7 +60,11 @@ function normalizeCourse(rawCourse, slug) {
   const image =
     rawCourse.representativeImageUrl ||
     rawCourse.image ||
-    DEFAULT_COURSE_IMAGE;
+    rawCourse.imageUrl ||
+    rawCourse.thumbnailUrl ||
+    rawCourse.coverImageUrl ||
+    rawCourse.mainImageUrl ||
+    getDefaultCourseImage(rawCourse, slug);
 
   const gradient =
     rawCourse.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";

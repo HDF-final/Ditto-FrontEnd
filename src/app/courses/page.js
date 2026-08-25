@@ -14,6 +14,7 @@ const GRADIENTS = [
   "from-[#5c2ef5] via-[#8447ef] to-[#b16cef]",
   "from-[#35218f] via-[#5840d8] to-[#795ff0]",
 ];
+const COURSES_PER_PAGE = 2;
 
 function getCourseImage(course, index) {
   return (
@@ -22,8 +23,10 @@ function getCourseImage(course, index) {
   );
 }
 
-export default async function CoursesPage() {
+export default async function CoursesPage({ searchParams }) {
   const t = await getTranslations("courses");
+  const params = searchParams ? await searchParams : {};
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
   const systemCourses = (await fetchRawSystemCoursesServer({ size: 20 }).catch(() => []))
     .filter((course) => {
       const type = String(course.creationType || course.courseType || course.type || "").toUpperCase();
@@ -50,6 +53,12 @@ export default async function CoursesPage() {
       gradient: course.gradient || GRADIENTS[index % GRADIENTS.length],
     };
   });
+  const totalPages = Math.max(1, Math.ceil(courseCards.length / COURSES_PER_PAGE));
+  const currentPage = Number.isNaN(requestedPage)
+    ? 1
+    : Math.min(Math.max(requestedPage, 1), totalPages);
+  const pageStart = (currentPage - 1) * COURSES_PER_PAGE;
+  const pagedCourseCards = courseCards.slice(pageStart, pageStart + COURSES_PER_PAGE);
 
   return (
     <main className="min-h-screen bg-surface-soft px-5 py-8 sm:px-8 sm:py-12 lg:px-20 xl:px-28 2xl:px-36">
@@ -72,7 +81,7 @@ export default async function CoursesPage() {
         {/* 기본 코스 (SYSTEM) 목록 그리드 */}
         {courseCards.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8">
-            {courseCards.map((course, index) => (
+            {pagedCourseCards.map((course, index) => (
               <article
                 key={`${course.href}-${index}`}
                 className="group flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(43,28,89,0.06)] transition hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(43,28,89,0.12)] sm:rounded-[28px]"
@@ -83,7 +92,7 @@ export default async function CoursesPage() {
                 >
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${getCourseImage(course, index)})` }}
+                    style={{ backgroundImage: `url(${getCourseImage(course, pageStart + index)})` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-black/55" />
                   <div className="relative z-10 flex items-center justify-between">
@@ -157,6 +166,54 @@ export default async function CoursesPage() {
             </p>
           </div>
         )}
+
+        {courseCards.length > COURSES_PER_PAGE ? (
+          <nav
+            aria-label="코스 목록 페이지"
+            className="mt-10 flex items-center justify-center gap-2"
+          >
+            <Link
+              href={`/courses?page=${Math.max(1, currentPage - 1)}`}
+              aria-disabled={currentPage === 1}
+              className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
+                currentPage === 1
+                  ? "pointer-events-none border-[#ded7f7] bg-white/55 text-[#b9b2ca]"
+                  : "border-[#ded7f7] bg-white text-ink hover:border-brand hover:text-brand"
+              }`}
+            >
+              ‹
+            </Link>
+            {Array.from({ length: totalPages }, (_, index) => {
+              const page = index + 1;
+              const active = page === currentPage;
+              return (
+                <Link
+                  key={page}
+                  href={`/courses?page=${page}`}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
+                    active
+                      ? "border-brand bg-brand text-white shadow-[0_10px_22px_rgba(92,46,245,0.24)]"
+                      : "border-[#ded7f7] bg-white text-ink hover:border-brand hover:text-brand"
+                  }`}
+                >
+                  {page}
+                </Link>
+              );
+            })}
+            <Link
+              href={`/courses?page=${Math.min(totalPages, currentPage + 1)}`}
+              aria-disabled={currentPage === totalPages}
+              className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
+                currentPage === totalPages
+                  ? "pointer-events-none border-[#ded7f7] bg-white/55 text-[#b9b2ca]"
+                  : "border-[#ded7f7] bg-white text-ink hover:border-brand hover:text-brand"
+              }`}
+            >
+              ›
+            </Link>
+          </nav>
+        ) : null}
       </div>
     </main>
   );
