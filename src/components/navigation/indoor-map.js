@@ -1799,7 +1799,13 @@ export function IndoorMap({
     if (userLocationFloorId && !ids.includes(userLocationFloorId)) {
       ids.push(userLocationFloorId);
     }
-    return new Set(ids);
+    if (ids.length === 0) return new Set(FLOOR_ORDER);
+    // 엘리베이터·에스컬레이터가 층을 건너뛰어도(예: B2→6F) 스택이 끊기지
+    // 않도록, 경로가 닿는 최저~최고 층 사이를 연속된 건물 단면으로 채웁니다.
+    const indices = ids.map((id) => FLOOR_ORDER.indexOf(id));
+    const min = Math.min(...indices);
+    const max = Math.max(...indices);
+    return new Set(FLOOR_ORDER.slice(min, max + 1));
   }, [routeFloorIds, userLocationFloorId]);
 
   useEffect(() => {
