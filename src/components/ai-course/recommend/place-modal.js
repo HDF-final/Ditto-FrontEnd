@@ -146,7 +146,7 @@ function AiPlaceModalContent({ place, onClose }) {
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
             <div className="flex items-center gap-2 text-[16px] font-black text-[#5c2ef5] mb-2.5">
               <span>✨</span>
-              <span>{t("aiRecommendationReason")}</span>
+              <span>{t("boniReason")}</span>
             </div>
             <p className="text-[17px] font-medium leading-[1.7] text-[#2d2745] break-keep">
               {aiReasonText}
