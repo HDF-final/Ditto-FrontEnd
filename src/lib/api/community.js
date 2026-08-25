@@ -29,18 +29,12 @@ export function createCoursePost({
   courseId,
   title,
   content,
-  representativeImageUrl,
-  imageUrl,
 }) {
   const payload = {
-    courseId,
-    title,
-    content,
+    courseId: Number(courseId),
+    title: (title || "").trim(),
+    content: (content || "").trim() || "더현대 서울 맞춤 코스입니다.",
   };
-  const img = representativeImageUrl || imageUrl;
-  if (img) {
-    payload.representativeImageUrl = img;
-  }
   return requestData(apiClient.post("/community/courses", payload));
 }
 
@@ -50,16 +44,12 @@ export function createCoursePost({
  */
 export function updateCoursePost(
   postId,
-  { title, content, representativeImageUrl, imageUrl },
+  { title, content },
 ) {
   const payload = {
-    title,
-    content,
+    title: (title || "").trim(),
+    content: (content || "").trim(),
   };
-  const img = representativeImageUrl || imageUrl;
-  if (img) {
-    payload.representativeImageUrl = img;
-  }
   return requestData(apiClient.patch(`/community/courses/${postId}`, payload));
 }
 

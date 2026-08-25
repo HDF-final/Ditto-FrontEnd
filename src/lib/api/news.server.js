@@ -182,6 +182,10 @@ export function normalizeNewsDetail(feed) {
     quote,
     quoteSource,
     sourceUrl: feed.sourceUrl || null,
+    place: feed.place || (feed.places && feed.places[0]) || null,
+    places: feed.places || (feed.place ? [feed.place] : []),
+    placeId: feed.placeId || (feed.place && feed.place.placeId) || null,
+    navigationKey: feed.navigationKey || (feed.place && feed.place.navigationKey) || null,
     insight:
       feed.insight ||
       (keywords[0] ? `${keywords[0]} 키워드` : "인터랙션 많은 기사"),
@@ -192,7 +196,7 @@ export function normalizeNewsDetail(feed) {
  * Server Component용 뉴스피드 목록 조회.
  * 백엔드 연결 실패 시 fixtures 목록으로 안전하게 폴백합니다.
  */
-export async function fetchNewsFeedsServer({ page = 0, size = 20 } = {}) {
+export async function fetchNewsFeedsServer({ page = 0, size = 60 } = {}) {
   try {
     const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(

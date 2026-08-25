@@ -134,7 +134,6 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         courseId,
         title: title.trim() || selectedCourse.title || "나만의 코스",
         content: caption.trim() || "더현대 서울 맞춤 코스입니다.",
-        representativeImageUrl: photos[0] || undefined,
       });
 
       const newPostId =
