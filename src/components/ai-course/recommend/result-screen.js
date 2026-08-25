@@ -512,6 +512,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const onPlacePointerDown = (event, index) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (event.target.closest("[data-no-drag]")) return;
+    if (
+      event.target.closest("button") &&
+      !event.target.closest("[data-drag-handle]")
+    ) {
+      return;
+    }
     clearPointerTimer();
     pointerDrag.current = {
       pointerId: event.pointerId,

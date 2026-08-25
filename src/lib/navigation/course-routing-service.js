@@ -197,6 +197,9 @@ export function attachPlaceIdsToCourseDataset(dataset, navigationPlaces) {
       { placeName: place.name },
     ),
     placeId: placeIdByNavigationKey.get(place.navigationKey) ?? null,
+    desc: descriptionByNavigationKey.get(place.navigationKey) ?? place.desc,
+    description:
+      descriptionByNavigationKey.get(place.navigationKey) ?? place.description,
     image: imageUrlByNavigationKey.get(place.navigationKey) ?? place.image,
   }));
   const placesByNavigationKey = new Map(

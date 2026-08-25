@@ -9,6 +9,7 @@ import { SectionHeading } from "@/components/home/section-heading";
 import { useDragCarousel } from "@/hooks/use-drag-carousel";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import {
   likeCourse,
@@ -31,15 +32,20 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   const t = useTranslations("home");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
   const mounted = useIsMounted();
+  const getPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.getPostAuthor,
+  );
+  const localAuthor = mounted
+    ? getPostAuthor(course.postId, course.courseId, course.slug, course.rank)
+    : null;
   const authorName =
     course.name ||
     course.writerNickname ||
     course.authorNickname ||
     course.userNickname ||
     course.nickname ||
-    (mounted ? user?.nickname || user?.name : "") ||
+    localAuthor?.name ||
     "";
 
   const postId =
@@ -152,8 +158,8 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           </span>
           {/* Flag */}
           <CountryFlag
-            code={course.flag || course.country}
-            emoji={getFlagEmoji(course.flag || course.country)}
+            code={course.flag || course.country || localAuthor?.country}
+            emoji={getFlagEmoji(course.flag || course.country || localAuthor?.country)}
             className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
           />
           {/* Name */}

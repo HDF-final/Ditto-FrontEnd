@@ -50,6 +50,7 @@ export function normalizePublicCourseCard(post) {
     post.name ||
     post.nickname ||
     post.userName ||
+    post.authorName ||
     post.author ||
     post.user?.nickname ||
     post.user?.name ||
@@ -70,7 +71,7 @@ export function normalizePublicCourseCard(post) {
     courseId: post.courseId,
     slug,
     authorId,
-    authorKey: String(authorId || authorName || "").trim(),
+    authorKey: String(authorName || "").trim(),
     country: post.country || post.user?.country || "",
     name: authorName,
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
@@ -122,8 +123,14 @@ export function normalizePublicCourseDetail(detail) {
 
   const authorName =
     detail.writerNickname ||
+    detail.writerName ||
+    detail.authorNickname ||
+    detail.createdByNickname ||
+    detail.userNickname ||
+    detail.name ||
     detail.nickname ||
     detail.userName ||
+    detail.authorName ||
     detail.author ||
     detail.user?.nickname ||
     detail.user?.name ||
@@ -147,7 +154,7 @@ export function normalizePublicCourseDetail(detail) {
     courseId: detail.course?.courseId || detail.courseId,
     slug,
     authorId,
-    authorKey: String(authorId || authorName || "").trim(),
+    authorKey: String(authorName || "").trim(),
     country: detail.country || detail.user?.country || "KR",
     name: authorName,
     persona: detail.persona || detail.shoppingType || detail.user?.persona || detail.course?.persona || "sohwak",

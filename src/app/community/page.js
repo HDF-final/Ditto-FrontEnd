@@ -13,21 +13,41 @@ function normalizeFilterValue(value) {
   return value || "";
 }
 
+function normalizeAuthorToken(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getCourseAuthorNames(course) {
+  return [
+    course.name,
+    course.writerNickname,
+    course.writerName,
+    course.authorNickname,
+    course.authorName,
+    course.userNickname,
+    course.nickname,
+    course.userName,
+    course.author,
+    course.authorKey,
+  ]
+    .map(normalizeAuthorToken)
+    .filter(Boolean);
+}
+
 function filterCoursesByAuthor(courses, { authorId = "", author = "" } = {}) {
   const normalizedAuthorId = String(authorId).trim();
-  const normalizedAuthor = String(author).trim().toLowerCase();
+  const normalizedAuthor = normalizeAuthorToken(author);
 
   if (!normalizedAuthorId && !normalizedAuthor) return courses;
 
   return courses.filter((course) => {
     const courseAuthorId = String(course.authorId || "").trim();
-    const courseAuthorName = String(course.name || "").trim().toLowerCase();
-    const courseAuthorKey = String(course.authorKey || "").trim().toLowerCase();
+    const courseAuthorNames = getCourseAuthorNames(course);
 
     if (normalizedAuthorId && courseAuthorId === normalizedAuthorId) return true;
     if (!normalizedAuthor) return false;
 
-    return courseAuthorName === normalizedAuthor || courseAuthorKey === normalizedAuthor;
+    return courseAuthorNames.includes(normalizedAuthor);
   });
 }
 
@@ -54,11 +74,12 @@ export default async function CommunityPage({ searchParams }) {
     courses.every((course) => !hasAuthorMetadata(course))
       ? courses
       : filteredCourses;
+  const resolvedAuthorName = author || visibleCourses.find((course) => course.name)?.name || "";
 
   return (
     <CommunityCoursePage
       initialCards={visibleCourses}
-      authorFilterName={author}
+      authorFilterName={resolvedAuthorName}
       isAuthorFiltered={isAuthorFiltered}
     />
   );

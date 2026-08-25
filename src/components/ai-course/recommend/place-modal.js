@@ -268,11 +268,15 @@ function StandardPlaceModalContent({ place, onClose }) {
     place.description ||
     t("indoorStoreDescription", { location: locationText, name: place.name });
 
+  const showPhotoPanel = !place.isNewsModal && place.showPhotoPanel !== false;
+
   // 뉴스 피드/모달에서 띄운 경우에만 층별 선택 UI 숨김
   const showFloorSelector =
     place.showFloorSelector !== false && !place.hideFloorSelector && !place.isNewsModal;
 
   useEffect(() => {
+    if (showPhotoPanel) return undefined;
+
     let active = true;
 
     async function loadPlaceRoute() {
@@ -352,7 +356,7 @@ function StandardPlaceModalContent({ place, onClose }) {
     return () => {
       active = false;
     };
-  }, [place]);
+  }, [place, showPhotoPanel]);
 
   return (
     <div
@@ -397,20 +401,6 @@ function StandardPlaceModalContent({ place, onClose }) {
               ) : null}
             </div>
           </div>
-
-          {/* 매장 대표 사진 (높이를 적절히 줄여 매장 안내가 한눈에 다 보이도록 함) */}
-          {storeImage ? (
-            <div className="mt-3 relative w-full h-[125px] sm:h-[135px] rounded-[16px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 shadow-xs shrink-0">
-              <img
-                src={storeImage}
-                alt={place.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = getFallbackPlaceImage(place);
-                }}
-              />
-            </div>
-          ) : null}
 
           {/* 매장 안내 카드 */}
           <div className="mt-3 rounded-[18px] bg-[#faf8ff] border border-[#e0d9f8] p-4 shadow-xs">
@@ -468,7 +458,7 @@ function StandardPlaceModalContent({ place, onClose }) {
         ) : null}
       </div>
 
-      {/* Right Column: 3D 실내 층별 지도 */}
+      {/* Right Column: 수동 추가 장소는 매장 사진, 뉴스피드는 기존 지도 유지 */}
       <div className="w-full md:flex-1 h-[52%] md:h-full min-h-[320px] relative bg-[#F7F3EF] overflow-hidden">
         {/* Top Close button on desktop */}
         <div className="absolute right-4 top-4 z-20 hidden md:block">
@@ -482,15 +472,59 @@ function StandardPlaceModalContent({ place, onClose }) {
           </button>
         </div>
 
-        <CourseNavigationMap
-          route={routeState.itinerary}
-          routeFloorIds={routeState.itinerary?.floorIds || routeState.floors}
-          routeGraph={routeState.graph}
-          className="h-full w-full"
-          showFloorSelector={showFloorSelector}
-          showControls={true}
-          showUserLocation={false}
-        />
+        {showPhotoPanel ? (
+          <>
+            <img
+              src={storeImage}
+              alt={place.name}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = getFallbackPlaceImage(place);
+              }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-7">
+              <span className="mb-3 inline-flex items-center rounded-full bg-black/40 px-3 py-1 text-[11px] font-black backdrop-blur-md">
+                {place.floor || locationText}
+              </span>
+              <h3 className="text-2xl font-black leading-tight break-keep sm:text-3xl">
+                {place.name}
+              </h3>
+              <p className="mt-2 line-clamp-2 max-w-[520px] text-[13px] font-semibold leading-[1.6] text-white/85 sm:text-sm">
+                {storeDescription}
+              </p>
+              {storeImages && storeImages.length > 0 ? (
+                <div className="mt-4 flex gap-2">
+                  {storeImages.slice(0, 3).map((imgUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="relative size-14 overflow-hidden rounded-[12px] border border-white/30 bg-white/15 shadow-lg sm:size-16"
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = getFallbackPlaceImage(place);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </>
+        ) : (
+          <CourseNavigationMap
+            route={routeState.itinerary}
+            routeFloorIds={routeState.itinerary?.floorIds || routeState.floors}
+            routeGraph={routeState.graph}
+            className="h-full w-full"
+            showFloorSelector={showFloorSelector}
+            showControls={true}
+            showUserLocation={false}
+          />
+        )}
       </div>
     </div>
   );

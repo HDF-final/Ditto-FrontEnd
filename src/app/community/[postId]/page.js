@@ -67,12 +67,15 @@ function AuthorNote({ course, t, locale }) {
               <CommunityAuthorDescription
                 name={course.name}
                 travelerText={travelerText}
+                postId={course.postId}
+                courseId={course.courseId}
               />
             </p>
           </div>
           <CommunityOtherCoursesLink
             authorId={course.authorId}
             authorName={course.name}
+            courseId={course.courseId}
             className="text-sm font-black text-brand transition hover:text-brand-dark"
           >
             {otherCoursesText}
@@ -102,10 +105,16 @@ function AuthorNote({ course, t, locale }) {
                   <CommunityAuthorName
                     name={course.name}
                     travelerText={travelerText}
+                    postId={course.postId}
+                    courseId={course.courseId}
                   />
                 </p>
                 <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                  <CommunityAuthorCountry country={course.country} />
+                  <CommunityAuthorCountry
+                    country={course.country}
+                    postId={course.postId}
+                    courseId={course.courseId}
+                  />
                 </span>
               </div>
               <p className="mt-0.5 text-xs font-medium text-ink-muted">
@@ -232,10 +241,16 @@ export default async function CommunityCourseDetailPage({ params }) {
                     <CommunityAuthorName
                       name={course.name}
                       travelerText={travelerText}
+                      postId={course.postId}
+                      courseId={course.courseId}
                     />
                   </span>
                   <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                    <CommunityAuthorCountry country={course.country} />
+                    <CommunityAuthorCountry
+                      country={course.country}
+                      postId={course.postId}
+                      courseId={course.courseId}
+                    />
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs font-medium text-ink-muted">
