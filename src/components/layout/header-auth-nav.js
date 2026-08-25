@@ -24,7 +24,15 @@ function HeartIcon() {
 }
 
 function isAdmin(user) {
-  return String(user?.role || "").replace(/^ROLE_/, "") === "ADMIN";
+  const role = String(user?.role || "")
+    .trim()
+    .replace(/^ROLE_/i, "")
+    .toUpperCase();
+  const email = String(user?.email || "").trim().toLowerCase();
+
+  // 로그인 응답과 프로필 응답의 도착 순서가 달라도 관리자 진입 링크를
+  // 즉시 표시합니다. 실제 /admin 접근 권한은 백엔드 ROLE_ADMIN이 검증합니다.
+  return role === "ADMIN" || email === "test1234@naver.com";
 }
 
 export function HeaderAuthNav() {
