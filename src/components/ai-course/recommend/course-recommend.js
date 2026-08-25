@@ -45,7 +45,7 @@ export function CourseRecommend() {
   }, [promptParam, chat]);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-white lg:min-h-[calc(100dvh-72px)]">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-white lg:overflow-hidden">
       {phase === "prompt" ? (
         <PromptScreen
           mode={mode}

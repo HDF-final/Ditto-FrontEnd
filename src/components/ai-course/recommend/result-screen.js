@@ -616,7 +616,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
       </div>
 
       <div
-        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
+        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-6 lg:py-4"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
@@ -730,7 +730,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
 
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-[320px] lg:gap-4 lg:py-20">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-0 lg:flex-1 lg:gap-4 lg:py-8">
             <p className="text-[14px] font-semibold text-[#1a142e] lg:text-[18px]">
               {t("emptyPlaces")}
             </p>
