@@ -440,6 +440,8 @@
     "boniReason": "Boniのおすすめ理由",
     "brandPhotos": "ブランド写真",
     "brandPhotoAlt": "{name} ブランド写真 {index}",
+    "brandProducts": "ブランド商品",
+    "brandProductAlt": "{name} 商品 {index}",
     "store": "店舗",
     "storeGuide": "店舗案内",
     "storePhotos": "店舗写真",

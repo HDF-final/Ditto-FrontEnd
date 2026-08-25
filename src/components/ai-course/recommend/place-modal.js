@@ -18,6 +18,7 @@ import {
 } from "@/lib/navigation/course-routing-service";
 import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
+import { getAiPlaceProductImages } from "@/lib/api/ai-course";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 
 /**
@@ -27,6 +28,11 @@ import { CourseNavigationMap } from "@/components/navigation/course-navigation-m
  */
 function AiPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
+  const productNavigationKey = place.navigationKey || place.navigation_key;
+  const [productResult, setProductResult] = useState({
+    navigationKey: null,
+    products: [],
+  });
   const locationText = place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   // 브랜드별 컨텍스트 매핑 (프라다 카리나, 아디다스 손흥민/제니 등)
@@ -62,33 +68,35 @@ function AiPlaceModalContent({ place, onClose }) {
   const rightImageCaption =
     rightImage && rightImage === place.aiImage ? place.aiImageCaption : null;
 
-  // 브랜드 상품/아이템 대표 사진 3장
-  const brandImages =
-    place.brandImages ||
-    place.galleryImages ||
-    (isPrada
-      ? [
-          "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=400&auto=format&fit=crop",
-        ]
-      : isAdidas
-      ? [
-          "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=400&auto=format&fit=crop",
-        ]
-      : isGentleMonster
-      ? [
-          "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1508296695146-257a814070b4?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop",
-        ]
-      : [
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=400&auto=format&fit=crop",
-        ]);
+  useEffect(() => {
+    if (!productNavigationKey) return undefined;
+
+    const controller = new AbortController();
+    getAiPlaceProductImages(productNavigationKey, {
+      limit: 3,
+      signal: controller.signal,
+    })
+      .then((products) => {
+        setProductResult({
+          navigationKey: productNavigationKey,
+          products: products.filter((product) => product?.imageUrl),
+        });
+      })
+      .catch((error) => {
+        if (error?.code === "ERR_CANCELED") return;
+        setProductResult({
+          navigationKey: productNavigationKey,
+          products: [],
+        });
+      });
+
+    return () => controller.abort();
+  }, [productNavigationKey]);
+
+  const isProductLoading =
+    Boolean(productNavigationKey) &&
+    productResult.navigationKey !== productNavigationKey;
+  const brandProducts = isProductLoading ? [] : productResult.products;
 
   return (
     <div
@@ -145,30 +153,50 @@ function AiPlaceModalContent({ place, onClose }) {
             </p>
           </div>
 
-          {/* 매장 / 아이템 사진 3장 */}
-          <div className="mt-6">
-            <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-              {t("brandPhotos")}
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {brandImages.map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
-                >
-                  <img
-                    src={imgUrl}
-                    alt={t("brandPhotoAlt", { name: place.name, index: idx + 1 })}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.currentTarget.src = getFallbackPlaceImage(place);
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                </div>
-              ))}
+          {/* 브랜드 상품 이미지 */}
+          {isProductLoading || brandProducts.length > 0 ? (
+            <div className="mt-6">
+              <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
+                {t("brandProducts")}
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {isProductLoading
+                  ? Array.from({ length: 3 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="aspect-4/3 animate-pulse rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa]"
+                      />
+                    ))
+                  : brandProducts.map((product, idx) => (
+                      <a
+                        key={product.productId ?? `${product.imageUrl}-${idx}`}
+                        href={product.productUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]"
+                        aria-label={t("brandProductAlt", {
+                          name: product.productName || place.name,
+                          index: idx + 1,
+                        })}
+                        title={product.productName || product.brandName || place.name}
+                      >
+                        <img
+                          src={product.imageUrl}
+                          alt={t("brandProductAlt", {
+                            name: product.productName || place.name,
+                            index: idx + 1,
+                          })}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.src = getFallbackPlaceImage(place);
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                      </a>
+                    ))}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
@@ -401,6 +429,19 @@ function StandardPlaceModalContent({ place, onClose }) {
               ) : null}
             </div>
           </div>
+
+          {place.isNewsModal && storeImage ? (
+            <div className="mt-3 relative w-full h-[210px] sm:h-[230px] rounded-[16px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 shadow-xs shrink-0">
+              <img
+                src={storeImage}
+                alt={place.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = getFallbackPlaceImage(place);
+                }}
+              />
+            </div>
+          ) : null}
 
           {/* 매장 안내 카드 */}
           <div className="mt-3 rounded-[18px] bg-[#faf8ff] border border-[#e0d9f8] p-4 shadow-xs">

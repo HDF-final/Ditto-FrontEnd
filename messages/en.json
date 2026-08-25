@@ -440,6 +440,8 @@
     "boniReason": "Why Boni recommends it",
     "brandPhotos": "Brand photos",
     "brandPhotoAlt": "{name} brand photo {index}",
+    "brandProducts": "Brand products",
+    "brandProductAlt": "{name} product {index}",
     "store": "Store",
     "storeGuide": "Store guide",
     "storePhotos": "Store photos",

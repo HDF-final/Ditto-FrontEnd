@@ -440,6 +440,8 @@
     "boniReason": "보니 추천 이유",
     "brandPhotos": "브랜드 사진",
     "brandPhotoAlt": "{name} 브랜드 사진 {index}",
+    "brandProducts": "브랜드 상품",
+    "brandProductAlt": "{name} 상품 {index}",
     "store": "매장",
     "storeGuide": "매장 안내",
     "storePhotos": "매장 사진",
