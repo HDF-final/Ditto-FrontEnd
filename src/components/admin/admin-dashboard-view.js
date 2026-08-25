@@ -26,6 +26,35 @@ function latestRows(artifact, code) {
     : [];
 }
 
+function weeklyScore(item) {
+  const value = item?.scores?.short7
+    ?? item?.score7d
+    ?? item?.windowScores?.["7d"]
+    ?? item?.interestScore;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function weeklyRows(artifact, code) {
+  return latestRows(artifact, code)
+    .map((item, sourceIndex) => ({ item, score: weeklyScore(item), sourceIndex }))
+    .sort((a, b) => {
+      if (a.score !== null && b.score !== null && b.score !== a.score) return b.score - a.score;
+      if (a.score !== null && b.score === null) return -1;
+      if (a.score === null && b.score !== null) return 1;
+      const rankingGap = Number(a.item?.ranking || a.sourceIndex + 1) - Number(b.item?.ranking || b.sourceIndex + 1);
+      if (rankingGap !== 0) return rankingGap;
+      return String(a.item?.nameKo || a.item?.name || "").localeCompare(String(b.item?.nameKo || b.item?.name || ""), "ko");
+    })
+    .map(({ item, score }) => ({ ...item, weeklyScore: score }));
+}
+
+function formatWeeklyScore(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return "-";
+  const number = Number(value);
+  return Number.isInteger(number) ? number.toFixed(0) : number.toFixed(1);
+}
+
 function warningCount(artifacts) {
   return artifacts.reduce(
     (sum, artifact) => sum + Number(artifact?.warningCount || 0),
@@ -67,7 +96,7 @@ export function AdminDashboardView() {
   return (
     <section className="space-y-7">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="최종 순위" value={totalCountryRows(top10?.payload?.countries)} caption="4개국 최종 순위 항목" tone="purple" />
+        <MetricCard label="주간 랭킹" value={totalCountryRows(top10?.payload?.countries)} caption="최근 7일 기준 4개국 순위 항목" tone="purple" />
         <MetricCard label="후보군" value={totalCountryRows(candidates?.payload?.countries)} caption="교차 검증 후보 전체" tone="blue" />
         <MetricCard label="YOUTUBE 급상승" value={youtubeOverall.length} caption="최근 7일 전체 급상승" tone="green" />
         <MetricCard label="수집 경고" value={warningCount(artifacts)} caption="확인이 필요한 수집 경고" tone="amber" />
@@ -77,8 +106,8 @@ export function AdminDashboardView() {
         <article className="overflow-hidden rounded-2xl border border-[#e1e4ed] bg-white shadow-[0_14px_45px_rgba(31,36,66,0.05)]">
           <div className="flex items-center justify-between border-b border-[#eceef4] px-6 py-5">
             <div>
-              <h2 className="font-bold">오늘의 국가별 TOP 3</h2>
-              <p className="mt-1 text-xs text-[#8a90a3]">최신 TOP 10 산출물 중 국가별 상위 3명 미리보기</p>
+              <h2 className="font-bold">주간 국가별 랭킹</h2>
+              <p className="mt-1 text-xs text-[#8a90a3]">최근 7일 관심도 기준 국가별 상위 3명</p>
             </div>
             <Link href="/admin/trends/rankings" className="text-xs font-bold text-brand hover:underline">
               전체 보기 →
@@ -87,7 +116,7 @@ export function AdminDashboardView() {
 
           <div className="grid md:grid-cols-2">
             {COUNTRIES.map((code, countryIndex) => {
-              const rows = latestRows(top10, code).slice(0, 3);
+              const rows = weeklyRows(top10, code).slice(0, 3);
               return (
                 <section
                   key={code}
@@ -101,9 +130,12 @@ export function AdminDashboardView() {
                     {rows.map((item, index) => (
                       <li key={item.qid || `${code}-${item.name}-${index}`} className="flex items-center gap-3 rounded-xl bg-[#fafbfe] px-3 py-2">
                         <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#eee9ff] text-[11px] font-black text-brand">
-                          {item.ranking || index + 1}
+                          {index + 1}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-xs font-bold">{item.nameKo || item.name}</span>
+                        <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-brand" title="최근 7일 관심도 점수">
+                          7일 {formatWeeklyScore(item.weeklyScore)}
+                        </span>
                       </li>
                     ))}
                     {!rows.length ? <li className="py-8 text-center text-xs text-[#9aa0b0]">결과 없음</li> : null}
