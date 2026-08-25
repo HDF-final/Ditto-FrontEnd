@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { createCoursePost } from "@/lib/api/community";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { compressImage } from "@/lib/utils/image-compression";
+import { getRandomDefaultCommunityCourseImage } from "@/lib/community/default-course-images";
 
 function CourseOption({ course, selected, onSelect }) {
   return (
@@ -78,8 +79,8 @@ export function ShareCourseForm({ courses = [], loading = false }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectedCourse = courses[selectedIndex] || courses[0] || null;
 
-  const [customTitle, setCustomTitle] = useState("");
-  const title = customTitle || selectedCourse?.title || "";
+  const [customTitle, setCustomTitle] = useState(null);
+  const title = customTitle ?? selectedCourse?.title ?? "";
   const [caption, setCaption] = useState("");
   const [photos, setPhotos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -132,7 +133,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
     try {
       const result = await createCoursePost({
         courseId,
-        title: title.trim() || selectedCourse.title || "나만의 코스",
+        title: title.trim() || "나만의 코스",
         content: caption.trim() || "더현대 서울 맞춤 코스입니다.",
       });
 
@@ -143,11 +144,12 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         (typeof result === "number" ? result : null) ||
         courseId;
 
-      if (photos.length > 0) {
-        setPostImages(newPostId, photos);
-        setPostImages(courseId, photos);
-        if (selectedCourse?.id) setPostImages(selectedCourse.id, photos);
-      }
+      const postImages =
+        photos.length > 0 ? photos : [getRandomDefaultCommunityCourseImage()];
+
+      setPostImages(newPostId, postImages);
+      setPostImages(courseId, postImages);
+      if (selectedCourse?.id) setPostImages(selectedCourse.id, postImages);
 
       setCreatedPostId(newPostId);
       setIsSuccessModalOpen(true);
@@ -266,7 +268,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                     selected={selectedIndex === index}
                     onSelect={() => {
                       setSelectedIndex(index);
-                      setCustomTitle("");
+                      setCustomTitle(null);
                     }}
                   />
                 ))}
@@ -374,7 +376,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                       공유 미리보기
                     </p>
                     <h3 className="mt-2 break-keep text-lg font-black text-ink sm:mt-3 sm:text-xl">
-                      {title || selectedCourse.title}
+                      {title || "나만의 코스"}
                     </h3>
                     <p className="mt-2 text-xs font-medium text-ink-muted">
                       {selectedCourse.tags}
@@ -434,10 +436,13 @@ export function ShareCourseForm({ courses = [], loading = false }) {
               코스 공유 완료!
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              <strong className="font-bold text-ink">
-                {title || selectedCourse?.title || "나만의 코스"}
-              </strong>
-              이(가) 커뮤니티에 성공적으로 등록되었어요.
+              <span className="block">
+                <strong className="font-bold text-ink">
+                  {title || "나만의 코스"}
+                </strong>
+                {" "}이(가) 커뮤니티에
+              </span>
+              <span className="block">성공적으로 등록되었어요.</span>
             </p>
             <div className="mt-7 grid grid-cols-2 gap-2.5">
               <Link

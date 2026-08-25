@@ -175,7 +175,7 @@ export function CommunityChatButton({ course = {} }) {
     course?.author ||
     user?.nickname ||
     user?.name ||
-    "사토 유키";
+    t("traveler");
 
   const authorPersona = getPersonaById(
     course?.persona ||

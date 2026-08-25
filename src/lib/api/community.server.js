@@ -1,4 +1,5 @@
 import { getCommunityCourse as getDefaultCommunityCourse } from "@/lib/fixtures/community-courses";
+import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
 import { getServerApiBaseUrl } from "./server-base-url";
 import { getServerApiHeaders } from "./server-language";
 
@@ -19,29 +20,41 @@ export function getGradientForId(id = 0) {
 
 const getBaseUrl = getServerApiBaseUrl;
 
-const COURSE_IMAGES = [
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
-];
+const COURSE_IMAGES = DEFAULT_COMMUNITY_COURSE_IMAGES;
+
+function getDefaultCourseImage(id = 0) {
+  const num = parseInt(String(id).replace(/\D/g, ""), 10) || 0;
+  return COURSE_IMAGES[num % COURSE_IMAGES.length];
+}
 
 export function normalizePublicCourseCard(post) {
   if (!post) return null;
 
   const postId = post.postId;
   const slug = String(postId);
+  const authorId =
+    post.writerId ||
+    post.userId ||
+    post.memberId ||
+    post.authorId ||
+    post.createdBy ||
+    post.user?.userId ||
+    post.user?.id ||
+    "";
+  const authorName =
+    post.writerNickname ||
+    post.nickname ||
+    post.userName ||
+    post.author ||
+    post.user?.nickname ||
+    post.user?.name ||
+    "";
   const image =
     post.representativeImageUrl ||
     post.imageUrl ||
     post.image ||
     post.course?.representativeImageUrl ||
-    null;
+    getDefaultCourseImage(postId);
 
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
@@ -51,15 +64,10 @@ export function normalizePublicCourseCard(post) {
     postId,
     courseId: post.courseId,
     slug,
+    authorId,
+    authorKey: String(authorId || authorName || "").trim(),
     country: post.country || post.user?.country || "",
-    name:
-      post.writerNickname ||
-      post.nickname ||
-      post.userName ||
-      post.author ||
-      post.user?.nickname ||
-      post.user?.name ||
-      "",
+    name: authorName,
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
@@ -105,7 +113,7 @@ export function normalizePublicCourseDetail(detail) {
   const image =
     detail.course?.representativeImageUrl ||
     detail.representativeImageUrl ||
-    COURSE_IMAGES[num % COURSE_IMAGES.length];
+    getDefaultCourseImage(num);
 
   const authorName =
     detail.writerNickname ||
@@ -116,12 +124,25 @@ export function normalizePublicCourseDetail(detail) {
     detail.user?.name ||
     detail.course?.userName ||
     detail.course?.author ||
-    "사토 유키";
+    "";
+  const authorId =
+    detail.writerId ||
+    detail.userId ||
+    detail.memberId ||
+    detail.authorId ||
+    detail.createdBy ||
+    detail.user?.userId ||
+    detail.user?.id ||
+    detail.course?.userId ||
+    detail.course?.authorId ||
+    "";
 
   return {
     postId,
     courseId: detail.course?.courseId || detail.courseId,
     slug,
+    authorId,
+    authorKey: String(authorId || authorName || "").trim(),
     country: detail.country || detail.user?.country || "KR",
     name: authorName,
     persona: detail.persona || detail.shoppingType || detail.user?.persona || detail.course?.persona || "sohwak",
@@ -265,7 +286,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
                 : "더현대 서울 맞춤 코스입니다."),
             image:
               courseData.representativeImageUrl ||
-              COURSE_IMAGES[num % COURSE_IMAGES.length],
+              getDefaultCourseImage(num),
             likes: 0,
             commentsCount: 0,
             saves: 0,
@@ -305,7 +326,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
       hash: "#나만의코스 #더현대서울",
       title: "나만의 맞춤 코스",
       description: "더현대 서울 맞춤 추천 코스입니다.",
-      image: COURSE_IMAGES[num % COURSE_IMAGES.length],
+      image: getDefaultCourseImage(num),
       likes: 0,
       commentsCount: 0,
       saves: 0,

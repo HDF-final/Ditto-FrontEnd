@@ -75,14 +75,12 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
   const image = customImage || card.image || null;
   const gradient = card.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
-  const flagEmoji = getFlagEmoji(
-    card.country ||
-      card.flag ||
-      user?.countryCode ||
-      user?.country ||
-      user?.nationality,
-  );
-  const displayName = card.name || user?.nickname || user?.name || t("traveler");
+  const userCountry = mounted
+    ? user?.countryCode || user?.country || user?.nationality
+    : "";
+  const flagEmoji = getFlagEmoji(card.country || card.flag || userCountry);
+  const displayName =
+    card.name || (mounted ? user?.nickname || user?.name : "") || t("traveler");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -154,10 +152,15 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   }
 
   return (
-    <Link
-      href={href}
+    <article
       className={`group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-linear-to-br ${gradient} shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]`}
     >
+      <Link
+        href={href}
+        aria-label={card.title}
+        className="absolute inset-0 z-10"
+      />
+
       {/* Full Background Image */}
       {image ? (
         <img
@@ -176,7 +179,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-52" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
+      <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
         <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border border-white/15 bg-black/55 px-2 py-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.22)] backdrop-blur-sm lg:rounded-xl lg:px-2.5">
           {/* Rank Badge */}
           <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-6 lg:rounded-lg lg:text-[11px]">
@@ -195,7 +198,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
+      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
         {/* Title & Description */}
         <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
           <h3 className="line-clamp-2 break-keep text-[16px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[20px]">
@@ -215,7 +218,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -238,7 +241,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
+            className="pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -251,7 +254,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -270,11 +273,15 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           </button>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
-export function CommunityCoursePage({ initialCards = [] }) {
+export function CommunityCoursePage({
+  initialCards = [],
+  authorFilterName = "",
+  isAuthorFiltered = false,
+}) {
   const t = useTranslations("community");
   const router = useRouter();
   const mounted = useIsMounted();
@@ -282,6 +289,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const pageTitle = isAuthorFiltered
+    ? authorFilterName
+      ? `${authorFilterName}님의 공유 코스`
+      : "이 사용자의 공유 코스"
+    : t("title");
+  const pageDescription = isAuthorFiltered
+    ? "해당 사용자가 커뮤니티에 공유한 코스만 모아봤어요."
+    : t("description");
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -330,10 +345,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               THE HYUNDAI SEOUL COMMUNITY
             </p>
             <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[36px] lg:leading-none">
-              {t("title")}
+              {pageTitle}
             </h1>
             <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-sm">
-              {t("description")}
+              {pageDescription}
             </p>
             <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
               {tabs.map((tab) => (
@@ -353,10 +368,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
             </div>
           </div>
           <Link
-            href="/community/share"
-            className="inline-flex w-full items-center justify-center rounded-full bg-brand px-5 py-2 text-[11px] font-black text-white shadow-control transition hover:bg-brand-dark lg:w-fit lg:px-8 lg:py-4 lg:text-sm"
+            href={isAuthorFiltered ? "/community" : "/community/share"}
+            className={`inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:w-fit lg:px-8 lg:py-4 lg:text-sm ${
+              isAuthorFiltered
+                ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
+                : "bg-brand text-white hover:bg-brand-dark"
+            }`}
           >
-            {t("shareMine")}
+            {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
           </Link>
         </div>
       </section>
@@ -384,10 +403,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
               <div className="flex min-h-[280px] items-center justify-center rounded-[24px] border border-dashed border-line bg-white p-8 text-center lg:col-span-3">
                 <div>
                   <h2 className="text-lg font-black text-ink">
-                    공유된 코스가 아직 없어요
+                    {isAuthorFiltered
+                      ? "이 사용자가 공유한 다른 코스가 없어요"
+                      : "공유된 코스가 아직 없어요"}
                   </h2>
                   <p className="mt-2 text-sm font-medium text-ink-muted">
-                    내 코스를 커뮤니티에 공유하면 이곳에 표시됩니다.
+                    {isAuthorFiltered
+                      ? "전체 커뮤니티에서 다른 코스를 둘러볼 수 있어요."
+                      : "내 코스를 커뮤니티에 공유하면 이곳에 표시됩니다."}
                   </p>
                 </div>
               </div>
