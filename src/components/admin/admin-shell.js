@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/admin/trends/rankings", label: "국가별 TOP 10", icon: "chart" },
   { href: "/admin/trends/candidates", label: "국가별 후보군", icon: "users" },
   { href: "/admin/trends/youtube", label: "YouTube 급상승", icon: "play" },
+  { href: "/admin/courses", label: "승인 대기 코스", icon: "route" },
 ];
 
 const PAGE_TITLES = {
@@ -16,6 +17,7 @@ const PAGE_TITLES = {
   "/admin/trends/rankings": ["국가별 TOP 10", "한국·중국·일본·미국 최종 트렌드 순위를 확인합니다."],
   "/admin/trends/candidates": ["국가별 후보군", "국가별 비교 분석에 투입된 후보군을 확인합니다."],
   "/admin/trends/youtube": ["YouTube 급상승", "최근 7일 K-컬처 영상 급상승 신호를 확인합니다."],
+  "/admin/courses": ["승인 대기 코스 초안", "배치가 만든 셀럽 코스 초안을 승인 전에 확인합니다."],
 };
 
 function NavIcon({ name }) {
@@ -24,6 +26,7 @@ function NavIcon({ name }) {
     chart: <><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></>,
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
     play: <><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3Z"/></>,
+    route: <><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h6"/></>,
   };
   return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }

@@ -73,11 +73,13 @@ export function ArtifactError({ error, onRetry }) {
   );
 }
 
-export function WarningPanel({ warnings = [] }) {
+// `open`·`label` 은 코스 초안 화면이 쓴다. 거기서는 경고가 곁다리가 아니라 관리자가
+// 제일 먼저 봐야 하는 것이라 펼친 채로 띄운다. 기본값은 트렌드 화면의 지금 모습 그대로다.
+export function WarningPanel({ warnings = [], open = false, label = "수집 경고" }) {
   if (!warnings.length) return null;
   return (
-    <details className="mt-6 rounded-2xl border border-[#f0dfb8] bg-[#fffaf0] px-5 py-4">
-      <summary className="cursor-pointer text-sm font-bold text-[#7d5912]">수집 경고 {warnings.length}건 확인</summary>
+    <details open={open} className="mt-6 rounded-2xl border border-[#f0dfb8] bg-[#fffaf0] px-5 py-4">
+      <summary className="cursor-pointer text-sm font-bold text-[#7d5912]">{label} {warnings.length}건 확인</summary>
       <ul className="mt-3 space-y-2 border-t border-[#f0dfb8] pt-3 text-xs leading-5 text-[#856c3a]">
         {warnings.map((warning, index) => <li key={`${index}-${String(warning)}`}>• {typeof warning === "string" ? warning : JSON.stringify(warning)}</li>)}
       </ul>
