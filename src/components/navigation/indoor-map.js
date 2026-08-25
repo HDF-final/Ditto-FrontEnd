@@ -127,6 +127,15 @@ const ROUTE_MARKER_LIFT = 0.3; // travelling / stop markers sit just above the p
 const PLATE_THICKNESS = 0.5;
 const PLATE_MARGIN = 4;
 const PLATE_COLOR = "#FAF5EE"; // bright ivory plate
+// Screen-space chips on the 3D map. Kept tiny so they do not cover the floor plan.
+const OVERLAY_CHIP = {
+  floor: "px-1.5 py-px text-[7px] font-bold tracking-wide",
+  route: "gap-0.5 py-px pl-[2px] pr-1.5",
+  routeBadge: "px-1 py-px text-[7px] font-black leading-none",
+  routeName: "text-[8px] font-bold leading-none",
+  logoMaxWidth: 48,
+  logoMaxHeight: 16,
+};
 const ROUTE_CORE_LINE_WIDTH = 6;
 // Generous spacing so the tiers read as distinct floating layers, not a
 // crammed deck. Used for every view mode in `IndoorMap`.
@@ -227,6 +236,11 @@ function OccludingHtml({ children, ...htmlProps }) {
   );
 }
 
+// FloorLabel world-ish chip. Included in camera bounds so a 1-floor route view
+// does not zoom in far enough to crop the "3F" badge at the plate edge.
+const FLOOR_LABEL_POINT = new THREE.Vector3(53, 1.2, -31);
+const FLOOR_LABEL_PAD = 14;
+
 function collectFloorBounds(floors) {
   const min = new THREE.Vector3(Infinity, Infinity, Infinity);
   const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
@@ -246,6 +260,20 @@ function collectFloorBounds(floors) {
         x + halfW,
         floor.y + OVERVIEW_ROOM_LIFT + 6,
         z + halfD,
+      ),
+    );
+    min.min(
+      new THREE.Vector3(
+        FLOOR_LABEL_POINT.x - FLOOR_LABEL_PAD,
+        floor.y,
+        FLOOR_LABEL_POINT.z - FLOOR_LABEL_PAD,
+      ),
+    );
+    max.max(
+      new THREE.Vector3(
+        FLOOR_LABEL_POINT.x + FLOOR_LABEL_PAD,
+        floor.y + FLOOR_LABEL_POINT.y + FLOOR_LABEL_PAD,
+        FLOOR_LABEL_POINT.z + FLOOR_LABEL_PAD,
       ),
     );
   }
@@ -282,7 +310,10 @@ function fitOverviewCamera(floors, viewport, options = {}) {
     }
   }
 
-  const pad = options.pad ?? 24;
+  const singleFloorStack = floors.length === 1;
+  const fewFloors = floors.length <= 2;
+  const pad =
+    (options.pad ?? 24) + (singleFloorStack ? 18 : fewFloors ? 14 : 0);
   const topHud = options.topHud ?? 0;
   const bottomHud = options.bottomHud ?? 0;
   const verticalBias = options.verticalBias ?? OVERVIEW_VERTICAL_BIAS;
@@ -292,9 +323,19 @@ function fitOverviewCamera(floors, viewport, options = {}) {
   // Fill the frame with the whole stack (6F included), centered on the deck's
   // centroid. A tall isometric deck is bound by height, so keep the margin thin
   // — just enough that the top/bottom tiers and their labels never clip.
-  const fill =
-    options.fill ??
-    (floors.length >= 8 ? 0.86 : floors.length >= 6 ? 0.9 : floors.length >= 3 ? 0.92 : 0.94);
+  // One- or two-floor route views zoom much tighter (small bounds); cap fill so
+  // the plate corners and floor-number chip stay inside the canvas.
+  const stackFill =
+    floors.length >= 8
+      ? 0.86
+      : floors.length >= 6
+        ? 0.9
+        : floors.length >= 3
+          ? 0.92
+          : singleFloorStack
+            ? 0.78
+            : 0.86;
+  const fill = Math.min(options.fill ?? stackFill, stackFill);
   const zoom = THREE.MathUtils.clamp(
     Math.min(
       fitW / (2 * Math.max(maxX, 0.01)),
@@ -601,7 +642,7 @@ function RoomPrisms({ floor, rooms, aspect }) {
   );
 }
 
-function FloorLabel({ floor, compact = false }) {
+function FloorLabel({ floor }) {
   return (
     <OccludingHtml
       position={[53, floor.y + 1.2, -31]}
@@ -611,9 +652,7 @@ function FloorLabel({ floor, compact = false }) {
       zIndexRange={[4, 0]}
     >
       <div
-        className={`whitespace-nowrap rounded-full bg-[#3A342F] font-bold tracking-wide text-white shadow-[0_3px_10px_rgba(60,45,35,0.22)] ${
-          compact ? "px-2 py-[3px] text-[8px]" : "px-2.5 py-[3px] text-[9px]"
-        }`}
+        className={`whitespace-nowrap rounded-full bg-[#3A342F] text-white shadow-[0_2px_6px_rgba(60,45,35,0.2)] ${OVERLAY_CHIP.floor}`}
       >
         {floor.id}
       </div>
@@ -783,20 +822,16 @@ function useTrimmedLogo(logoUrl) {
   return trimmed && trimmed.url === logoUrl ? trimmed.src : logoUrl;
 }
 
-// 지도 핑: 기본은 출발/도착·경유 배지 + 브랜드 이름 칩. 칩에 호버하면 그 위로
-// 여백을 잘라내고 배경을 투명 처리한 브랜드 로고 마크만 뜹니다(배경 박스 없음).
-// 로고(사진)가 없으면 호버해도 아무것도 띄우지 않습니다. 3D 캔버스의 Html
-// 오버레이라 칩에만 pointer-events를 살립니다.
+// 지도 핑: 출발/도착·경유 배지와 매장 이름을 함께 둡니다.
+// 호버하면 투명 키잉된 브랜드 로고를 같이 띄웁니다.
 function RouteMarker({
   position,
   label,
   name,
   logoUrl,
   badgeColor = "#BC7C22",
-  compact = false,
 }) {
   const [hovered, setHovered] = useState(false);
-  // 로고 로드 실패 시 빈 자리가 남지 않도록 표시 여부를 끕니다(사진 없으면 안 띄움).
   const [logoOk, setLogoOk] = useState(true);
   const trimmedLogoSrc = useTrimmedLogo(logoUrl);
   const showBubble = hovered && Boolean(trimmedLogoSrc) && logoOk;
@@ -810,22 +845,17 @@ function RouteMarker({
     >
       <div
         className="relative flex flex-col items-center"
-        // 새 Tailwind 유틸(pointer-events-auto)은 dev 재스캔 전 미컴파일될 수 있어
-        // 인라인으로 확실히 켭니다. 없으면 Html의 none을 물려받아 호버가 안 먹힙니다.
         style={{ pointerEvents: "auto" }}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
       >
-        {/* 호버 시 칩 위에 뜨는 브랜드 로고. 배경 박스 없이(워터마크처럼 비치는
-            것 없음) 투명 키잉된 마크만, 가독성용 그림자만 얹습니다. 층 간격을 넘지
-            않게 크기를 작게 제한합니다. */}
         {showBubble ? (
           <div
             className="flex items-center justify-center"
             style={{
               position: "absolute",
               bottom: "100%",
-              marginBottom: 6,
+              marginBottom: 4,
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -836,8 +866,8 @@ function RouteMarker({
               style={{
                 width: "auto",
                 height: "auto",
-                maxWidth: compact ? 64 : 84,
-                maxHeight: compact ? 20 : 24,
+                maxWidth: OVERLAY_CHIP.logoMaxWidth,
+                maxHeight: OVERLAY_CHIP.logoMaxHeight,
                 display: "block",
                 filter: "drop-shadow(0 2px 3px rgba(60,40,20,0.35))",
               }}
@@ -845,29 +875,21 @@ function RouteMarker({
             />
           </div>
         ) : null}
-        {/* Name chip: 출발/도착 badge + brand name. */}
         <div
-          className={`flex items-center whitespace-nowrap rounded-full bg-white/95 ${
-            compact ? "gap-1 py-[3px] pl-[3px] pr-2" : "gap-1.5 py-1 pl-1 pr-2.5"
-          }`}
+          className={`flex items-center whitespace-nowrap rounded-full bg-white/95 ${OVERLAY_CHIP.route}`}
           style={{
             boxShadow:
-              "0 4px 12px rgba(90,55,15,0.22), 0 0 0 1px rgba(188,124,34,0.32)",
+              "0 2px 8px rgba(90,55,15,0.2), 0 0 0 1px rgba(188,124,34,0.28)",
           }}
         >
           <span
-            className={`rounded-full font-black leading-none text-white ${
-              compact ? "px-1.5 py-[3px] text-[8px]" : "px-2 py-[3px] text-[9px]"
-            }`}
+            className={`rounded-full text-white ${OVERLAY_CHIP.routeBadge}`}
             style={{ backgroundColor: badgeColor }}
           >
             {label}
           </span>
           {name ? (
-            <span
-              className={`font-bold leading-none ${compact ? "text-[9px]" : "text-[10px]"}`}
-              style={{ color: "#5A3E10" }}
-            >
+            <span className={OVERLAY_CHIP.routeName} style={{ color: "#5A3E10" }}>
               {name}
             </span>
           ) : null}
@@ -968,7 +990,6 @@ function RouteOverlay({
   flatView,
   overlayOnTop,
   placeLogos,
-  compactMarkers = false,
 }) {
   const markerRef = useRef(null);
   const progressRef = useRef(0);
@@ -1074,14 +1095,14 @@ function RouteOverlay({
       const badge = startColor.clone().lerp(endColor, f);
       return [
         {
-          key: placeId,
+          key: `${index}-${placeId}`,
           position: toWorldPoint(
             node,
             floor,
             flatView,
             flatView ? 0.15 : ROUTE_MARKER_LIFT,
           ),
-          label: index === 0 ? "출발" : index === lastIndex ? "도착" : String(index),
+          label: index === 0 ? "출발" : index === lastIndex ? "도착" : String(index + 1),
           name: place.name ?? null,
           logoUrl: place.name
             ? (placeLogos?.[normalizeLogoKey(place.name)] ?? null)
@@ -1184,7 +1205,7 @@ function RouteOverlay({
         </group>
       ))}
       {routeGeometry.markers.map(({ key, ...marker }) => (
-        <RouteMarker key={key} {...marker} compact={compactMarkers} />
+        <RouteMarker key={key} {...marker} />
       ))}
       {routeGeometry.path.length > 1 ? (
         <group ref={markerRef}>
@@ -1519,8 +1540,6 @@ function FloorStack({
   onCameraReady,
   userLocation,
   compactPin = false,
-  compactRouteMarkers = false,
-  compactFloorLabels = false,
   fitPreset = "course",
 }) {
   const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
@@ -1561,7 +1580,7 @@ function FloorStack({
               />
             ) : null}
             {viewMode !== "floor" ? (
-              <FloorLabel floor={mappedFloor} compact={compactFloorLabels} />
+              <FloorLabel floor={mappedFloor} />
             ) : null}
           </group>
         );
@@ -1579,7 +1598,6 @@ function FloorStack({
         flatView={viewMode === "floor"}
         overlayOnTop={overlayOnTop}
         placeLogos={placeLogos}
-        compactMarkers={compactRouteMarkers}
       />
       <UserLocationOverlay
         floorDatasets={floorDatasets}
@@ -1786,7 +1804,13 @@ export function IndoorMap({
     if (userLocationFloorId && !ids.includes(userLocationFloorId)) {
       ids.push(userLocationFloorId);
     }
-    return new Set(ids);
+    if (ids.length === 0) return new Set(FLOOR_ORDER);
+    // 엘리베이터·에스컬레이터가 층을 건너뛰어도(예: B2→6F) 스택이 끊기지
+    // 않도록, 경로가 닿는 최저~최고 층 사이를 연속된 건물 단면으로 채웁니다.
+    const indices = ids.map((id) => FLOOR_ORDER.indexOf(id));
+    const min = Math.min(...indices);
+    const max = Math.max(...indices);
+    return new Set(FLOOR_ORDER.slice(min, max + 1));
   }, [routeFloorIds, userLocationFloorId]);
 
   useEffect(() => {
@@ -1898,35 +1922,31 @@ export function IndoorMap({
               : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)]"
           }
         >
-          {canvasEventSource ? (
-            <Canvas
-              eventSource={canvasEventSource}
-              dpr={[1, 1.75]}
-              gl={{ antialias: true, alpha: true }}
-            >
-              <OverlayOccluderContext.Provider value={overlayOccluderRef}>
-                <Suspense fallback={null}>
-                  <FloorStack
-                    viewMode={viewMode}
-                    visibleFloors={visibleFloors}
-                    resetSignal={resetSignal}
-                    route={route}
-                    routeGraph={routeGraph}
-                    placeLogos={placeLogos}
-                    roomsByFloor={roomsByFloor}
-                    floorDatasets={floorDatasets}
-                    overlayOnTop={overlayOnTop}
-                    onCameraReady={handleCameraReady}
-                    userLocation={userLocation}
-                    compactPin={isScanView}
-                    compactRouteMarkers={isScanView}
-                    compactFloorLabels={isScanView}
-                    fitPreset={activeFitPreset}
-                  />
-                </Suspense>
-              </OverlayOccluderContext.Provider>
-            </Canvas>
-          ) : null}
+          <Canvas
+            eventSource={containerRef}
+            dpr={[1, 1.75]}
+            gl={{ antialias: true, alpha: true }}
+          >
+            <OverlayOccluderContext.Provider value={overlayOccluderRef}>
+              <Suspense fallback={null}>
+                <FloorStack
+                  viewMode={viewMode}
+                  visibleFloors={visibleFloors}
+                  resetSignal={resetSignal}
+                  route={route}
+                  routeGraph={routeGraph}
+                  placeLogos={placeLogos}
+                  roomsByFloor={roomsByFloor}
+                  floorDatasets={floorDatasets}
+                  overlayOnTop={overlayOnTop}
+                  onCameraReady={handleCameraReady}
+                  userLocation={userLocation}
+                  compactPin={isScanView}
+                  fitPreset={activeFitPreset}
+                />
+              </Suspense>
+            </OverlayOccluderContext.Provider>
+          </Canvas>
         </div>
 
         {userLocation?.name && !isScanView ? (
@@ -1958,8 +1978,10 @@ export function IndoorMap({
 
         {showControls ? (
           <div
-            className={`pointer-events-none absolute left-3 z-20 flex flex-wrap items-center gap-1.5 ${
-              activeFitPreset === "course-mobile"
+            className={`pointer-events-none absolute left-3 z-30 flex flex-wrap items-center gap-1 ${
+              overlayOccluderRef && !isScanView
+                ? "bottom-5 left-4"
+                : activeFitPreset === "course-mobile"
                 ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
                 : isScanView && route
                 ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
@@ -1978,7 +2000,11 @@ export function IndoorMap({
                     : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
                 }
                 onClick={() => setOverlayOnTop((value) => !value)}
-                className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
+                className={`pointer-events-auto rounded-full border font-semibold shadow-sm transition-colors ${
+                  overlayOccluderRef
+                    ? "px-2.5 py-1 text-[11px] leading-none"
+                    : "px-3 py-1.5 text-[9px] md:text-[10px]"
+                } ${
                   overlayOnTop
                     ? "border-[#00815a]/30 bg-[#00815a] text-white"
                     : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
@@ -1990,7 +2016,11 @@ export function IndoorMap({
             <button
               type="button"
               onClick={() => setResetSignal((value) => value + 1)}
-              className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a]"
+              className={`pointer-events-auto rounded-full border border-white/80 bg-white/90 font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a] ${
+                overlayOccluderRef && !isScanView
+                  ? "px-2.5 py-1 text-[11px] leading-none"
+                  : "px-3 py-1.5 text-[11px]"
+              }`}
             >
               시점 초기화
             </button>

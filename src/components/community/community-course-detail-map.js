@@ -121,6 +121,7 @@ export function CommunityCourseDetailMap({ stops = [], className = "" }) {
         routeGraph={routeState.graph}
         showFloorSelector={false}
         showControls={false}
+        showUserLocation={false}
         className="h-full w-full"
       />
     </div>

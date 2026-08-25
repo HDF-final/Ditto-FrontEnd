@@ -489,6 +489,7 @@ function StandardPlaceModalContent({ place, onClose }) {
           className="h-full w-full"
           showFloorSelector={showFloorSelector}
           showControls={true}
+          showUserLocation={false}
         />
       </div>
     </div>

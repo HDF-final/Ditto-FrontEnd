@@ -19,8 +19,6 @@ import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseSaveSuccessModal } from "./course-save-success-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
-import { CameraScanner } from "@/components/layout/camera-scanner";
-import { ScanResult } from "@/components/layout/scan-result";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useScanLocationStore } from "@/stores/use-scan-location-store";
 import {
@@ -84,20 +82,41 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
-  const [locateOpen, setLocateOpen] = useState(false);
-  const [locateImage, setLocateImage] = useState(null);
   const scanLocation = useScanLocationStore((state) => state.location);
   const hydrateLocation = useScanLocationStore((state) => state.hydrate);
   const isDesktop = useIsDesktop();
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
+  const itemsRef = useRef(items);
+  const listRef = useRef(null);
+  const pointerDrag = useRef({
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    from: null,
+    active: false,
+    timer: null,
+  });
+  const didDragRef = useRef(false);
   const chatOccluderRef = useRef(null);
   const seededFromScanRef = useRef(false);
 
+  // 드래그 이벤트 핸들러가 최신 items 를 stale 없이 읽도록 ref 를 동기화합니다.
   useEffect(() => {
-    hydrateLocation();
-  }, [hydrateLocation]);
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    if (seedFromScan) hydrateLocation();
+  }, [hydrateLocation, seedFromScan]);
+
+  useEffect(
+    () => () => {
+      if (pointerDrag.current.timer) clearTimeout(pointerDrag.current.timer);
+    },
+    [],
+  );
 
   const aiCourse = chat?.course ?? null;
   const chatPending = chat?.pending ?? null;
@@ -424,19 +443,9 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     }
   };
 
-  // ── Drag to reorder (native HTML5 DnD) ──
-  const handleDragStart = (event, index) => {
-    dragIndex.current = index;
-    dragStartOrder.current = items;
-    setDraggingId(items[index].id);
-    event.dataTransfer.effectAllowed = "move";
-    try {
-      event.dataTransfer.setData("text/plain", String(index));
-    } catch {
-      // Some browsers disallow setData outside a user gesture — safe to ignore.
-    }
-  };
-
+  // ── Drag to reorder (pointer events: mouse + touch) ──
+  // HTML5 DnD does not run on iOS/Android, and an inner <button> also blocks
+  // desktop drag. Pointer capture + a short press/move threshold works in the PWA.
   const handleDragEnter = (index) => {
     const from = dragIndex.current;
     if (from === null || from === index) return;
@@ -451,12 +460,124 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
 
   const handleDragEnd = () => {
     const before = dragStartOrder.current;
-    if (before && !sameOrder(before, items)) {
+    if (before && !sameOrder(before, itemsRef.current)) {
       setHistory((h) => [...h, before]);
     }
     dragIndex.current = null;
     dragStartOrder.current = null;
     setDraggingId(null);
+  };
+
+  const clearPointerTimer = () => {
+    if (pointerDrag.current.timer) {
+      clearTimeout(pointerDrag.current.timer);
+      pointerDrag.current.timer = null;
+    }
+  };
+
+  const beginPointerReorder = (index) => {
+    const list = itemsRef.current;
+    if (!list[index] || list.length < 2) return;
+    pointerDrag.current.active = true;
+    pointerDrag.current.from = index;
+    dragIndex.current = index;
+    dragStartOrder.current = list;
+    setDraggingId(list[index].id);
+  };
+
+  const movePointerReorder = (clientY) => {
+    if (dragIndex.current === null || !listRef.current) return;
+    const rows = listRef.current.querySelectorAll("[data-place-index]");
+    for (const row of rows) {
+      const rect = row.getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) {
+        const to = Number(row.getAttribute("data-place-index"));
+        if (Number.isFinite(to)) handleDragEnter(to);
+        break;
+      }
+    }
+  };
+
+  const resetPointerDrag = () => {
+    pointerDrag.current = {
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      from: null,
+      active: false,
+      timer: null,
+    };
+  };
+
+  const onPlacePointerDown = (event, index) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (event.target.closest("[data-no-drag]")) return;
+    clearPointerTimer();
+    pointerDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      from: index,
+      active: false,
+      timer: null,
+    };
+    const row = event.currentTarget;
+    if (event.target.closest("[data-drag-handle]")) {
+      event.preventDefault();
+      beginPointerReorder(index);
+      try {
+        row.setPointerCapture(event.pointerId);
+      } catch {
+        // capture can fail if the pointer was already released
+      }
+      return;
+    }
+    if (event.pointerType === "mouse") {
+      try {
+        row.setPointerCapture(event.pointerId);
+      } catch {
+        // ignore
+      }
+      return;
+    }
+    pointerDrag.current.timer = setTimeout(() => {
+      beginPointerReorder(index);
+      try {
+        row.setPointerCapture(event.pointerId);
+      } catch {
+        // ignore
+      }
+    }, 280);
+  };
+
+  const onPlacePointerMove = (event) => {
+    const drag = pointerDrag.current;
+    if (drag.from === null) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.active) {
+      if (event.pointerType === "mouse") {
+        if (Math.hypot(dx, dy) < 8) return;
+        beginPointerReorder(drag.from);
+      } else if (Math.hypot(dx, dy) > 10) {
+        clearPointerTimer();
+        return;
+      } else {
+        return;
+      }
+    }
+    event.preventDefault();
+    movePointerReorder(event.clientY);
+  };
+
+  const onPlacePointerUp = () => {
+    const wasActive = pointerDrag.current.active;
+    clearPointerTimer();
+    resetPointerDrag();
+    if (wasActive) {
+      didDragRef.current = true;
+      handleDragEnd();
+    }
   };
 
   // 장소 카드 페이징 (모바일). 데스크톱은 리스트가 자체 스크롤되므로 전부 노출.
@@ -490,23 +611,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
             variant={isDesktop ? "course" : "scan"}
             fitPreset={isDesktop ? undefined : "course-mobile"}
             showFloorSelector={isDesktop}
-            showUserLocation={!seedFromScan}
           />
         </div>
-        {items.length > 0 && !seedFromScan && !isDesktop ? (
-          <button
-            type="button"
-            onClick={() => setLocateOpen(true)}
-            className="absolute bottom-2 right-2 z-30 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.18)] sm:bottom-3 sm:right-3 sm:px-3 sm:py-2 sm:text-[11px]"
-          >
-            <span className="size-2 rounded-full bg-[#2563EB]" />
-            {scanLocation ? t("locateMeAgain") : t("locateMe")}
-          </button>
-        ) : null}
       </div>
 
       <div
-        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
+        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-6 lg:py-4"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
@@ -620,7 +730,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
 
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-[320px] lg:gap-4 lg:py-20">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-0 lg:flex-1 lg:gap-4 lg:py-8">
             <p className="text-[14px] font-semibold text-[#1a142e] lg:text-[18px]">
               {t("emptyPlaces")}
             </p>
@@ -673,7 +783,10 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         ) : null}
 
         {/* Place cards */}
-        <div className="flex flex-col gap-[10px] max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:pr-0.5">
+        <div
+          ref={listRef}
+          className="flex flex-col gap-[10px] max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:pr-0.5"
+        >
           {visibleItems.map((place, localIndex) => {
             const index = pageStart + localIndex;
             const isEndpoint = index === 0 || index === items.length - 1;
@@ -682,18 +795,23 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
             return (
             <div
               key={place.id}
+              data-place-index={index}
               className="flex min-w-0 items-start gap-2 sm:gap-[12px]"
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnter={() => handleDragEnter(index)}
-              onDragOver={(e) => e.preventDefault()}
-              onDragEnd={handleDragEnd}
+              onPointerDown={(event) => onPlacePointerDown(event, index)}
+              onPointerMove={onPlacePointerMove}
+              onPointerUp={onPlacePointerUp}
+              onPointerCancel={onPlacePointerUp}
               style={{
                 opacity: draggingId === place.id ? 0.4 : 1,
-                cursor: "grab",
+                cursor: draggingId === place.id ? "grabbing" : "grab",
+                touchAction: draggingId === place.id ? "none" : "pan-y",
               }}
             >
-              <div className="mt-2 flex shrink-0 flex-col items-center sm:mt-[14px]">
+              <div
+                data-drag-handle
+                className="mt-2 flex shrink-0 cursor-grab touch-none flex-col items-center active:cursor-grabbing sm:mt-[14px]"
+                aria-label={t("dragHint")}
+              >
                 <div
                   className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px]"
                   style={{
@@ -721,6 +839,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 </span>
               </div>
               <button
+                type="button"
                 className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
                 style={{
                   borderColor: hoveredId === place.id ? "#5c2ef5" : "transparent",
@@ -730,7 +849,15 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                       : "0 2px 8px rgba(0,0,0,0.05)",
                   opacity: visited.has(place.id) ? 0.6 : 1,
                 }}
-                onClick={() => onPlaceClick?.(place)}
+                onClick={(event) => {
+                  if (didDragRef.current) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    didDragRef.current = false;
+                    return;
+                  }
+                  onPlaceClick?.(place);
+                }}
                 onMouseEnter={() => setHoveredId(place.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -773,7 +900,10 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
               </button>
 
               {/* Per-card controls: visited toggle + order lock + delete */}
-              <div className="mt-2 flex shrink-0 flex-col gap-1 sm:mt-[14px] sm:gap-[6px]">
+              <div
+                data-no-drag
+                className="mt-2 flex shrink-0 flex-col gap-1 sm:mt-[14px] sm:gap-[6px]"
+              >
                 <button
                   onClick={() => toggleVisited(place.id)}
                   title={visited.has(place.id) ? t("visitedOff") : t("visitedOn")}
@@ -865,24 +995,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         onCancel={chat?.cancel}
       />
     ) : null}
-
-    <CameraScanner
-      open={locateOpen}
-      overlayClassName=""
-      onClose={() => setLocateOpen(false)}
-      onCapture={(dataUrl) => setLocateImage(dataUrl)}
-    />
-    <ScanResult
-      open={Boolean(locateImage)}
-      image={locateImage}
-      afterMatch="stay"
-      overlayClassName=""
-      onClose={() => setLocateImage(null)}
-      onRescan={() => {
-        setLocateImage(null);
-        setLocateOpen(true);
-      }}
-    />
     </>
   );
 }

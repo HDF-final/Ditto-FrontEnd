@@ -13,8 +13,7 @@ function logoProxyUrl(logoUrl) {
 
 /**
  * OCR 스캔 결과 오버레이.
- * 하단 + 버튼은 3D 지도 전용 페이지로, 코스 화면의 내 위치 확인은
- * 현재 지도에 바로 핑을 올립니다.
+ * 하단 + 버튼은 `/scan-map` 으로 보내고, 스캔 맵에서 다시 찍으면 현재 지도에 바로 반영합니다.
  *
  * @param {"map" | "stay"} afterMatch map: `/scan-map` 으로 이동, stay: 현재 화면 유지
  */
@@ -32,6 +31,7 @@ export function ScanResult({
   const [status, setStatus] = useState("loading");
   const [brand, setBrand] = useState(null);
   const [mappedPlace, setMappedPlace] = useState(null);
+  const [matchedLocation, setMatchedLocation] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -44,6 +44,7 @@ export function ScanResult({
       setStatus("loading");
       setBrand(null);
       setMappedPlace(null);
+      setMatchedLocation(null);
       setError(null);
       try {
         const resolved = await resolveOcrLocationFromDataUrl(image, {
@@ -56,7 +57,7 @@ export function ScanResult({
           return;
         }
 
-        if (resolved.location) setLocation(resolved.location);
+        setMatchedLocation(resolved.location ?? null);
         setBrand(resolved.brand);
         setMappedPlace(resolved.place);
         setStatus("matched");
@@ -80,11 +81,12 @@ export function ScanResult({
       cancelled = true;
       abort.abort();
     };
-  }, [open, image, setLocation]);
+  }, [open, image]);
 
   if (!open) return null;
 
   function goToMap() {
+    if (matchedLocation) setLocation(matchedLocation);
     onClose();
     if (afterMatch === "stay") return;
     router.push("/scan-map");

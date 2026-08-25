@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useScanLocationStore } from "@/stores/use-scan-location-store";
 
@@ -34,17 +33,13 @@ export function CourseNavigationMap({
   overlayOccluderRef,
   initialView,
   variant = "course",
-  showUserLocation = true,
+  showUserLocation = false,
   showFloorSelector = true,
   showControls = true,
   fitPreset,
 }) {
   const t = useTranslations("aiCourse");
   const storedLocation = useScanLocationStore((state) => state.location);
-  const hydrateLocation = useScanLocationStore((state) => state.hydrate);
-  useEffect(() => {
-    hydrateLocation();
-  }, [hydrateLocation]);
   const userLocation = showUserLocation ? storedLocation : null;
   return (
     <section
