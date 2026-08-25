@@ -169,9 +169,20 @@ export function normalizePublicCourseDetail(detail) {
 /**
  * 서버 사이드 공개 코스 목록 조회
  */
-export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
+export async function fetchPublicCoursesServer({
+  page = 0,
+  size = 20,
+  authorId = "",
+  author = "",
+} = {}) {
   const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/v1/community/courses?page=${page}&size=${size}`;
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  if (authorId) params.set("authorId", String(authorId));
+  if (author) params.set("author", author);
+  const url = `${baseUrl}/api/v1/community/courses?${params.toString()}`;
   const headers = await getServerApiHeaders({ Accept: "application/json" });
 
   try {

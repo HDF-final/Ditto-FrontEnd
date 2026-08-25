@@ -31,18 +31,35 @@ function filterCoursesByAuthor(courses, { authorId = "", author = "" } = {}) {
   });
 }
 
+function hasAuthorMetadata(course) {
+  return Boolean(course?.authorId || course?.name || course?.authorKey);
+}
+
 export default async function CommunityPage({ searchParams }) {
   const params = searchParams ? await searchParams : {};
   const authorId = normalizeFilterValue(params.authorId);
   const author = normalizeFilterValue(params.author);
-  const courses = await fetchPublicCoursesServer({ page: 0, size: 100 });
+  const isAuthorFiltered = Boolean(authorId || author);
+  const courses = await fetchPublicCoursesServer({
+    page: 0,
+    size: 100,
+    authorId,
+    author,
+  });
   const filteredCourses = filterCoursesByAuthor(courses, { authorId, author });
+  const visibleCourses =
+    isAuthorFiltered &&
+    filteredCourses.length === 0 &&
+    courses.length > 0 &&
+    courses.every((course) => !hasAuthorMetadata(course))
+      ? courses
+      : filteredCourses;
 
   return (
     <CommunityCoursePage
-      initialCards={filteredCourses}
+      initialCards={visibleCourses}
       authorFilterName={author}
-      isAuthorFiltered={Boolean(authorId || author)}
+      isAuthorFiltered={isAuthorFiltered}
     />
   );
 }
