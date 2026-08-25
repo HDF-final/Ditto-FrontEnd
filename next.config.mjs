@@ -47,6 +47,40 @@ const nextConfig = {
       },
     ];
   },
+
+  // 실내 지도 원장과 층 텍스처는 한 번 만들어지면 바뀌지 않습니다. 그런데 Next는
+  // `public/` 파일에 지문(해시)을 안 붙여서 기본값이 매번 재검증이고, 지도를 열 때마다
+  // JSON 588KB + PNG 2.2MB에 대해 조건부 요청이 나갑니다.
+  //
+  // 경로에 이미 버전이 들어 있습니다(`/navigation/v2/`). 원장을 다시 만들면 `v3`로
+  // 올리는 것이 전제이고, **v2 안에서 파일을 갈아끼우면 최대 3주 동안 옛 것을 보게
+  // 됩니다** — 그때는 경로를 올리거나 이 값을 줄이세요.
+  //
+  // `manifest.json`만 짧게 둡니다. 그게 원장의 색인이고 6KB라 매번 확인해도 쌉니다.
+  // **순서가 중요합니다** — 같은 키가 겹치면 뒤에 온 규칙이 이깁니다. 그래서 manifest를
+  // 넓은 규칙 뒤에 둡니다.
+  async headers() {
+    const threeWeeks = 60 * 60 * 24 * 21;
+    return [
+      {
+        source: "/navigation/v2/:path*",
+        headers: [{ key: "Cache-Control", value: `public, max-age=${threeWeeks}` }],
+      },
+      {
+        source: "/maps/:path*",
+        headers: [{ key: "Cache-Control", value: `public, max-age=${threeWeeks}` }],
+      },
+      {
+        source: "/navigation/v2/manifest.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, stale-while-revalidate=86400",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.js");
