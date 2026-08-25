@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { communityCourses } from "@/lib/fixtures/home";
 import { CountryFlag } from "@/components/common/country-flag";
 import { SectionHeading } from "@/components/home/section-heading";
 import { useDragCarousel } from "@/hooks/use-drag-carousel";
@@ -32,7 +31,16 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   const t = useTranslations("home");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
   const mounted = useIsMounted();
+  const authorName =
+    course.name ||
+    course.writerNickname ||
+    course.authorNickname ||
+    course.userNickname ||
+    course.nickname ||
+    (mounted ? user?.nickname || user?.name : "") ||
+    "";
 
   const postId =
     course.postId ||
@@ -137,21 +145,22 @@ function CommunityCourseCard({ course, onAuthRequired }) {
 
       {/* Top Header Overlay (Transparent background) */}
       <div className="relative z-10 flex min-w-0 items-start justify-between p-3 lg:p-5">
-        <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-white/10 bg-black/30 px-2 py-1 backdrop-blur-xs lg:gap-2.5 lg:px-3 lg:py-1.5">
+        <div className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:px-3.5 lg:py-2">
           {/* Rank Badge */}
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-7 lg:rounded-lg lg:text-xs">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-[13px]">
             {course.rank}
           </span>
           {/* Flag */}
           <CountryFlag
             code={course.flag || course.country}
             emoji={getFlagEmoji(course.flag || course.country)}
-            className="h-[12px] w-[18px] lg:h-[16px] lg:w-[22px]"
+            className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
           />
-          {/* Name & Tag */}
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[10px] font-bold text-white drop-shadow-sm lg:text-xs">{course.name}</span>
-            <span className="truncate text-[9px] font-semibold text-violet-200 drop-shadow-sm lg:text-[11px]">{course.hash}</span>
+          {/* Name */}
+          <div className="min-w-0 leading-none">
+            {authorName ? (
+              <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-[13px]">{authorName}</span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -311,18 +320,13 @@ function CommunitySlider({
   );
 }
 
-export function CommunityPreviewSection() {
+export function CommunityPreviewSection({ initialCourses = [] }) {
   const t = useTranslations("home");
   const common = useTranslations("common");
   const router = useRouter();
   const [isPaused, setIsPaused] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const localizedCourses = communityCourses.map((course) => ({
-    ...course,
-    hash: t(`communityCourses.${course.slug}.hash`),
-    title: t(`communityCourses.${course.slug}.title`),
-    description: t(`communityCourses.${course.slug}.description`),
-  }));
+  const courses = initialCourses.slice(0, 9);
 
   return (
     <section
@@ -341,23 +345,35 @@ export function CommunityPreviewSection() {
       />
 
       <div className="lg:hidden">
-        <CommunitySlider
-          courses={localizedCourses}
-          itemsPerSlide={1}
-          columnsClassName="grid-cols-1"
-          onAuthRequired={() => setIsLoginModalOpen(true)}
-          isPaused={isPaused}
-          enableDrag
-        />
+        {courses.length > 0 ? (
+          <CommunitySlider
+            courses={courses}
+            itemsPerSlide={1}
+            columnsClassName="grid-cols-1"
+            onAuthRequired={() => setIsLoginModalOpen(true)}
+            isPaused={isPaused}
+            enableDrag
+          />
+        ) : (
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-8 text-center text-sm font-bold text-white/80">
+            아직 공유된 커스텀 코스가 없습니다.
+          </div>
+        )}
       </div>
       <div className="hidden lg:block">
-        <CommunitySlider
-          courses={localizedCourses}
-          itemsPerSlide={3}
-          columnsClassName="grid-cols-3"
-          onAuthRequired={() => setIsLoginModalOpen(true)}
-          isPaused={isPaused}
-        />
+        {courses.length > 0 ? (
+          <CommunitySlider
+            courses={courses}
+            itemsPerSlide={3}
+            columnsClassName="grid-cols-3"
+            onAuthRequired={() => setIsLoginModalOpen(true)}
+            isPaused={isPaused}
+          />
+        ) : (
+          <div className="rounded-[26px] border border-white/15 bg-white/10 p-12 text-center text-sm font-bold text-white/80">
+            아직 공유된 커스텀 코스가 없습니다.
+          </div>
+        )}
       </div>
 
       {/* 로그인 필요 알림 모달 */}

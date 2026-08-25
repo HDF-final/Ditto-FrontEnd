@@ -1,10 +1,7 @@
-import {
-  communityCourses as defaultCommunityCourses,
-  getCommunityCourse as getDefaultCommunityCourse,
-} from "@/lib/fixtures/community-courses";
+import { getCommunityCourse as getDefaultCommunityCourse } from "@/lib/fixtures/community-courses";
+import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
 import { getServerApiBaseUrl } from "./server-base-url";
 import { getServerApiHeaders } from "./server-language";
-import { getTranslations } from "next-intl/server";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -16,9 +13,6 @@ const GRADIENT_PRESETS = [
   "from-[#4a044e] to-[#6d28d9]",
 ];
 
-const COUNTRY_PRESETS = ["JP", "CN", "US", "KR"];
-const AUTHOR_NAMES = ["Yuki_T", "Chen_Li", "Emma_R", "Sakura_M", "Noah_K", "Mina_Z", "Riku_A", "Lily_P"];
-
 export function getGradientForId(id = 0) {
   const num = typeof id === "number" ? id : parseInt(String(id).replace(/\D/g, ""), 10) || 0;
   return GRADIENT_PRESETS[num % GRADIENT_PRESETS.length];
@@ -26,43 +20,63 @@ export function getGradientForId(id = 0) {
 
 const getBaseUrl = getServerApiBaseUrl;
 
-const COURSE_IMAGES = [
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=800&h=900&fit=crop",
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
-];
+const COURSE_IMAGES = DEFAULT_COMMUNITY_COURSE_IMAGES;
 
-export function normalizePublicCourseCard(post, index = 0, localizedFallbacks = {}) {
+function getDefaultCourseImage(id = 0) {
+  const num = parseInt(String(id).replace(/\D/g, ""), 10) || 0;
+  return COURSE_IMAGES[num % COURSE_IMAGES.length];
+}
+
+export function normalizePublicCourseCard(post) {
   if (!post) return null;
 
   const postId = post.postId;
   const slug = String(postId);
-  const country = COUNTRY_PRESETS[index % COUNTRY_PRESETS.length];
-  const authorName = AUTHOR_NAMES[index % AUTHOR_NAMES.length];
-  const image = post.representativeImageUrl || COURSE_IMAGES[index % COURSE_IMAGES.length];
+  const authorId =
+    post.writerId ||
+    post.userId ||
+    post.memberId ||
+    post.authorId ||
+    post.createdBy ||
+    post.user?.userId ||
+    post.user?.id ||
+    "";
+  const authorName =
+    post.writerNickname ||
+    post.writerName ||
+    post.authorNickname ||
+    post.createdByNickname ||
+    post.userNickname ||
+    post.name ||
+    post.nickname ||
+    post.userName ||
+    post.author ||
+    post.user?.nickname ||
+    post.user?.name ||
+    "";
+  const image =
+    post.representativeImageUrl ||
+    post.imageUrl ||
+    post.image ||
+    post.course?.representativeImageUrl ||
+    getDefaultCourseImage(postId);
 
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
-  const hash = words.length > 0
-    ? `#${words.slice(0, 2).join(" #")}`
-    : localizedFallbacks.hash || "#DITTO";
+  const hash = words.length > 0 ? `#${words.slice(0, 2).join(" #")}` : "#공유코스";
 
   return {
     postId,
     courseId: post.courseId,
     slug,
-    country,
+    authorId,
+    authorKey: String(authorId || authorName || "").trim(),
+    country: post.country || post.user?.country || "",
     name: authorName,
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
-    description: post.content || localizedFallbacks.description || post.title,
+    description: post.content || "",
     image,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
@@ -104,7 +118,7 @@ export function normalizePublicCourseDetail(detail) {
   const image =
     detail.course?.representativeImageUrl ||
     detail.representativeImageUrl ||
-    COURSE_IMAGES[num % COURSE_IMAGES.length];
+    getDefaultCourseImage(num);
 
   const authorName =
     detail.writerNickname ||
@@ -115,12 +129,25 @@ export function normalizePublicCourseDetail(detail) {
     detail.user?.name ||
     detail.course?.userName ||
     detail.course?.author ||
-    "사토 유키";
+    "";
+  const authorId =
+    detail.writerId ||
+    detail.userId ||
+    detail.memberId ||
+    detail.authorId ||
+    detail.createdBy ||
+    detail.user?.userId ||
+    detail.user?.id ||
+    detail.course?.userId ||
+    detail.course?.authorId ||
+    "";
 
   return {
     postId,
     courseId: detail.course?.courseId || detail.courseId,
     slug,
+    authorId,
+    authorKey: String(authorId || authorName || "").trim(),
     country: detail.country || detail.user?.country || "KR",
     name: authorName,
     persona: detail.persona || detail.shoppingType || detail.user?.persona || detail.course?.persona || "sohwak",
@@ -147,11 +174,21 @@ export function normalizePublicCourseDetail(detail) {
 /**
  * 서버 사이드 공개 코스 목록 조회
  */
-export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
+export async function fetchPublicCoursesServer({
+  page = 0,
+  size = 20,
+  authorId = "",
+  author = "",
+} = {}) {
   const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/api/v1/community/courses?page=${page}&size=${size}`;
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  if (authorId) params.set("authorId", String(authorId));
+  if (author) params.set("author", author);
+  const url = `${baseUrl}/api/v1/community/courses?${params.toString()}`;
   const headers = await getServerApiHeaders({ Accept: "application/json" });
-  const t = await getTranslations("community");
 
   try {
     const response = await fetch(url, {
@@ -162,7 +199,7 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
 
     if (!response.ok) {
       console.warn(`[Community Server] Fetch failed: HTTP ${response.status}`);
-      return defaultCommunityCourses;
+      return [];
     }
 
     const json = await response.json();
@@ -170,19 +207,13 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
     const content = Array.isArray(data?.content) ? data.content : [];
 
     if (content.length === 0) {
-      return defaultCommunityCourses;
+      return [];
     }
 
-    const realCourses = content.map((post, idx) => normalizePublicCourseCard(post, idx, {
-      description: t("publicCourseDescription", { title: post.title }),
-      hash: t("publicCourseHash"),
-    }));
-    
-    // Combine real DB courses at the top, then fallback fixtures for full richness
-    return [...realCourses, ...defaultCommunityCourses];
+    return content.map((post) => normalizePublicCourseCard(post));
   } catch (error) {
     console.error("[Community Server] Connection error:", error.message);
-    return defaultCommunityCourses;
+    return [];
   }
 }
 
@@ -271,7 +302,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
                 : "더현대 서울 맞춤 코스입니다."),
             image:
               courseData.representativeImageUrl ||
-              COURSE_IMAGES[num % COURSE_IMAGES.length],
+              getDefaultCourseImage(num),
             likes: 0,
             commentsCount: 0,
             saves: 0,
@@ -311,7 +342,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
       hash: "#나만의코스 #더현대서울",
       title: "나만의 맞춤 코스",
       description: "더현대 서울 맞춤 추천 코스입니다.",
-      image: COURSE_IMAGES[num % COURSE_IMAGES.length],
+      image: getDefaultCourseImage(num),
       likes: 0,
       commentsCount: 0,
       saves: 0,
