@@ -151,7 +151,9 @@
     "copyToast": "記事のリンクをクリップボードにコピーしました！",
     "originalArticle": "元の記事",
     "viewLargePhoto": "写真を拡大",
-    "createCourse": "コース作成"
+    "createCourse": "コース作成",
+    "previousPage": "前のページ",
+    "nextPage": "次のページ"
   },
   "auth": {
     "welcomeBack": "おかえりなさい",

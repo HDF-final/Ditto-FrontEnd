@@ -151,7 +151,9 @@
     "copyToast": "The article link was copied to your clipboard!",
     "originalArticle": "Original article",
     "viewLargePhoto": "View Large Photo",
-    "createCourse": "Create Course"
+    "createCourse": "Create Course",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
   },
   "auth": {
     "welcomeBack": "Welcome back",
