@@ -10,6 +10,7 @@ import {
   COUNTRY_META,
   WarningPanel,
 } from "./admin-artifact-ui";
+import { PeriodChartLegend, PeriodScoreChart } from "./period-score-chart";
 
 const COUNTRY_CODES = ["KR", "CN", "JP", "US"];
 
@@ -85,19 +86,22 @@ export function CountryRankingView({ mode }) {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-[#e1e4ed] bg-white shadow-[0_14px_45px_rgba(31,36,66,0.05)]">
-        <div className="flex items-center justify-between border-b border-[#eceef4] px-6 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#eceef4] px-6 py-5">
           <div>
             <h2 className="font-bold">
               {COUNTRY_META[country].flag} {COUNTRY_META[country].name}{" "}
               {isFinal ? "최종 TOP 10" : "국가별 후보군"}
             </h2>
             <p className="mt-1 text-xs text-[#8a90a3]">
-              {isFinal ? "화면 노출용 최종 순위" : "최종 비교 전 후보 우선순위"}
+              {isFinal ? "7·30·90일 상대 관심도를 한눈에 비교하는 최종 순위" : "최종 비교 전 후보 우선순위"}
             </p>
           </div>
-          <span className="rounded-full bg-[#f2efff] px-3 py-1.5 text-xs font-bold text-brand">
-            {rows.length}명
-          </span>
+          <div className="flex flex-wrap items-center justify-end gap-4">
+            {isFinal ? <PeriodChartLegend /> : null}
+            <span className="rounded-full bg-[#f2efff] px-3 py-1.5 text-xs font-bold text-brand">
+              {rows.length}명
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -108,10 +112,7 @@ export function CountryRankingView({ mode }) {
                 <th className="px-4 py-4">아티스트</th>
                 {isFinal ? (
                   <>
-                    <th className="px-4 py-4">7일</th>
-                    <th className="px-4 py-4">30일</th>
-                    <th className="px-4 py-4">90일</th>
-                    <th className="px-4 py-4">관심도</th>
+                    <th className="w-[46%] px-4 py-4">기간별 관심도</th>
                     <th className="px-4 py-4">상태</th>
                     <th className="px-4 py-4">조회 방식</th>
                   </>
@@ -153,10 +154,9 @@ export function CountryRankingView({ mode }) {
                   </td>
                   {isFinal ? (
                     <>
-                      <td className="px-4 py-4 font-semibold">{score(item.scores?.short7)}</td>
-                      <td className="px-4 py-4 font-semibold">{score(item.scores?.medium30)}</td>
-                      <td className="px-4 py-4 font-semibold">{score(item.scores?.long90)}</td>
-                      <td className="px-4 py-4"><strong className="text-brand">{score(item.interestScore)}</strong></td>
+                      <td className="px-4 py-5">
+                        <PeriodScoreChart scores={item.scores} name={item.nameKo || item.name} />
+                      </td>
                       <td className="px-4 py-4"><span className="rounded-full bg-[#f0f7ff] px-2.5 py-1 text-[11px] font-bold text-[#3570a8]">{classificationLabel(item.classification)}</span></td>
                       <td className="max-w-[190px] truncate px-4 py-4 text-xs text-[#777d90]">{item.queryMode || "-"}</td>
                     </>
@@ -174,7 +174,7 @@ export function CountryRankingView({ mode }) {
               ))}
               {!rows.length ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-16 text-center text-sm text-[#9095a6]">
+                  <td colSpan={isFinal ? 5 : 8} className="px-6 py-16 text-center text-sm text-[#9095a6]">
                     이 국가의 수집 결과가 없습니다.
                   </td>
                 </tr>

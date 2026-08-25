@@ -10,6 +10,7 @@ import {
   StatusBadge,
   formatAdminDate,
 } from "./admin-artifact-ui";
+import { PeriodScoreMiniChart } from "./period-score-chart";
 
 const COUNTRIES = ["KR", "CN", "JP", "US"];
 
@@ -77,8 +78,8 @@ export function AdminDashboardView() {
         <article className="overflow-hidden rounded-2xl border border-[#e1e4ed] bg-white shadow-[0_14px_45px_rgba(31,36,66,0.05)]">
           <div className="flex items-center justify-between border-b border-[#eceef4] px-6 py-5">
             <div>
-              <h2 className="font-bold">오늘의 국가별 TOP 10</h2>
-              <p className="mt-1 text-xs text-[#8a90a3]">최신 최종 산출물 미리보기 · 국가별 상위 4명</p>
+              <h2 className="font-bold">오늘의 국가별 TOP 3</h2>
+              <p className="mt-1 text-xs text-[#8a90a3]">최신 TOP 10 산출물 중 국가별 상위 3명 미리보기</p>
             </div>
             <Link href="/admin/trends/rankings" className="text-xs font-bold text-brand hover:underline">
               전체 보기 →
@@ -87,7 +88,7 @@ export function AdminDashboardView() {
 
           <div className="grid md:grid-cols-2">
             {COUNTRIES.map((code, countryIndex) => {
-              const rows = latestRows(top10, code).slice(0, 4);
+              const rows = latestRows(top10, code).slice(0, 3);
               return (
                 <section
                   key={code}
@@ -104,9 +105,7 @@ export function AdminDashboardView() {
                           {item.ranking || index + 1}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-xs font-bold">{item.nameKo || item.name}</span>
-                        <span className="text-[11px] font-black text-[#73798d]">
-                          {Number.isFinite(Number(item.interestScore)) ? Math.round(Number(item.interestScore)) : "-"}
-                        </span>
+                        <PeriodScoreMiniChart scores={item.scores} name={item.nameKo || item.name} />
                       </li>
                     ))}
                     {!rows.length ? <li className="py-8 text-center text-xs text-[#9aa0b0]">결과 없음</li> : null}
