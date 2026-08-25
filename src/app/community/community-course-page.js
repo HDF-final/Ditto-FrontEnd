@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { CountryFlag } from "@/components/common/country-flag";
 import {
   likeCourse,
   unlikeCourse,
@@ -14,6 +15,7 @@ import {
 } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 
@@ -49,7 +51,6 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
 
   const postId =
     card.postId ||
@@ -62,6 +63,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   const href = `/community/${card.postId || card.slug || rank || "1"}`;
   const mounted = useIsMounted();
   const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
+  const getPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.getPostAuthor,
+  );
 
   const slugKey = card.slug ? String(card.slug) : "";
   const numKey = String(card.postId || postId || rank || "1");
@@ -74,13 +78,20 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     : null;
 
   const image = customImage || card.image || null;
+  const localAuthor = mounted
+    ? getPostAuthor(card.postId, card.courseId, slugKey, numKey)
+    : null;
   const gradient = card.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
-  const userCountry = mounted
-    ? user?.countryCode || user?.country || user?.nationality
-    : "";
-  const flagEmoji = getFlagEmoji(card.country || card.flag || userCountry);
+  const countryCode = card.country || card.flag || localAuthor?.country;
+  const flagEmoji = getFlagEmoji(countryCode);
   const displayName =
-    card.name || (mounted ? user?.nickname || user?.name : "") || t("traveler");
+    card.name ||
+    card.writerNickname ||
+    card.authorNickname ||
+    card.userNickname ||
+    card.nickname ||
+    localAuthor?.name ||
+    "";
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -153,7 +164,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
   return (
     <article
-      className={`group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-linear-to-br ${gradient} shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]`}
+      className={`group relative flex aspect-[4/3] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[18px] bg-linear-to-br ${gradient} shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]`}
     >
       <Link
         href={href}
@@ -173,35 +184,37 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       )}
 
       {/* Top Gradient for text legibility */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-24" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-28" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-52" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-60" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
-        <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border border-white/15 bg-black/55 px-2 py-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.22)] backdrop-blur-sm lg:rounded-xl lg:px-2.5">
-          {/* Rank Badge */}
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-6 lg:rounded-lg lg:text-[11px]">
+      <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-5">
+        <div className="inline-flex max-w-full items-center gap-2.5 overflow-hidden rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:px-3.5 lg:py-2">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-[13px]">
             {rank}
           </span>
-          {flagEmoji ? (
-            <span className="shrink-0 text-xs leading-none lg:text-sm">{flagEmoji}</span>
-          ) : null}
-          {/* Name & Tag */}
-          <div className="min-w-0 flex-1 leading-tight lg:flex lg:flex-col lg:items-start">
-            <span className="block truncate text-[11px] font-bold text-white drop-shadow-sm">
-              {displayName}
-            </span>
+          <CountryFlag
+            code={countryCode}
+            emoji={flagEmoji}
+            className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
+          />
+          <div className="min-w-0 leading-none">
+            {displayName ? (
+              <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-[13px]">
+                {displayName}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
+      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
         {/* Title & Description */}
         <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
-          <h3 className="line-clamp-2 break-keep text-[16px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[20px]">
+          <h3 className="line-clamp-2 break-keep text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-2xl">
             {card.title}
           </h3>
           {card.description ? (

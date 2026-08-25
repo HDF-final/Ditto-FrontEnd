@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { getPersonaById } from "@/lib/fixtures/personas";
@@ -101,6 +102,12 @@ export function CommunityChatButton({ course = {} }) {
   const user = useAuthStore((state) => state.user);
   const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
   const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
+  const getPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.getPostAuthor,
+  );
+  const setStoredPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.setPostAuthor,
+  );
 
   const [isOpen, setIsOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -164,24 +171,29 @@ export function CommunityChatButton({ course = {} }) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const [postAuthor, setPostAuthor] = useState(
+  const [postAuthor, setPostAuthorName] = useState(
     course?.name || course?.nickname || course?.author || "",
   );
+  const localAuthor = mounted
+    ? getPostAuthor(course?.postId, course?.courseId, course?.slug, postId)
+    : null;
 
   const authorName =
     postAuthor ||
     course?.name ||
+    course?.writerNickname ||
+    course?.authorNickname ||
+    course?.userNickname ||
     course?.nickname ||
     course?.author ||
-    user?.nickname ||
-    user?.name ||
+    localAuthor?.name ||
     t("traveler");
 
   const authorPersona = getPersonaById(
     course?.persona ||
       course?.shoppingType ||
       course?.personaId ||
-      (user && authorName === (user.nickname || user.name) ? user.persona : "sohwak"),
+      "sohwak",
     locale,
   );
 
@@ -224,15 +236,27 @@ export function CommunityChatButton({ course = {} }) {
         const detail = postDetail.value;
         const serverAuthor =
           detail?.writerNickname ||
+          detail?.writerName ||
+          detail?.authorNickname ||
+          detail?.createdByNickname ||
+          detail?.userNickname ||
+          detail?.name ||
           detail?.nickname ||
           detail?.userName ||
+          detail?.authorName ||
           detail?.author ||
           detail?.user?.nickname ||
           detail?.user?.name ||
           detail?.course?.userName ||
           detail?.course?.author;
         if (serverAuthor) {
-          setPostAuthor(serverAuthor);
+          setPostAuthorName(serverAuthor);
+          setStoredPostAuthor(id, {
+            id: detail?.writerId || detail?.userId || detail?.authorId || "",
+            name: serverAuthor,
+            country: detail?.country || detail?.user?.country || "",
+            persona: detail?.persona || detail?.user?.persona || "",
+          });
         }
 
         const serverContent =

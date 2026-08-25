@@ -7,7 +7,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createCoursePost } from "@/lib/api/community";
+import { getMyProfile } from "@/lib/api/users";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { compressImage } from "@/lib/utils/image-compression";
 import { getRandomDefaultCommunityCourseImage } from "@/lib/community/default-course-images";
 
@@ -93,6 +95,9 @@ export function ShareCourseForm({ courses = [], loading = false }) {
   const setPostImages = useCommunityPostImagesStore(
     (state) => state.setPostImages,
   );
+  const setPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.setPostAuthor,
+  );
 
   const shouldScroll = courses.length > 3;
 
@@ -150,6 +155,25 @@ export function ShareCourseForm({ courses = [], loading = false }) {
       setPostImages(newPostId, postImages);
       setPostImages(courseId, postImages);
       if (selectedCourse?.id) setPostImages(selectedCourse.id, postImages);
+
+      const responseAuthor =
+        result?.writerNickname || result?.nickname || result?.name
+          ? {
+              id: result?.writerId || result?.userId || "",
+              name: result?.writerNickname || result?.nickname || result?.name,
+              country: result?.country || result?.countryCode || "",
+              persona: result?.persona || "",
+            }
+          : null;
+
+      try {
+        const author = responseAuthor || (await getMyProfile());
+        setPostAuthor(newPostId, author);
+        setPostAuthor(courseId, author);
+        if (selectedCourse?.id) setPostAuthor(selectedCourse.id, author);
+      } catch (profileError) {
+        console.warn("Failed to resolve course post author:", profileError);
+      }
 
       setCreatedPostId(newPostId);
       setIsSuccessModalOpen(true);
