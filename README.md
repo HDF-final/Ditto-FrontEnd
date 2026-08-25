@@ -363,6 +363,25 @@ API_PROXY_TARGET=http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.co
 
 관리자 API는 세션 인증이므로 `pnpm dev`로 띄운 뒤 `/login`에서 **ROLE_ADMIN 계정으로 로그인**해야 `/admin/courses`가 보입니다.
 
+## 실내 지도 정적 자산 (CDN)
+
+실내 지도 원장(JSON **588KB**)과 층 텍스처(PNG **2.2MB**)는 한 번 만들어지면 바뀌지 않습니다. CloudFront 의 `course-resource/*` 동작이 S3 `hdf-ditto-images` 를 내보내고, 오브젝트마다 3주짜리 `Cache-Control` 이 붙어 있습니다.
+
+```
+NEXT_PUBLIC_CDN_BASE=https://d1bxld598du04o.cloudfront.net/course-resource
+```
+
+| 무엇 | 어디 |
+| --- | --- |
+| 층 그래프 8개 · 장소 원장 147곳 · 방 폴리곤 · 매니페스트 | `{CDN}/navigation/v2/*.json` |
+| 층 텍스처 8장 | `{CDN}/maps/floor-*.png` |
+
+- **비워 두면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이 막혔을 때의 안전장치이고, 그 경로에도 3주 캐시 헤더를 붙여 뒀습니다(`next.config.mjs`).
+- 백엔드의 `ditto.map-assets.base-url` 과 **같은 곳**을 가리켜야 합니다. `GET /api/v1/places/navigation/assets` 가 같은 주소를 돌려주므로, 주소를 옮길 때는 두 곳을 같이 바꿉니다.
+- 크로스 오리진이라 CloudFront `course-resource/*` 에 `Managed-SimpleCORS` 응답 헤더 정책이 붙어 있습니다. `Managed-CachingOptimized` 는 `Origin` 을 원본에 넘기지 않아, 버킷 CORS 만으로는 브라우저에서 막힙니다.
+- 층 텍스처는 three.js `useTexture` 가 받습니다(`next/image` 가 아닙니다). WebGL 텍스처라 CORS 헤더가 필요하고, 위 정책이 그것을 채웁니다.
+- 원장을 다시 만들면 경로의 `v2` 를 올리세요. 같은 키를 덮어쓰면 최대 3주 동안 옛 파일이 나갑니다.
+
 ## Zustand 사용법
 
 Zustand는 국가·언어, 다단계 코스 작성 상태, 전역 모달처럼 여러 Client Component가 공유해야 하는 상태에만 사용합니다.

@@ -30,6 +30,8 @@ const nextConfig = {
         protocol: "https",
         hostname: "hdf-ditto-images.s3.ap-northeast-2.amazonaws.com",
       },
+      // 지도 원장·층 텍스처·장소 사진을 내보내는 CDN
+      { protocol: "https", hostname: "**.cloudfront.net" },
     ],
   },
 
@@ -48,6 +50,10 @@ const nextConfig = {
     ];
   },
 
+  // 지도 원장과 층 텍스처는 보통 CloudFront(course-resource/*)에서 나갑니다
+  // (`NEXT_PUBLIC_CDN_BASE`). 아래 헤더는 그 값을 비워 `public/` 사본으로 떨어졌을 때를
+  // 위한 것입니다 — 폴백 경로에서도 매번 재검증하지는 않도록 둡니다.
+  //
   // 실내 지도 원장과 층 텍스처는 한 번 만들어지면 바뀌지 않습니다. 그런데 Next는
   // `public/` 파일에 지문(해시)을 안 붙여서 기본값이 매번 재검증이고, 지도를 열 때마다
   // JSON 588KB + PNG 2.2MB에 대해 조건부 요청이 나갑니다.
