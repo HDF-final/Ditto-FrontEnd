@@ -1768,6 +1768,11 @@ export function IndoorMap({
   const [roomsByFloor, setRoomsByFloor] = useState(null);
   const [floorDatasets, setFloorDatasets] = useState(null);
   const containerRef = useRef(null);
+  const [canvasEventSource, setCanvasEventSource] = useState(null);
+  const setContainerNode = useCallback((node) => {
+    containerRef.current = node;
+    setCanvasEventSource(node);
+  }, []);
   const handleCameraReady = useCallback(() => {
     setViewReady(true);
   }, []);
@@ -1886,40 +1891,42 @@ export function IndoorMap({
     <MapErrorBoundary>
       <div className={`relative isolate z-0 h-full min-h-0 w-full overflow-hidden bg-[radial-gradient(circle_at_center,#FDFBF8_0%,#F7F3EF_52%,#F1E9E2_100%)] ${isScanView ? "min-h-full" : ""}`}>
         <div
-          ref={containerRef}
+          ref={setContainerNode}
           className={
             viewMode === "floor" && !isScanView
               ? "absolute bottom-[82px] left-0 right-0 top-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)] md:bottom-[92px]"
               : "absolute inset-0 z-0 isolate overflow-hidden cursor-grab touch-none active:cursor-grabbing [transform:translateZ(0)]"
           }
         >
-          <Canvas
-            eventSource={containerRef}
-            dpr={[1, 1.75]}
-            gl={{ antialias: true, alpha: true }}
-          >
-            <OverlayOccluderContext.Provider value={overlayOccluderRef}>
-              <Suspense fallback={null}>
-                <FloorStack
-                  viewMode={viewMode}
-                  visibleFloors={visibleFloors}
-                  resetSignal={resetSignal}
-                  route={route}
-                  routeGraph={routeGraph}
-                  placeLogos={placeLogos}
-                  roomsByFloor={roomsByFloor}
-                  floorDatasets={floorDatasets}
-                  overlayOnTop={overlayOnTop}
-                  onCameraReady={handleCameraReady}
-                  userLocation={userLocation}
-                  compactPin={isScanView}
-                  compactRouteMarkers={isScanView}
-                  compactFloorLabels={isScanView}
-                  fitPreset={activeFitPreset}
-                />
-              </Suspense>
-            </OverlayOccluderContext.Provider>
-          </Canvas>
+          {canvasEventSource ? (
+            <Canvas
+              eventSource={canvasEventSource}
+              dpr={[1, 1.75]}
+              gl={{ antialias: true, alpha: true }}
+            >
+              <OverlayOccluderContext.Provider value={overlayOccluderRef}>
+                <Suspense fallback={null}>
+                  <FloorStack
+                    viewMode={viewMode}
+                    visibleFloors={visibleFloors}
+                    resetSignal={resetSignal}
+                    route={route}
+                    routeGraph={routeGraph}
+                    placeLogos={placeLogos}
+                    roomsByFloor={roomsByFloor}
+                    floorDatasets={floorDatasets}
+                    overlayOnTop={overlayOnTop}
+                    onCameraReady={handleCameraReady}
+                    userLocation={userLocation}
+                    compactPin={isScanView}
+                    compactRouteMarkers={isScanView}
+                    compactFloorLabels={isScanView}
+                    fitPreset={activeFitPreset}
+                  />
+                </Suspense>
+              </OverlayOccluderContext.Provider>
+            </Canvas>
+          ) : null}
         </div>
 
         {userLocation?.name && !isScanView ? (

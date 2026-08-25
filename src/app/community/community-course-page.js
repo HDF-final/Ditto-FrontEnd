@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import {
@@ -18,43 +18,38 @@ import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 
 const tabs = ["popular", "latest"];
-const storageKey = "ditto:shared-community-courses";
 const MOBILE_ITEMS_PER_PAGE = 1;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
-function subscribe(callback) {
-  if (typeof window === "undefined" || typeof window.addEventListener !== "function") return () => {};
-  window.addEventListener("storage", callback);
-  return () => {
-    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-      window.removeEventListener("storage", callback);
-    }
-  };
-}
-
-function getSnapshot() {
-  if (typeof window === "undefined") return "[]";
-  return localStorage.getItem(storageKey) || "[]";
-}
-
-function getServerSnapshot() {
-  return "[]";
-}
-
 function getFlagEmoji(countryCode) {
-  if (!countryCode) return "🇰🇷";
-  const code = countryCode.toUpperCase();
+  if (!countryCode) return "";
+  const normalizedCode = String(countryCode).trim().toUpperCase();
+  const codeMap = {
+    JAPAN: "JP",
+    일본: "JP",
+    CHINA: "CN",
+    중국: "CN",
+    USA: "US",
+    "UNITED STATES": "US",
+    미국: "US",
+    KOREA: "KR",
+    "SOUTH KOREA": "KR",
+    한국: "KR",
+    대한민국: "KR",
+  };
+  const code = codeMap[normalizedCode] || normalizedCode;
   if (code === "JP") return "🇯🇵";
   if (code === "CN") return "🇨🇳";
   if (code === "US") return "🇺🇸";
   if (code === "KR") return "🇰🇷";
-  return "🌐";
+  return "";
 }
 
 function CommunityCard({ card, rank, onAuthRequired }) {
   const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
 
   const postId =
     card.postId ||
@@ -78,10 +73,16 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       getPostImage(numKey)
     : null;
 
-  const image =
-    customImage ||
-    card.image ||
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+  const image = customImage || card.image || null;
+  const gradient = card.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
+  const flagEmoji = getFlagEmoji(
+    card.country ||
+      card.flag ||
+      user?.countryCode ||
+      user?.country ||
+      user?.nationality,
+  );
+  const displayName = card.name || user?.nickname || user?.name || t("traveler");
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -155,14 +156,18 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]"
+      className={`group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-linear-to-br ${gradient} shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]`}
     >
       {/* Full Background Image */}
-      <img
-        src={image}
-        alt={card.title}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-      />
+      {image ? (
+        <img
+          src={image}
+          alt={card.title}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,0.25),transparent_28%),linear-gradient(145deg,rgba(255,255,255,0.12),transparent_45%)]" />
+      )}
 
       {/* Top Gradient for text legibility */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-24" />
@@ -172,20 +177,18 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
       {/* Top Header Overlay (Transparent background) */}
       <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xs lg:gap-2 lg:px-2.5">
+        <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border border-white/15 bg-black/55 px-2 py-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.22)] backdrop-blur-sm lg:rounded-xl lg:px-2.5">
           {/* Rank Badge */}
           <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-6 lg:rounded-lg lg:text-[11px]">
             {rank}
           </span>
-          {/* Flag */}
-          <span className="shrink-0 text-xs leading-none lg:text-sm">{getFlagEmoji(card.country || card.flag)}</span>
+          {flagEmoji ? (
+            <span className="shrink-0 text-xs leading-none lg:text-sm">{flagEmoji}</span>
+          ) : null}
           {/* Name & Tag */}
           <div className="min-w-0 flex-1 leading-tight lg:flex lg:flex-col lg:items-start">
             <span className="block truncate text-[11px] font-bold text-white drop-shadow-sm">
-              {card.name || t("traveler")}
-            </span>
-            <span className="block truncate text-[10px] font-semibold text-violet-200 drop-shadow-sm">
-              {card.hash || "#더현대"}
+              {displayName}
             </span>
           </div>
         </div>
@@ -279,7 +282,6 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const sharedCardsRaw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -289,29 +291,17 @@ export function CommunityCoursePage({ initialCards = [] }) {
     return () => media.removeEventListener("change", apply);
   }, []);
 
-  const itemsPerPage = isDesktopLayout
+  const itemsPerPage = mounted && isDesktopLayout
     ? DESKTOP_ITEMS_PER_PAGE
     : MOBILE_ITEMS_PER_PAGE;
 
-  const sharedCards = useMemo(() => {
-    if (!mounted) return [];
-    try {
-      const parsed = JSON.parse(sharedCardsRaw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, [mounted, sharedCardsRaw]);
-
   const cards = useMemo(() => {
-    const combined = [...initialCards, ...sharedCards];
-
     if (activeTab === "latest") {
-      return [...combined].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
+      return [...initialCards].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
     }
     // 기본값: 인기순
-    return [...combined].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
-  }, [initialCards, sharedCards, activeTab]);
+    return [...initialCards].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
+  }, [initialCards, activeTab]);
 
   // 탭 변경 시 1페이지로 리셋
   const handleTabChange = (tab) => {
@@ -320,17 +310,11 @@ export function CommunityCoursePage({ initialCards = [] }) {
   };
 
   const totalPages = Math.ceil(cards.length / itemsPerPage) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedCards = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
+    const startIdx = (safeCurrentPage - 1) * itemsPerPage;
     return cards.slice(startIdx, startIdx + itemsPerPage);
-  }, [cards, currentPage, itemsPerPage]);
-
-  // itemsPerPage(레이아웃) 변경 시 1페이지로 리셋
-  const [prevItemsPerPage, setPrevItemsPerPage] = useState(itemsPerPage);
-  if (itemsPerPage !== prevItemsPerPage) {
-    setPrevItemsPerPage(itemsPerPage);
-    setCurrentPage(1);
-  }
+  }, [cards, safeCurrentPage, itemsPerPage]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -339,8 +323,8 @@ export function CommunityCoursePage({ initialCards = [] }) {
 
   return (
     <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
-      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-8 lg:pb-16 lg:pt-[94px] xl:px-10 2xl:px-12">
+        <div className="mx-auto flex max-w-[1020px] flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
             <p className="text-[10px] font-black text-brand lg:text-xs">
               THE HYUNDAI SEOUL COMMUNITY
@@ -377,34 +361,47 @@ export function CommunityCoursePage({ initialCards = [] }) {
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
-        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:max-w-[1020px] lg:block">
+      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-8 lg:py-14 xl:px-10 2xl:px-12">
+        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-[1020px] lg:block">
           <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
-            {paginatedCards.map((card, index) => {
-              const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
-              return (
-                <div
-                  key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                  className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
-                >
-                  <CommunityCard
-                    card={card}
-                    rank={actualRank}
-                    onAuthRequired={() => setIsLoginModalOpen(true)}
-                  />
+            {paginatedCards.length > 0 ? (
+              paginatedCards.map((card, index) => {
+                const actualRank = (safeCurrentPage - 1) * itemsPerPage + index + 1;
+                return (
+                  <div
+                    key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
+                    className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
+                  >
+                    <CommunityCard
+                      card={card}
+                      rank={actualRank}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex min-h-[280px] items-center justify-center rounded-[24px] border border-dashed border-line bg-white p-8 text-center lg:col-span-3">
+                <div>
+                  <h2 className="text-lg font-black text-ink">
+                    공유된 코스가 아직 없어요
+                  </h2>
+                  <p className="mt-2 text-sm font-medium text-ink-muted">
+                    내 코스를 커뮤니티에 공유하면 이곳에 표시됩니다.
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
 
           {totalPages > 1 ? (
             <div className="mt-3 flex shrink-0 items-center justify-center gap-3 lg:hidden">
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
                 className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
-                  currentPage === 1
+                  safeCurrentPage === 1
                     ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
                     : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
                 }`}
@@ -413,14 +410,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 ‹
               </button>
               <span className="min-w-14 text-center text-xs font-black text-brand">
-                {currentPage} / {totalPages}
+                {safeCurrentPage} / {totalPages}
               </span>
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
                 className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
-                  currentPage === totalPages
+                  safeCurrentPage === totalPages
                     ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
                     : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
                 }`}
@@ -437,10 +434,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               {/* 이전 버튼 */}
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
-                  currentPage === 1
+                  safeCurrentPage === 1
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}
@@ -456,11 +453,11 @@ export function CommunityCoursePage({ initialCards = [] }) {
                   type="button"
                   onClick={() => handlePageChange(pageNum)}
                   className={`flex size-8 sm:size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
-                    currentPage === pageNum
+                    safeCurrentPage === pageNum
                       ? "bg-brand text-white shadow-md"
                       : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
                   }`}
-                  aria-current={currentPage === pageNum ? "page" : undefined}
+                  aria-current={safeCurrentPage === pageNum ? "page" : undefined}
                 >
                   {pageNum}
                 </button>
@@ -469,10 +466,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               {/* 다음 버튼 */}
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
-                  currentPage === totalPages
+                  safeCurrentPage === totalPages
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}

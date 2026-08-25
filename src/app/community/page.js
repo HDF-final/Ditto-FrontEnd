@@ -9,6 +9,6 @@ export async function generateMetadata() {
 }
 
 export default async function CommunityPage() {
-  const courses = await fetchPublicCoursesServer({ page: 0, size: 20 });
+  const courses = await fetchPublicCoursesServer({ page: 0, size: 100 });
   return <CommunityCoursePage initialCards={courses} />;
 }

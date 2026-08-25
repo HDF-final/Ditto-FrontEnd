@@ -1,10 +1,6 @@
-import {
-  communityCourses as defaultCommunityCourses,
-  getCommunityCourse as getDefaultCommunityCourse,
-} from "@/lib/fixtures/community-courses";
+import { getCommunityCourse as getDefaultCommunityCourse } from "@/lib/fixtures/community-courses";
 import { getServerApiBaseUrl } from "./server-base-url";
 import { getServerApiHeaders } from "./server-language";
-import { getTranslations } from "next-intl/server";
 
 const GRADIENT_PRESETS = [
   "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]",
@@ -15,9 +11,6 @@ const GRADIENT_PRESETS = [
   "from-[#211466] to-[#8c57fa]",
   "from-[#4a044e] to-[#6d28d9]",
 ];
-
-const COUNTRY_PRESETS = ["JP", "CN", "US", "KR"];
-const AUTHOR_NAMES = ["Yuki_T", "Chen_Li", "Emma_R", "Sakura_M", "Noah_K", "Mina_Z", "Riku_A", "Lily_P"];
 
 export function getGradientForId(id = 0) {
   const num = typeof id === "number" ? id : parseInt(String(id).replace(/\D/g, ""), 10) || 0;
@@ -38,31 +31,39 @@ const COURSE_IMAGES = [
   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=900&fit=crop",
 ];
 
-export function normalizePublicCourseCard(post, index = 0, localizedFallbacks = {}) {
+export function normalizePublicCourseCard(post) {
   if (!post) return null;
 
   const postId = post.postId;
   const slug = String(postId);
-  const country = COUNTRY_PRESETS[index % COUNTRY_PRESETS.length];
-  const authorName = AUTHOR_NAMES[index % AUTHOR_NAMES.length];
-  const image = post.representativeImageUrl || COURSE_IMAGES[index % COURSE_IMAGES.length];
+  const image =
+    post.representativeImageUrl ||
+    post.imageUrl ||
+    post.image ||
+    post.course?.representativeImageUrl ||
+    null;
 
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
-  const hash = words.length > 0
-    ? `#${words.slice(0, 2).join(" #")}`
-    : localizedFallbacks.hash || "#DITTO";
+  const hash = words.length > 0 ? `#${words.slice(0, 2).join(" #")}` : "#공유코스";
 
   return {
     postId,
     courseId: post.courseId,
     slug,
-    country,
-    name: authorName,
+    country: post.country || post.user?.country || "",
+    name:
+      post.writerNickname ||
+      post.nickname ||
+      post.userName ||
+      post.author ||
+      post.user?.nickname ||
+      post.user?.name ||
+      "",
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
-    description: post.content || localizedFallbacks.description || post.title,
+    description: post.content || "",
     image,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
@@ -151,7 +152,6 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/api/v1/community/courses?page=${page}&size=${size}`;
   const headers = await getServerApiHeaders({ Accept: "application/json" });
-  const t = await getTranslations("community");
 
   try {
     const response = await fetch(url, {
@@ -162,7 +162,7 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
 
     if (!response.ok) {
       console.warn(`[Community Server] Fetch failed: HTTP ${response.status}`);
-      return defaultCommunityCourses;
+      return [];
     }
 
     const json = await response.json();
@@ -170,19 +170,13 @@ export async function fetchPublicCoursesServer({ page = 0, size = 20 } = {}) {
     const content = Array.isArray(data?.content) ? data.content : [];
 
     if (content.length === 0) {
-      return defaultCommunityCourses;
+      return [];
     }
 
-    const realCourses = content.map((post, idx) => normalizePublicCourseCard(post, idx, {
-      description: t("publicCourseDescription", { title: post.title }),
-      hash: t("publicCourseHash"),
-    }));
-    
-    // Combine real DB courses at the top, then fallback fixtures for full richness
-    return [...realCourses, ...defaultCommunityCourses];
+    return content.map((post) => normalizePublicCourseCard(post));
   } catch (error) {
     console.error("[Community Server] Connection error:", error.message);
-    return defaultCommunityCourses;
+    return [];
   }
 }
 
