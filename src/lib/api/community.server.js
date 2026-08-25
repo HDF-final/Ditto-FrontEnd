@@ -43,6 +43,11 @@ export function normalizePublicCourseCard(post) {
     "";
   const authorName =
     post.writerNickname ||
+    post.writerName ||
+    post.authorNickname ||
+    post.createdByNickname ||
+    post.userNickname ||
+    post.name ||
     post.nickname ||
     post.userName ||
     post.author ||
