@@ -35,13 +35,11 @@ export async function fetchRawSystemCoursesServer({ size = 20 } = {}) {
 
   const validCourses = results
     .filter((r) => r.status === "fulfilled" && r.value)
-    .map((r) => r.value);
-
-  validCourses.sort((a, b) => {
-    const aScore = a.creationType === "SYSTEM" ? 2 : 1;
-    const bScore = b.creationType === "SYSTEM" ? 2 : 1;
-    return bScore - aScore;
-  });
+    .map((r) => r.value)
+    .filter((course) => {
+      const type = String(course.creationType || course.courseType || course.type || "").toUpperCase();
+      return type === "SYSTEM";
+    });
 
   return validCourses.slice(0, size);
 }

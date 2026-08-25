@@ -45,7 +45,11 @@ export async function getSystemCourses({ page = 0, size = 20 } = {}) {
     try {
       const res = await apiClient.get(ep, { params: { page, size } });
       const data = res.data?.data;
-      const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+      const list = (Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [])
+        .filter((course) => {
+          const type = String(course.creationType || course.courseType || course.type || "").toUpperCase();
+          return type === "SYSTEM";
+        });
       if (list.length > 0) {
         return list;
       }
@@ -63,14 +67,11 @@ export async function getSystemCourses({ page = 0, size = 20 } = {}) {
 
     const validCourses = details
       .filter((r) => r.status === "fulfilled" && r.value)
-      .map((r) => r.value);
-
-    // Prioritize SYSTEM creationType first
-    validCourses.sort((a, b) => {
-      const aScore = a.creationType === "SYSTEM" ? 2 : 1;
-      const bScore = b.creationType === "SYSTEM" ? 2 : 1;
-      return bScore - aScore;
-    });
+      .map((r) => r.value)
+      .filter((course) => {
+        const type = String(course.creationType || course.courseType || course.type || "").toUpperCase();
+        return type === "SYSTEM";
+      });
 
     if (validCourses.length > 0) {
       return validCourses.slice(0, size);

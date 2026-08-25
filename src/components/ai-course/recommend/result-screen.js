@@ -34,6 +34,7 @@ import {
   addCoursePlace,
   createCourse,
   deleteCoursePlace,
+  getCourseDetail,
   updateCourse,
 } from "@/lib/api/courses";
 
@@ -46,6 +47,91 @@ function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
 }
 
+function normalizePlaceName(name) {
+  return String(name || "").replace(/\s+/g, "").toLowerCase();
+}
+
+function getSourcePlaceId(place) {
+  return place?.placeId ?? place?.place_id ?? place?.id ?? null;
+}
+
+function getSourceNavigationKey(place) {
+  return place?.navigationKey ?? place?.navigation_key ?? null;
+}
+
+function getSourcePlaceImage(place) {
+  return (
+    place?.image ||
+    place?.imageUrl ||
+    place?.image_url ||
+    place?.placeImg ||
+    place?.place_img ||
+    null
+  );
+}
+
+function findCatalogPlace(sourcePlace, placeCatalog) {
+  const navigationKey = getSourceNavigationKey(sourcePlace);
+  const placeId = getSourcePlaceId(sourcePlace);
+  const sourceName = normalizePlaceName(
+    sourcePlace?.name ?? sourcePlace?.placeName ?? sourcePlace?.place_name,
+  );
+
+  return placeCatalog.find((candidate) => {
+    if (navigationKey && candidate.navigationKey === navigationKey) return true;
+    if (placeId !== null && String(candidate.placeId) === String(placeId)) return true;
+    return sourceName && normalizePlaceName(candidate.name) === sourceName;
+  });
+}
+
+function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
+  return coursePlaces
+    .map((rawPlace, index) => {
+      const place = rawPlace?.place && typeof rawPlace.place === "object"
+        ? { ...rawPlace.place, ...rawPlace }
+        : rawPlace;
+      const catalogPlace = findCatalogPlace(place, placeCatalog);
+      const image = getSourcePlaceImage(place);
+      const fallbackName =
+        place?.name ?? place?.placeName ?? place?.place_name ?? catalogPlace?.name;
+      const fallbackFloor =
+        place?.floorCode ?? place?.floor_code ?? place?.floor ?? catalogPlace?.floor;
+
+      if (catalogPlace) {
+        return {
+          ...catalogPlace,
+          ...place,
+          id: catalogPlace.id,
+          placeId: catalogPlace.placeId ?? getSourcePlaceId(place),
+          navigationKey: catalogPlace.navigationKey,
+          floor: catalogPlace.floor ?? fallbackFloor,
+          name: fallbackName,
+          desc: place?.description ?? place?.desc ?? catalogPlace.desc,
+          description: place?.description ?? place?.desc ?? catalogPlace.description,
+          image: image ?? catalogPlace.image,
+          imageUrl: image ?? catalogPlace.imageUrl,
+          isAiRecommended: false,
+        };
+      }
+
+      return {
+        id: getSourceNavigationKey(place) ?? getSourcePlaceId(place) ?? `source-course-${index}`,
+        placeId: getSourcePlaceId(place),
+        navigationKey: getSourceNavigationKey(place),
+        floor: fallbackFloor,
+        name: fallbackName,
+        category: place?.category,
+        desc: place?.description ?? place?.desc ?? `${fallbackFloor ?? ""} ${fallbackName ?? ""}`.trim(),
+        description: place?.description ?? place?.desc,
+        image,
+        imageUrl: image,
+        location: `더현대서울 ${fallbackFloor ?? ""}`.trim(),
+        isAiRecommended: false,
+      };
+    })
+    .filter((place) => place.name);
+}
+
 /**
  * 코스 편집 화면.
  *
@@ -53,7 +139,7 @@ function sameOrder(a, b) {
  * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
-export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
+export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceCourseId = "" }) {
   const t = useTranslations("aiCourse");
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
@@ -101,6 +187,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const didDragRef = useRef(false);
   const chatOccluderRef = useRef(null);
   const seededFromScanRef = useRef(false);
+  const seededSourceCourseRef = useRef("");
 
   // 드래그 이벤트 핸들러가 최신 items 를 stale 없이 읽도록 ref 를 동기화합니다.
   useEffect(() => {
@@ -179,6 +266,49 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
       active = false;
     };
   }, [t]);
+
+  useEffect(() => {
+    if (!sourceCourseId || datasetStatus !== "ready") return;
+    if (seededSourceCourseRef.current === sourceCourseId) return;
+    let active = true;
+    seededSourceCourseRef.current = sourceCourseId;
+    setNotice("");
+
+    getCourseDetail(sourceCourseId)
+      .then((course) => {
+        if (!active) return;
+        const sourcePlaces = Array.isArray(course?.places)
+          ? course.places
+          : Array.isArray(course?.coursePlaces)
+            ? course.coursePlaces
+            : Array.isArray(course?.placeList)
+              ? course.placeList
+              : Array.isArray(course?.coursePlaceList)
+                ? course.coursePlaceList
+                : [];
+        const hydratedPlaces = hydrateSourceCoursePlaces(sourcePlaces, placeCatalog);
+
+        setItems(hydratedPlaces);
+        setCourseTitle(course?.name || course?.title || t("recommendedCourseName"));
+        setSavedCourse(null);
+        setSaveStatus("idle");
+        setSaveSuccessOpen(false);
+        setHistory([]);
+        setVisited(new Set());
+        setLockedPlaceIds(new Set());
+        setCardPage(0);
+        setNotice(hydratedPlaces.length > 0 ? "" : t("placeLoadFailed"));
+      })
+      .catch((error) => {
+        if (!active) return;
+        seededSourceCourseRef.current = "";
+        setNotice(error?.message || t("placeLoadFailed"));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [datasetStatus, placeCatalog, sourceCourseId, t]);
 
   // 브랜드 로고는 지도 핑(출발·도착)에만 쓰는 장식이라, 실패해도 지도/코스 로딩을
   // 막지 않도록 별도 effect로 느슨하게 붙입니다. 이름으로 매칭하는 조회 맵을 만듭니다.
@@ -390,7 +520,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setNotice(t("savingCourse"));
     try {
       if (!savedCourse) {
-        const created = await createCourse({ name, placeIds });
+        const created = await createCourse({
+          name,
+          placeIds,
+          courseType: sourceCourseId ? "COPIED" : "MANUAL",
+          sourceCourseId: sourceCourseId || null,
+        });
         setSavedCourse({
           courseId: created.courseId,
           placeIds: created.places.map((place) => place.placeId),
