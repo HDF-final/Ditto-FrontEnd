@@ -228,6 +228,21 @@ export function AdminCourseView() {
 
   const close = useCallback(() => setOpened(null), []);
 
+  // 승인하면 그 인물의 초안이 Redis 에서 사라진다. 목록을 다시 받으면 카드가
+  // 빠지는데, 그게 관리자가 보는 성공 신호다.
+  const afterApprove = useCallback(
+    (celebrity, result) => {
+      const warnings = result?.warnings;
+      close();
+      reloadAll();
+      if (Array.isArray(warnings) && warnings.length) {
+        // 올라가긴 했는데 원장 반영이 일부 빠진 경우다. 조용히 넘기면 안 된다.
+        window.alert(`${celebrity} 승인됨 — 확인할 것:\n· ${warnings.join("\n· ")}`);
+      }
+    },
+    [close, reloadAll],
+  );
+
   const openedEntry = opened ? details[opened] : null;
 
   if (loading) return <ArtifactLoading />;
@@ -296,6 +311,7 @@ export function AdminCourseView() {
             key={openedEntry.data.celebrity}
             detail={openedEntry.data}
             onClose={close}
+            onApproved={afterApprove}
           />
         ) : (
           <div className="flex h-full items-center justify-center gap-3 text-sm font-semibold text-[#596078]">

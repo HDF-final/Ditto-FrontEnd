@@ -10,6 +10,7 @@ import {
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
+import { approveAdminCourse } from "@/lib/api/admin-courses";
 import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
@@ -570,7 +571,7 @@ function usePlaceCatalog() {
   return state;
 }
 
-export function AdminCourseEditor({ detail, onClose }) {
+export function AdminCourseEditor({ detail, onClose, onApproved }) {
   // `|| {}` 를 렌더마다 새로 만들면 아래 useMemo·useCallback 의 의존성이 매번 바뀐다.
   const original = useMemo(() => detail?.payload || {}, [detail]);
 
@@ -582,6 +583,10 @@ export function AdminCourseEditor({ detail, onClose }) {
   const [dropIndex, setDropIndex] = useState(null);
   const [notice, setNotice] = useState("");
   const [optimizing, setOptimizing] = useState(false);
+  // 승인은 손님에게 바로 나가는 동작이라 **두 번 눌러야 나간다.** 편집기가 팝업이고
+  // 버튼이 푸터에 몰려 있어 오조작이 쉬운 자리다.
+  //   idle → confirm → sending
+  const [approving, setApproving] = useState("idle");
 
   const catalog = usePlaceCatalog();
 
@@ -716,6 +721,34 @@ export function AdminCourseEditor({ detail, onClose }) {
     URL.revokeObjectURL(url);
   }, [buildJson, detail]);
 
+  const approve = useCallback(async () => {
+    if (approving === "idle") {
+      setApproving("confirm");
+      setNotice("");
+      return;
+    }
+    if (approving !== "confirm") return;
+
+    setApproving("sending");
+    setNotice("");
+    try {
+      const result = await approveAdminCourse(detail.celebrity, {
+        ...original,
+        reply,
+        places,
+      });
+      // 목록에서 그 카드가 사라지는 것이 곧 성공 신호다 — 초안을 지웠으니까.
+      onApproved?.(detail.celebrity, result);
+    } catch (error) {
+      setApproving("idle");
+      // 타임아웃이면 올라갔는지 안 올라갔는지 알 수 없다. 다시 누르라고만 하면
+      // 관리자가 두 번 올릴 수 있으니(멱등이라 결과는 같지만) 목록을 보라고 한다.
+      setNotice(
+        `${error.message || "승인에 실패했습니다."} — 목록을 새로고침해 이 인물이 남아 있는지 확인하세요.`,
+      );
+    }
+  }, [approving, detail, original, reply, places, onApproved]);
+
   const shape = useMemo(() => {
     const counts = places.reduce((acc, place) => {
       acc[place.kind] = (acc[place.kind] || 0) + 1;
@@ -809,8 +842,9 @@ export function AdminCourseEditor({ detail, onClose }) {
 
         <div className="order-2 min-h-0 overflow-y-auto px-5 py-5 lg:order-1">
           <p className="mb-4 rounded-xl bg-[#fff8ea] px-4 py-3 text-xs leading-5 text-[#856c3a]">
-            <b>여기서 고친 것은 저장되지 않습니다.</b> 초안을 고치는 창구가 아직 없어(읽기와
-            삭제만 있습니다) 닫으면 사라집니다. 결과는 아래 <b>JSON 내보내기</b>로 가져가세요.
+            <b>승인하면 손님에게 바로 나갑니다.</b> 여기서 고친 그대로 캐시에 올라가고 이
+            초안은 사라집니다. 캐시는 <b>오늘 자정</b>에 만료됩니다 — 되돌리는 창구는
+            없으니, 잘못 올렸으면 고쳐서 다시 승인하세요(덮어씁니다).
           </p>
 
           <label className="mb-4 block">
@@ -932,6 +966,30 @@ export function AdminCourseEditor({ detail, onClose }) {
         >
           JSON 내려받기
         </button>
+        <button
+          type="button"
+          onClick={approve}
+          disabled={approving === "sending" || !places.length}
+          className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none ${
+            approving === "confirm" ? "bg-[#c0392b]" : "bg-brand"
+          }`}
+          title="손님이 받는 캐시로 올립니다. 오늘 자정에 만료됩니다"
+        >
+          {approving === "sending"
+            ? "올리는 중…"
+            : approving === "confirm"
+              ? "정말 올립니다 — 한 번 더"
+              : "승인하고 캐시에 올리기"}
+        </button>
+        {approving === "confirm" ? (
+          <button
+            type="button"
+            onClick={() => setApproving("idle")}
+            className="rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-xs font-bold text-[#4d536a]"
+          >
+            취소
+          </button>
+        ) : null}
         <span className="ml-auto text-[11px] text-[#9aa0b0]">
           자리 {places.length}/{MAX_PLACES}곳 · 경고 {original.warnings?.length || 0}건
         </span>
