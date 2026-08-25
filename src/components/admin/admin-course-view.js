@@ -48,9 +48,10 @@ function heroOf(detail) {
 }
 
 function CardHero({ hero, celebrity, loading }) {
-  const [failed, setFailed] = useState(false);
+  // 실패한 주소를 기억한다. 참/거짓으로 두면 초안이 바뀌어 사진이 갈려도 계속 빈 자리다.
+  const [failedUrl, setFailedUrl] = useState(null);
 
-  if (hero?.url && !failed) {
+  if (hero?.url && failedUrl !== hero.url) {
     return (
       <span className="relative block h-[168px] overflow-hidden rounded-xl bg-[#f1f2f6]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -58,7 +59,7 @@ function CardHero({ hero, celebrity, loading }) {
           src={hero.url}
           alt={hero.caption || celebrity}
           loading="lazy"
-          onError={() => setFailed(true)}
+          onError={() => setFailedUrl(hero.url)}
           className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
         />
         {hero.caption ? (

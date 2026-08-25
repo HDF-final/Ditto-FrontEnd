@@ -121,8 +121,14 @@ function Field({ label, hint, value, onChange, multiline = false, placeholder })
   );
 }
 
+/**
+ * **실패한 주소를 기억한다.** 참/거짓으로 두면 한 번 실패한 뒤로는 주소를 고쳐도
+ * 계속 "사진 없음"이다 — 관리자가 URL 을 한 글자씩 치는 동안 중간중간 실패하므로
+ * 다 치고 나도 안 풀린다. 어느 주소가 실패했는지를 들고 있으면 새 주소는 다시 시도한다.
+ */
 function Photo({ url, alt, className }) {
-  const [failed, setFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState(null);
+  const failed = Boolean(url) && failedUrl === url;
   if (!url || failed) {
     return (
       <span
@@ -138,7 +144,7 @@ function Photo({ url, alt, className }) {
       src={url}
       alt={alt}
       loading="lazy"
-      onError={() => setFailed(true)}
+      onError={() => setFailedUrl(url)}
       className={`rounded-xl border border-[#e6e8f0] bg-[#f6f7fb] object-cover ${className}`}
     />
   );
@@ -205,8 +211,10 @@ const SlotCard = memo(function SlotCard({
               className="size-[76px] shrink-0"
             />
             <span className="min-w-0 flex-1">
+              <span className="mb-1 block truncate text-[14px] font-bold text-[#1a142e] sm:mb-[4px] sm:text-[15px]">
+                {place.place_name}
+              </span>
               <span className="flex flex-wrap items-center gap-1.5">
-                <strong className="text-[14.5px] text-[#20243a]">{place.place_name}</strong>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     KIND_STYLE[place.kind] || "bg-[#f3f4f7] text-[#777d90]"
@@ -214,9 +222,9 @@ const SlotCard = memo(function SlotCard({
                 >
                   {place.kind}
                 </span>
-              </span>
-              <span className="mt-0.5 block truncate text-[10px] text-[#a3a8b8]">
-                {place.floor} · {place.navigation_key}
+                <span className="truncate text-[10px] text-[#a3a8b8]">
+                  {place.floor} · {place.navigation_key}
+                </span>
               </span>
               <span className="mt-1.5 line-clamp-2 block text-[12px] leading-5 text-[#4c5164]">
                 {place.reason || "추천 사유가 비어 있습니다."}
@@ -265,37 +273,59 @@ const SlotCard = memo(function SlotCard({
 });
 
 // ── 자리 상세 (오른쪽 칸) ──────────────────────────────────────────
-function SlotDetail({ place, index, catalog, usedKeys, onChange, onBack }) {
+//
+// **고친 것은 '임시 저장'을 눌러야 코스에 들어간다.** 타이핑이 그대로 코스에 흘러가면
+// URL 을 반쯤 친 상태가 사진으로 잡히고, 지도 경로도 한 글자마다 다시 계산된다.
+// 여기서 만지는 것은 이 자리의 복사본이고, 저장을 눌러야 원본과 바뀐다.
+//
+// 부모가 `key` 로 자리마다 새로 만들어 주므로 자리를 옮겨 다녀도 앞 자리의 입력이 안 남는다.
+function SlotDetail({ place, index, catalog, usedKeys, onApply, onCancel }) {
+  const [form, setForm] = useState(place);
   const [replacing, setReplacing] = useState(false);
-  const image = place.image || {};
-  const evidence = place.evidence || {};
-  const set = (path, value) => onChange(index, path, value);
+
+  const image = form.image || {};
+  const evidence = form.evidence || {};
+  const set = (path, value) => setForm((current) => withField(current, path, value));
+
+  const dirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(place), [form, place]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-3 border-b border-[#eceef4] px-5 py-3.5">
         <button
           type="button"
-          onClick={onBack}
+          onClick={onCancel}
           className="rounded-lg border border-[#dfe2ec] bg-white px-3 py-1.5 text-[11px] font-bold text-[#4d536a] hover:border-brand hover:text-brand"
         >
-          ← 지도
+          {dirty ? "취소" : "← 지도"}
         </button>
-        <strong className="truncate text-sm text-[#20243a]">
-          {index + 1}. {place.place_name}
+        <strong className="truncate text-sm text-[#1a142e]">
+          {index + 1}. {form.place_name}
         </strong>
-        <span className="ml-auto font-mono text-[10px] text-[#a3a8b8]">
-          {place.navigation_key}
-        </span>
+        {dirty ? (
+          <span className="shrink-0 rounded-full bg-[#fff4dc] px-2 py-0.5 text-[10px] font-bold text-[#a96700]">
+            저장 안 함
+          </span>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => onApply(index, form)}
+          disabled={!dirty}
+          className="ml-auto shrink-0 rounded-lg bg-brand px-3.5 py-1.5 text-[11px] font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none"
+        >
+          임시 저장
+        </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="mb-4 flex gap-4">
-          <Photo url={image.url} alt={image.caption || place.place_name} className="size-[132px] shrink-0" />
+          <Photo url={image.url} alt={image.caption || form.place_name} className="size-[132px] shrink-0" />
           <div className="min-w-0 flex-1 text-[11px] text-[#9aa0b0]">
-            <p className="text-[13px] font-bold text-[#20243a]">{place.place_name}</p>
+            <p className="mb-1 truncate text-[14px] font-bold text-[#1a142e] sm:mb-[4px] sm:text-[15px]">
+              {form.place_name}
+            </p>
             <p className="mt-1">
-              {[place.floor, place.place_type, place.category, place.price_tier]
+              {[form.floor, form.place_type, form.category, form.price_tier]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -325,12 +355,12 @@ function SlotDetail({ place, index, catalog, usedKeys, onChange, onBack }) {
         {replacing ? (
           <div className="mb-4">
             <AdminCoursePlacePicker
-              title={`${place.place_name} 자리를 바꿉니다`}
+              title={`${form.place_name} 자리를 바꿉니다`}
               catalog={catalog.rows}
               loading={catalog.loading}
               error={catalog.error}
-              alternates={place.alternates || []}
-              currentKey={place.navigation_key}
+              alternates={form.alternates || []}
+              currentKey={form.navigation_key}
               usedKeys={usedKeys}
               onPick={(picked) => {
                 set("__replace__", picked);
@@ -346,7 +376,7 @@ function SlotDetail({ place, index, catalog, usedKeys, onChange, onBack }) {
             <Field
               label="추천 사유"
               hint="손님에게 그대로 나가는 문장"
-              value={place.reason}
+              value={form.reason}
               onChange={(value) => set("reason", value)}
               multiline
             />
@@ -357,7 +387,7 @@ function SlotDetail({ place, index, catalog, usedKeys, onChange, onBack }) {
               분류
             </span>
             <select
-              value={place.kind || ""}
+              value={form.kind || ""}
               onChange={(event) => set("kind", event.target.value)}
               className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] text-[#20243a] outline-none focus:border-brand"
             >
@@ -374,7 +404,7 @@ function SlotDetail({ place, index, catalog, usedKeys, onChange, onBack }) {
               근거 종류
             </span>
             <select
-              value={place.reason_kind || "route"}
+              value={form.reason_kind || "route"}
               onChange={(event) => set("reason_kind", event.target.value)}
               className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] text-[#20243a] outline-none focus:border-brand"
             >
@@ -540,27 +570,6 @@ function usePlaceCatalog() {
   return state;
 }
 
-function RouteSummary({ itinerary, error, loading, count }) {
-  if (loading) return <span className="text-[11px] text-[#8a90a3]">경로 계산 중…</span>;
-  if (error) return <span className="text-[11px] text-[#c0392b]">경로를 계산하지 못했습니다.</span>;
-  if (!count) return <span className="text-[11px] text-[#8a90a3]">자리가 없습니다.</span>;
-  if (!itinerary) {
-    return (
-      <span className="text-[11px] text-[#c0392b]">
-        경로를 만들 수 없습니다 — 지도에 없는 매장이 섞였습니다.
-      </span>
-    );
-  }
-  return (
-    <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-[#687087]">
-      <span className="font-bold text-brand">{itinerary.stopPlaceIds.length}곳</span>
-      <span>{(itinerary.floorIds || []).join(" → ")}</span>
-      <span className="text-[#c9cdd8]">·</span>
-      <span>층 이동 {itinerary.connectorSteps?.length ?? 0}회</span>
-    </span>
-  );
-}
-
 export function AdminCourseEditor({ detail, onClose }) {
   // `|| {}` 를 렌더마다 새로 만들면 아래 useMemo·useCallback 의 의존성이 매번 바뀐다.
   const original = useMemo(() => detail?.payload || {}, [detail]);
@@ -592,8 +601,11 @@ export function AdminCourseEditor({ detail, onClose }) {
     [reply, places, original],
   );
 
-  const changeSlot = useCallback((index, path, value) => {
-    setPlaces((rows) => rows.map((row, i) => (i === index ? withField(row, path, value) : row)));
+  // 상세에서 '임시 저장'을 눌렀을 때만 자리가 바뀐다. 타이핑이 그대로 흘러가면
+  // URL 을 반쯤 친 상태가 사진으로 잡히고 경로도 한 글자마다 다시 계산된다.
+  const applySlot = useCallback((index, next) => {
+    setPlaces((rows) => rows.map((row, i) => (i === index ? next : row)));
+    setNotice(`${next.place_name} 을(를) 코스에 반영했습니다. 아직 저장되지 않았습니다.`);
   }, []);
 
   const moveSlot = useCallback((from, to) => {
@@ -770,12 +782,14 @@ export function AdminCourseEditor({ detail, onClose }) {
           {selectedPlace ? (
             <div className="h-full min-h-0 bg-white">
               <SlotDetail
+                // 자리를 옮겨 다니면 새로 만든다. 안 그러면 앞 자리의 입력이 남는다.
+                key={`${selected}:${selectedPlace.navigation_key}`}
                 place={selectedPlace}
                 index={selected}
                 catalog={catalog}
                 usedKeys={navigationKeys}
-                onChange={changeSlot}
-                onBack={() => setSelected(null)}
+                onApply={applySlot}
+                onCancel={() => setSelected(null)}
               />
             </div>
           ) : (
@@ -841,15 +855,6 @@ export function AdminCourseEditor({ detail, onClose }) {
               되돌리기
             </button>
           </div>
-
-          <p className="mt-2">
-            <RouteSummary
-              itinerary={route.itinerary}
-              error={route.error}
-              loading={route.loading}
-              count={navigationKeys.length}
-            />
-          </p>
 
           {notice ? (
             <p className="mt-2 rounded-xl bg-[#f4f1ff] px-3 py-2 text-[11px] font-semibold text-brand">

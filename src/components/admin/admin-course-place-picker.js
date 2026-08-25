@@ -34,8 +34,10 @@ function Chip({ label, active, onClick }) {
 }
 
 function PlaceRow({ place, disabled, disabledLabel, onPick }) {
-  const [failed, setFailed] = useState(false);
-  const src = failed ? null : place.image || getFallbackPlaceImage(place);
+  // 실패한 주소를 기억한다. 참/거짓으로 두면 목록이 걸러져 다른 매장이 와도 빈 자리다.
+  const [failedUrl, setFailedUrl] = useState(null);
+  const candidate = place.image || getFallbackPlaceImage(place);
+  const src = candidate && failedUrl === candidate ? null : candidate;
 
   return (
     <li>
@@ -55,7 +57,7 @@ function PlaceRow({ place, disabled, disabledLabel, onPick }) {
             src={src}
             alt=""
             loading="lazy"
-            onError={() => setFailed(true)}
+            onError={() => setFailedUrl(src)}
             className="size-11 shrink-0 rounded-lg border border-[#eceef4] object-cover"
           />
         ) : (
