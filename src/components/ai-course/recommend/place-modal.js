@@ -154,46 +154,39 @@ function AiPlaceModalContent({ place, onClose }) {
           </div>
 
           {/* 브랜드 상품 이미지 */}
-          {isProductLoading || brandProducts.length > 0 ? (
+          {brandProducts.length > 0 ? (
             <div className="mt-6">
               <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
                 {t("brandProducts")}
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {isProductLoading
-                  ? Array.from({ length: 3 }).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className="aspect-4/3 animate-pulse rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa]"
-                      />
-                    ))
-                  : brandProducts.map((product, idx) => (
-                      <a
-                        key={product.productId ?? `${product.imageUrl}-${idx}`}
-                        href={product.productUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]"
-                        aria-label={t("brandProductAlt", {
-                          name: product.productName || place.name,
-                          index: idx + 1,
-                        })}
-                        title={product.productName || product.brandName || place.name}
-                      >
-                        <img
-                          src={product.imageUrl}
-                          alt={t("brandProductAlt", {
-                            name: product.productName || place.name,
-                            index: idx + 1,
-                          })}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            e.currentTarget.src = getFallbackPlaceImage(place);
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                      </a>
-                    ))}
+                {brandProducts.map((product, idx) => (
+                  <a
+                    key={product.productId ?? `${product.imageUrl}-${idx}`}
+                    href={product.productUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]"
+                    aria-label={t("brandProductAlt", {
+                      name: product.productName || place.name,
+                      index: idx + 1,
+                    })}
+                    title={product.productName || product.brandName || place.name}
+                  >
+                    <img
+                      src={product.imageUrl}
+                      alt={t("brandProductAlt", {
+                        name: product.productName || place.name,
+                        index: idx + 1,
+                      })}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.src = getFallbackPlaceImage(place);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                  </a>
+                ))}
               </div>
             </div>
           ) : null}
