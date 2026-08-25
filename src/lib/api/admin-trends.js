@@ -1,6 +1,10 @@
 import apiClient from "./client";
 import { requestData } from "./api-response";
 
+export function getAdminTop10() {
+  return requestData(apiClient.get("/admin/trends/top10"));
+}
+
 export function getAdminTop4() {
   return requestData(apiClient.get("/admin/trends/top4"));
 }
@@ -15,8 +19,8 @@ export function getAdminYoutube() {
 
 export function getAdminTrendOverview() {
   return Promise.all([
-    getAdminTop4(),
+    getAdminTop10(),
     getAdminCandidates(),
     getAdminYoutube(),
-  ]).then(([top4, candidates, youtube]) => ({ top4, candidates, youtube }));
+  ]).then(([top10, candidates, youtube]) => ({ top10, candidates, youtube }));
 }

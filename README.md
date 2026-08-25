@@ -312,9 +312,9 @@ K-컬처 트렌드 뉴스피드 조회 API 엔드포인트:
 
 | 화면 | 경로 | 내용 |
 | --- | --- | --- |
-| 운영 대시보드 | `/admin` | 산출물 상태, 경고 수, 국가별 TOP 4 미리보기 |
-| 국가별 TOP 4 | `/admin/trends/rankings` | 한국·중국·일본·미국 최종 순위 |
-| 후보 TOP 20 | `/admin/trends/candidates` | 국가별 교차 검증 후보군 |
+| 운영 대시보드 | `/admin` | 산출물 상태, 경고 수, 국가별 TOP 10 미리보기 |
+| 국가별 TOP 10 | `/admin/trends/rankings` | 한국·중국·일본·미국 최종 순위 |
+| 국가별 후보군 | `/admin/trends/candidates` | 국가별 교차 검증 후보군 |
 | YouTube 급상승 | `/admin/trends/youtube` | 최근 7일 전체·한국·일본·미국 급상승 신호 |
 
 1차 범위는 조회와 새로고침만 지원합니다. 순위 수동 변경, RDS 오버라이드, Lambda 재실행은 포함하지 않습니다.
