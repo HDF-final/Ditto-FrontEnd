@@ -1967,8 +1967,10 @@ export function IndoorMap({
 
         {showControls ? (
           <div
-            className={`pointer-events-none absolute left-3 z-20 flex flex-wrap items-center gap-1.5 ${
-              activeFitPreset === "course-mobile"
+            className={`pointer-events-none absolute left-3 z-30 flex flex-wrap items-center gap-1 ${
+              overlayOccluderRef && !isScanView
+                ? "bottom-5 left-4"
+                : activeFitPreset === "course-mobile"
                 ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
                 : isScanView && route
                 ? "bottom-[calc(0.35rem+env(safe-area-inset-bottom,0px))]"
@@ -1987,7 +1989,11 @@ export function IndoorMap({
                     : "경로와 마커가 위층에 가려집니다. 켜면 항상 위에 표시합니다."
                 }
                 onClick={() => setOverlayOnTop((value) => !value)}
-                className={`pointer-events-auto rounded-full border px-3 py-1.5 text-[9px] font-semibold shadow-sm transition-colors md:text-[10px] ${
+                className={`pointer-events-auto rounded-full border font-semibold shadow-sm transition-colors ${
+                  overlayOccluderRef
+                    ? "px-2.5 py-1 text-[11px] leading-none"
+                    : "px-3 py-1.5 text-[9px] md:text-[10px]"
+                } ${
                   overlayOnTop
                     ? "border-[#00815a]/30 bg-[#00815a] text-white"
                     : "border-white/80 bg-white/90 text-[#8C817A] hover:text-[#00815a]"
@@ -1999,7 +2005,11 @@ export function IndoorMap({
             <button
               type="button"
               onClick={() => setResetSignal((value) => value + 1)}
-              className="pointer-events-auto rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a]"
+              className={`pointer-events-auto rounded-full border border-white/80 bg-white/90 font-bold text-[#433C38] shadow-sm transition-colors hover:text-[#00815a] ${
+                overlayOccluderRef && !isScanView
+                  ? "px-2.5 py-1 text-[11px] leading-none"
+                  : "px-3 py-1.5 text-[11px]"
+              }`}
             >
               시점 초기화
             </button>

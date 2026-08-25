@@ -89,7 +89,7 @@ export function AppFrame({ children }) {
           isScanMap
             ? "h-dvh overflow-hidden"
             : isCourseStudio
-              ? "pb-[calc(var(--app-tabbar)+0.5rem)] max-lg:h-[calc(100dvh-var(--app-header))] max-lg:overflow-hidden lg:pb-0"
+              ? "pb-[calc(var(--app-tabbar)+0.5rem)] max-lg:h-[calc(100dvh-var(--app-header))] max-lg:overflow-hidden lg:min-h-0 lg:overflow-hidden lg:pb-0"
               : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
         }`}
       >
