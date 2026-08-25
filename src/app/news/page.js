@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "뉴스피드" };
 
 export default async function NewsPage() {
-  const feeds = await fetchNewsFeedsServer({ page: 0, size: 20 });
+  const feeds = await fetchNewsFeedsServer({ page: 0, size: 60 });
 
   return (
     <main className="bg-background">

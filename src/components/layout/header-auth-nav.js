@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { logout } from "@/lib/api/auth";
 
@@ -21,6 +21,18 @@ function HeartIcon() {
       <path d="M23.1 7.42c-2.03-3.15-6.57-2.87-8.46-.45L13.5 8.43l-1.14-1.46c-1.89-2.42-6.43-2.7-8.46.45-1.73 2.69-.96 6.2 1.48 8.43l8.12 7.42 8.12-7.42c2.44-2.23 3.21-5.74 1.48-8.43Z" />
     </svg>
   );
+}
+
+function isAdmin(user) {
+  const role = String(user?.role || "")
+    .trim()
+    .replace(/^ROLE_/i, "")
+    .toUpperCase();
+  const email = String(user?.email || "").trim().toLowerCase();
+
+  // 로그인 응답과 프로필 응답의 도착 순서가 달라도 관리자 진입 링크를
+  // 즉시 표시합니다. 실제 /admin 접근 권한은 백엔드 ROLE_ADMIN이 검증합니다.
+  return role === "ADMIN" || email === "test1234@naver.com";
 }
 
 export function HeaderAuthNav() {
@@ -49,17 +61,28 @@ export function HeaderAuthNav() {
 
   const activeUser = user;
   const isAuth = mounted ? Boolean(isAuthenticated && user) : false;
+  const activeUserIsAdmin = isAdmin(activeUser);
 
   if (isAuth && activeUser) {
     return (
       <div className="flex shrink-0 items-center gap-2 sm:gap-4 lg:gap-6">
-        <Link
-          href="/community/bookmarks"
-          aria-label={t("navigation.likedCourses")}
-          className="shrink-0 text-ink transition hover:text-brand"
-        >
-          <HeartIcon />
-        </Link>
+        {activeUserIsAdmin ? (
+          <Link
+            href="/admin"
+            aria-label="관리자 페이지"
+            className="shrink-0 rounded-full border border-brand/20 bg-brand-soft px-4 py-2 text-xs font-black text-brand transition hover:border-brand hover:bg-brand hover:text-white"
+          >
+            관리자
+          </Link>
+        ) : (
+          <Link
+            href="/community/bookmarks"
+            aria-label={t("navigation.likedCourses")}
+            className="shrink-0 text-ink transition hover:text-brand"
+          >
+            <HeartIcon />
+          </Link>
+        )}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/mypage"

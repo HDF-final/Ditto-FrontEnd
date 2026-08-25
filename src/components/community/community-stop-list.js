@@ -126,6 +126,12 @@ export function CommunityStopList({ stops = [], courseId }) {
   const t = useTranslations("community");
   const [hydratedStops, setHydratedStops] = useState(stops);
   const [selectedSpot, setSelectedSpot] = useState(null);
+  const [prevStops, setPrevStops] = useState(stops);
+
+  if (stops !== prevStops) {
+    setPrevStops(stops);
+    setHydratedStops(stops || []);
+  }
 
   useEffect(() => {
     let active = true;

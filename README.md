@@ -306,6 +306,19 @@ K-컬처 트렌드 뉴스피드 조회 API 엔드포인트:
 - **서버 컴포넌트(`src/app/news/page.js`, `src/app/news/[slug]/page.js`, `src/app/sitemap.js`)**: `lib/api/news.server.js`를 통해 SSR/SSG 및 백엔드 미가동 시 안전한 폴백(fixtures) 처리를 지원합니다.
 - **클라이언트 컴포넌트**: `lib/api/news.js`를 통해 브라우저 공통 Axios 인스턴스로 API 통신을 수행합니다.
 
+## 관리자 트렌드 화면
+
+`ROLE_ADMIN` 계정만 접근할 수 있는 조회 전용 운영 화면입니다. 일반 서비스 헤더·푸터와 분리된 사이드바 레이아웃을 사용하며, 백엔드가 S3의 최신 트렌드 JSON을 읽어 제공한 결과를 표시합니다.
+
+| 화면 | 경로 | 내용 |
+| --- | --- | --- |
+| 운영 대시보드 | `/admin` | 산출물 상태, 경고 수, 국가별 TOP 4 미리보기 |
+| 국가별 TOP 4 | `/admin/trends/rankings` | 한국·중국·일본·미국 최종 순위 |
+| 후보 TOP 20 | `/admin/trends/candidates` | 국가별 교차 검증 후보군 |
+| YouTube 급상승 | `/admin/trends/youtube` | 최근 7일 전체·한국·일본·미국 급상승 신호 |
+
+1차 범위는 조회와 새로고침만 지원합니다. 순위 수동 변경, RDS 오버라이드, Lambda 재실행은 포함하지 않습니다.
+
 ## Zustand 사용법
 
 Zustand는 국가·언어, 다단계 코스 작성 상태, 전역 모달처럼 여러 Client Component가 공유해야 하는 상태에만 사용합니다.

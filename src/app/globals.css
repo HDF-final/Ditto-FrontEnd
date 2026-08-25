@@ -107,6 +107,11 @@ body {
     box-shadow: 0 0 48px rgba(43, 28, 89, 0.12);
   }
 
+  .app-shell:has(.admin-shell) {
+    max-width: none;
+    margin-inline: 0;
+    box-shadow: none;
+  }
 }
 
 .hide-scrollbar {

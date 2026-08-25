@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   X,
@@ -9,8 +10,15 @@ import {
   Plus,
   Clock,
 } from "./recommend-icons";
-import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
+import {
+  attachPlaceIdsToCourseDataset,
+  calculateCourseRoute,
+  getFallbackPlaceImage,
+  loadCourseRoutingDataset,
+} from "@/lib/navigation/course-routing-service";
 import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
+import { getNavigablePlaces } from "@/lib/api/place-navigation";
+import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
@@ -51,9 +59,6 @@ function AiPlaceModalContent({ place, onClose }) {
       ? "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop"
       : "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop");
 
-  // 지금 띄운 대표 사진이 추천 응답에서 온 것일 때만 캡션을 답니다.
-  // kind가 "evidence"면 매장 사진이 아니라 추천 근거가 된 뉴스 컷이라,
-  // 무엇을 찍은 사진인지 밝혀주지 않으면 매장 사진으로 오해합니다.
   const rightImageCaption =
     rightImage && rightImage === place.aiImage ? place.aiImageCaption : null;
 
@@ -73,10 +78,16 @@ function AiPlaceModalContent({ place, onClose }) {
           "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?q=80&w=400&auto=format&fit=crop",
           "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=400&auto=format&fit=crop",
         ]
-      : [
-          rightImage,
+      : isGentleMonster
+      ? [
           "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1508296695146-257a814070b4?q=80&w=400&auto=format&fit=crop",
           "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop",
+        ]
+      : [
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=400&auto=format&fit=crop",
         ]);
 
   return (
@@ -84,168 +95,14 @@ function AiPlaceModalContent({ place, onClose }) {
       className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[960px] flex-col overflow-hidden overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[22px] md:grid md:min-h-[620px] md:grid-cols-[0.88fr_1.12fr] md:overflow-hidden md:rounded-[32px]"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Left Column: 브랜드 정보, AI 추천 이유, 브랜드 사진 3장 */}
-      <div className="flex h-full flex-col justify-between gap-5 overflow-y-auto bg-white p-4 sm:p-6 md:p-8">
-        <div>
-          {/* Top Bar: AI Badge (Main Color) & Mobile Close */}
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              <span className="text-sm">✨</span>
-              {t("boniAiPlace")}
-            </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="size-9 rounded-full flex items-center justify-center transition hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer md:hidden"
-              aria-label={t("close")}
-            >
-              <X size={17} />
-            </button>
-          </div>
-
-          {/* 브랜드명 */}
-          <div>
-            <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
-              {place.name}
-            </h2>
-            {/* 브랜드 위치 */}
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
-              <MapPin size={15} className="shrink-0" />
-              <span className="min-w-0 break-keep">{locationText}</span>
-              {place.category ? (
-                <>
-                  <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">
-                    {getPlaceCategoryLabel(place.category, t)}
-                  </span>
-                </>
-              ) : null}
-            </div>
-          </div>
-
-          {/* 보니 추천 이유 카드 */}
-          <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
-            <div className="flex items-center gap-2 text-[13px] font-black text-[#5c2ef5] mb-2.5">
-              <span>💡</span>
-              <span>{t("boniReason")}</span>
-            </div>
-            <p className="text-[14px] font-medium leading-[1.7] text-[#2d2745] break-keep">
-              {aiReasonText}
-            </p>
-          </div>
-
-          {/* 브랜드 사진 3장 */}
-          <div className="mt-6">
-            <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-              {t("brandPhotos")}
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {brandImages.slice(0, 3).map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
-                >
-                  <img
-                    src={imgUrl}
-                    alt={t("brandPhotoAlt", { name: place.name, index: idx + 1 })}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column: 대표 사진 / 앰버서더 비주얼 카드 */}
-      <div className="relative order-first flex h-[200px] min-h-[180px] max-h-[240px] flex-col overflow-hidden bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] p-4 sm:p-6 md:order-none md:h-auto md:min-h-[620px] md:max-h-none md:p-7">
-        {/* Representative Photo */}
-        {rightImage ? (
-          <>
-            {/* 원본 비율이 제각각입니다. 뉴스 컷은 세로/가로가 섞여 오고 매장
-                사진도 규격이 없어서, object-cover로 채우면 인물 얼굴이 잘립니다.
-                그렇다고 object-contain만 쓰면 위아래로 빈 띠가 남습니다.
-                같은 사진을 크게 흐려서 배경으로 깔고 그 위에 원본을 비율 그대로
-                얹으면, 프레임은 꽉 차면서 잘리는 부분도 없습니다. */}
-            <img
-              src={rightImage}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 w-full h-full scale-110 object-cover blur-2xl"
-            />
-            <img
-              src={rightImage}
-              alt={place.name}
-              className="absolute inset-0 w-full h-full object-contain"
-            />
-          </>
-        ) : null}
-
-        {/* Top Close button on desktop */}
-        <div className="relative z-10 hidden md:flex justify-end w-full">
-          <button
-            type="button"
-            onClick={onClose}
-            className="size-10 rounded-full flex items-center justify-center bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 cursor-pointer shadow-lg"
-            aria-label={t("close")}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* 사진 캡션 */}
-        {rightImageCaption ? (
-          <div className="relative z-10 mt-auto max-w-full self-start rounded-[12px] bg-black/45 px-3 py-2 text-[12px] font-semibold leading-tight text-white backdrop-blur-md">
-            {rightImageCaption}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-/**
- * 일반 매장 상세 모달 (2컬럼 레이아웃: AI 추천 모달과 동일한 와이드 뷰이지만 일반 매장 정보와 place 테이블 이미지 반영)
- */
-function StandardPlaceModalContent({ place, onClose }) {
-  const t = useTranslations("aiCourse");
-  const locationText =
-    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
-
-  // 매장 대표 사진 (DB place 테이블의 image_url / image / placeImg)
-  const rightImage =
-    place.placeImg ||
-    place.image ||
-    place.imageUrl ||
-    place.heroImage ||
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop";
-
-  // 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출)
-  const storeImages =
-    place.brandImages ||
-    place.galleryImages ||
-    null;
-
-  const storeDescription =
-    place.longDesc ||
-    place.desc ||
-    place.description ||
-    t("indoorStoreDescription", { location: locationText, name: place.name });
-
-  return (
-    <div
-      className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[960px] flex-col overflow-hidden overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[22px] md:grid md:min-h-[620px] md:grid-cols-[0.88fr_1.12fr] md:overflow-hidden md:rounded-[32px]"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Left Column: 매장 정보, 매장 안내, 매장 사진 3장 */}
+      {/* Left Column: 매장 정보, AI 추천 이유, 사진 갤러리 */}
       <div className="flex h-full flex-col justify-between gap-5 overflow-y-auto bg-white p-4 sm:p-6 md:p-8">
         <div>
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
-              {place.floor ? ` · ${place.floor}` : ""}
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
             </span>
             <button
               type="button"
@@ -277,73 +134,66 @@ function StandardPlaceModalContent({ place, onClose }) {
             </div>
           </div>
 
-          {/* 매장 안내 카드 */}
+          {/* AI 추천 이유 카드 */}
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
             <div className="flex items-center gap-2 text-[16px] font-black text-[#5c2ef5] mb-2.5">
-              <span>💡</span>
-              <span>{t("storeGuide")}</span>
+              <span>✨</span>
+              <span>{t("aiRecommendationReason")}</span>
             </div>
             <p className="text-[17px] font-medium leading-[1.7] text-[#2d2745] break-keep">
-              {storeDescription}
+              {aiReasonText}
             </p>
           </div>
 
-          {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
-          {storeImages && storeImages.length > 0 ? (
-            <div className="mt-6">
-              <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-                {t("storePhotos")}
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {storeImages.slice(0, 3).map((imgUrl, idx) => (
-                  <div
-                    key={idx}
-                    className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
-                  >
-                    <img
-                      src={imgUrl}
-                      alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.src = getFallbackPlaceImage(place);
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                  </div>
-                ))}
-              </div>
+          {/* 매장 / 아이템 사진 3장 */}
+          <div className="mt-6">
+            <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
+              {t("brandPhotos")}
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {brandImages.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className="relative aspect-4/3 rounded-[14px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={t("brandPhotoAlt", { name: place.name, index: idx + 1 })}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.src = getFallbackPlaceImage(place);
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                </div>
+              ))}
             </div>
-          ) : null}
+          </div>
         </div>
 
-          {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
-          {place.onAddPlace ? (
-            <div className="mt-6 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  place.onAddPlace();
-                  onClose();
-                }}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-[20px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[15px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
-              >
-                <Plus size={17} strokeWidth={2.5} />
-                <span>이 장소 코스에 추가하기</span>
-              </button>
-            </div>
-          ) : null}
-        </div>
+        {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
+        {place.onAddPlace ? (
+          <div className="mt-6 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                place.onAddPlace();
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-[20px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[15px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
+            >
+              <Plus size={17} strokeWidth={2.5} />
+              <span>이 장소 코스에 추가하기</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
 
-      {/* Right Column: 매장 대표 사진 카드 (place 테이블의 image url 사용) */}
+      {/* Right Column: 연예인/앰버서더 비주얼 사진 카드 */}
       <div className="relative order-first flex h-[200px] min-h-[180px] max-h-[240px] flex-col overflow-hidden bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] p-4 sm:p-6 md:order-none md:h-auto md:min-h-[620px] md:max-h-none md:p-7">
         {/* Representative Photo */}
         {rightImage ? (
           <>
-            {/* 원본 비율이 제각각입니다. 뉴스 컷은 세로/가로가 섞여 오고 매장
-                사진도 규격이 없어서, object-cover로 채우면 인물 얼굴이 잘립니다.
-                그렇다고 object-contain만 쓰면 위아래로 빈 띠가 남습니다.
-                같은 사진을 크게 흐려서 배경으로 깔고 그 위에 원본을 비율 그대로
-                얹으면, 프레임은 꽉 차면서 잘리는 부분도 없습니다. */}
             <img
               src={rightImage}
               alt=""
@@ -369,6 +219,277 @@ function StandardPlaceModalContent({ place, onClose }) {
             <X size={18} />
           </button>
         </div>
+
+        {/* Bottom Caption for Representative Photo */}
+        {rightImageCaption ? (
+          <div className="relative z-10 mt-auto hidden md:block">
+            <p className="inline-block rounded-full bg-black/40 px-3 py-1 text-[11px] font-semibold text-white/90 backdrop-blur-xs">
+              {rightImageCaption}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 일반 매장 상세 모달 (2컬럼 레이아웃: 좌측 매장 사진 및 매장 안내, 우측 실내 3D 층별 지도)
+ */
+function StandardPlaceModalContent({ place, onClose }) {
+  const t = useTranslations("aiCourse");
+  const [routeState, setRouteState] = useState({
+    status: "loading",
+    itinerary: null,
+    graph: null,
+    floors: [],
+  });
+
+  const locationText =
+    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
+
+  // 매장 대표 사진 (DB place 테이블의 image_url / image / placeImg)
+  const storeImage =
+    place.placeImg ||
+    place.image ||
+    place.imageUrl ||
+    place.heroImage ||
+    getFallbackPlaceImage(place);
+
+  // 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출)
+  const storeImages =
+    place.brandImages ||
+    place.galleryImages ||
+    null;
+
+  const storeDescription =
+    place.longDesc ||
+    place.desc ||
+    place.description ||
+    t("indoorStoreDescription", { location: locationText, name: place.name });
+
+  // 뉴스 피드/모달에서 띄운 경우에만 층별 선택 UI 숨김
+  const showFloorSelector =
+    place.showFloorSelector !== false && !place.hideFloorSelector && !place.isNewsModal;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPlaceRoute() {
+      try {
+        const [dataset, navigationPlaces] = await Promise.all([
+          loadCourseRoutingDataset(),
+          getNavigablePlaces().catch(() => []),
+        ]);
+
+        if (!active) return;
+
+        const hydratedDataset = attachPlaceIdsToCourseDataset(
+          dataset,
+          navigationPlaces || [],
+        );
+        const placeCatalog = hydratedDataset.places;
+
+        let catalogPlace = placeCatalog.find(
+          (candidate) =>
+            (place.navigationKey && candidate.navigationKey === place.navigationKey) ||
+            (place.placeId && Number(candidate.placeId) === Number(place.placeId)) ||
+            (place.name &&
+              candidate.name?.trim().toLowerCase() ===
+                place.name?.trim().toLowerCase()) ||
+            (place.name &&
+              candidate.name?.replace(/\s+/g, "").toLowerCase() ===
+                place.name?.replace(/\s+/g, "").toLowerCase()) ||
+            (place.place_name &&
+              candidate.name?.trim().toLowerCase() ===
+                place.place_name?.trim().toLowerCase()),
+        );
+
+        if (!catalogPlace && place.floor) {
+          const normalizedFloor = place.floor.replace(/[^0-9BF]/gi, "").toUpperCase();
+          catalogPlace = placeCatalog.find(
+            (p) => p.floor === normalizedFloor || p.floor === place.floor,
+          );
+        }
+
+        if (!catalogPlace) {
+          catalogPlace = placeCatalog[0];
+        }
+
+        const targetPlace = {
+          ...catalogPlace,
+          ...place,
+          id: catalogPlace?.id || place.placeId || place.navigationKey || "target-place",
+          placeId: catalogPlace?.placeId || place.placeId,
+          navigationKey: catalogPlace?.navigationKey || place.navigationKey,
+          floor: catalogPlace?.floor || place.floor || place.floorCode || "1F",
+        };
+
+        const route = await calculateCourseRoute([targetPlace], {
+          excludeElevator: false,
+          excludeEscalator: false,
+        });
+
+        if (!active) return;
+        setRouteState({
+          status: route.itinerary ? "ready" : "unavailable",
+          ...route,
+        });
+      } catch {
+        if (active) {
+          setRouteState({
+            status: "error",
+            itinerary: null,
+            graph: null,
+            floors: [],
+          });
+        }
+      }
+    }
+
+    loadPlaceRoute();
+
+    return () => {
+      active = false;
+    };
+  }, [place]);
+
+  return (
+    <div
+      className="relative flex flex-col md:flex-row w-full max-w-[1060px] h-[92vh] md:h-[640px] max-h-[720px] overflow-hidden rounded-[26px] sm:rounded-[32px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Left Column: 매장 정보, 컴팩트한 매장 사진, 매장 안내 (스크롤 없이 전부 노출) */}
+      <div className="w-full md:w-[440px] md:min-w-[400px] md:max-w-[460px] h-[48%] md:h-full flex flex-col justify-between overflow-y-auto bg-white p-4 sm:p-6 border-b md:border-b-0 md:border-r border-line/60">
+        <div>
+          {/* Top Bar: Category Badge & Mobile Close */}
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3 py-1 text-[11px] font-black text-white shadow-xs">
+              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
+              {place.floor ? ` · ${place.floor}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="size-8 rounded-full flex items-center justify-center transition hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer md:hidden"
+              aria-label={t("close")}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* 매장명 */}
+          <div>
+            <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl">
+              {place.name}
+            </h2>
+            {/* 매장 위치 */}
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] font-bold text-[#5c2ef5]">
+              <MapPin size={14} className="shrink-0" />
+              <span className="min-w-0 break-keep">{locationText}</span>
+              {place.category ? (
+                <>
+                  <span className="text-[#9994ad] font-normal">·</span>
+                  <span className="text-[#6b6685] font-semibold">
+                    {getPlaceCategoryLabel(place.category, t)}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          {/* 매장 대표 사진 (높이를 적절히 줄여 매장 안내가 한눈에 다 보이도록 함) */}
+          {storeImage ? (
+            <div className="mt-3 relative w-full h-[125px] sm:h-[135px] rounded-[16px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 shadow-xs shrink-0">
+              <img
+                src={storeImage}
+                alt={place.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = getFallbackPlaceImage(place);
+                }}
+              />
+            </div>
+          ) : null}
+
+          {/* 매장 안내 카드 */}
+          <div className="mt-3 rounded-[18px] bg-[#faf8ff] border border-[#e0d9f8] p-4 shadow-xs">
+            <div className="flex items-center gap-1.5 text-[14px] font-black text-[#5c2ef5] mb-1.5">
+              <span>💡</span>
+              <span>{t("storeGuide")}</span>
+            </div>
+            <p className="text-[13px] sm:text-[14px] font-medium leading-[1.65] text-[#2d2745] break-keep">
+              {storeDescription}
+            </p>
+          </div>
+
+          {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
+          {storeImages && storeImages.length > 0 ? (
+            <div className="mt-3">
+              <p className="text-[11px] font-bold tracking-wide text-[#9994ad] mb-2">
+                {t("storePhotos")}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {storeImages.slice(0, 3).map((imgUrl, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-4/3 rounded-[10px] overflow-hidden bg-[#f0ecfa] border border-[#e0d9f8]/60 group shadow-xs"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={t("storePhotoAlt", { name: place.name, index: idx + 1 })}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.src = getFallbackPlaceImage(place);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
+        {place.onAddPlace ? (
+          <div className="mt-3 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                place.onAddPlace();
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-[16px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[14px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>이 장소 코스에 추가하기</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Right Column: 3D 실내 층별 지도 */}
+      <div className="w-full md:flex-1 h-[52%] md:h-full min-h-[320px] relative bg-[#F7F3EF] overflow-hidden">
+        {/* Top Close button on desktop */}
+        <div className="absolute right-4 top-4 z-20 hidden md:block">
+          <button
+            type="button"
+            onClick={onClose}
+            className="size-10 rounded-full flex items-center justify-center bg-black/50 text-white backdrop-blur-md transition hover:bg-black/70 cursor-pointer shadow-lg"
+            aria-label={t("close")}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <CourseNavigationMap
+          route={routeState.itinerary}
+          routeFloorIds={routeState.itinerary?.floorIds || routeState.floors}
+          routeGraph={routeState.graph}
+          className="h-full w-full"
+          showFloorSelector={showFloorSelector}
+          showControls={true}
+        />
       </div>
     </div>
   );
@@ -379,153 +500,70 @@ function StandardPlaceModalContent({ place, onClose }) {
  */
 function CompactPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
+  const fallbackImage = getFallbackPlaceImage(place);
   const locationText =
-    place.location ||
-    (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
-
-  const placeImage =
-    place.image ||
-    place.imageUrl ||
-    place.placeImg ||
-    getFallbackPlaceImage(place);
-
-  const descText =
-    place.desc ||
-    place.description ||
-    t("compactStoreDescription", {
-      location: locationText,
-      name: place.name,
-    }) ||
-    `${place.floor ? `${place.floor} ` : ""}${place.name} · 실내 길찾기 지원 매장`.trim();
+    place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   return (
     <div
-      className="relative flex max-h-[calc(100dvh-1.25rem)] w-full max-w-[460px] flex-col overflow-hidden rounded-[22px] bg-white shadow-2xl animate-in zoom-in-95 duration-150 sm:rounded-[26px]"
+      className="relative flex w-full max-w-[420px] flex-col overflow-hidden rounded-[26px] bg-white p-5 shadow-[0_24px_60px_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-150"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Top Banner Image with Clean Dark Overlay */}
-      <div className="relative h-[180px] w-full shrink-0 overflow-hidden bg-gray-900 sm:h-[260px]">
-        {/* Background Image */}
+      {/* Header Image */}
+      <div className="relative aspect-16/10 w-full overflow-hidden rounded-[18px] bg-surface-soft">
         <img
-          src={placeImage}
+          src={place.image || place.imageUrl || fallbackImage}
           alt={place.name}
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
           onError={(e) => {
-            e.currentTarget.src = getFallbackPlaceImage(place);
+            e.currentTarget.src = fallbackImage;
           }}
         />
-        {/* Soft Dark Bottom Gradient */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-[140px] pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-xs transition hover:bg-black/70 cursor-pointer"
+          aria-label={t("close")}
+        >
+          <X size={15} />
+        </button>
+        <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
+          {place.floor || "1F"} · {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
+        </span>
+      </div>
+
+      {/* Info Body */}
+      <div className="mt-4 flex flex-col gap-2">
+        <h3 className="text-[20px] font-black text-ink">{place.name}</h3>
+        <p className="text-xs font-bold text-brand flex items-center gap-1">
+          <MapPin size={13} />
+          {locationText}
+        </p>
+        <p className="text-[13px] font-medium leading-relaxed text-ink-muted break-keep">
+          {place.description || place.desc || t("indoorStoreDescription", { location: locationText, name: place.name })}
+        </p>
+      </div>
+
+      {/* Bottom CTA Button */}
+      {place.onAddPlace ? (
+        <button
+          type="button"
+          onClick={() => {
+            place.onAddPlace();
+            onClose();
           }}
-        />
-
-        {/* Top Badges & Close Button */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center text-[11.5px] font-bold px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-md">
-              {place.category ? getPlaceCategoryLabel(place.category, t) : t("store")}
-            </span>
-            {place.floor && (
-              <span className="inline-flex items-center text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-[#5c2ef5] text-white">
-                {place.floor}
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="size-8.5 rounded-full flex items-center justify-center bg-black/40 text-white hover:bg-black/60 backdrop-blur-md transition-all cursor-pointer"
-            aria-label={t("close")}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Bottom Title in Header */}
-        <div className="absolute bottom-4 left-5 right-5 z-10">
-          <h2 className="text-[22px] sm:text-[24px] font-black text-white tracking-tight drop-shadow-md">
-            {place.name}
-          </h2>
-          <div className="flex items-center gap-1.5 text-white/90 text-[13px] font-medium mt-1">
-            <MapPin size={13.5} className="shrink-0 text-white/80" />
-            <span>{locationText}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Body Info - Clean, Minimalist & Modern */}
-      <div className="p-5 sm:p-6 flex flex-col gap-4.5 overflow-y-auto min-h-0 bg-white">
-        {/* Store Intro */}
-        <div>
-          <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-            {t("storeIntro")}
-          </h3>
-          <p className="text-[14px] font-normal text-gray-700 leading-[1.65] break-keep">
-            {descText}
-          </p>
-        </div>
-
-        {/* Store Details Container */}
-        <div className="rounded-2xl bg-[#f8f9fc] p-4 space-y-3">
-          {/* Hours */}
-          <div className="flex items-start justify-between gap-2 text-[13px]">
-            <div className="flex shrink-0 items-center gap-2 font-medium text-gray-500">
-              <Clock size={15} className="shrink-0 text-gray-400" />
-              <span>{t("hours")}</span>
-            </div>
-            <div className="min-w-0 text-right">
-              <span className="font-bold text-gray-900">10:30 ~ 20:00</span>
-              <span className="ml-1.5 block text-[11.5px] font-normal text-gray-400 sm:inline">
-                (금~일 ~20:30)
-              </span>
-            </div>
-          </div>
-
-          <div className="h-px bg-gray-200/60" />
-
-          {/* Location */}
-          <div className="flex items-start justify-between gap-2 text-[13px]">
-            <div className="flex shrink-0 items-center gap-2 font-medium text-gray-500">
-              <MapPin size={15} className="shrink-0 text-gray-400" />
-              <span>{t("locationInfo")}</span>
-            </div>
-            <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
-              <span className="font-bold text-gray-900">
-                더현대 서울 {place.floor || ""}
-              </span>
-              <span className="rounded-md bg-[#5c2ef5]/8 px-2 py-0.5 text-[11px] font-semibold text-[#5c2ef5]">
-                3D 길찾기
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Button: [+ 이 장소 코스에 담기] */}
-        {place.onAddPlace ? (
-          <button
-            type="button"
-            onClick={() => {
-              place.onAddPlace();
-              onClose();
-            }}
-            className="w-full mt-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.99] text-white text-[14.5px] font-bold shadow-sm transition-all cursor-pointer"
-          >
-            <Plus size={16} strokeWidth={2.5} />
-            <span>이 장소 코스에 추가하기</span>
-          </button>
-        ) : null}
-      </div>
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#5c2ef5] py-3.5 text-sm font-black text-white shadow-md shadow-[#5c2ef5]/25 transition hover:bg-[#4d24d9] active:scale-[0.98] cursor-pointer"
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          <span>이 장소 코스에 추가하기</span>
+        </button>
+      ) : null}
     </div>
   );
 }
 
 /**
  * PlaceModal Entry Component
- * - 장소 추가 모달 및 코스 타임라인 전반에서 통일된 디또 시그니처 2컬럼 상세 모달 제공
  */
 export function PlaceModal({ place, onClose }) {
   if (!place) return null;
@@ -542,7 +580,9 @@ export function PlaceModal({ place, onClose }) {
       style={{ backgroundColor: "rgba(10,8,20,0.72)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
-      {isAiMode ? (
+      {place.modalMode === "compact" ? (
+        <CompactPlaceModalContent place={place} onClose={onClose} />
+      ) : isAiMode ? (
         <AiPlaceModalContent place={place} onClose={onClose} />
       ) : (
         <StandardPlaceModalContent place={place} onClose={onClose} />

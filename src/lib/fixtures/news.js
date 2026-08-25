@@ -111,6 +111,32 @@ export const newsItems = [
     views: "4.5만",
     gradient: "from-[#4a044e] to-[#6d28d9]",
   },
+  {
+    slug: "bts-pop-up-monochrome-seoul",
+    category: "event",
+    label: "이벤트 뉴스",
+    title: "방탄소년단 'MONOCHROME' 팝업, 글로벌 아미 집결",
+    summary:
+      "방탄소년단의 신규 팝업스토어가 성수동에 오픈하며 전 세계 팬들의 발길이 이어지고 있습니다.",
+    date: "2025.07.18",
+    readTime: "4분 읽기",
+    tags: ["BTS", "팝업스토어", "성수동"],
+    views: "18.9만",
+    gradient: "from-[#2d1b8e] to-[#5c2ef5]",
+  },
+  {
+    slug: "k-food-global-convenience-store",
+    category: "brand",
+    label: "브랜드 소식",
+    title: "K-편의점 라면·스낵, 외국인 관광객 필수 쇼핑 코스 등극",
+    summary:
+      "한국 편의점이 외국인 관광객들에게 색다른 K-푸드 체험 공간으로 각광받고 있습니다.",
+    date: "2025.07.16",
+    readTime: "3분 읽기",
+    tags: ["K푸드", "편의점", "쇼핑"],
+    views: "14.2만",
+    gradient: "from-[#5c2ef5] to-[#8c57fa]",
+  },
 ];
 
 export const allNews = [featuredNews, ...newsItems];

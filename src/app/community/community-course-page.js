@@ -23,9 +23,13 @@ const MOBILE_ITEMS_PER_PAGE = 1;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
 function subscribe(callback) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined" || typeof window.addEventListener !== "function") return () => {};
   window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
+  return () => {
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+      window.removeEventListener("storage", callback);
+    }
+  };
 }
 
 function getSnapshot() {

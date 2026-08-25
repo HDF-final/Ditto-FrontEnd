@@ -8,17 +8,19 @@ import { useTranslations } from "next-intl";
 const baseNavigation = [
   { href: "/ai-course", labelKey: "createCourse", badge: "NEW" },
   { href: "/#picks", labelKey: "courseRecommendations" },
-  { href: "/#community", labelKey: "community" },
-  { href: "/#newsletter", labelKey: "news" },
+  { href: "/community", labelKey: "community" },
+  { href: "/news", labelKey: "news" },
 ];
 
 function subscribeHash(callback) {
+  if (typeof window === "undefined") return () => {};
   window.addEventListener("hashchange", callback);
   return () => window.removeEventListener("hashchange", callback);
 }
 
 function getHashSnapshot() {
-  return window.location.hash;
+  if (typeof window === "undefined") return "";
+  return window.location.hash || "";
 }
 
 function getHashServerSnapshot() {
