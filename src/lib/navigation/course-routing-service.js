@@ -1,6 +1,7 @@
 import {
   FLOOR_ORDER,
   loadFloorNavigation,
+  loadNavigationManifest,
   loadStoreNavigationKeys,
 } from "./navigation-dataset";
 import {
@@ -54,11 +55,27 @@ function toCoursePlace(record) {
 }
 
 async function loadDataset(options) {
-  const [records, ...floors] = await Promise.all([
+  // 지도(`indoor-map`)와 **같은 매니페스트**를 본다. 원장을 만든 쪽이 층 목록과
+  // 매장 수를 거기 적어 두는데, 지도만 그걸 검사하고 경로는 코드에 박힌 숫자를
+  // 보고 있었다. 둘이 다른 원장을 보면 지도에 그려진 매장으로 길이 안 나오거나
+  // 그 반대가 되고, 그때 어느 쪽이 낡은 것인지 알 방법이 없다.
+  const [manifest, records, ...floors] = await Promise.all([
+    loadNavigationManifest(options),
     loadStoreNavigationKeys(options),
     ...FLOOR_ORDER.map((floorId) => loadFloorNavigation(floorId, options)),
   ]);
-  const graph = buildBuildingGraph(floors, FLOOR_ORDER);
+
+  const floorOrder = manifest.floorOrder ?? FLOOR_ORDER;
+  if (
+    floorOrder.length !== FLOOR_ORDER.length ||
+    floorOrder.some((floorId, index) => floorId !== FLOOR_ORDER[index])
+  ) {
+    throw new Error(
+      `Navigation manifest floor order mismatch: ${floorOrder.join(",")} vs ${FLOOR_ORDER.join(",")}.`,
+    );
+  }
+
+  const graph = buildBuildingGraph(floors, floorOrder);
   const places = records.map(toCoursePlace);
   const placesByNavigationKey = new Map(
     places.map((place) => [place.navigationKey, place]),
@@ -72,8 +89,13 @@ async function loadDataset(options) {
     placesByNavigationKey.get(key),
   ).filter(Boolean);
 
-  if (places.length !== 147) {
-    throw new Error(`Expected 147 navigable stores, received ${places.length}.`);
+  // 매장 수도 매니페스트가 정한다. 147 을 코드에 박아 두면 매장이 하나 들어오는 날
+  // 원장은 맞는데 경로만 통째로 죽는다 — 지도는 이미 이 값으로 검사하고 있다.
+  const expectedStoreCount = manifest.summary?.storePlaceCount;
+  if (expectedStoreCount !== undefined && places.length !== expectedStoreCount) {
+    throw new Error(
+      `Expected ${expectedStoreCount} navigable stores, received ${places.length}.`,
+    );
   }
 
   return {
