@@ -98,7 +98,7 @@ export function YoutubeRankingView() {
                 <tr key={item.qid || `${item.name}-${index}`} className="transition-colors hover:bg-[#faf9ff]">
                   <td className="px-6 py-4">
                     <span className={`inline-flex size-8 items-center justify-center rounded-lg text-xs font-black ${index < 3 ? "bg-[#eee9ff] text-brand" : "bg-[#f3f4f7] text-[#777d90]"}`}>
-                      {item.ranking || index + 1}
+                      {index + 1}
                     </span>
                   </td>
                   <td className="px-4 py-4">
