@@ -21,11 +21,14 @@ function ArrowRightIcon({ className = "" }) {
   );
 }
 
+const HERO_VIDEO_SRC = "/assets/home/ditto-main-banner.mp4";
+
 function SlideIndicators({
   slides,
   activeIndex,
   onSelect,
   compact = false,
+  light = false,
 }) {
   return (
     <div className="flex items-center gap-2" aria-label="배너 슬라이드 선택">
@@ -41,11 +44,19 @@ function SlideIndicators({
           } ${
             activeIndex === index
               ? compact
-                ? "w-5 bg-brand"
-                : "w-7 bg-brand"
+                ? light
+                  ? "w-5 bg-white"
+                  : "w-5 bg-brand"
+                : light
+                  ? "w-7 bg-white"
+                  : "w-7 bg-brand"
               : compact
-                ? "w-1.5 bg-line-strong hover:bg-brand/50"
-                : "w-2.5 bg-line-strong hover:bg-brand/50"
+                ? light
+                  ? "w-1.5 bg-white/45 hover:bg-white/75"
+                  : "w-1.5 bg-line-strong hover:bg-brand/50"
+                : light
+                  ? "w-2.5 bg-white/45 hover:bg-white/75"
+                  : "w-2.5 bg-line-strong hover:bg-brand/50"
           }`}
         />
       ))}
@@ -88,95 +99,106 @@ export function HomeHero({ slides }) {
   return (
     <>
       <section className="px-5 pb-2 pt-5 lg:hidden">
-        <p className="text-[11px] font-black tracking-wide text-brand">
-          {activeSlide.eyebrow}
-        </p>
-        <h1 className="mt-2.5 text-[24px] font-black leading-[1.5] text-ink">
-          <span className="block">{activeSlide.titleLine}</span>
-          <span className="mt-1.5 block">
-            <span className="text-brand">{activeSlide.accent}</span>
-            {activeSlide.suffix}
-          </span>
-        </h1>
-
         <div
-          className="relative mt-4 touch-pan-y select-none overflow-hidden rounded-[22px]"
+          className="relative touch-pan-y select-none overflow-hidden rounded-[24px] bg-ink"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url("${activeSlide.image}")` }}
-            role="img"
-            aria-label={activeSlide.alt}
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={HERO_VIDEO_SRC}
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-linear-to-br from-[#2d1b8e]/92 via-[#5c2ef5]/78 to-[#8c57fa]/70" />
-          <div className="relative flex min-h-[168px] flex-col justify-between p-5">
-            <p className="text-[28px] font-black tracking-tight text-white">DITTO</p>
-            <div>
-              <p className="text-[13px] font-semibold leading-6 text-white/90">
-                {activeSlide.description.split("\n")[0]}
-              </p>
+          <div className="absolute inset-0 bg-linear-to-b from-black/55 via-black/35 to-black/70" />
+          <div className="relative flex min-h-[420px] flex-col justify-end p-5">
+            <p className="text-[11px] font-black tracking-wide text-white/85">
+              {activeSlide.eyebrow}
+            </p>
+            <h1 className="mt-2.5 text-[26px] font-black leading-[1.35] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.45)]">
+              <span className="block">{activeSlide.titleLine}</span>
+              <span className="mt-1 block">
+                <span className="text-white">{activeSlide.accent}</span>
+                {activeSlide.suffix}
+              </span>
+            </h1>
+            <p className="mt-3 whitespace-pre-line text-[13px] font-semibold leading-6 text-white/88">
+              {activeSlide.description}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2.5">
               <Link
                 href={activeSlide.primaryCta.href}
-                className="mt-3 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-black text-brand"
+                className="inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-black text-ink shadow-control"
               >
                 {activeSlide.primaryCta.label}
                 <span aria-hidden="true">→</span>
               </Link>
+              <Link
+                href={activeSlide.secondaryCta.href}
+                className="inline-flex items-center gap-1 rounded-full border border-white/55 bg-white/10 px-4 py-2 text-xs font-black text-white backdrop-blur-sm"
+              >
+                {activeSlide.secondaryCta.label}
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+            <div className="mt-5">
+              <SlideIndicators
+                slides={slides}
+                activeIndex={activeIndex}
+                onSelect={setActiveIndex}
+                compact
+                light
+              />
             </div>
           </div>
-        </div>
-
-        <div className="mt-3">
-          <SlideIndicators
-            slides={slides}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-            compact
-          />
         </div>
       </section>
 
       <section className="relative hidden w-full overflow-hidden lg:block">
         <div className="relative" style={{ minHeight: heroMinHeight }}>
-          <div className="absolute inset-0 bg-white" />
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url("${activeSlide.image}")` }}
-            role="img"
-            aria-label={activeSlide.alt}
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={HERO_VIDEO_SRC}
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-linear-to-r from-white via-white/85 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/78 via-black/44 to-black/12" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-black/20" />
 
           <div
             className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-5 px-8 sm:px-14 lg:px-16"
             style={{ minHeight: heroMinHeight }}
           >
-            <p className="text-sm font-black tracking-wide text-brand">
+            <p className="text-sm font-black tracking-wide text-white/82">
               {activeSlide.eyebrow}
             </p>
-            <h1 className="text-3xl font-black leading-snug text-ink sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-black leading-snug text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-5xl">
               <span className="block">{activeSlide.titleLine}</span>
               <span className="block whitespace-nowrap">
-                <span className="text-brand">{activeSlide.accent}</span>
+                <span className="text-white">{activeSlide.accent}</span>
                 {activeSlide.suffix}
               </span>
             </h1>
-            <p className="max-w-xl whitespace-pre-line text-sm leading-7 text-ink-muted sm:text-base">
+            <p className="max-w-xl whitespace-pre-line text-sm font-semibold leading-7 text-white/84 sm:text-base">
               {activeSlide.description}
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href={activeSlide.primaryCta.href}
-                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-brand px-6 py-3 text-sm font-black text-white shadow-control transition hover:bg-brand-dark"
+                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 py-3 text-sm font-black text-ink shadow-control transition hover:bg-white/90"
               >
                 {activeSlide.primaryCta.label}
                 <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
               <Link
                 href={activeSlide.secondaryCta.href}
-                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-white px-6 py-3 text-sm font-black text-ink transition hover:border-brand hover:text-brand"
+                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/55 bg-white/10 px-6 py-3 text-sm font-black text-white backdrop-blur-sm transition hover:bg-white/18"
               >
                 {activeSlide.secondaryCta.label}
                 <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
@@ -186,6 +208,7 @@ export function HomeHero({ slides }) {
               slides={slides}
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
+              light
             />
           </div>
         </div>
