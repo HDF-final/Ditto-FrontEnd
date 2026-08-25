@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "@/components/common/modal";
-import { getAdminCourse, getAdminCourseRun, getAdminCourses } from "@/lib/api/admin-courses";
+import { getAdminCourseRun, getAdminCourses } from "@/lib/api/admin-courses";
+import { clearCachedDrafts, getAdminCourseCached } from "@/lib/api/admin-course-cache";
 import { useAdminTrendArtifact } from "@/hooks/use-admin-trend-artifact";
 import { ArtifactError, ArtifactLoading } from "./admin-artifact-ui";
 import { AdminCourseEditor } from "./admin-course-editor";
@@ -201,7 +202,7 @@ export function AdminCourseView() {
       if (requested.current.has(name)) return;
       requested.current.add(name);
 
-      getAdminCourse(name)
+      getAdminCourseCached(name)
         .then((data) => {
           if (active) setDetails((prev) => ({ ...prev, [name]: { data, error: null } }));
         })
@@ -216,6 +217,8 @@ export function AdminCourseView() {
   }, [wanted]);
 
   const reloadAll = useCallback(() => {
+    // 새로고침은 캐시까지 비운다 — 배치가 다시 돌았을 수 있다.
+    clearCachedDrafts();
     requested.current = new Set();
     setDetails({});
     reload();
@@ -263,7 +266,7 @@ export function AdminCourseView() {
         open={Boolean(opened)}
         onClose={close}
         labelledBy="admin-course-editor-title"
-        panelClassName="h-[92dvh] w-[98vw] max-w-[1920px] overflow-hidden rounded-[24px] border border-[#e1e4ed] bg-white shadow-[0_30px_90px_rgba(20,24,50,0.28)]"
+        panelClassName="h-[92dvh] w-[92vw] max-w-[1680px] overflow-hidden rounded-[24px] border border-[#e1e4ed] bg-white shadow-[0_30px_90px_rgba(20,24,50,0.28)]"
       >
         {openedEntry?.error ? (
           <div className="flex h-full flex-col justify-center p-8">

@@ -779,27 +779,17 @@ export function AdminCourseEditor({ detail, onClose }) {
               />
             </div>
           ) : (
-            <>
-              <CourseNavigationMap
-                route={route.itinerary}
-                routeFloorIds={route.itinerary?.floorIds}
-                routeGraph={route.graph}
-                initialView="route"
-                variant="course"
-                showFloorSelector
-                showControls
-              />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-2 bg-gradient-to-t from-black/25 to-transparent px-4 pb-3 pt-8">
-                <span className="pointer-events-auto rounded-full bg-white/95 px-3 py-1.5 shadow-sm">
-                  <RouteSummary
-                    itinerary={route.itinerary}
-                    error={route.error}
-                    loading={route.loading}
-                    count={navigationKeys.length}
-                  />
-                </span>
-              </div>
-            </>
+            // 지도 위에 띄우던 경로 요약 알약은 걷어냈다. 지도를 가리기만 하고, 정작 그
+            // 숫자가 필요한 순간은 최적화를 누를 때라 그 버튼 옆이 제자리다.
+            <CourseNavigationMap
+              route={route.itinerary}
+              routeFloorIds={route.itinerary?.floorIds}
+              routeGraph={route.graph}
+              initialView="route"
+              variant="course"
+              showFloorSelector
+              showControls
+            />
           )}
         </div>
 
@@ -851,6 +841,15 @@ export function AdminCourseEditor({ detail, onClose }) {
               되돌리기
             </button>
           </div>
+
+          <p className="mt-2">
+            <RouteSummary
+              itinerary={route.itinerary}
+              error={route.error}
+              loading={route.loading}
+              count={navigationKeys.length}
+            />
+          </p>
 
           {notice ? (
             <p className="mt-2 rounded-xl bg-[#f4f1ff] px-3 py-2 text-[11px] font-semibold text-brand">
