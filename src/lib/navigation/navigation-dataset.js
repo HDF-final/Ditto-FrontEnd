@@ -25,20 +25,40 @@ const FLOOR_REGISTRATIONS = {
   "6F": { offsetX: -1.268548, offsetZ: 0.657307, scale: 0.972451 },
 };
 
+/**
+ * 실내 지도 원장(JSON 588KB)과 층 텍스처(PNG 2.2MB)가 놓인 곳.
+ *
+ * CloudFront 의 `course-resource/*` 동작이 S3 `hdf-ditto-images` 를 내보냅니다. 한 번
+ * 만들어지면 바뀌지 않는 파일이라 오브젝트에 3주짜리 `Cache-Control` 이 붙어 있고,
+ * 중국·일본·미국 손님에게는 엣지에서 나가는 것이 EC2 를 거치는 것보다 훨씬 가깝습니다.
+ *
+ * **비워 두면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이
+ * 막혔을 때의 안전장치입니다.
+ *
+ * 값은 백엔드의 `ditto.map-assets.base-url` 과 같은 곳을 가리켜야 합니다. 그쪽이
+ * `GET /api/v1/places/navigation/assets` 로 같은 주소를 돌려주며, 주소를 옮길 때는
+ * 두 곳을 같이 바꿉니다.
+ */
+const CDN_BASE = (process.env.NEXT_PUBLIC_CDN_BASE || "").trim().replace(/\/+$/, "");
+
+export const NAVIGATION_ASSET_BASE = CDN_BASE ? `${CDN_BASE}/navigation/v2` : "/navigation/v2";
+export const MAP_IMAGE_BASE = CDN_BASE ? `${CDN_BASE}/maps` : "/maps";
+export const USING_CDN_ASSETS = Boolean(CDN_BASE);
+
 export const FLOOR_DEFINITIONS = FLOOR_ORDER.map((floorId, index) => ({
   id: floorId,
   slug: floorId.toLowerCase(),
   title: FLOOR_TITLES[floorId],
-  imageUrl: `/maps/floor-${floorId.toLowerCase()}.png`,
-  navigationUrl: `/navigation/v2/${floorId.toLowerCase()}.json`,
+  imageUrl: `${MAP_IMAGE_BASE}/floor-${floorId.toLowerCase()}.png`,
+  navigationUrl: `${NAVIGATION_ASSET_BASE}/${floorId.toLowerCase()}.json`,
   y: index * 8.7,
   cutout: floorId === "B1",
   ...FLOOR_REGISTRATIONS[floorId],
 }));
 
-export const NAVIGATION_MANIFEST_URL = "/navigation/v2/manifest.json";
-export const STORE_NAVIGATION_KEYS_URL =
-  "/navigation/v2/store-navigation-keys.json";
+export const NAVIGATION_MANIFEST_URL = `${NAVIGATION_ASSET_BASE}/manifest.json`;
+export const STORE_NAVIGATION_KEYS_URL = `${NAVIGATION_ASSET_BASE}/store-navigation-keys.json`;
+export const FLOOR_ROOMS_URL = `${NAVIGATION_ASSET_BASE}/floor-rooms.json`;
 
 async function loadJson(url, options = {}) {
   const response = await fetch(url, {

@@ -27,6 +27,7 @@ import { useIsDesktop } from "@/hooks/use-is-desktop";
 import {
   FLOOR_DEFINITIONS,
   FLOOR_ORDER,
+  FLOOR_ROOMS_URL,
   loadFloorNavigation,
   loadNavigationManifest,
 } from "@/lib/navigation/navigation-dataset";
@@ -54,7 +55,7 @@ const USER_LOCATION_COLOR = "#2563EB";
 // grey stores sit low, green vertical-circulation rises to a middle band, and the
 // pink special zones pop highest — the "colour-group explosion" stacked on top of
 // the plan. `height` is the extrude depth (the tier), `color` the top face.
-const FLOOR_ROOMS_URL = "/navigation/v2/floor-rooms.json";
+// 원장이 놓인 곳은 navigation-dataset 이 정한다 (CDN 또는 public/ 사본).
 
 function normalizeRoomsByFloor(data) {
   if (!data) return null;
