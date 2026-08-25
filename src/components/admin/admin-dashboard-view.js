@@ -10,7 +10,6 @@ import {
   StatusBadge,
   formatAdminDate,
 } from "./admin-artifact-ui";
-import { PeriodScoreMiniChart } from "./period-score-chart";
 
 const COUNTRIES = ["KR", "CN", "JP", "US"];
 
@@ -68,10 +67,10 @@ export function AdminDashboardView() {
   return (
     <section className="space-y-7">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="FINAL RANK" value={totalCountryRows(top10?.payload?.countries)} caption="4개국 최종 순위 항목" tone="purple" />
-        <MetricCard label="CANDIDATES" value={totalCountryRows(candidates?.payload?.countries)} caption="교차 검증 후보 전체" tone="blue" />
-        <MetricCard label="YOUTUBE" value={youtubeOverall.length} caption="최근 7일 전체 급상승" tone="green" />
-        <MetricCard label="WARNINGS" value={warningCount(artifacts)} caption="확인이 필요한 수집 경고" tone="amber" />
+        <MetricCard label="최종 순위" value={totalCountryRows(top10?.payload?.countries)} caption="4개국 최종 순위 항목" tone="purple" />
+        <MetricCard label="후보군" value={totalCountryRows(candidates?.payload?.countries)} caption="교차 검증 후보 전체" tone="blue" />
+        <MetricCard label="YOUTUBE 급상승" value={youtubeOverall.length} caption="최근 7일 전체 급상승" tone="green" />
+        <MetricCard label="수집 경고" value={warningCount(artifacts)} caption="확인이 필요한 수집 경고" tone="amber" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
@@ -92,20 +91,19 @@ export function AdminDashboardView() {
               return (
                 <section
                   key={code}
-                  className={`p-5 ${countryIndex >= 2 ? "border-t border-[#eceef4]" : ""} ${countryIndex % 2 === 1 ? "md:border-l md:border-[#eceef4]" : ""}`}
+                  className={`p-4 ${countryIndex >= 2 ? "border-t border-[#eceef4]" : ""} ${countryIndex % 2 === 1 ? "md:border-l md:border-[#eceef4]" : ""}`}
                 >
                   <h3 className="mb-3 flex items-center gap-2 text-sm font-black">
                     <span>{COUNTRY_META[code].flag}</span>
                     {COUNTRY_META[code].name}
                   </h3>
-                  <ol className="space-y-2.5">
+                  <ol className="space-y-2">
                     {rows.map((item, index) => (
-                      <li key={item.qid || `${code}-${item.name}-${index}`} className="flex items-center gap-3 rounded-xl bg-[#fafbfe] px-3 py-2.5">
+                      <li key={item.qid || `${code}-${item.name}-${index}`} className="flex items-center gap-3 rounded-xl bg-[#fafbfe] px-3 py-2">
                         <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#eee9ff] text-[11px] font-black text-brand">
                           {item.ranking || index + 1}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-xs font-bold">{item.nameKo || item.name}</span>
-                        <PeriodScoreMiniChart scores={item.scores} name={item.nameKo || item.name} />
                       </li>
                     ))}
                     {!rows.length ? <li className="py-8 text-center text-xs text-[#9aa0b0]">결과 없음</li> : null}
