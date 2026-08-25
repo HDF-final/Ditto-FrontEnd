@@ -612,7 +612,7 @@ function FloorLabel({ floor, compact = false }) {
     >
       <div
         className={`whitespace-nowrap rounded-full bg-[#3A342F] font-bold tracking-wide text-white shadow-[0_3px_10px_rgba(60,45,35,0.22)] ${
-          compact ? "px-2.5 py-[5px] text-[10px]" : "px-3 py-1 text-[11px]"
+          compact ? "px-2 py-[3px] text-[8px]" : "px-2.5 py-[3px] text-[9px]"
         }`}
       >
         {floor.id}

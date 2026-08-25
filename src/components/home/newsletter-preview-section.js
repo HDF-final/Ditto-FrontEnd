@@ -3,11 +3,14 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { SectionHeading } from "@/components/home/section-heading";
+import { NewsletterPreviewSlider } from "@/components/home/newsletter-preview-slider";
 import { newsletters as defaultNewsletters } from "@/lib/fixtures/home";
 
 export async function NewsletterPreviewSection({ items = [] }) {
   const t = await getTranslations("home");
-  const displayItems = items.length > 0 ? items.slice(0, 3) : defaultNewsletters;
+  // 모바일 슬라이더는 최대 5개까지 넘기고, 데스크톱 그리드는 3개만 노출
+  const mobileItems = items.length > 0 ? items.slice(0, 5) : defaultNewsletters;
+  const desktopItems = items.length > 0 ? items.slice(0, 3) : defaultNewsletters;
 
   return (
     <section
@@ -21,8 +24,12 @@ export async function NewsletterPreviewSection({ items = [] }) {
         href="/news"
         linkLabel={t("allNews")}
       />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
-        {displayItems.map((news, index) => {
+      {/* 모바일: 드래그 슬라이더 (최대 5개) */}
+      <NewsletterPreviewSlider items={mobileItems} />
+
+      {/* 데스크톱: 3열 그리드 */}
+      <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6">
+        {desktopItems.map((news) => {
           const category = news.label || news.category || (news.keywords?.[0] ? `${news.keywords[0]}` : null);
           const slug = news.slug || "";
           const href = slug ? `/news/${slug}` : "/news";
@@ -31,9 +38,7 @@ export async function NewsletterPreviewSection({ items = [] }) {
             <Link
               key={news.slug || news.title}
               href={href}
-              className={`group min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)] ${
-                index >= 2 ? "hidden lg:flex" : "flex"
-              }`}
+              className="group flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-white shadow-[0_8px_20px_rgba(43,28,89,0.06)] lg:rounded-[24px] lg:transition lg:duration-200 lg:hover:-translate-y-1.5 lg:hover:shadow-[0_18px_32px_rgba(43,28,89,0.12)]"
             >
               <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface-muted lg:h-[210px] lg:aspect-auto">
                 {news.representativeImageUrl ? (

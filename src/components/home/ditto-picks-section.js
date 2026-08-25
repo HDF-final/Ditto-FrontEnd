@@ -175,7 +175,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
           </ol>
         </aside>
 
-        {/* TOP 1, 2, 3 코스 카드 */}
+        {/* TOP 1, 2, 3 코스 카드 (모바일 3개 한 줄, 데스크톱 3열) */}
         <div className="order-2 grid grid-cols-3 gap-2.5 lg:order-2 lg:col-span-3 lg:grid-cols-3 lg:gap-5">
           {displayCourses.length > 0 ? (
             displayCourses.slice(0, 3).map((course) => (

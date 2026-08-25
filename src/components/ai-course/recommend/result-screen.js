@@ -40,6 +40,9 @@ import {
 } from "@/lib/api/courses";
 
 const MAX_COURSE_PLACES = 8;
+// 모바일에서 한 페이지에 보여줄 장소 카드 수. 어떤 기기에서도 동일하게
+// 이 개수만 노출하고, 나머지는 페이지(이전/다음)로 넘깁니다.
+const CARDS_PER_PAGE = 3;
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
@@ -74,6 +77,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const [draggingId, setDraggingId] = useState(null);
   const [courseTitle, setCourseTitle] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [cardPage, setCardPage] = useState(0);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
   const [lockedPlaceIds, setLockedPlaceIds] = useState(() => new Set());
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
@@ -220,6 +224,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setHistory([]);
     setVisited(new Set());
     setLockedPlaceIds(new Set());
+    setCardPage(0);
     setNotice("");
   }
 
@@ -454,6 +459,17 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setDraggingId(null);
   };
 
+  // 장소 카드 페이징 (모바일). 데스크톱은 리스트가 자체 스크롤되므로 전부 노출.
+  const totalCardPages = Math.max(1, Math.ceil(items.length / CARDS_PER_PAGE));
+  if (cardPage > totalCardPages - 1) {
+    setCardPage(totalCardPages - 1);
+  }
+  const usePaging = !isDesktop && items.length > CARDS_PER_PAGE;
+  const pageStart = usePaging ? cardPage * CARDS_PER_PAGE : 0;
+  const visibleItems = usePaging
+    ? items.slice(pageStart, pageStart + CARDS_PER_PAGE)
+    : items;
+
   return (
     <>
     <main className="course-studio min-h-0 flex-1 gap-2 bg-[#f0ecfa] p-2 sm:gap-3 sm:p-3">
@@ -473,10 +489,11 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
             initialView="route"
             variant={isDesktop ? "course" : "scan"}
             fitPreset={isDesktop ? undefined : "course-mobile"}
+            showFloorSelector={isDesktop}
             showUserLocation={!seedFromScan}
           />
         </div>
-        {items.length > 0 && !seedFromScan ? (
+        {items.length > 0 && !seedFromScan && !isDesktop ? (
           <button
             type="button"
             onClick={() => setLocateOpen(true)}
@@ -489,7 +506,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
       </div>
 
       <div
-        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-3 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
+        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
@@ -534,12 +551,15 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         </div>
 
         {/* Drag hint */}
-        <p className="text-[#9994ad] text-[12px] border border-dashed border-[#ccc8d8] rounded-[8px] px-[14px] py-[9px] bg-white/60">
+        <p className="flex items-center gap-1.5 text-[11px] text-[#9994ad] sm:text-[12px]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden="true">
+            <path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" />
+          </svg>
           {t("dragHint")}
         </p>
 
-        <div className="rounded-[12px] border border-[#e5e0f2] bg-[#faf9fe] px-3 py-3">
-          <p className="mb-2 text-[11px] font-bold text-[#6b6685]">{t("transportOptions")}</p>
+        <div className="rounded-[12px] border border-[#e5e0f2] bg-[#faf9fe] px-3 py-2 sm:py-3">
+          <p className="mb-1.5 text-[11px] font-bold text-[#6b6685] sm:mb-2">{t("transportOptions")}</p>
           <div className="flex flex-wrap gap-2">
             {[
               ["excludeElevator", t("excludeElevator")],
@@ -598,27 +618,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
           </p>
         ) : null}
 
-        {items.length >= 2 ? (
-          <div className="grid grid-cols-3 gap-2 rounded-[12px] bg-[#f6f4fa] px-3 py-3 text-center">
-            <div>
-              <strong className="block text-[15px] text-[#1a142e]">{items.length}</strong>
-              <span className="text-[10px] text-[#6b6685]">{t("placesVisited")}</span>
-            </div>
-            <div>
-              <strong className="block text-[15px] text-[#1a142e]">
-                {routeState.itinerary?.floorIds.length ?? 0}
-              </strong>
-              <span className="text-[10px] text-[#6b6685]">{t("floorsUsed")}</span>
-            </div>
-            <div>
-              <strong className="block text-[15px] text-[#1a142e]">
-                {routeState.itinerary?.connectorSteps.length ?? 0}
-              </strong>
-              <span className="text-[10px] text-[#6b6685]">{t("floorChanges")}</span>
-            </div>
-          </div>
-        ) : null}
-
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-[320px] lg:gap-4 lg:py-20">
@@ -639,9 +638,44 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
           </div>
         )}
 
+        {/* 장소 목록 전용 페이지 이동 (이동수단 조건과 분리) */}
+        {usePaging ? (
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#6b6685]">
+              코스 장소 {items.length}곳
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCardPage((p) => Math.max(0, p - 1))}
+                disabled={cardPage === 0}
+                aria-label="이전 장소"
+                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                &lt;
+              </button>
+              <span className="min-w-[38px] text-center text-[11px] font-black text-[#5c2ef5]">
+                {cardPage + 1} / {totalCardPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setCardPage((p) => Math.min(totalCardPages - 1, p + 1))
+                }
+                disabled={cardPage === totalCardPages - 1}
+                aria-label="다음 장소"
+                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {/* Place cards */}
-        <div className="flex flex-col gap-[10px]">
-          {items.map((place, index) => {
+        <div className="flex flex-col gap-[10px] max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:pr-0.5">
+          {visibleItems.map((place, localIndex) => {
+            const index = pageStart + localIndex;
             const isEndpoint = index === 0 || index === items.length - 1;
             const isLocked = isEndpoint || lockedPlaceIds.has(place.id);
 
@@ -687,7 +721,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 </span>
               </div>
               <button
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-3 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
                 style={{
                   borderColor: hoveredId === place.id ? "#5c2ef5" : "transparent",
                   boxShadow:
@@ -707,7 +741,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                     {getPlaceCategoryLabel(place.category, t)}
                   </span>
                   <h3
-                    className={`mb-1 truncate text-[13px] font-bold sm:mb-[4px] sm:text-[14px] ${
+                    className={`mb-1 truncate text-[14px] font-bold sm:mb-[4px] sm:text-[15px] ${
                       visited.has(place.id)
                         ? "line-through text-[#9994ad]"
                         : "text-[#1a142e]"
@@ -715,7 +749,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                   >
                     {place.name}
                   </h3>
-                  <p className="line-clamp-2 text-[11px] leading-[1.5] text-[#6b6685] sm:text-[12px]">
+                  <p className="line-clamp-1 text-[12px] leading-[1.5] text-[#6b6685] sm:line-clamp-2">
                     {place.desc}
                   </p>
                 </div>
@@ -726,11 +760,11 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                     // 경우가 많아 추천 응답이 준 사진이 있으면 그쪽이 우선입니다.
                     src={place.aiImage || place.image}
                     alt={place.name}
-                    className="pointer-events-none size-12 shrink-0 rounded-[10px] object-cover sm:size-[68px]"
+                    className="pointer-events-none size-14 shrink-0 rounded-[10px] object-cover sm:size-[68px]"
                   />
                 ) : (
                   <div
-                    className="size-12 shrink-0 rounded-[10px] sm:size-[68px]"
+                    className="size-14 shrink-0 rounded-[10px] sm:size-[68px]"
                     style={{
                       background: `linear-gradient(135deg,${place.accentColor}22,${place.accentColor}0a)`,
                     }}
@@ -799,7 +833,8 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         </div>
       </div>
 
-      <div ref={chatOccluderRef} className="course-studio-chat min-w-0">
+      {/* 하단 보니 챗은 모바일에서 숨김 (데스크톱은 지도 위 오버레이로 유지) */}
+      <div ref={chatOccluderRef} className="course-studio-chat min-w-0 max-lg:hidden">
         <PanelChat
           messages={chat?.messages}
           pending={chatPending}

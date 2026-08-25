@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { communityCourses } from "@/lib/fixtures/home";
 import { CountryFlag } from "@/components/common/country-flag";
 import { SectionHeading } from "@/components/home/section-heading";
+import { useDragCarousel } from "@/hooks/use-drag-carousel";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -124,6 +125,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
       <img
         src={course.image}
         alt={course.title}
+        draggable={false}
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
       />
 
@@ -240,32 +242,39 @@ function CommunitySlider({
   columnsClassName,
   onAuthRequired,
   isPaused,
+  enableDrag = false,
 }) {
   const t = useTranslations("home");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = Math.ceil(courses.length / itemsPerSlide) || 1;
   const slides = [];
   for (let i = 0; i < courses.length; i += itemsPerSlide) {
     slides.push(courses.slice(i, i + itemsPerSlide));
   }
+  const totalSlides = slides.length || 1;
 
-  useEffect(() => {
-    if (isPaused) return;
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    }, 4000);
-
-    return () => clearInterval(timer);
-  }, [isPaused, totalSlides]);
+  const {
+    index: currentSlide,
+    setIndex: setCurrentSlide,
+    dragging,
+    viewportRef,
+    trackStyle,
+    handlers,
+  } = useDragCarousel({
+    length: totalSlides,
+    auto: true,
+    interval: 4000,
+    paused: isPaused,
+  });
 
   return (
     <>
-      <div className="relative w-full overflow-hidden pb-2 pt-1 lg:pb-4 lg:pt-2">
-        <div
-          className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
+      <div
+        ref={enableDrag ? viewportRef : undefined}
+        className={`relative w-full overflow-hidden pb-2 pt-1 lg:pb-4 lg:pt-2 ${
+          enableDrag ? "select-none" : ""
+        } ${enableDrag && dragging ? "cursor-grabbing" : ""}`}
+        {...(enableDrag ? handlers : {})}
+      >
+        <div className="flex" style={trackStyle}>
           {slides.map((slideItems, slideIdx) => (
             <div
               key={slideIdx}
@@ -338,6 +347,7 @@ export function CommunityPreviewSection() {
           columnsClassName="grid-cols-1"
           onAuthRequired={() => setIsLoginModalOpen(true)}
           isPaused={isPaused}
+          enableDrag
         />
       </div>
       <div className="hidden lg:block">
