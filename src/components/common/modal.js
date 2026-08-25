@@ -2,7 +2,12 @@
 
 import { useEffect } from "react";
 
-export function Modal({ open, onClose, labelledBy, children }) {
+// `panelClassName` 은 관리자 코스 편집기가 쓴다. 편집기는 코스 다섯 자리를 한 번에
+// 펼쳐야 해서 max-w-xl 로는 좁고 안쪽이 스크롤돼야 한다. 기본값은 지금 모습 그대로다.
+const DEFAULT_PANEL =
+  "w-full max-w-xl rounded-card border border-line bg-surface p-6 shadow-card";
+
+export function Modal({ open, onClose, labelledBy, panelClassName, children }) {
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -35,7 +40,7 @@ export function Modal({ open, onClose, labelledBy, children }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className="w-full max-w-xl rounded-card border border-line bg-surface p-6 shadow-card"
+        className={panelClassName || DEFAULT_PANEL}
       >
         {children}
       </div>
