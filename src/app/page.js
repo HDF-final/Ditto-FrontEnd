@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [newsList, systemCourses, t] = await Promise.all([
-    fetchNewsFeedsServer({ page: 0, size: 3 }),
+    fetchNewsFeedsServer({ page: 0, size: 5 }),
     fetchSystemCoursesServer({ size: 3 }).catch(() => []),
     getTranslations("home"),
   ]);

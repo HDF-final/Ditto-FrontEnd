@@ -14,6 +14,7 @@ export function CameraScanner({
   const [error, setError] = useState(null);
   const [shot, setShot] = useState(null);
   const [cameraMode, setCameraMode] = useState("live");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!open || shot || cameraMode !== "live") return undefined;
@@ -22,6 +23,7 @@ export function CameraScanner({
 
     async function start() {
       setError(null);
+      setReady(false);
 
       if (!navigator.mediaDevices?.getUserMedia) {
         setCameraMode("file");
@@ -68,6 +70,7 @@ export function CameraScanner({
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
+          if (!cancelled) setReady(true);
         }
       } catch (requestError) {
         if (cancelled) return;
@@ -116,6 +119,7 @@ export function CameraScanner({
     setShot(null);
     setError(null);
     setCameraMode("live");
+    setReady(false);
     onClose();
   }
 
@@ -174,6 +178,7 @@ export function CameraScanner({
                 autoPlay
                 playsInline
                 muted
+                onPlaying={() => setReady(true)}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -181,12 +186,38 @@ export function CameraScanner({
                 실시간 카메라 대신 기기 카메라 또는 사진 선택으로 계속할 수 있습니다.
               </div>
             )}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-40 w-[82%] rounded-2xl border-2 border-white/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-            </div>
-            <p className="absolute inset-x-0 bottom-28 text-center text-xs text-white/80">
-              인식할 로고를 가이드 안에 맞춰 주세요.
-            </p>
+
+            {/* 스트림이 준비되기 전(권한 요청 중) 안내 배경 */}
+            {cameraMode === "live" && !ready ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-linear-to-b from-[#1a1030] via-[#0f0a1e] to-black px-8 text-center">
+                <span className="flex size-16 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+                  <svg viewBox="0 0 24 24" className="size-8 text-white/90" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7.5A1.5 1.5 0 0 1 5.5 6h2l1-1.5h7L18 6h.5A1.5 1.5 0 0 1 20 7.5v10A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z" />
+                    <circle cx="12" cy="12.5" r="3.2" />
+                  </svg>
+                </span>
+                <div className="space-y-1.5">
+                  <p className="text-base font-black text-white">카메라 권한을 허용해 주세요</p>
+                  <p className="text-xs leading-5 text-white/70">
+                    브라우저의 권한 요청을 &lsquo;허용&rsquo;하면
+                    <br />
+                    로고 스캔이 자동으로 시작됩니다.
+                  </p>
+                </div>
+                <span className="mt-1 size-6 animate-spin rounded-full border-2 border-white/25 border-t-white/80" />
+              </div>
+            ) : null}
+
+            {ready ? (
+              <>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="h-40 w-[82%] rounded-2xl border-2 border-white/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
+                </div>
+                <p className="absolute inset-x-0 bottom-28 text-center text-xs text-white/80">
+                  인식할 로고를 가이드 안에 맞춰 주세요.
+                </p>
+              </>
+            ) : null}
           </>
         )}
       </div>
@@ -232,7 +263,7 @@ export function CameraScanner({
             갤러리
           </button>
 
-          {cameraMode === "live" ? (
+          {cameraMode === "live" && ready ? (
             <button
               type="button"
               onClick={capture}

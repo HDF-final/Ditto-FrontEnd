@@ -15,7 +15,7 @@ function CourseOption({ course, selected, onSelect }) {
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-[20px] border bg-white px-3 py-3 text-left transition sm:gap-4 sm:rounded-[24px] sm:px-4 sm:py-4 ${
+      className={`flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-[20px] border bg-white px-3 py-2.5 text-left transition sm:gap-4 sm:rounded-[24px] sm:px-4 sm:py-4 ${
         selected
           ? "border-brand shadow-[0_8px_20px_rgba(92,46,245,0.1)] ring-1 ring-brand"
           : "border-line hover:border-line-hover"
@@ -23,17 +23,17 @@ function CourseOption({ course, selected, onSelect }) {
       aria-pressed={selected}
     >
       <div
-        className={`h-[72px] w-[72px] shrink-0 rounded-[14px] bg-linear-to-br sm:h-[92px] sm:w-[116px] sm:rounded-[16px] ${course.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
+        className={`h-[58px] w-[58px] shrink-0 rounded-[14px] bg-linear-to-br sm:h-[92px] sm:w-[116px] sm:rounded-[16px] ${course.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
       />
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-black text-brand">{course.category}</p>
-        <h2 className="mt-1.5 truncate text-base font-black text-ink sm:mt-3 sm:text-xl">
+        <h2 className="mt-1 truncate text-base font-black text-ink sm:mt-3 sm:text-xl">
           {course.title}
         </h2>
-        <p className="mt-2 truncate text-[11px] font-medium text-ink-muted">
+        <p className="mt-1 truncate text-[11px] font-medium text-ink-muted sm:mt-2">
           {course.tags}
         </p>
-        <p className="mt-3 text-[11px] font-medium text-ink-muted">
+        <p className="mt-1.5 text-[11px] font-medium text-ink-muted sm:mt-3">
           {course.meta}
         </p>
       </div>
@@ -52,7 +52,7 @@ function CourseOption({ course, selected, onSelect }) {
 function PhotoTile({ image, onRemove }) {
   if (!image) return null;
   return (
-    <div className="group relative h-[166px] w-[118px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-xs">
+    <div className="group relative h-[128px] w-[92px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-xs sm:h-[166px] sm:w-[118px]">
       <img
         src={image}
         alt="첨부 사진"
@@ -93,7 +93,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
     (state) => state.setPostImages,
   );
 
-  const shouldScroll = courses.length > 4;
+  const shouldScroll = courses.length > 3;
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -166,14 +166,14 @@ export function ShareCourseForm({ courses = [], loading = false }) {
 
   return (
     <main className="min-w-0 overflow-x-hidden bg-background">
-      <section className="bg-white px-4 pb-6 pt-6 sm:px-14 lg:px-52 lg:pb-12 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+      <section className="bg-white px-4 pb-5 pt-5 sm:px-14 sm:pb-6 sm:pt-6 lg:px-52 lg:pb-12 lg:pt-[94px] xl:px-60 2xl:px-72">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
           <div>
             <p className="text-xs font-black text-brand">SHARE MY COURSE</p>
             <h1 className="mt-2 text-[22px] font-black leading-tight text-ink lg:mt-6 lg:text-[38px] lg:leading-none">
               {t("shareTitle")}
             </h1>
-            <p className="mt-5 text-sm font-medium text-ink-muted">
+            <p className="mt-3 text-sm font-medium text-ink-muted sm:mt-5">
               {t("shareDescription")}
             </p>
           </div>
@@ -182,7 +182,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
               type="button"
               onClick={publishCourse}
               disabled={submitting}
-              className={`inline-flex w-fit items-center justify-center rounded-full px-10 py-4 text-sm font-black text-white shadow-control transition ${
+              className={`hidden w-fit items-center justify-center rounded-full px-10 py-4 text-sm font-black text-white shadow-control transition lg:inline-flex ${
                 submitting
                   ? "cursor-not-allowed bg-brand/60"
                   : "cursor-pointer bg-brand hover:bg-brand-dark"
@@ -194,13 +194,13 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         </div>
       </section>
 
-      <section className="bg-white px-4 pb-10 sm:px-14 lg:px-52 lg:pb-[120px] xl:px-60 2xl:px-72">
+      <section className="bg-white px-4 pb-8 sm:px-14 sm:pb-10 lg:px-52 lg:pb-[120px] xl:px-60 2xl:px-72">
         {errorMsg && (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-600">
             {errorMsg}
           </div>
         )}
-        <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:gap-7">
           <section className="min-w-0 rounded-[22px] bg-surface-soft p-4 sm:rounded-[28px] sm:p-7 lg:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-ink">{t("myCourses")}</h2>
@@ -208,7 +208,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                 {courses.length}개
               </span>
             </div>
-            <div className="mt-8">
+            <div className="mt-5 sm:mt-8">
               <span className="rounded-full bg-brand px-4 py-2 text-xs font-black text-white">
                 {t("myCourses")}
               </span>
@@ -253,9 +253,9 @@ export function ShareCourseForm({ courses = [], loading = false }) {
               </div>
             ) : (
               <div
-                className={`mt-6 flex flex-col gap-4 pr-1 ${
+                className={`mt-4 flex flex-col gap-3 pr-1 sm:mt-6 sm:gap-4 ${
                   shouldScroll
-                    ? "max-h-[530px] overflow-y-auto overscroll-contain"
+                    ? "max-h-[420px] overflow-y-auto overscroll-contain lg:max-h-[530px]"
                     : ""
                 }`}
               >
@@ -282,7 +282,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
 
               <label
                 htmlFor="course-title-input"
-                className="mt-6 block text-sm font-black text-ink"
+                className="mt-5 block text-sm font-black text-ink sm:mt-6"
               >
                 게시글 제목
               </label>
@@ -295,7 +295,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                 className="mt-2 w-full rounded-[16px] border border-line bg-surface-soft px-4 py-3.5 text-base font-bold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
               />
 
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-black text-ink">사진 첨부</span>
                   <span className="text-xs font-medium text-ink-muted">
@@ -312,19 +312,19 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                   className="hidden"
                 />
 
-                <div className="mt-3 flex gap-4 overflow-x-auto rounded-[28px] bg-surface-soft p-6">
+                <div className="mt-3 flex gap-3 overflow-x-auto rounded-[20px] bg-surface-soft p-4 sm:gap-4 sm:rounded-[28px] sm:p-6">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex h-[166px] w-[176px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-[18px] border border-dashed border-line bg-white text-center transition hover:border-brand hover:bg-brand-soft/20"
+                    className="flex h-[128px] w-[132px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-[18px] border border-dashed border-line bg-white text-center transition hover:border-brand hover:bg-brand-soft/20 sm:h-[166px] sm:w-[176px]"
                   >
-                    <span className="text-[34px] font-black leading-none text-brand">
+                    <span className="text-[30px] font-black leading-none text-brand sm:text-[34px]">
                       +
                     </span>
-                    <span className="mt-4 text-sm font-black text-ink">
+                    <span className="mt-3 text-sm font-black text-ink sm:mt-4">
                       사진 첨부
                     </span>
-                    <span className="mt-2 text-xs font-medium text-ink-muted">
+                    <span className="mt-1.5 text-xs font-medium text-ink-muted sm:mt-2">
                       최대 10장
                     </span>
                   </button>
@@ -341,7 +341,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
 
               <label
                 htmlFor="review-caption"
-                className="mt-7 block text-sm font-black text-ink"
+                className="mt-5 block text-sm font-black text-ink sm:mt-7"
               >
                 후기 캡션
               </label>
@@ -349,15 +349,15 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                 id="review-caption"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                rows={5}
-                className="mt-2 w-full resize-none rounded-[20px] border border-line bg-surface-soft p-5 text-sm font-medium leading-6 text-ink outline-none transition placeholder:text-ink-muted/50 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
+                rows={4}
+                className="mt-2 w-full resize-none rounded-[20px] border border-line bg-surface-soft p-4 text-sm font-medium leading-6 text-ink outline-none transition placeholder:text-ink-muted/50 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 sm:p-5"
                 placeholder="코스에 대한 방문 후기 및 동선 꿀팁을 작성해보세요. (예: 사진 순서대로 이동하면 동선이 편리해요)"
               />
 
-              <div className="mt-8 flex flex-col gap-5 rounded-[24px] bg-surface-soft p-4 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="mt-6 flex flex-col gap-4 rounded-[24px] bg-surface-soft p-4 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
                 <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                   {photos.length > 0 ? (
-                    <div className="relative size-[100px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-slate-950 shadow-xs">
+                    <div className="relative size-[76px] shrink-0 overflow-hidden rounded-[18px] border border-line bg-slate-950 shadow-xs sm:size-[100px]">
                       <img
                         src={photos[0]}
                         alt="대표 사진 미리보기"
@@ -366,7 +366,7 @@ export function ShareCourseForm({ courses = [], loading = false }) {
                     </div>
                   ) : (
                     <div
-                      className={`size-[100px] shrink-0 rounded-[18px] bg-linear-to-br ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
+                      className={`size-[76px] shrink-0 rounded-[18px] bg-linear-to-br sm:size-[100px] ${selectedCourse.gradient || "from-[#5c2ef5] to-[#9b5cf6]"}`}
                     />
                   )}
                   <div className="min-w-0">

@@ -155,7 +155,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex h-full min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:h-auto lg:aspect-[3/4] lg:rounded-[22px]"
+      className="group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]"
     >
       {/* Full Background Image */}
       <img
@@ -385,7 +385,7 @@ export function CommunityCoursePage({ initialCards = [] }) {
               return (
                 <div
                   key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                  className="min-h-0 min-w-0"
+                  className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
                 >
                   <CommunityCard
                     card={card}
