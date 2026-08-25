@@ -1,7 +1,7 @@
 import { CountryRankingView } from "@/components/admin/country-ranking-view";
 
 export const metadata = {
-  title: "후보 TOP 20",
+  title: "국가별 후보군",
 };
 
 export default function AdminTrendCandidatesPage() {

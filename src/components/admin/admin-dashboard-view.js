@@ -58,8 +58,8 @@ export function AdminDashboardView() {
   if (loading) return <ArtifactLoading />;
   if (error) return <ArtifactError error={error} onRetry={reload} />;
 
-  const { top4, candidates, youtube } = data;
-  const artifacts = [top4, candidates, youtube];
+  const { top10, candidates, youtube } = data;
+  const artifacts = [top10, candidates, youtube];
   const youtubeOverall = Array.isArray(youtube?.payload?.overall)
     ? youtube.payload.overall
     : [];
@@ -67,7 +67,7 @@ export function AdminDashboardView() {
   return (
     <section className="space-y-7">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="FINAL RANK" value={totalCountryRows(top4?.payload?.countries)} caption="4개국 최종 순위 항목" tone="purple" />
+        <MetricCard label="FINAL RANK" value={totalCountryRows(top10?.payload?.countries)} caption="4개국 최종 순위 항목" tone="purple" />
         <MetricCard label="CANDIDATES" value={totalCountryRows(candidates?.payload?.countries)} caption="교차 검증 후보 전체" tone="blue" />
         <MetricCard label="YOUTUBE" value={youtubeOverall.length} caption="최근 7일 전체 급상승" tone="green" />
         <MetricCard label="WARNINGS" value={warningCount(artifacts)} caption="확인이 필요한 수집 경고" tone="amber" />
@@ -77,8 +77,8 @@ export function AdminDashboardView() {
         <article className="overflow-hidden rounded-2xl border border-[#e1e4ed] bg-white shadow-[0_14px_45px_rgba(31,36,66,0.05)]">
           <div className="flex items-center justify-between border-b border-[#eceef4] px-6 py-5">
             <div>
-              <h2 className="font-bold">오늘의 국가별 TOP 4</h2>
-              <p className="mt-1 text-xs text-[#8a90a3]">최신 최종 산출물 미리보기</p>
+              <h2 className="font-bold">오늘의 국가별 TOP 10</h2>
+              <p className="mt-1 text-xs text-[#8a90a3]">최신 최종 산출물 미리보기 · 국가별 상위 4명</p>
             </div>
             <Link href="/admin/trends/rankings" className="text-xs font-bold text-brand hover:underline">
               전체 보기 →
@@ -87,7 +87,7 @@ export function AdminDashboardView() {
 
           <div className="grid md:grid-cols-2">
             {COUNTRIES.map((code, countryIndex) => {
-              const rows = latestRows(top4, code).slice(0, 4);
+              const rows = latestRows(top10, code).slice(0, 4);
               return (
                 <section
                   key={code}
@@ -122,8 +122,8 @@ export function AdminDashboardView() {
           <p className="mt-1 text-xs text-[#8a90a3]">S3 최신 산출물 기준</p>
           <div className="mt-5 divide-y divide-[#eceef4]">
             {[
-              ["국가별 TOP 4", top4, "/admin/trends/rankings"],
-              ["후보 TOP 20", candidates, "/admin/trends/candidates"],
+              ["국가별 TOP 10", top10, "/admin/trends/rankings"],
+              ["국가별 후보군", candidates, "/admin/trends/candidates"],
               ["YouTube 급상승", youtube, "/admin/trends/youtube"],
             ].map(([label, artifact, href]) => (
               <Link key={label} href={href} className="flex items-center justify-between gap-4 py-4 first:pt-0 hover:text-brand">

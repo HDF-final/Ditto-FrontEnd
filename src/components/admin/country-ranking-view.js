@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getAdminCandidates, getAdminTop4 } from "@/lib/api/admin-trends";
+import { getAdminCandidates, getAdminTop10 } from "@/lib/api/admin-trends";
 import { useAdminTrendArtifact } from "@/hooks/use-admin-trend-artifact";
 import {
   ArtifactError,
@@ -35,7 +35,7 @@ function countryCount(countries, code) {
 }
 
 export function CountryRankingView({ mode }) {
-  const loader = mode === "top4" ? getAdminTop4 : getAdminCandidates;
+  const loader = mode === "top10" ? getAdminTop10 : getAdminCandidates;
   const { data, error, loading, reload } = useAdminTrendArtifact(loader);
   const [country, setCountry] = useState("KR");
 
@@ -45,7 +45,7 @@ export function CountryRankingView({ mode }) {
   const payload = data?.payload || {};
   const countries = payload.countries || {};
   const rows = Array.isArray(countries[country]) ? countries[country] : [];
-  const isTop4 = mode === "top4";
+  const isFinal = mode === "top10";
 
   return (
     <section>
@@ -89,10 +89,10 @@ export function CountryRankingView({ mode }) {
           <div>
             <h2 className="font-bold">
               {COUNTRY_META[country].flag} {COUNTRY_META[country].name}{" "}
-              {isTop4 ? "최종 TOP 4" : "후보 TOP 20"}
+              {isFinal ? "최종 TOP 10" : "국가별 후보군"}
             </h2>
             <p className="mt-1 text-xs text-[#8a90a3]">
-              {isTop4 ? "화면 노출용 최종 순위" : "최종 비교 전 후보 우선순위"}
+              {isFinal ? "화면 노출용 최종 순위" : "최종 비교 전 후보 우선순위"}
             </p>
           </div>
           <span className="rounded-full bg-[#f2efff] px-3 py-1.5 text-xs font-bold text-brand">
@@ -106,7 +106,7 @@ export function CountryRankingView({ mode }) {
               <tr>
                 <th className="w-20 px-6 py-4">순위</th>
                 <th className="px-4 py-4">아티스트</th>
-                {isTop4 ? (
+                {isFinal ? (
                   <>
                     <th className="px-4 py-4">7일</th>
                     <th className="px-4 py-4">30일</th>
@@ -151,7 +151,7 @@ export function CountryRankingView({ mode }) {
                       {item.entityType ? ` · ${item.entityType}` : ""}
                     </p>
                   </td>
-                  {isTop4 ? (
+                  {isFinal ? (
                     <>
                       <td className="px-4 py-4 font-semibold">{score(item.scores?.short7)}</td>
                       <td className="px-4 py-4 font-semibold">{score(item.scores?.medium30)}</td>

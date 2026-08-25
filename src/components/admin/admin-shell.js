@@ -6,15 +6,15 @@ import { useAuthStore } from "@/stores/use-auth-store";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: "grid" },
-  { href: "/admin/trends/rankings", label: "국가별 TOP 4", icon: "chart" },
-  { href: "/admin/trends/candidates", label: "후보 TOP 20", icon: "users" },
+  { href: "/admin/trends/rankings", label: "국가별 TOP 10", icon: "chart" },
+  { href: "/admin/trends/candidates", label: "국가별 후보군", icon: "users" },
   { href: "/admin/trends/youtube", label: "YouTube 급상승", icon: "play" },
 ];
 
 const PAGE_TITLES = {
   "/admin": ["트렌드 운영 대시보드", "오늘 수집된 트렌드 산출물을 한눈에 확인합니다."],
-  "/admin/trends/rankings": ["국가별 TOP 4", "한국·중국·일본·미국 최종 트렌드 순위를 확인합니다."],
-  "/admin/trends/candidates": ["후보 TOP 20", "국가별 비교 분석에 투입된 후보군을 확인합니다."],
+  "/admin/trends/rankings": ["국가별 TOP 10", "한국·중국·일본·미국 최종 트렌드 순위를 확인합니다."],
+  "/admin/trends/candidates": ["국가별 후보군", "국가별 비교 분석에 투입된 후보군을 확인합니다."],
   "/admin/trends/youtube": ["YouTube 급상승", "최근 7일 K-컬처 영상 급상승 신호를 확인합니다."],
 };
 
