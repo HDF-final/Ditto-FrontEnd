@@ -97,6 +97,18 @@ function AiPlaceModalContent({ place, onClose }) {
     Boolean(productNavigationKey) &&
     productResult.navigationKey !== productNavigationKey;
   const brandProducts = isProductLoading ? [] : productResult.products;
+  const boniReasonLabel = t.has("boniReason") ? t("boniReason") : "보니 추천 이유";
+  const brandProductsLabel = t.has("brandProducts") ? t("brandProducts") : "브랜드 상품";
+  const getBrandProductAlt = (product, idx) => {
+    const name = product.productName || place.name;
+    if (t.has("brandProductAlt")) {
+      return t("brandProductAlt", {
+        name,
+        index: idx + 1,
+      });
+    }
+    return `${name} 상품 ${idx + 1}`;
+  };
 
   return (
     <div
@@ -146,7 +158,7 @@ function AiPlaceModalContent({ place, onClose }) {
           <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
             <div className="flex items-center gap-2 text-[16px] font-black text-[#5c2ef5] mb-2.5">
               <span>✨</span>
-              <span>{t("boniReason")}</span>
+              <span>{boniReasonLabel}</span>
             </div>
             <p className="text-[17px] font-medium leading-[1.7] text-[#2d2745] break-keep">
               {aiReasonText}
@@ -157,7 +169,7 @@ function AiPlaceModalContent({ place, onClose }) {
           {brandProducts.length > 0 ? (
             <div className="mt-6">
               <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-                {t("brandProducts")}
+                {brandProductsLabel}
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {brandProducts.map((product, idx) => (
@@ -167,18 +179,12 @@ function AiPlaceModalContent({ place, onClose }) {
                     target="_blank"
                     rel="noreferrer"
                     className="group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]"
-                    aria-label={t("brandProductAlt", {
-                      name: product.productName || place.name,
-                      index: idx + 1,
-                    })}
+                    aria-label={getBrandProductAlt(product, idx)}
                     title={product.productName || product.brandName || place.name}
                   >
                     <img
                       src={product.imageUrl}
-                      alt={t("brandProductAlt", {
-                        name: product.productName || place.name,
-                        index: idx + 1,
-                      })}
+                      alt={getBrandProductAlt(product, idx)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         e.currentTarget.src = getFallbackPlaceImage(place);
