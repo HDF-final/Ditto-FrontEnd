@@ -24,6 +24,29 @@ function ArrowRightIcon({ className = "" }) {
 
 const HERO_VIDEO_SRC = "/assets/home/ditto-main-banner.mp4";
 
+// 히어로 CTA 버튼 (모바일=sm, 데스크톱=md / solid=흰버튼, outline=글래스)
+function HeroCta({ href, label, tone = "solid", size = "md" }) {
+  const sizeStyles =
+    size === "sm"
+      ? "min-h-8 gap-1.5 px-4 text-[11px]"
+      : "gap-2 px-6 py-3 text-sm";
+  const toneStyles =
+    tone === "solid"
+      ? "bg-white text-ink shadow-control hover:bg-white/90"
+      : "border border-white/50 bg-white/10 text-white backdrop-blur-md hover:bg-white/18";
+  const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+
+  return (
+    <Link
+      href={href}
+      className={`group inline-flex items-center justify-center whitespace-nowrap rounded-full font-black transition ${sizeStyles} ${toneStyles}`}
+    >
+      {label}
+      <ArrowRightIcon className={`${iconSize} transition group-hover:translate-x-0.5`} />
+    </Link>
+  );
+}
+
 function SlideIndicators({
   slides,
   activeIndex,
@@ -94,13 +117,13 @@ export function HomeHero({ slides }) {
     <>
       <section
         ref={heroViewportRef}
-        className={`relative min-h-[410px] select-none overflow-hidden bg-[#100b24] px-5 pb-6 pt-6 text-white lg:hidden ${
+        className={`relative min-h-[340px] select-none overflow-hidden bg-[#100b24] px-5 pb-6 pt-6 text-white lg:hidden ${
           heroDragging ? "cursor-grabbing" : ""
         }`}
         {...heroHandlers}
       >
         <video
-          className="absolute inset-0 h-full w-full scale-[1.32] object-cover object-[66%_center]"
+          className="absolute inset-0 h-full w-full object-cover object-center"
           src={HERO_VIDEO_SRC}
           autoPlay
           muted
@@ -108,10 +131,10 @@ export function HomeHero({ slides }) {
           playsInline
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-linear-to-b from-black/78 via-black/24 to-black/82" />
-        <div className="absolute inset-0 bg-linear-to-r from-[#170f34]/82 via-black/28 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/66 via-black/18 to-black/76" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#170f34]/68 via-black/22 to-transparent" />
 
-        <div className="relative flex min-h-[350px] flex-col justify-end">
+        <div className="relative flex min-h-[320px] flex-col justify-end">
           <div>
             <span className="inline-flex rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-black tracking-[0.12em] text-white/86 backdrop-blur-md">
               LIVE K-TREND
@@ -123,25 +146,19 @@ export function HomeHero({ slides }) {
                 {mobileSlide.suffix}
               </span>
             </h1>
-            <p className="mt-3 max-w-[290px] text-[13px] font-semibold leading-6 text-white/82">
-              {mobileSlide.description}
-            </p>
-            <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
-              <Link
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <HeroCta
                 href={mobileSlide.primaryCta.href}
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-[12px] font-black text-ink shadow-control"
-              >
-                {mobileSlide.primaryCta.label}
-                <ArrowRightIcon className="h-3.5 w-3.5" />
-              </Link>
-              <Link
+                label={mobileSlide.primaryCta.label}
+                tone="solid"
+                size="sm"
+              />
+              <HeroCta
                 href={mobileSlide.secondaryCta.href}
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-white/45 bg-white/10 px-4 text-[12px] font-black text-white backdrop-blur-md"
-                aria-label={mobileSlide.secondaryCta.label}
-                title={mobileSlide.secondaryCta.label}
-              >
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
+                label={mobileSlide.secondaryCta.label}
+                tone="outline"
+                size="sm"
+              />
             </div>
           </div>
         </div>
@@ -201,20 +218,16 @@ export function HomeHero({ slides }) {
               {activeSlide.description}
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link
+              <HeroCta
                 href={activeSlide.primaryCta.href}
-                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 py-3 text-sm font-black text-ink shadow-control transition hover:bg-white/90"
-              >
-                {activeSlide.primaryCta.label}
-                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
-              <Link
+                label={activeSlide.primaryCta.label}
+                tone="solid"
+              />
+              <HeroCta
                 href={activeSlide.secondaryCta.href}
-                className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/55 bg-white/10 px-6 py-3 text-sm font-black text-white backdrop-blur-sm transition hover:bg-white/18"
-              >
-                {activeSlide.secondaryCta.label}
-                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
+                label={activeSlide.secondaryCta.label}
+                tone="outline"
+              />
             </div>
             <SlideIndicators
               slides={slides}
