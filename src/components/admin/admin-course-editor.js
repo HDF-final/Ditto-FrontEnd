@@ -9,7 +9,7 @@ import {
 import { approveAdminCourse, publishAdminCourse } from "@/lib/api/admin-courses";
 // 경로 계산과 매장 목록은 기본 추천 코스 편집기와 **같은 것을 쓴다.**
 import { useCourseRoute, usePlaceCatalog } from "./admin-course-map";
-import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
+import { COUNTRY_META, WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
 // 초안 하나를 관리자가 손으로 고치는 편집기. /ai-course 의 코스 스튜디오와 같은 짜임이다 —
@@ -508,6 +508,15 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
 
   const [reply, setReply] = useState(original.reply || "");
   const [places, setPlaces] = useState(() => original.places || []);
+  // 코스의 얼굴. **비우면 기본값**(근거 사진 → 첫 자리 매장 사진)으로 떨어진다.
+  const [mainImage, setMainImage] = useState(original.main_image || "");
+  // 어느 나라 목록에 걸 것인가. 기본 추천 코스로 올릴 때만 쓴다 — 캐시 승인에는
+  // 나라 개념이 없다(그날 즉답용 사본이라 나라를 안 가린다).
+  const [countries, setCountries] = useState(() =>
+    Array.isArray(original.country_codes) && original.country_codes.length
+      ? original.country_codes
+      : ["KR"],
+  );
   const [selected, setSelected] = useState(null);
   const [adding, setAdding] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
@@ -538,8 +547,9 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
   const dirty = useMemo(
     () =>
       reply !== (original.reply || "") ||
+      mainImage !== (original.main_image || "") ||
       JSON.stringify(places) !== JSON.stringify(original.places || []),
-    [reply, places, original],
+    [reply, mainImage, places, original],
   );
 
   // 상세에서 '임시 저장'을 눌렀을 때만 자리가 바뀐다. 타이핑이 그대로 흘러가면
@@ -582,6 +592,7 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
 
   const reset = useCallback(() => {
     setReply(original.reply || "");
+    setMainImage(original.main_image || "");
     setPlaces(original.places || []);
     setSelected(null);
     setNotice("");
@@ -632,10 +643,28 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
     }
   }, [navigationKeys]);
 
+  /**
+   * 창구로 보내는 몸통. **초안 원문 그대로에 고친 것만 얹는다** — 승인 람다가
+   * `research` 와 세션 `state` 를 그대로 다시 쓰므로 화면이 새로 조립할 것이 없다.
+   *
+   * `country_codes` 는 기본 추천 코스로 올릴 때만 쓰인다. 캐시 승인은 나라를 안
+   * 본다 — 그날 즉답용 사본이라 나라를 가릴 이유가 없다.
+   */
+  const body = useCallback(
+    () => ({
+      ...original,
+      reply,
+      places,
+      main_image: mainImage.trim(),
+      country_codes: countries,
+    }),
+    [original, reply, places, mainImage, countries],
+  );
+
   // JSON 은 **누를 때만** 만든다. 렌더마다 만들면 조사 원문까지 직렬화하느라 입력이 밀린다.
   const buildJson = useCallback(
-    () => JSON.stringify({ ...original, reply, places }, null, 2),
-    [original, reply, places],
+    () => JSON.stringify(body(), null, 2),
+    [body],
   );
 
   const copyJson = useCallback(async () => {
@@ -670,11 +699,7 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
     setNotice("");
     try {
       const send = target === "publish" ? publishAdminCourse : approveAdminCourse;
-      const result = await send(detail.celebrity, {
-        ...original,
-        reply,
-        places,
-      });
+      const result = await send(detail.celebrity, body());
       // 목록에서 그 카드가 사라지는 것이 곧 성공 신호다 — 초안을 지웠으니까.
       onApproved?.(detail.celebrity, result);
     } catch (error) {
@@ -687,7 +712,23 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
         } 확인하세요.`,
       );
     }
-  }, [approving, target, detail, original, reply, places, onApproved, live]);
+  }, [approving, target, detail, body, onApproved, live]);
+
+  /**
+   * 대표 사진을 안 고르면 무엇이 나가나. **오라클·캐시가 고르는 순서와 같다** —
+   * 근거 사진이 먼저고 없으면 아무 자리 사진이다 (`celeb_approve.hero_of`).
+   * 미리 보여 주지 않으면 관리자가 "비워 두면 뭐가 나오지" 를 알 수 없다.
+   */
+  const defaultHero = useMemo(() => {
+    let fallback = "";
+    for (const place of places) {
+      const url = place?.image?.url;
+      if (!url) continue;
+      if (place.image.kind === "evidence") return url;
+      fallback = fallback || url;
+    }
+    return fallback;
+  }, [places]);
 
   const shape = useMemo(() => {
     const counts = places.reduce((acc, place) => {
@@ -817,6 +858,109 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
               className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] leading-6 text-[#20243a] outline-none focus:border-brand"
             />
           </label>
+
+          {/* **코스의 얼굴.** 카드와 코스 상세의 배경으로 나가고, 어드민 안팎이 같은
+              사진을 쓴다. 비우면 근거 사진 → 첫 자리 매장 사진 차례로 떨어진다. */}
+          <label className="mb-4 block">
+            <span className="mb-1 flex flex-wrap items-baseline gap-2">
+              <span className="text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">
+                대표 사진
+              </span>
+              <span className="text-[10px] text-[#9aa0b0]">
+                비우면 첫 자리 사진이 자동으로 쓰입니다
+              </span>
+            </span>
+            <div className="flex gap-3">
+              <Photo url={mainImage || defaultHero} alt="대표 사진" className="size-20 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <input
+                  value={mainImage}
+                  onChange={(event) => setMainImage(event.target.value)}
+                  placeholder={defaultHero || "https://…"}
+                  className="w-full rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-[13px] leading-6 text-[#20243a] outline-none focus:border-brand"
+                />
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-[#9aa0b0]">
+                    {mainImage ? "직접 지정" : "기본값 사용 중"}
+                  </span>
+                  {/* 자리 사진 중에서 고르는 것이 흔한 경우다. 주소를 손으로 옮겨
+                      적게 하면 오타가 난다. */}
+                  {places.slice(0, 6).map((place, index) =>
+                    place.image?.url ? (
+                      <button
+                        key={place.slot_id ?? index}
+                        type="button"
+                        onClick={() => setMainImage(place.image.url)}
+                        title={place.place_name}
+                        className={`overflow-hidden rounded-md border transition ${
+                          mainImage === place.image.url
+                            ? "border-brand ring-2 ring-brand/25"
+                            : "border-[#e6e8f0] hover:border-brand"
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={place.image.url} alt="" loading="lazy" className="size-8 object-cover" />
+                      </button>
+                    ) : null,
+                  )}
+                  {mainImage ? (
+                    <button
+                      type="button"
+                      onClick={() => setMainImage("")}
+                      className="rounded-lg border border-[#dfe2ec] bg-white px-2 py-1 text-[10px] font-bold text-[#4d536a] hover:border-brand hover:text-brand"
+                    >
+                      기본값으로
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </label>
+
+          {/* **기본 추천 코스로 올릴 때만 쓰인다.** 캐시 승인에는 나라 개념이 없다.
+              손님 화면의 나라 버튼에 "전체" 가 없어서, 하나도 안 고르면 어느
+              버튼에서도 안 보인다 — 그래서 승인 자체를 막는다. */}
+          <div className="mb-4">
+            <span className="mb-1 flex flex-wrap items-baseline gap-2">
+              <span className="text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">
+                어느 나라 추천 코스로
+              </span>
+              <span className="text-[10px] text-[#9aa0b0]">
+                여러 나라를 고를 수 있습니다 · 기본 추천 코스로 승인할 때만 쓰입니다
+              </span>
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(COUNTRY_META).map(([code, meta]) => {
+                const on = countries.includes(code);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() =>
+                      setCountries((prev) =>
+                        prev.includes(code)
+                          ? prev.filter((item) => item !== code)
+                          : [...prev, code],
+                      )
+                    }
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+                      on
+                        ? "bg-[#231f35] text-white shadow-[0_4px_12px_rgba(20,24,45,0.18)]"
+                        : "border border-[#dfe2ec] bg-white text-[#4d536a] hover:border-brand hover:text-brand"
+                    }`}
+                  >
+                    {meta.flag} {meta.name}
+                  </button>
+                );
+              })}
+            </div>
+            {!countries.length ? (
+              <p className="mt-1.5 text-[11px] font-semibold text-[#a3323f]">
+                나라를 하나 이상 골라야 기본 추천 코스로 올릴 수 있습니다.
+              </p>
+            ) : null}
+          </div>
 
           <WarningPanel warnings={original.warnings} open label="초안 경고" />
 
@@ -960,11 +1104,15 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
           <button
             type="button"
             onClick={() => approve("publish")}
-            disabled={approving === "sending" || !places.length}
+            disabled={approving === "sending" || !places.length || !countries.length}
             className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(20,24,45,0.18)] disabled:opacity-40 disabled:shadow-none ${
               approving === "confirm" ? "bg-[#c0392b]" : "bg-[#12804b]"
             }`}
-            title="캐시에 올리고, 그 위에 서비스 DB 에도 넣습니다. 만료가 없고 메인·코스 추천 리스트에 걸립니다"
+            title={
+              countries.length
+                ? `캐시에 올리고, 그 위에 서비스 DB 에도 넣습니다. ${countries.join("·")} 추천 리스트에 걸립니다`
+                : "나라를 하나 이상 골라야 합니다"
+            }
           >
             {approving === "sending" && target === "publish"
               ? "올리는 중…"
@@ -983,7 +1131,8 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
           </button>
         ) : null}
         <span className="ml-auto text-[11px] text-[#9aa0b0]">
-          자리 {places.length}/{MAX_PLACES}곳 · 경고 {original.warnings?.length || 0}건
+          자리 {places.length}/{MAX_PLACES}곳 · 경고 {original.warnings?.length || 0}건 ·{" "}
+          나라 {countries.length ? countries.join("·") : "없음"}
         </span>
       </footer>
     </div>

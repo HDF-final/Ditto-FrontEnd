@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --port 3000",
     "lint": "eslint .",
-    "test": "pnpm test:navigation && pnpm test:navigation-assets && pnpm test:place-category && pnpm test:scan-location && pnpm test:preferences && pnpm test:i18n && pnpm test:request-language",
+    "test": "pnpm test:navigation && pnpm test:navigation-assets && pnpm test:place-category && pnpm test:scan-location && pnpm test:preferences && pnpm test:i18n && pnpm test:request-language && pnpm test:course-detail && pnpm test:hero-image",
     "test:navigation": "node --test tests/navigation-routing.test.mjs",
     "test:navigation-assets": "node --test tests/navigation-assets.test.mjs",
     "test:place-category": "node --test tests/place-category.test.mjs",
@@ -15,7 +15,9 @@
     "test:preferences": "node --test tests/preference-policy.test.mjs",
     "test:i18n": "node --test tests/i18n.test.mjs",
     "test:request-language": "node --test tests/request-language.test.mjs",
-    "check": "pnpm lint && pnpm build"
+    "check": "pnpm lint && pnpm build",
+    "test:course-detail": "node --test tests/course-detail-normalize.test.mjs",
+    "test:hero-image": "node --test tests/hero-image.test.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RecommendedCourseTicket } from "@/components/courses/recommended-course-ticket";
 import { CourseCard } from "@/components/home/course-card";
+import { RecommendedCourseOrbit } from "@/components/home/recommended-course-orbit";
 import { getSystemCourses } from "@/lib/api/courses";
 import { useTranslations } from "next-intl";
 
@@ -22,7 +22,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
     if (initialCourses.length > 0) {
       return;
     }
-    getSystemCourses({ page: 0, size: 6 })
+    getSystemCourses({ page: 0, size: 50 })
       .then((data) => {
         if (!active) return;
         const list = Array.isArray(data?.content)
@@ -81,24 +81,24 @@ export function DittoPicksSection({ initialCourses = [] }) {
   return (
     <section
       id="picks"
-      className="scroll-mt-16 bg-surface-soft px-5 py-8 lg:scroll-mt-24 lg:px-52 lg:py-18 xl:px-60 2xl:px-72"
+      className="home-snap-panel scroll-mt-16 bg-surface-soft px-5 py-8 lg:flex lg:scroll-mt-0 lg:px-0 lg:py-0"
     >
-      <div>
+      <div className="home-content-boundary lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:justify-center lg:py-[clamp(28px,5dvh,56px)]">
         <div>
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand lg:text-base lg:tracking-wide">
               DITTO PICKS
             </p>
-            <h2 className="mt-2 text-[26px] font-black leading-tight text-ink lg:text-[40px]">
+            <h2 className="mt-2 text-[26px] font-black leading-tight text-ink lg:text-5xl lg:leading-[1.18]">
               {t("picksTitle")}
             </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-ink-muted lg:text-base">
+            <p className="mt-2 text-sm font-medium leading-6 text-ink-muted lg:text-lg lg:font-semibold lg:leading-8">
               {t("picksDescription")}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 lg:mt-3">
+        <div className="mt-6 lg:mt-[clamp(18px,2.6dvh,30px)]">
           <div className="grid gap-5 lg:hidden">
             {displayCourses.length > 0 ? (
               displayCourses.slice(0, 3).map((course) => (
@@ -111,13 +111,8 @@ export function DittoPicksSection({ initialCourses = [] }) {
             )}
           </div>
           {displayCourses.length > 0 ? (
-            <div className="hidden gap-6 lg:grid lg:grid-cols-3">
-              {displayCourses.slice(0, 3).map((course) => (
-                <RecommendedCourseTicket
-                  key={`${course.href}-${course.rank}`}
-                  course={course}
-                />
-              ))}
+            <div className="hidden lg:block">
+              <RecommendedCourseOrbit courses={displayCourses} />
             </div>
           ) : null}
         </div>

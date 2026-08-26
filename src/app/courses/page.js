@@ -16,6 +16,11 @@ const GRADIENTS = [
   "from-[#5c2ef5] via-[#8447ef] to-[#b16cef]",
   "from-[#35218f] via-[#5840d8] to-[#795ff0]",
 ];
+// `COUNTRY.CODE` 와 같은 글자. 주소로 들어온 값을 이 목록으로 걸러 — 아무 값이나
+// 백엔드로 흘려보내면 빈 목록이 뜨고 손님은 이유를 모른다.
+const SUPPORTED_COUNTRIES = ["KR", "CN", "JP", "US"];
+const DEFAULT_COUNTRY = "KR";
+
 const MOBILE_COURSES_PER_PAGE = 2;
 const DESKTOP_COURSES_PER_PAGE = 4;
 
@@ -26,7 +31,8 @@ function getCourseImage(course, index) {
   );
 }
 
-function CoursePagination({ currentPage, totalPages, className = "" }) {
+// 나라를 같이 실어야 2쪽으로 넘어갈 때 고른 나라가 안 풀린다.
+function CoursePagination({ currentPage, totalPages, country, className = "" }) {
   if (totalPages <= 1) return null;
 
   return (
@@ -35,7 +41,7 @@ function CoursePagination({ currentPage, totalPages, className = "" }) {
       className={`mt-10 items-center justify-center gap-2 ${className}`}
     >
       <Link
-        href={`/courses?page=${Math.max(1, currentPage - 1)}`}
+        href={`/courses?country=${country}&page=${Math.max(1, currentPage - 1)}`}
         aria-disabled={currentPage === 1}
         className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
           currentPage === 1
@@ -51,7 +57,7 @@ function CoursePagination({ currentPage, totalPages, className = "" }) {
         return (
           <Link
             key={page}
-            href={`/courses?page=${page}`}
+            href={`/courses?country=${country}&page=${page}`}
             aria-current={active ? "page" : undefined}
             className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
               active
@@ -64,7 +70,7 @@ function CoursePagination({ currentPage, totalPages, className = "" }) {
         );
       })}
       <Link
-        href={`/courses?page=${Math.min(totalPages, currentPage + 1)}`}
+        href={`/courses?country=${country}&page=${Math.min(totalPages, currentPage + 1)}`}
         aria-disabled={currentPage === totalPages}
         className={`inline-flex size-10 items-center justify-center rounded-full border text-sm font-black transition ${
           currentPage === totalPages
@@ -82,7 +88,12 @@ export default async function CoursesPage({ searchParams }) {
   const t = await getTranslations("courses");
   const params = searchParams ? await searchParams : {};
   const requestedPage = Number.parseInt(params.page ?? "1", 10);
-  const systemCourses = (await fetchRawSystemCoursesServer({ size: 20 }).catch(() => []))
+  // **기본은 한국이다.** "전체" 버튼을 안 두기로 해서, 나라를 안 주면 어느 버튼도
+  // 켜지지 않은 채 전부가 나온다 — 버튼과 목록이 안 맞는 그 상태가 원래 문제였다.
+  const country = SUPPORTED_COUNTRIES.includes(String(params.country || "").toUpperCase())
+    ? String(params.country).toUpperCase()
+    : DEFAULT_COUNTRY;
+  const systemCourses = (await fetchRawSystemCoursesServer({ size: 20, country }).catch(() => []))
     .filter((course) => {
       const type = String(course.creationType || course.courseType || course.type || "").toUpperCase();
       return type === "SYSTEM";
@@ -151,7 +162,7 @@ export default async function CoursesPage({ searchParams }) {
               <p className="mt-3 max-w-[620px] text-sm font-medium leading-relaxed text-ink-muted sm:text-base lg:mt-5 lg:max-w-none lg:text-base lg:leading-7">
                 {t("listDescription")}
               </p>
-              <CourseCountryFilter />
+              <CourseCountryFilter active={country} />
             </div>
             <div
               className="hidden h-14 w-[171px] shrink-0 lg:block"
@@ -259,11 +270,13 @@ export default async function CoursesPage({ searchParams }) {
               <CoursePagination
                 currentPage={currentMobilePage}
                 totalPages={mobileTotalPages}
+                country={country}
                 className="flex lg:hidden"
               />
               <CoursePagination
                 currentPage={currentDesktopPage}
                 totalPages={desktopTotalPages}
+                country={country}
                 className="hidden lg:flex"
               />
             </>
