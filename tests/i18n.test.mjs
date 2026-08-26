@@ -83,7 +83,7 @@ test("header exposes the primary product navigation items", async () => {
 
   assert.deepEqual(items, [
     { href: "/ai-course", labelKey: "createCourse" },
-    { href: "/#picks", labelKey: "courseRecommendations" },
+    { href: "/courses", labelKey: "courseRecommendations" },
     { href: "/community", labelKey: "community" },
     { href: "/news", labelKey: "news" },
   ]);

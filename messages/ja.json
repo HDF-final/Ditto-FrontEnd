@@ -394,7 +394,7 @@
     "optimize": "最適化",
     "savingShort": "保存中",
     "saveShort": "保存",
-    "dragHint": "カードをドラッグして並べ替え · 出発・到着・ロックした順番は最適化でも維持されます",
+    "dragHint": "番号をタップまたはカードをドラッグして並べ替え · 出発・到着・ロックした順番は最適化でも維持されます",
     "transportOptions": "移動手段の条件",
     "excludeElevator": "エレベーターを除外",
     "excludeEscalator": "エスカレーターを除外",
