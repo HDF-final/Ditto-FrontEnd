@@ -198,102 +198,153 @@ function AiPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[960px] flex-col overflow-hidden overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[22px] md:grid md:min-h-[620px] md:grid-cols-[0.88fr_1.12fr] md:overflow-hidden md:rounded-[32px]"
+      className="relative flex max-h-[72dvh] w-full max-w-[960px] flex-col overflow-hidden rounded-t-[24px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[24px] md:grid md:min-h-[620px] md:max-h-[720px] md:grid-cols-[0.88fr_1.12fr] md:rounded-[32px]"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Left Column: 매장 정보, AI 추천 이유, 사진 갤러리 */}
-      <div className="flex h-full flex-col justify-between gap-5 overflow-y-auto bg-white p-4 sm:p-6 md:p-8">
-        <div>
-          {/* Top Bar: Category Badge & Mobile Close */}
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-              {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
-            </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="size-9 rounded-full flex items-center justify-center transition hover:bg-[#f0ecfa] text-[#6b6685] cursor-pointer md:hidden"
-              aria-label={t("close")}
-            >
-              <X size={17} />
-            </button>
-          </div>
+      {/* Mobile Top-Right Close Button (Always Pinned & Visible) */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-3.5 top-3.5 z-30 flex size-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition hover:bg-black/80 cursor-pointer shadow-md md:hidden"
+        aria-label={t("close")}
+      >
+        <X size={18} />
+      </button>
 
-          {/* 매장명 */}
-          <div>
-            <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
-              {place.name}
-            </h2>
-            {/* 매장 위치 */}
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
-              <MapPin size={15} className="shrink-0" />
-              <span className="min-w-0 break-keep">{locationText}</span>
-              {place.category ? (
-                <>
-                  <span className="text-[#9994ad] font-normal">·</span>
-                  <span className="text-[#6b6685] font-semibold">
-                    {getPlaceCategoryLabel(place.category, t)}
-                  </span>
-                </>
-              ) : null}
+      {/* Main Scrollable Content Area */}
+      <div className="flex flex-1 min-h-0 flex-col overflow-y-auto overscroll-contain bg-white">
+        {/* Mobile Header Photo Banner */}
+        {rightImage ? (
+          <div className="relative h-[180px] w-full shrink-0 overflow-hidden bg-neutral-950 md:hidden">
+            <img
+              src={rightImage}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 size-full object-cover blur-lg scale-110 opacity-50"
+            />
+            <img
+              src={rightImage}
+              alt={place.name}
+              className="absolute inset-0 size-full object-cover object-top"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30" />
+            <div className="absolute bottom-3 left-4 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3 py-1 text-[11px] font-black text-white shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
+              </span>
+              {place.floor && (
+                <span className="rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
+                  {place.floor}
+                </span>
+              )}
             </div>
-          </div>
-
-          {/* AI 추천 이유 카드 */}
-          <div className="mt-6 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-5 shadow-xs">
-            <div className="flex items-center gap-2 text-[16px] font-black text-[#5c2ef5] mb-2.5">
-              <span>✨</span>
-              <span>{boniReasonLabel}</span>
-            </div>
-            <p className="text-[17px] font-medium leading-[1.7] text-[#2d2745] break-keep">
-              {aiReasonText}
-            </p>
-          </div>
-
-          {/* 브랜드 상품 이미지 */}
-          <BrandProductsGrid products={brandProducts} place={place} t={t} />
-        </div>
-
-        {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
-        {place.onAddPlace ? (
-          <div className="mt-6 pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                place.onAddPlace();
-                onClose();
-              }}
-              className="w-full flex items-center justify-center gap-2 py-4 rounded-[20px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[15px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
-            >
-              <Plus size={17} strokeWidth={2.5} />
-              <span>이 장소 코스에 추가하기</span>
-            </button>
+            {rightImageCaption && (
+              <div className="absolute bottom-3 right-4">
+                <p className="rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold text-white/90 backdrop-blur-xs">
+                  {rightImageCaption}
+                </p>
+              </div>
+            )}
           </div>
         ) : null}
+
+        {/* Text Details Body */}
+        <div className="flex flex-col justify-between gap-5 p-4 sm:p-6 md:p-8">
+          <div>
+            {/* Desktop Top Category Badge */}
+            <div className="hidden md:flex items-center justify-between gap-3 mb-5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
+              </span>
+            </div>
+
+            {/* Mobile Badge if no image */}
+            {!rightImage && (
+              <div className="flex items-center justify-between gap-3 mb-4 md:hidden">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                  {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
+                </span>
+              </div>
+            )}
+
+            {/* 매장명 */}
+            <div>
+              <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
+                {place.name}
+              </h2>
+              {/* 매장 위치 */}
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
+                <MapPin size={15} className="shrink-0" />
+                <span className="min-w-0 break-keep">{locationText}</span>
+                {place.category ? (
+                  <>
+                    <span className="text-[#9994ad] font-normal">·</span>
+                    <span className="text-[#6b6685] font-semibold">
+                      {getPlaceCategoryLabel(place.category, t)}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+
+            {/* AI 추천 이유 카드 */}
+            <div className="mt-5 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-4.5 sm:p-5 shadow-xs">
+              <div className="flex items-center gap-2 text-[15px] sm:text-[16px] font-black text-[#5c2ef5] mb-2">
+                <span>✨</span>
+                <span>{boniReasonLabel}</span>
+              </div>
+              <p className="text-[15px] sm:text-[17px] font-medium leading-[1.65] text-[#2d2745] break-keep">
+                {aiReasonText}
+              </p>
+            </div>
+
+            {/* 브랜드 상품 이미지 */}
+            <BrandProductsGrid products={brandProducts} place={place} t={t} />
+          </div>
+
+          {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
+          {place.onAddPlace ? (
+            <div className="mt-4 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  place.onAddPlace();
+                  onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-[20px] bg-[#5c2ef5] hover:bg-[#4d24d9] active:scale-[0.98] text-white text-[15px] font-black shadow-lg shadow-[#5c2ef5]/25 transition-all cursor-pointer"
+              >
+                <Plus size={17} strokeWidth={2.5} />
+                <span>이 장소 코스에 추가하기</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      {/* Right Column: 연예인/앰버서더 비주얼 사진 카드 */}
-      <div className="relative order-first flex h-[200px] min-h-[180px] max-h-[240px] flex-col overflow-hidden bg-linear-to-br from-[#2d1b8e] to-[#8c57fa] p-4 sm:p-6 md:order-none md:h-auto md:min-h-[620px] md:max-h-none md:p-7">
-        {/* Representative Photo */}
+      {/* Desktop Right Column: 연예인/앰버서더 비주얼 사진 카드 */}
+      <div className="relative hidden md:flex h-full min-h-[620px] flex-col overflow-hidden bg-neutral-950 p-7">
         {rightImage ? (
           <>
             <img
               src={rightImage}
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 w-full h-full scale-110 object-cover blur-2xl"
+              className="absolute inset-0 w-full h-full scale-105 object-cover blur-md opacity-35"
             />
             <img
               src={rightImage}
               alt={place.name}
-              className="absolute inset-0 w-full h-full object-contain"
+              className="absolute inset-0 w-full h-full object-cover object-top"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
           </>
         ) : null}
 
         {/* Top Close button on desktop */}
-        <div className="relative z-10 hidden md:flex justify-end w-full">
+        <div className="relative z-10 flex justify-end w-full">
           <button
             type="button"
             onClick={onClose}
@@ -306,8 +357,8 @@ function AiPlaceModalContent({ place, onClose }) {
 
         {/* Bottom Caption for Representative Photo */}
         {rightImageCaption ? (
-          <div className="relative z-10 mt-auto hidden md:block">
-            <p className="inline-block rounded-full bg-black/40 px-3 py-1 text-[11px] font-semibold text-white/90 backdrop-blur-xs">
+          <div className="relative z-10 mt-auto">
+            <p className="inline-block rounded-full bg-black/50 px-3.5 py-1.5 text-[12px] font-semibold text-white/95 backdrop-blur-md">
               {rightImageCaption}
             </p>
           </div>
@@ -446,11 +497,11 @@ function StandardPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative flex flex-col md:flex-row w-full max-w-[1060px] h-[92vh] md:h-[640px] max-h-[720px] overflow-hidden rounded-[26px] sm:rounded-[32px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
+      className="relative flex flex-col md:flex-row w-full max-w-[1060px] h-[60dvh] max-h-[60dvh] sm:h-[85vh] sm:max-h-[720px] md:h-[640px] overflow-hidden rounded-t-[22px] sm:rounded-[32px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Left Column: 매장 정보, 컴팩트한 매장 사진, 매장 안내 (스크롤 없이 전부 노출) */}
-      <div className="w-full md:w-[440px] md:min-w-[400px] md:max-w-[460px] h-[48%] md:h-full flex flex-col justify-between overflow-y-auto bg-white p-4 sm:p-6 border-b md:border-b-0 md:border-r border-line/60">
+      {/* Left Column: 매장 정보, 컴팩트한 매장 사진, 매장 안내 */}
+      <div className="w-full md:w-[440px] md:min-w-[400px] md:max-w-[460px] flex-1 min-h-0 md:h-full flex flex-col justify-between overflow-y-auto overscroll-contain bg-white p-4 sm:p-6 border-b md:border-b-0 md:border-r border-line/60">
         <div>
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-3">
