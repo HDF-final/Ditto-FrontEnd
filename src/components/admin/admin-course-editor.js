@@ -10,7 +10,7 @@ import {
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
-import { approveAdminCourse } from "@/lib/api/admin-courses";
+import { approveAdminCourse, publishAdminCourse } from "@/lib/api/admin-courses";
 import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
@@ -21,8 +21,13 @@ import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 // 자리를 누르면 오른쪽이 지도에서 **그 자리의 상세**로 바뀐다. 카드 안에 입력칸 열다섯 개를
 // 펼치면 코스 전체가 한눈에 안 들어오고, 자리마다 그걸 그리는 비용도 든다.
 //
-// **편집은 저장되지 않는다.** 백엔드에도 람다에도 초안을 고치는 창구가 아직 없다
-// (읽기와 삭제만 있다). 결과를 JSON 으로 내보내 승인 람다에 넘기는 데까지가 지금의 끝이다.
+// **초안과 서비스 중인 코스를 같이 고친다.** 되짚기 창구가 캐시를 초안과 같은 칸으로
+// 돌려주므로(`celeb_approve.reopen`), 이 편집기는 어느 쪽인지 몰라도 된다. `live` 가
+// 참이면 버튼 문구와 경고문만 바뀐다 — 이미 손님에게 나가고 있는 것을 덮어쓰는
+// 동작이라 문구가 같으면 안 된다.
+//
+// 중간 저장은 없다. 고친 것은 승인할 때 한 번에 간다 — "저장했지만 승인 안 한"
+// 세 번째 상태를 만들지 않으려는 것이다.
 
 // 경로 최적화가 8곳까지만 된다 (routing-engine.optimizeOpenItinerary). /ai-course 와 같은 값.
 const MAX_PLACES = 8;
@@ -571,7 +576,7 @@ function usePlaceCatalog() {
   return state;
 }
 
-export function AdminCourseEditor({ detail, onClose, onApproved }) {
+export function AdminCourseEditor({ detail, onClose, onApproved, live = false }) {
   // `|| {}` 를 렌더마다 새로 만들면 아래 useMemo·useCallback 의 의존성이 매번 바뀐다.
   const original = useMemo(() => detail?.payload || {}, [detail]);
 
@@ -587,6 +592,11 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
   // 버튼이 푸터에 몰려 있어 오조작이 쉬운 자리다.
   //   idle → confirm → sending
   const [approving, setApproving] = useState("idle");
+  // 어느 창구로 올리나. **확인 단계에 들어갈 때 정해 두고 그대로 보낸다** — 확인
+  // 버튼에서 다시 고르게 하면 "캐시로" 를 누르려다 "기본 추천 코스로" 가 나간다.
+  //   cache    오늘 자정까지 손님 즉답에만 쓰는 사본
+  //   publish  서비스 DB 에 영구히 걸리는 기본 추천 코스 (캐시 승인도 같이 된다)
+  const [target, setTarget] = useState("cache");
 
   const catalog = usePlaceCatalog();
 
@@ -716,13 +726,14 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `draft-${detail?.celebrity || "course"}.json`;
+    link.download = `${live ? "course" : "draft"}-${detail?.celebrity || "course"}.json`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [buildJson, detail]);
+  }, [buildJson, detail, live]);
 
-  const approve = useCallback(async () => {
+  const approve = useCallback(async (nextTarget) => {
     if (approving === "idle") {
+      setTarget(nextTarget === "publish" ? "publish" : "cache");
       setApproving("confirm");
       setNotice("");
       return;
@@ -732,7 +743,8 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
     setApproving("sending");
     setNotice("");
     try {
-      const result = await approveAdminCourse(detail.celebrity, {
+      const send = target === "publish" ? publishAdminCourse : approveAdminCourse;
+      const result = await send(detail.celebrity, {
         ...original,
         reply,
         places,
@@ -744,10 +756,12 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
       // 타임아웃이면 올라갔는지 안 올라갔는지 알 수 없다. 다시 누르라고만 하면
       // 관리자가 두 번 올릴 수 있으니(멱등이라 결과는 같지만) 목록을 보라고 한다.
       setNotice(
-        `${error.message || "승인에 실패했습니다."} — 목록을 새로고침해 이 인물이 남아 있는지 확인하세요.`,
+        `${error.message || "승인에 실패했습니다."} — 목록을 새로고침해 ${
+          live ? "승인 시각이 바뀌었는지" : "이 인물이 남아 있는지"
+        } 확인하세요.`,
       );
     }
-  }, [approving, detail, original, reply, places, onApproved]);
+  }, [approving, target, detail, original, reply, places, onApproved, live]);
 
   const shape = useMemo(() => {
     const counts = places.reduce((acc, place) => {
@@ -842,9 +856,27 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
 
         <div className="order-2 min-h-0 overflow-y-auto px-5 py-5 lg:order-1">
           <p className="mb-4 rounded-xl bg-[#fff8ea] px-4 py-3 text-xs leading-5 text-[#856c3a]">
-            <b>승인하면 손님에게 바로 나갑니다.</b> 여기서 고친 그대로 캐시에 올라가고 이
-            초안은 사라집니다. 캐시는 <b>오늘 자정</b>에 만료됩니다 — 되돌리는 창구는
-            없으니, 잘못 올렸으면 고쳐서 다시 승인하세요(덮어씁니다).
+            {live ? (
+              <>
+                <b>이 코스는 지금 손님에게 나가고 있습니다.</b> 다시 올리면 여기서 고친
+                그대로 <b>덮어씁니다</b>. 차순위 후보는 승인 때 떼어 내 되살릴 수 없으니,
+                자리를 갈려면 매장 목록에서 고르세요. 캐시는 <b>오늘 자정</b>에 만료됩니다.
+              </>
+            ) : (
+              <>
+                <b>승인하면 손님에게 바로 나갑니다.</b> 여기서 고친 그대로 캐시에 올라가고
+                이 초안은 사라집니다. 캐시는 <b>오늘 자정</b>에 만료됩니다 — 되돌리는
+                창구는 없으니, 잘못 올렸으면 고쳐서 다시 승인하세요(덮어씁니다).
+              </>
+            )}
+          </p>
+
+          {/* 버튼이 둘이라 무엇이 다른지 여기서 한 번 말해 준다. 수명이 다른 것이 요점이다. */}
+          <p className="mb-4 rounded-xl bg-[#f1f7f3] px-4 py-3 text-xs leading-5 text-[#2c6146]">
+            <b>기본 추천 코스로 승인</b>을 누르면 캐시에 올리는 것에 더해 서비스 DB 에도
+            넣습니다. 그렇게 올린 코스는 <b>만료가 없고</b> 메인·코스 추천 리스트에 걸립니다
+            (커뮤니티에는 안 나옵니다). 반영은 뒤에서 1~2분간 도니, 진행 상태는{" "}
+            <b>기본 추천 코스</b> 화면에서 보세요.
           </p>
 
           <label className="mb-4 block">
@@ -966,21 +998,55 @@ export function AdminCourseEditor({ detail, onClose, onApproved }) {
         >
           JSON 내려받기
         </button>
-        <button
-          type="button"
-          onClick={approve}
-          disabled={approving === "sending" || !places.length}
-          className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none ${
-            approving === "confirm" ? "bg-[#c0392b]" : "bg-brand"
-          }`}
-          title="손님이 받는 캐시로 올립니다. 오늘 자정에 만료됩니다"
-        >
-          {approving === "sending"
-            ? "올리는 중…"
-            : approving === "confirm"
-              ? "정말 올립니다 — 한 번 더"
-              : "승인하고 캐시에 올리기"}
-        </button>
+        {/*
+          올리는 곳이 둘이고 **수명이 다르다.** 확인 단계에서는 고른 쪽 하나만 남긴다 —
+          두 개를 나란히 두면 "정말 올립니다" 를 누르려다 다른 창구를 누른다.
+
+            캐시        오늘 자정까지. 손님 즉답에만 쓴다
+            기본 추천   만료 없음. 메인·코스 추천 리스트에 걸린다 (캐시 승인도 같이 된다)
+        */}
+        {approving !== "confirm" || target === "cache" ? (
+          <button
+            type="button"
+            onClick={() => approve("cache")}
+            disabled={approving === "sending" || !places.length}
+            className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none ${
+              approving === "confirm" ? "bg-[#c0392b]" : "bg-brand"
+            }`}
+            title={
+              live
+                ? "지금 나가고 있는 코스를 덮어씁니다. 오늘 자정에 만료됩니다"
+                : "손님이 받는 캐시로 올립니다. 오늘 자정에 만료됩니다"
+            }
+          >
+            {approving === "sending" && target === "cache"
+              ? "올리는 중…"
+              : approving === "confirm"
+                ? live
+                  ? "정말 덮어씁니다 — 한 번 더"
+                  : "정말 올립니다 — 한 번 더"
+                : live
+                  ? "고쳐서 다시 올리기"
+                  : "승인하고 캐시에 올리기"}
+          </button>
+        ) : null}
+        {approving !== "confirm" || target === "publish" ? (
+          <button
+            type="button"
+            onClick={() => approve("publish")}
+            disabled={approving === "sending" || !places.length}
+            className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(20,24,45,0.18)] disabled:opacity-40 disabled:shadow-none ${
+              approving === "confirm" ? "bg-[#c0392b]" : "bg-[#12804b]"
+            }`}
+            title="캐시에 올리고, 그 위에 서비스 DB 에도 넣습니다. 만료가 없고 메인·코스 추천 리스트에 걸립니다"
+          >
+            {approving === "sending" && target === "publish"
+              ? "올리는 중…"
+              : approving === "confirm"
+                ? "정말 기본 추천 코스로 — 한 번 더"
+                : "기본 추천 코스로 승인"}
+          </button>
+        ) : null}
         {approving === "confirm" ? (
           <button
             type="button"

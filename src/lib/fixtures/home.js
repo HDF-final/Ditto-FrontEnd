@@ -1,41 +1,26 @@
+// 문구(titleLine/accent/suffix/description/alt/CTA label)는 next-intl 메시지
+// (messages/*.json home.hero.slideN)에서 로케일별로 주입됩니다. 여기에는 메시지로
+// 덮이지 않는 값(eyebrow, 이미지, gradient, CTA href)만 둡니다. — page.js 참고
 export const heroSlides = [
   {
     eyebrow: "Discover Korea Like Koreans",
-    titleLine: "한국인이 즐기는",
-    accent: "K-Trend",
-    suffix: "를 그대로 경험하세요",
-    description:
-      "실시간 인기 키워드부터 AI 맞춤 코스, 여행자 추천까지\nDITTO 하나로 한국 여행이 더 특별해집니다.",
-    primaryCta: { label: "AI 코스 만들기", href: "/ai-course" },
-    secondaryCta: { label: "인기 코스 보기", href: "/courses" },
+    primaryCta: { href: "/ai-course" },
+    secondaryCta: { href: "/courses" },
     image: "/assets/home/hero-hyundai.jpg",
-    alt: "더현대 서울 야경",
     gradient: "from-[#211466] to-[#8c57fa]",
   },
   {
     eyebrow: "Discover Korea Like Koreans",
-    titleLine: "지금 뜨는",
-    accent: "K-트렌드",
-    suffix: "를 실시간으로 만나요",
-    description:
-      "인기 팝업스토어와 K-컬처 소식을 매일 업데이트.\n놓치기 쉬운 핫플레이스까지 한눈에 확인하세요.",
-    primaryCta: { label: "트렌드 보기", href: "/news" },
-    secondaryCta: { label: "인기 코스 보기", href: "/courses" },
+    primaryCta: { href: "/news" },
+    secondaryCta: { href: "/courses" },
     image: "/assets/home/hero-trend.jpg",
-    alt: "K-트렌드 팝업 현장",
     gradient: "from-[#4a044e] via-[#6d28d9] to-[#c084fc]",
   },
   {
     eyebrow: "Discover Korea Like Koreans",
-    titleLine: "나만의 코스를",
-    accent: "손쉽게",
-    suffix: "완성하세요",
-    description:
-      "원하는 스팟만 골라 담으면 최적 동선까지 자동 완성.\n여행 기록도 앱 하나로 간편하게 남겨보세요.",
-    primaryCta: { label: "AI 코스 만들기", href: "/ai-course" },
-    secondaryCta: { label: "인기 코스 보기", href: "/courses" },
+    primaryCta: { href: "/ai-course" },
+    secondaryCta: { href: "/courses" },
     image: "/assets/home/hero-course.jpg",
-    alt: "커스텀 여행 코스 지도",
     gradient: "from-[#1e1b4b] via-[#4a2fa8] to-[#db2777]",
   },
 ];
