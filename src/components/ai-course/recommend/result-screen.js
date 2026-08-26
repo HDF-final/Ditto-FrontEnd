@@ -696,6 +696,15 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     dragIndex.current = index;
     dragStartOrder.current = list;
     setDraggingId(list[index].id);
+
+    if (pointerDrag.current.pointerId !== null && listRef.current) {
+      const row = listRef.current.querySelector(`[data-place-index="${index}"]`);
+      try {
+        row?.setPointerCapture(pointerDrag.current.pointerId);
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const movePointerReorder = (clientY) => {
@@ -740,12 +749,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
       active: false,
       timer: null,
     };
-    const row = event.currentTarget;
-    try {
-      row.setPointerCapture(event.pointerId);
-    } catch {
-      // ignore
-    }
 
     if (event.target.closest("[data-drag-handle]")) {
       event.preventDefault();
@@ -769,7 +772,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     const dy = event.clientY - drag.startY;
 
     if (!drag.active) {
-      if (Math.hypot(dx, dy) >= 5) {
+      if (Math.hypot(dx, dy) >= 6) {
         clearPointerTimer();
         beginPointerReorder(drag.from);
       } else {
@@ -788,7 +791,9 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     clearPointerTimer();
     if (event && pointerDrag.current.pointerId !== null) {
       try {
-        event.currentTarget.releasePointerCapture(pointerDrag.current.pointerId);
+        if (event.currentTarget.hasPointerCapture?.(pointerDrag.current.pointerId)) {
+          event.currentTarget.releasePointerCapture(pointerDrag.current.pointerId);
+        }
       } catch {
         // ignore
       }
