@@ -151,7 +151,12 @@ export function normalizePublicCourseDetail(detail) {
 
   return {
     postId,
-    courseId: detail.course?.courseId || detail.courseId,
+    courseId:
+      detail.course?.courseId ||
+      detail.course?.id ||
+      detail.courseId ||
+      detail.sourceCourseId ||
+      detail.originalCourseId,
     slug,
     authorId,
     authorKey: String(authorName || "").trim(),
@@ -296,7 +301,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
           const num = parseInt(String(postIdOrSlug), 10) || 0;
           return {
             postId: courseData.courseId || postIdOrSlug,
-            courseId: courseData.courseId,
+            courseId: courseData.courseId || courseData.id,
             slug: String(postIdOrSlug),
             country: "KR",
             name: "DITTO 여행자",
