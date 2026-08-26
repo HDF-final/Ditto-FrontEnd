@@ -65,7 +65,12 @@ function usePlaceProducts(navigationKey, limit = 3) {
 function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
   if (!products.length) return null;
 
-  const label = t.has("brandProducts") ? t("brandProducts") : "브랜드 상품";
+  const label = t.has("brandProducts")
+    ? t("brandProducts")
+    : "더하이앱 상품 바로가기";
+  const hint = t.has("brandProductsHint")
+    ? t("brandProductsHint")
+    : "상품을 누르면 더하이앱 상품 페이지로 이동해요.";
   const getAlt = (product, idx) => {
     const name = product.productName || place.name;
     if (t.has("brandProductAlt")) {
@@ -79,9 +84,16 @@ function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
 
   return (
     <div className={className}>
-      <p className="mb-3 text-[12px] font-bold tracking-wide text-[#9994ad]">
-        {label}
-      </p>
+      <div className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[13px] font-black tracking-tight text-[#5c2ef5]">
+            {label}
+          </p>
+          <p className="mt-1 text-[11px] font-semibold leading-snug text-[#9994ad]">
+            {hint}
+          </p>
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-3">
         {products.map((product, idx) => {
           const productImage = (
