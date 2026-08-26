@@ -186,8 +186,8 @@
     "termsRequired": "利用規約とプライバシーポリシーに同意してください。"
   },
   "courses": {
-    "listTitle": "コース一覧",
-    "listDescription": "国別トレンドとK-POP、K-BEAUTY、FASHION、GOURMETのカテゴリーからコースを探せます。",
+    "listTitle": "今注目のK-POPおすすめピック！",
+    "listDescription": "国別のK-POPトレンドをもとに厳選したおすすめコースを探してみましょう。",
     "recommendedCourse": "おすすめコース",
     "coursePlaces": "コースの場所",
     "view": "見る",
@@ -206,8 +206,8 @@
   "community": {
     "publicCourseDescription": "{title}につながるカスタムおすすめコースです。",
     "publicCourseHash": "#おすすめコース #ザヒュンダイ",
-    "title": "ザ・ヒュンダイ コース",
-    "description": "ザ・ヒュンダイ・ソウルを巡ったコースを共有し、旅行者の場所や会話をチェックしましょう。",
+    "title": "旅行者のカスタムコース",
+    "description": "旅行者が自分で作って共有したカスタムコースと、各コースに込められた場所やストーリーをチェックしましょう。",
     "popular": "人気順",
     "latest": "新着順",
     "shareMine": "自分のコースを共有 →",

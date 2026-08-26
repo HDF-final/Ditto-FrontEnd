@@ -186,8 +186,8 @@
     "termsRequired": "Please agree to the Terms and Privacy Policy."
   },
   "courses": {
-    "listTitle": "Courses",
-    "listDescription": "Explore courses by country trends and K-POP, K-BEAUTY, FASHION, and GOURMET categories.",
+    "listTitle": "Trending K-POP picks!",
+    "listDescription": "Explore handpicked courses inspired by country-specific K-POP trends.",
     "recommendedCourse": "Recommended course",
     "coursePlaces": "Course stops",
     "view": "View",
@@ -206,8 +206,8 @@
   "community": {
     "publicCourseDescription": "A custom recommended course connected to {title}.",
     "publicCourseHash": "#RecommendedCourse #TheHyundai",
-    "title": "The Hyundai courses",
-    "description": "Share your route through The Hyundai Seoul and explore places and conversations from other travelers.",
+    "title": "Traveler custom courses",
+    "description": "Explore custom courses created and shared by travelers, along with the places and stories behind each route.",
     "popular": "Popular",
     "latest": "Latest",
     "shareMine": "Share my course →",

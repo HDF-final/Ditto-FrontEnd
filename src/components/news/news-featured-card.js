@@ -26,22 +26,22 @@ export function NewsFeaturedCard({ news }) {
         )}
       </div>
       <div className="flex flex-col justify-center gap-3 p-4 lg:gap-5 lg:p-[60px]">
-        <h2 className="whitespace-pre-line text-lg font-black leading-snug text-ink lg:text-[34px]">
+        <h2 className="whitespace-pre-line text-lg font-black leading-snug text-ink lg:text-[38px]">
           {news.title}
         </h2>
         {news.summary ? (
-          <p className="line-clamp-2 text-sm font-medium leading-relaxed text-ink-muted">
+          <p className="line-clamp-2 text-sm font-medium leading-relaxed text-ink-muted lg:text-base">
             {news.summary}
           </p>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-4">
           {tags.length > 0 ? (
-            <p className="text-xs font-semibold text-brand">
+            <p className="text-xs font-semibold text-brand lg:text-sm">
               {tags.map((tag) => `#${tag}`).join(" ")}
             </p>
           ) : null}
           {news.date ? (
-            <span className="text-xs font-semibold text-ink-muted">
+            <span className="text-xs font-semibold text-ink-muted lg:text-sm">
               {news.date}
             </span>
           ) : null}

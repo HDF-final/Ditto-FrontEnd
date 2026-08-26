@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RecommendedCourseTicket } from "@/components/courses/recommended-course-ticket";
 import { CourseCard } from "@/components/home/course-card";
 import { getSystemCourses } from "@/lib/api/courses";
 import { useTranslations } from "next-intl";
@@ -40,15 +41,23 @@ export function DittoPicksSection({ initialCourses = [] }) {
             const engTitle = c.englishTitle || (c.name ? c.name.toUpperCase() : `TOP ${i + 1} COURSE`);
 
             return {
+              courseId: c.courseId ?? c.id,
               rank: `TOP ${i + 1}`,
               englishTitle: engTitle,
               title: c.name || c.title || "기본 추천 코스",
+              description: c.description || "DITTO가 엄선한 추천 코스입니다.",
               tags: rawTags,
+              places: Array.isArray(c.places) ? c.places : [],
               href: c.slug
                 ? `/courses/${c.slug}`
                 : c.courseId
-                  ? `/ai-course?courseId=${c.courseId}`
+                  ? `/courses/${c.courseId}`
                   : `/courses`,
+              image:
+                c.image ||
+                c.imageUrl ||
+                c.thumbnailUrl ||
+                c.coverImageUrl,
               gradient: c.gradient || GRADIENTS[i % GRADIENTS.length],
             };
           });
@@ -89,8 +98,8 @@ export function DittoPicksSection({ initialCourses = [] }) {
           </div>
         </div>
 
-        <div className="mt-6 lg:mt-8">
-          <div className="grid gap-5 lg:grid-cols-3">
+        <div className="mt-6 lg:mt-3">
+          <div className="grid gap-5 lg:hidden">
             {displayCourses.length > 0 ? (
               displayCourses.slice(0, 3).map((course) => (
                 <CourseCard key={course.rank} course={course} />
@@ -101,6 +110,16 @@ export function DittoPicksSection({ initialCourses = [] }) {
               </div>
             )}
           </div>
+          {displayCourses.length > 0 ? (
+            <div className="hidden gap-6 lg:grid lg:grid-cols-3">
+              {displayCourses.slice(0, 3).map((course) => (
+                <RecommendedCourseTicket
+                  key={`${course.href}-${course.rank}`}
+                  course={course}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
