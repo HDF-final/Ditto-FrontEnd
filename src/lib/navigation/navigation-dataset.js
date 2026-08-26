@@ -32,14 +32,34 @@ const FLOOR_REGISTRATIONS = {
  * 만들어지면 바뀌지 않는 파일이라 오브젝트에 3주짜리 `Cache-Control` 이 붙어 있고,
  * 중국·일본·미국 손님에게는 엣지에서 나가는 것이 EC2 를 거치는 것보다 훨씬 가깝습니다.
  *
- * **비워 두면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이
- * 막혔을 때의 안전장치입니다.
+ * **기본값이 CDN 입니다** — 환경변수를 안 주면 아래 주소를 씁니다. 예전에는 기본값이
+ * `public/` 사본이라 배포본이 **늘** 자기 오리진에서 588KB 를 퍼냈습니다:
+ * `NEXT_PUBLIC_*` 는 `next build` 가 번들에 박아 넣는 값인데, 우리 배포는 Docker
+ * 이미지를 만들 때 `.env` 를 안 넣고 컨테이너를 띄울 때만 넣습니다(`--env-file`).
+ * 런타임에 값이 있어도 브라우저가 받는 코드에는 이미 폴백이 박힌 뒤입니다.
+ * 그래서 "안 주면 CDN" 으로 뒤집었습니다 — CDN 을 쓰는 것이 평소이고, 안 쓰는 것이
+ * 예외라야 배포가 조용히 틀리지 않습니다.
+ *
+ * **`NEXT_PUBLIC_CDN_BASE=` 를 빈 값으로 주면** `public/` 안의 사본으로 떨어집니다.
+ * 사본을 지우지 않은 것이 CDN 이 막혔을 때의 안전장치입니다. 다른 버킷·배포로 옮길
+ * 때는 그 주소를 값으로 주세요(`Dockerfile` 에 같은 이름의 `ARG` 가 있습니다 —
+ * 빌드할 때 줘야 번들에 닿습니다).
  *
  * 값은 백엔드의 `ditto.map-assets.base-url` 과 같은 곳을 가리켜야 합니다. 그쪽이
  * `GET /api/v1/places/navigation/assets` 로 같은 주소를 돌려주며, 주소를 옮길 때는
  * 두 곳을 같이 바꿉니다.
  */
-const CDN_BASE = (process.env.NEXT_PUBLIC_CDN_BASE || "").trim().replace(/\/+$/, "");
+const CDN_BASE_DEFAULT = "https://d1bxld598du04o.cloudfront.net/course-resource";
+
+// 빈 문자열("public/ 로 떨어져라")과 미지정("기본값을 써라")을 **구분해야** 합니다.
+// `||` 로 쓰면 둘이 같아져서, 값을 안 준 배포가 곧 폴백이 됩니다.
+const CDN_BASE_OVERRIDE = process.env.NEXT_PUBLIC_CDN_BASE;
+
+const CDN_BASE = (
+  typeof CDN_BASE_OVERRIDE === "string" ? CDN_BASE_OVERRIDE : CDN_BASE_DEFAULT
+)
+  .trim()
+  .replace(/\/+$/, "");
 
 export const NAVIGATION_ASSET_BASE = CDN_BASE ? `${CDN_BASE}/navigation/v2` : "/navigation/v2";
 export const MAP_IMAGE_BASE = CDN_BASE ? `${CDN_BASE}/maps` : "/maps";

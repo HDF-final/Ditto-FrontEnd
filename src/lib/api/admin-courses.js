@@ -1,8 +1,8 @@
 import apiClient from "./client";
 import { requestData } from "./api-response";
 
-// 승인 대기 코스 초안 — ditto-celeb-warm-2 배치가 만든 것을 읽기만 한다.
-// 초안을 만들거나 지우는 창구는 백엔드에 없다(배치와 승인 람다의 일이다).
+// 승인 대기 코스 초안 — ditto-celeb-warm-2 배치가 만든 것을 읽고, 관리자가 확정한 것을
+// 승인 람다로 넘긴다. 초안을 고치거나 지우는 창구는 없다 — 편집은 승인할 때 한 번에 간다.
 
 export function getAdminCourses() {
   return requestData(apiClient.get("/admin/admin-courses"));
@@ -23,3 +23,20 @@ export function getAdminCourse(celebrity) {
 // 관리자가 고를 수 있는 매장이 다르면 승인해 놓고 손님 화면에서 안 뜨는 자리가 생긴다.
 //
 // 백엔드에 `/admin/admin-courses/places` 가 있지만 이 화면은 더 이상 안 쓴다.
+
+/**
+ * 초안을 승인해 손님 캐시로 올린다. 성공하면 그 인물의 초안은 사라진다.
+ *
+ * **타임아웃을 따로 준다.** 기본 클라이언트가 15초인데(`client.js`) 승인은 Redis 네 번에
+ * Oracle MERGE 와 람다 콜드스타트까지 있어 그 안에 안 끝나는 일이 있다. 15초에 끊기면
+ * 화면은 실패로 보는데 승인은 그대로 진행돼, 관리자가 "실패했다" 를 보고 다시 누른다.
+ */
+export function approveAdminCourse(celebrity, draft) {
+  return requestData(
+    apiClient.post(
+      `/admin/admin-courses/${encodeURIComponent(celebrity)}/approve`,
+      draft,
+      { timeout: 60_000 },
+    ),
+  );
+}
