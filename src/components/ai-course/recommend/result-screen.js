@@ -13,6 +13,8 @@ import {
   Trash2,
   Lock,
   LockOpen,
+  ChevronUp,
+  ChevronDown,
 } from "./recommend-icons";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
@@ -39,6 +41,13 @@ import {
 } from "@/lib/api/courses";
 
 const MAX_COURSE_PLACES = 8;
+const MOBILE_LIST_MIN_PERCENT = 36;
+const MOBILE_LIST_MAX_PERCENT = 92;
+const MOBILE_LIST_STEP_PERCENT = 12;
+
+function clampNumber(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
@@ -224,6 +233,14 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const dragStartOrder = useRef(null);
   const itemsRef = useRef(items);
   const listRef = useRef(null);
+  const studioRef = useRef(null);
+  const mobileResizeDrag = useRef({
+    pointerId: null,
+    startY: 0,
+    startPercent: 64,
+    containerHeight: 1,
+    removeListeners: null,
+  });
   const pointerDrag = useRef({
     pointerId: null,
     startX: 0,
@@ -236,6 +253,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const chatOccluderRef = useRef(null);
   const seededFromScanRef = useRef(false);
   const seededSourceCourseRef = useRef("");
+  const [mobileListPercent, setMobileListPercent] = useState(64);
 
   // 드래그 이벤트 핸들러가 최신 items 를 stale 없이 읽도록 ref 를 동기화합니다.
   useEffect(() => {
@@ -249,6 +267,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   useEffect(
     () => () => {
       if (pointerDrag.current.timer) clearTimeout(pointerDrag.current.timer);
+      mobileResizeDrag.current.removeListeners?.();
     },
     [],
   );
@@ -805,9 +824,83 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     }
   };
 
+  const onMobileResizePointerDown = (event) => {
+    if (isDesktop) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    const rect = studioRef.current?.getBoundingClientRect();
+    if (!rect?.height) return;
+
+    mobileResizeDrag.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startPercent: mobileListPercent,
+      containerHeight: rect.height,
+      removeListeners: null,
+    };
+
+    event.preventDefault();
+
+    const handlePointerMove = (moveEvent) => {
+      if (moveEvent.pointerId !== event.pointerId) return;
+      moveEvent.preventDefault();
+
+      const drag = mobileResizeDrag.current;
+      const deltaY = moveEvent.clientY - drag.startY;
+      const nextPercent = drag.startPercent - (deltaY / drag.containerHeight) * 100;
+      setMobileListPercent(
+        clampNumber(nextPercent, MOBILE_LIST_MIN_PERCENT, MOBILE_LIST_MAX_PERCENT),
+      );
+    };
+
+    const handlePointerEnd = (endEvent) => {
+      if (endEvent.pointerId !== event.pointerId) return;
+      mobileResizeDrag.current.removeListeners?.();
+      mobileResizeDrag.current = {
+        pointerId: null,
+        startY: 0,
+        startPercent: mobileListPercent,
+        containerHeight: 1,
+        removeListeners: null,
+      };
+    };
+
+    const removeListeners = () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+      document.body.style.removeProperty("user-select");
+      document.body.style.removeProperty("cursor");
+    };
+
+    mobileResizeDrag.current.removeListeners = removeListeners;
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "ns-resize";
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+  };
+
+  const nudgeMobileListSize = (delta) => {
+    setMobileListPercent((current) =>
+      clampNumber(
+        current + delta,
+        MOBILE_LIST_MIN_PERCENT,
+        MOBILE_LIST_MAX_PERCENT,
+      ),
+    );
+  };
+
   return (
     <>
-    <main className="course-studio min-h-0 flex-1 gap-2 bg-[#f0ecfa] p-2 sm:gap-3 sm:p-3">
+    <main
+      ref={studioRef}
+      className="course-studio min-h-0 flex-1 gap-2 bg-[#f0ecfa] p-2 sm:gap-3 sm:p-3"
+      style={{
+        "--course-map-size": `${100 - mobileListPercent}%`,
+        "--course-list-size": `${mobileListPercent}%`,
+      }}
+    >
       <div className="course-studio-map relative min-h-0 overflow-hidden rounded-[16px] sm:rounded-[20px]">
         <div className="h-full min-h-0 w-full">
           <CourseNavigationMap
@@ -833,6 +926,43 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
         className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-6 lg:py-4"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
+        <div
+          className="-mx-1 -mt-2 mb-1 grid h-11 shrink-0 cursor-ns-resize touch-none grid-cols-[44px_1fr_44px] items-center rounded-t-[16px] px-1 lg:hidden"
+          onPointerDown={onMobileResizePointerDown}
+        >
+          <button
+            type="button"
+            title="코스 목록 크게 보기"
+            aria-label="코스 목록 크게 보기"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-full text-[#5c2ef5] transition-colors hover:bg-[#f0ecfa] active:bg-[#e5ddff]"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={() => nudgeMobileListSize(MOBILE_LIST_STEP_PERCENT)}
+          >
+            <ChevronUp size={18} />
+          </button>
+          <span
+            role="separator"
+            aria-orientation="horizontal"
+            aria-valuemin={MOBILE_LIST_MIN_PERCENT}
+            aria-valuemax={MOBILE_LIST_MAX_PERCENT}
+            aria-valuenow={Math.round(mobileListPercent)}
+            aria-label="지도와 코스 장소 목록 영역 크기 조절"
+            className="mx-auto flex h-10 w-full max-w-[132px] items-center justify-center"
+          >
+            <span className="h-1.5 w-16 rounded-full bg-[#d8d3ee]" />
+          </span>
+          <button
+            type="button"
+            title="지도 크게 보기"
+            aria-label="지도 크게 보기"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-full text-[#5c2ef5] transition-colors hover:bg-[#f0ecfa] active:bg-[#e5ddff]"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={() => nudgeMobileListSize(-MOBILE_LIST_STEP_PERCENT)}
+          >
+            <ChevronDown size={18} />
+          </button>
+        </div>
+
         {/* Editable title */}
         <input
           className="w-full min-w-0 pb-1 text-[18px] font-bold text-[#1a142e] bg-transparent outline-none placeholder-[#ccc8d8] border-b-2 border-transparent focus:border-[#5c2ef5] transition-colors sm:text-[22px] md:text-[26px]"
