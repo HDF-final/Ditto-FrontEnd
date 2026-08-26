@@ -6,81 +6,13 @@ import {
   fetchCourseDetailServer,
   fetchRawSystemCoursesServer,
 } from "@/lib/api/courses.server";
-import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
+import { normalizeCourse } from "@/lib/courses/normalize-course";
 import { recommendedCourses } from "@/lib/fixtures/recommended-courses";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
 import { CommunityStopList } from "@/components/community/community-stop-list";
 import { CourseDetailActions } from "./course-detail-actions";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_SYSTEM_COURSE_IDS = ["1", "122", "21", "22", "23"];
-
-function getDefaultCourseImage(rawCourse, slug) {
-  const courseId = String(rawCourse?.courseId || rawCourse?.id || slug || "");
-  const matchedIndex = DEFAULT_SYSTEM_COURSE_IDS.indexOf(courseId);
-  const fallbackIndex = matchedIndex >= 0 ? matchedIndex : 0;
-
-  return DEFAULT_COMMUNITY_COURSE_IMAGES[
-    fallbackIndex % DEFAULT_COMMUNITY_COURSE_IMAGES.length
-  ];
-}
-
-function normalizeCourse(rawCourse, slug) {
-  if (!rawCourse) return null;
-
-  const courseId = rawCourse.courseId || rawCourse.id || slug;
-  const title = rawCourse.name || rawCourse.title || "기본 추천 코스";
-  const description =
-    rawCourse.description ||
-    "DITTO AI 보니가 엄선한 더현대 서울 대표 추천 코스입니다.";
-  const note =
-    rawCourse.note ||
-    rawCourse.description ||
-    "더현대 서울에서 가장 인기 있는 대표 스팟들을 초행자도 이동하기 편한 최적 실내 동선으로 연결한 추천 코스입니다.";
-
-  const rawPlaces = Array.isArray(rawCourse.places)
-    ? rawCourse.places
-    : Array.isArray(rawCourse.stops)
-      ? rawCourse.stops
-      : [];
-
-  const stops = rawPlaces.map((p, idx) => ({
-    placeId: p.placeId,
-    floor: p.floorCode || p.floor || `${idx + 1}F`,
-    name: p.name || p.placeName || `스팟 #${idx + 1}`,
-    description: p.description || p.desc || "더현대 서울 내 추천 방문 스팟",
-    category: p.category,
-    image: p.imageUrl || p.image || p.placeImg,
-    navigationKey: p.navigationKey,
-    x: p.xCoordinate,
-    y: p.yCoordinate,
-  }));
-
-  const image =
-    rawCourse.representativeImageUrl ||
-    rawCourse.image ||
-    rawCourse.imageUrl ||
-    rawCourse.thumbnailUrl ||
-    rawCourse.coverImageUrl ||
-    rawCourse.mainImageUrl ||
-    getDefaultCourseImage(rawCourse, slug);
-
-  const gradient =
-    rawCourse.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
-
-  return {
-    courseId,
-    title,
-    description,
-    note,
-    image,
-    gradient,
-    label: rawCourse.label || "THE HYUNDAI SEOUL",
-    stops,
-    createdAt: rawCourse.createdAt || "2026.03.02",
-  };
-}
 
 async function getCourseData(slug) {
   // 1. 숫자 ID일 경우 백엔드 상세 API 우선 조회
