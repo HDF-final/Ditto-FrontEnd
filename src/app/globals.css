@@ -162,6 +162,8 @@ body {
    area even when the parent flex chain / dvh is unreliable. Desktop overrides
    below to flex-fill the remaining viewport under the 94px header. */
 .course-studio {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   height: calc(100dvh - var(--app-header) - var(--app-tabbar));
@@ -172,16 +174,25 @@ body {
 
 .course-studio-map {
   grid-area: map;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   flex: none;
-  height: clamp(128px, 18vh, 190px);
+  height: auto;
   min-height: 0;
   min-width: 0;
 }
 
 .course-studio-list {
   grid-area: list;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1;
   display: flex;
-  flex: 1 1 auto;
+  flex: none;
+  height: var(--course-list-size, 64%);
+  max-height: calc(100% - 0.75rem);
   min-height: 0;
   min-width: 0;
   flex-direction: column;
@@ -208,6 +219,8 @@ body {
   }
 
   .course-studio {
+    position: static;
+    isolation: auto;
     display: grid;
     flex: 1 1 0;
     height: 100%;
@@ -219,11 +232,20 @@ body {
   }
 
   .course-studio-map {
+    position: relative;
+    inset: auto;
+    z-index: auto;
     height: auto;
     flex: auto;
   }
 
   .course-studio-list {
+    position: relative;
+    inset: auto;
+    bottom: auto;
+    z-index: auto;
+    height: auto;
+    max-height: none;
     overflow: hidden auto;
   }
 
