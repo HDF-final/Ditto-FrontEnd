@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/admin/trends/youtube", label: "YouTube 급상승", icon: "play" },
   { href: "/admin/courses", label: "승인 대기 코스", icon: "route" },
   { href: "/admin/courses/cached", label: "캐시된 코스", icon: "cache" },
+  { href: "/admin/courses/system", label: "기본 추천 코스", icon: "star" },
 ];
 
 const PAGE_TITLES = {
@@ -20,6 +21,7 @@ const PAGE_TITLES = {
   "/admin/trends/youtube": ["YouTube 급상승", "최근 7일 K-컬처 영상 급상승 신호를 확인합니다."],
   "/admin/courses": ["승인 대기 코스 초안", "배치가 만든 셀럽 코스 초안을 승인 전에 확인합니다."],
   "/admin/courses/cached": ["캐시된 코스", "승인이 끝나 지금 손님에게 나가고 있는 코스입니다. 오늘 자정에 만료됩니다."],
+  "/admin/courses/system": ["기본 추천 코스", "메인과 코스 추천 리스트에 걸린 코스입니다. 만료가 없어 내릴 때까지 계속 걸립니다."],
 };
 
 function NavIcon({ name }) {
@@ -30,6 +32,7 @@ function NavIcon({ name }) {
     play: <><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3Z"/></>,
     route: <><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h6"/></>,
     cache: <><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></>,
+    star: <><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9Z"/></>,
   };
   return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }

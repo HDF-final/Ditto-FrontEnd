@@ -10,7 +10,7 @@ import {
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
-import { approveAdminCourse } from "@/lib/api/admin-courses";
+import { approveAdminCourse, publishAdminCourse } from "@/lib/api/admin-courses";
 import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
@@ -592,6 +592,11 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
   // 버튼이 푸터에 몰려 있어 오조작이 쉬운 자리다.
   //   idle → confirm → sending
   const [approving, setApproving] = useState("idle");
+  // 어느 창구로 올리나. **확인 단계에 들어갈 때 정해 두고 그대로 보낸다** — 확인
+  // 버튼에서 다시 고르게 하면 "캐시로" 를 누르려다 "기본 추천 코스로" 가 나간다.
+  //   cache    오늘 자정까지 손님 즉답에만 쓰는 사본
+  //   publish  서비스 DB 에 영구히 걸리는 기본 추천 코스 (캐시 승인도 같이 된다)
+  const [target, setTarget] = useState("cache");
 
   const catalog = usePlaceCatalog();
 
@@ -726,8 +731,9 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
     URL.revokeObjectURL(url);
   }, [buildJson, detail, live]);
 
-  const approve = useCallback(async () => {
+  const approve = useCallback(async (nextTarget) => {
     if (approving === "idle") {
+      setTarget(nextTarget === "publish" ? "publish" : "cache");
       setApproving("confirm");
       setNotice("");
       return;
@@ -737,7 +743,8 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
     setApproving("sending");
     setNotice("");
     try {
-      const result = await approveAdminCourse(detail.celebrity, {
+      const send = target === "publish" ? publishAdminCourse : approveAdminCourse;
+      const result = await send(detail.celebrity, {
         ...original,
         reply,
         places,
@@ -754,7 +761,7 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
         } 확인하세요.`,
       );
     }
-  }, [approving, detail, original, reply, places, onApproved, live]);
+  }, [approving, target, detail, original, reply, places, onApproved, live]);
 
   const shape = useMemo(() => {
     const counts = places.reduce((acc, place) => {
@@ -862,6 +869,14 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
                 창구는 없으니, 잘못 올렸으면 고쳐서 다시 승인하세요(덮어씁니다).
               </>
             )}
+          </p>
+
+          {/* 버튼이 둘이라 무엇이 다른지 여기서 한 번 말해 준다. 수명이 다른 것이 요점이다. */}
+          <p className="mb-4 rounded-xl bg-[#f1f7f3] px-4 py-3 text-xs leading-5 text-[#2c6146]">
+            <b>기본 추천 코스로 승인</b>을 누르면 캐시에 올리는 것에 더해 서비스 DB 에도
+            넣습니다. 그렇게 올린 코스는 <b>만료가 없고</b> 메인·코스 추천 리스트에 걸립니다
+            (커뮤니티에는 안 나옵니다). 반영은 뒤에서 1~2분간 도니, 진행 상태는{" "}
+            <b>기본 추천 코스</b> 화면에서 보세요.
           </p>
 
           <label className="mb-4 block">
@@ -983,29 +998,55 @@ export function AdminCourseEditor({ detail, onClose, onApproved, live = false })
         >
           JSON 내려받기
         </button>
-        <button
-          type="button"
-          onClick={approve}
-          disabled={approving === "sending" || !places.length}
-          className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none ${
-            approving === "confirm" ? "bg-[#c0392b]" : "bg-brand"
-          }`}
-          title={
-            live
-              ? "지금 나가고 있는 코스를 덮어씁니다. 오늘 자정에 만료됩니다"
-              : "손님이 받는 캐시로 올립니다. 오늘 자정에 만료됩니다"
-          }
-        >
-          {approving === "sending"
-            ? "올리는 중…"
-            : approving === "confirm"
-              ? live
-                ? "정말 덮어씁니다 — 한 번 더"
-                : "정말 올립니다 — 한 번 더"
-              : live
-                ? "고쳐서 다시 올리기"
-                : "승인하고 캐시에 올리기"}
-        </button>
+        {/*
+          올리는 곳이 둘이고 **수명이 다르다.** 확인 단계에서는 고른 쪽 하나만 남긴다 —
+          두 개를 나란히 두면 "정말 올립니다" 를 누르려다 다른 창구를 누른다.
+
+            캐시        오늘 자정까지. 손님 즉답에만 쓴다
+            기본 추천   만료 없음. 메인·코스 추천 리스트에 걸린다 (캐시 승인도 같이 된다)
+        */}
+        {approving !== "confirm" || target === "cache" ? (
+          <button
+            type="button"
+            onClick={() => approve("cache")}
+            disabled={approving === "sending" || !places.length}
+            className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(92,46,245,0.22)] disabled:opacity-40 disabled:shadow-none ${
+              approving === "confirm" ? "bg-[#c0392b]" : "bg-brand"
+            }`}
+            title={
+              live
+                ? "지금 나가고 있는 코스를 덮어씁니다. 오늘 자정에 만료됩니다"
+                : "손님이 받는 캐시로 올립니다. 오늘 자정에 만료됩니다"
+            }
+          >
+            {approving === "sending" && target === "cache"
+              ? "올리는 중…"
+              : approving === "confirm"
+                ? live
+                  ? "정말 덮어씁니다 — 한 번 더"
+                  : "정말 올립니다 — 한 번 더"
+                : live
+                  ? "고쳐서 다시 올리기"
+                  : "승인하고 캐시에 올리기"}
+          </button>
+        ) : null}
+        {approving !== "confirm" || target === "publish" ? (
+          <button
+            type="button"
+            onClick={() => approve("publish")}
+            disabled={approving === "sending" || !places.length}
+            className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(20,24,45,0.18)] disabled:opacity-40 disabled:shadow-none ${
+              approving === "confirm" ? "bg-[#c0392b]" : "bg-[#12804b]"
+            }`}
+            title="캐시에 올리고, 그 위에 서비스 DB 에도 넣습니다. 만료가 없고 메인·코스 추천 리스트에 걸립니다"
+          >
+            {approving === "sending" && target === "publish"
+              ? "올리는 중…"
+              : approving === "confirm"
+                ? "정말 기본 추천 코스로 — 한 번 더"
+                : "기본 추천 코스로 승인"}
+          </button>
+        ) : null}
         {approving === "confirm" ? (
           <button
             type="button"
