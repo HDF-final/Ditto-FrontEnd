@@ -1,16 +1,14 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import {
-  attachPlaceIdsToCourseDataset,
-  calculateCourseRoute,
   getFallbackPlaceImage,
-  loadCourseRoutingDataset,
   optimizeCourseRoute,
 } from "@/lib/navigation/course-routing-service";
-import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import { approveAdminCourse, publishAdminCourse } from "@/lib/api/admin-courses";
+// 경로 계산과 매장 목록은 기본 추천 코스 편집기와 **같은 것을 쓴다.**
+import { useCourseRoute, usePlaceCatalog } from "./admin-course-map";
 import { WarningPanel, formatAdminDate } from "./admin-artifact-ui";
 import { AdminCoursePlacePicker } from "./admin-course-place-picker";
 
@@ -502,78 +500,6 @@ function SlotDetail({ place, index, catalog, usedKeys, onApply, onCancel }) {
       </div>
     </div>
   );
-}
-
-/**
- * 코스의 실내 경로. 자리를 바꿀 때마다 다시 계산한다 — 관리자가 동선을 고치는 것이
- * 이 화면의 요지라, 지도가 그 결과를 바로 보여 주지 않으면 고쳐도 알 수가 없다.
- *
- * 계산은 전부 브라우저에서 돈다(`course-routing-service` 가 로컬 원장 JSON 을 읽는다).
- * 백엔드도 람다도 안 부른다.
- */
-function useCourseRoute(routeKey) {
-  const [result, setResult] = useState(null);
-
-  // **의존성이 `routeKey` 하나다.** 배열을 넣으면 사유 한 글자를 칠 때마다 새 배열이
-  // 만들어져 경로를 다시 판다. 자리가 그대로면 경로도 그대로다.
-  useEffect(() => {
-    if (!routeKey) return undefined;
-
-    let active = true;
-    calculateCourseRoute(routeKey.split(">").map((navigationKey) => ({ navigationKey })))
-      .then((next) => {
-        if (active) setResult({ key: routeKey, ...next, error: null });
-      })
-      .catch((error) => {
-        if (active) setResult({ key: routeKey, error });
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [routeKey]);
-
-  const fresh = result?.key === routeKey;
-  return {
-    itinerary: fresh ? result.itinerary : null,
-    graph: fresh ? result.graph : null,
-    error: fresh ? result.error : null,
-    loading: Boolean(routeKey) && !fresh,
-  };
-}
-
-/**
- * 고를 수 있는 매장 전부. <b>`/ai-course` 의 '장소 추가'와 같은 것을 쓴다.</b>
- *
- * 로컬 원장(`loadCourseRoutingDataset`)이 147곳의 진짜 목록이고, 백엔드
- * `/places/navigation` 이 사진과 place_id 를 얹는다. 백엔드가 없어도 원장만으로 돌아간다.
- *
- * 원장은 모듈 안에서 한 번만 받아 두므로(`datasetPromise`) 지도가 이미 올려 둔 것을
- * 그대로 쓴다 — 이 화면이 목록 때문에 따로 왕복하는 일이 없다.
- */
-function usePlaceCatalog() {
-  const [state, setState] = useState({ rows: [], loading: true, error: null });
-
-  useEffect(() => {
-    let active = true;
-    Promise.all([
-      loadCourseRoutingDataset(),
-      getNavigablePlaces().catch(() => []),
-    ])
-      .then(([dataset, navigationPlaces]) => {
-        if (!active) return;
-        const hydrated = attachPlaceIdsToCourseDataset(dataset, navigationPlaces || []);
-        setState({ rows: hydrated.places, loading: false, error: null });
-      })
-      .catch((error) => {
-        if (active) setState({ rows: [], loading: false, error });
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  return state;
 }
 
 export function AdminCourseEditor({ detail, onClose, onApproved, live = false }) {

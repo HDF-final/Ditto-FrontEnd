@@ -1,20 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "@/components/common/modal";
 import {
   deleteSystemCourse,
   getSystemCourse,
   getSystemCourses,
-  updateSystemCourse,
 } from "@/lib/api/admin-system-courses";
 import { useAdminTrendArtifact } from "@/hooks/use-admin-trend-artifact";
 import {
   ArtifactError,
   ArtifactLoading,
+  CardHero,
   COUNTRY_META,
   formatAdminDate,
 } from "./admin-artifact-ui";
+import { AdminSystemCourseEditor } from "./admin-system-course-editor";
 
 // **기본 추천 코스.** `creation_type = 'SYSTEM'` 이고 메인·코스 추천 리스트에 걸린다.
 //
@@ -76,10 +77,38 @@ function CountryChip({ code }) {
 
 function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelDelete }) {
   const inFlight = course.state === "queued" || course.state === "running";
+  // 반영이 아직 도는 코스는 코스 번호가 없다 — 열 것이 없다.
+  const openable = Boolean(course.courseId);
+
+  // **카드 통째가 여는 자리다.** 캐시된 코스 화면과 같게 맞춘 것이고, 카드 안에서
+  // 누를 만한 곳이 '수정' 버튼 하나뿐이라 나머지 면적이 죽어 있었다. 내리기만 따로
+  // 남기고(되돌릴 수 없는 동작이라 카드를 여는 손짓에 섞이면 안 된다) 전파를 끊는다.
+  const open = () => {
+    if (openable) onOpen(course);
+  };
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-[#e1e4ed] bg-white p-4 shadow-[0_10px_35px_rgba(31,36,66,0.05)]">
-      <div className="flex items-start justify-between gap-3">
+    <article
+      role={openable ? "button" : undefined}
+      tabIndex={openable ? 0 : undefined}
+      aria-label={openable ? `${course.name || "이름 없음"} 열어서 고치기` : undefined}
+      onClick={open}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open();
+        }
+      }}
+      className={`group flex h-full flex-col rounded-2xl border border-[#e1e4ed] bg-white p-4 shadow-[0_10px_35px_rgba(31,36,66,0.05)] transition ${
+        openable
+          ? "cursor-pointer hover:border-brand hover:shadow-[0_14px_40px_rgba(31,36,66,0.1)]"
+          : ""
+      }`}
+    >
+      {/* 대표 사진은 **첫 자리의 매장 사진**이다. 손님 목록 카드가 쓰는 것과 같다. */}
+      <CardHero hero={course.heroImageUrl ? { url: course.heroImageUrl } : null} name={course.name} />
+
+      <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <strong className="block truncate text-[17px] font-bold text-[#171b30]">
             {course.name || "이름 없음"}
@@ -126,29 +155,30 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
         </div>
       </dl>
 
-      <div className="mt-4 flex gap-2 border-t border-[#eef0f5] pt-3">
-        <button
-          type="button"
-          onClick={() => onOpen(course)}
-          disabled={!course.courseId}
-          className="flex-1 rounded-xl bg-[#231f35] px-3 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:bg-[#c9ccd8]"
-        >
-          {inFlight ? "반영 중…" : "수정"}
-        </button>
+      <div className="mt-auto flex items-center gap-2 border-t border-[#eef0f5] pt-3">
+        <span className="flex-1 text-[11px] font-bold text-[#9aa0b0] group-hover:text-brand">
+          {inFlight ? "반영 중… 끝나면 열 수 있습니다" : openable ? "눌러서 지도와 함께 고치기" : "코스 번호가 아직 없습니다"}
+        </span>
         {/* **두 번 눌러야 나간다.** 지운 것을 되돌리는 창구가 없다 — 다시 올리려면
             셀럽 편집기에서 다시 승인해야 한다. */}
         {deleting ? (
           <>
             <button
               type="button"
-              onClick={() => onDelete(course)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete(course);
+              }}
               className="rounded-xl bg-[#d4485a] px-3 py-2 text-xs font-bold text-white"
             >
               정말 내립니다
             </button>
             <button
               type="button"
-              onClick={onCancelDelete}
+              onClick={(event) => {
+                event.stopPropagation();
+                onCancelDelete();
+              }}
               className="rounded-xl border border-[#dfe2ec] px-3 py-2 text-xs font-bold text-[#5b6076]"
             >
               취소
@@ -157,8 +187,11 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
         ) : (
           <button
             type="button"
-            onClick={() => onAskDelete(course.courseId)}
-            disabled={!course.courseId}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAskDelete(course.courseId);
+            }}
+            disabled={!openable}
             className="rounded-xl border border-[#dfe2ec] px-3 py-2 text-xs font-bold text-[#a3323f] disabled:cursor-not-allowed disabled:text-[#c9ccd8]"
           >
             내리기
@@ -166,213 +199,6 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
         )}
       </div>
     </article>
-  );
-}
-
-function Field({ label, hint, children }) {
-  return (
-    <label className="block">
-      <span className="block text-[12px] font-bold text-[#3d4258]">{label}</span>
-      {hint ? <span className="mt-0.5 block text-[11px] text-[#9aa0b0]">{hint}</span> : null}
-      <div className="mt-1.5">{children}</div>
-    </label>
-  );
-}
-
-const INPUT_CLASS =
-  "w-full rounded-xl border border-[#dfe2ec] px-3 py-2 text-[13px] text-[#171b30] outline-none focus:border-brand";
-
-function CourseEditor({ detail, onClose, onSaved }) {
-  const [name, setName] = useState(detail.name || "");
-  const [description, setDescription] = useState(detail.description || "");
-  const [countryCode, setCountryCode] = useState(detail.countryCode || "");
-  const [postContent, setPostContent] = useState(detail.postContent || "");
-  const [reasons, setReasons] = useState(() =>
-    Object.fromEntries((detail.places || []).map((p) => [p.placeId, p.recommendationReason || ""])),
-  );
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-
-  const nameTooLong = name.trim().length > 100;
-  const nameEmpty = !name.trim();
-
-  const save = useCallback(async () => {
-    if (saving || nameEmpty || nameTooLong) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const saved = await updateSystemCourse(detail.courseId, {
-        name: name.trim(),
-        description,
-        countryCode,
-        postContent,
-        places: Object.entries(reasons).map(([placeId, recommendationReason]) => ({
-          placeId: Number(placeId),
-          recommendationReason,
-        })),
-      });
-      onSaved(saved);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setSaving(false);
-    }
-  }, [saving, nameEmpty, nameTooLong, detail.courseId, name, description, countryCode,
-      postContent, reasons, onSaved]);
-
-  return (
-    <div className="flex max-h-[86vh] flex-col">
-      <header className="flex items-start justify-between gap-3 border-b border-[#eef0f5] px-6 py-4">
-        <div className="min-w-0">
-          <h2 id="system-course-editor" className="truncate text-[17px] font-bold text-[#171b30]">
-            {detail.name}
-          </h2>
-          <p className="mt-0.5 text-[11px] text-[#9aa0b0]">
-            코스 #{detail.courseId}
-            {detail.celebrity ? ` · ${detail.celebrity}` : ""}
-            {detail.shareCode ? ` · ${detail.shareCode}` : ""}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg px-2 py-1 text-sm text-[#9aa0b0] hover:bg-[#f3f4f9]"
-        >
-          닫기
-        </button>
-      </header>
-
-      <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-        <div className="rounded-xl bg-[#f6f7fb] px-4 py-3 text-[12px] leading-5 text-[#5b6076]">
-          여기서 고치는 것은 <b>문안과 나라</b>입니다. 어느 매장을 몇 번째로 넣을지는
-          <b> 승인 대기·캐시된 코스</b> 화면의 편집기에서 고쳐 다시 승인하면 이 코스를
-          덮어씁니다.
-        </div>
-
-        <Field label="코스 이름" hint="목록 카드와 코스 상세의 제목. 100자까지.">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`${INPUT_CLASS} ${nameEmpty || nameTooLong ? "border-[#d4485a]" : ""}`}
-          />
-          {nameTooLong ? (
-            <span className="mt-1 block text-[11px] font-semibold text-[#a3323f]">
-              {name.trim().length}자 — 100자를 넘을 수 없습니다
-            </span>
-          ) : null}
-          {nameEmpty ? (
-            <span className="mt-1 block text-[11px] font-semibold text-[#a3323f]">
-              이름이 비면 목록 카드가 제목 없이 그려집니다
-            </span>
-          ) : null}
-        </Field>
-
-        <Field label="한 줄 설명" hint="카드 밑에 붙는 문장.">
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={2}
-            className={INPUT_CLASS}
-          />
-        </Field>
-
-        <Field label="나라" hint="비워 두면 나라를 안 가리고 모든 목록에 나옵니다.">
-          <select
-            value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-            className={INPUT_CLASS}
-          >
-            <option value="">나라 미지정</option>
-            {Object.entries(COUNTRY_META).map(([code, meta]) => (
-              <option key={code} value={code}>
-                {meta.flag} {meta.name} ({code})
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="코스 소개 문안" hint="코스를 소개하는 본문. 커뮤니티에는 안 나갑니다.">
-          <textarea
-            value={postContent}
-            onChange={(e) => setPostContent(e.target.value)}
-            rows={5}
-            className={INPUT_CLASS}
-            disabled={!detail.postId}
-          />
-          {!detail.postId ? (
-            <span className="mt-1 block text-[11px] text-[#9aa0b0]">
-              이 코스에는 소개 문안이 없습니다 (게시글이 안 붙어 있습니다)
-            </span>
-          ) : null}
-        </Field>
-
-        <div>
-          <span className="block text-[12px] font-bold text-[#3d4258]">자리별 추천 이유</span>
-          <span className="mt-0.5 block text-[11px] text-[#9aa0b0]">
-            코스 상세에서 장소 이름 밑에 한 줄로 붙습니다. 15~30자가 적당합니다.
-          </span>
-          <ul className="mt-2 space-y-2">
-            {(detail.places || []).map((place) => (
-              <li
-                key={place.placeId}
-                className="flex items-center gap-3 rounded-xl border border-[#eef0f5] p-2.5"
-              >
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-[#eef0f8] text-[11px] font-bold text-[#4a5170]">
-                  {place.visitOrder}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <span className="block truncate text-[12px] font-bold text-[#171b30]">
-                    {place.name}
-                    <em className="ml-1.5 not-italic text-[11px] font-semibold text-[#9aa0b0]">
-                      {place.floorCode}
-                    </em>
-                  </span>
-                  <input
-                    value={reasons[place.placeId] ?? ""}
-                    onChange={(e) =>
-                      setReasons((prev) => ({ ...prev, [place.placeId]: e.target.value }))
-                    }
-                    className="mt-1 w-full rounded-lg border border-[#dfe2ec] px-2 py-1 text-[12px] text-[#171b30] outline-none focus:border-brand"
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {Array.isArray(detail.warnings) && detail.warnings.length > 0 ? (
-          <div className="rounded-xl bg-[#fffaf2] px-4 py-3">
-            <strong className="text-[12px] font-bold text-[#a96700]">
-              반영할 때 남은 경고 {detail.warnings.length}건
-            </strong>
-            <ul className="mt-1.5 space-y-1">
-              {detail.warnings.map((w) => (
-                <li key={w} className="text-[11px] leading-4 text-[#8a6a30]">· {w}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </div>
-
-      <footer className="border-t border-[#eef0f5] px-6 py-4">
-        {error ? (
-          <p className="mb-3 rounded-xl bg-[#fff9f9] px-3 py-2 text-[12px] text-[#a3323f]">
-            {error.message || "저장에 실패했습니다."}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving || nameEmpty || nameTooLong}
-          className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-[#c9ccd8]"
-        >
-          {saving ? "저장하는 중…" : "저장하고 바로 반영"}
-        </button>
-        <p className="mt-2 text-center text-[11px] text-[#9aa0b0]">
-          저장하면 손님 화면에 바로 나갑니다.
-        </p>
-      </footer>
-    </div>
   );
 }
 
@@ -401,16 +227,32 @@ export function AdminSystemCourseView() {
     return () => clearInterval(timer);
   }, [inFlight, reload]);
 
+  // 카드가 사진과 자리 수만 들고 있어, 전문(자리 목록·게시글 본문)은 **열 때만** 받는다.
+  //
+  // 받는 중에 닫거나 다른 카드를 누를 수 있다. 그때 먼저 보낸 요청이 뒤늦게 돌아와
+  // 팝업을 도로 열지 않도록, 몇 번째 요청인지를 들고 있다가 최신 것만 반영한다.
+  const openSeq = useRef(0);
+
   const open = useCallback(async (course) => {
+    const seq = ++openSeq.current;
     setOpening(true);
     setActionError(null);
     try {
-      setDetail(await getSystemCourse(course.courseId));
+      const next = await getSystemCourse(course.courseId);
+      if (openSeq.current === seq) setDetail(next);
     } catch (err) {
-      setActionError(err);
+      if (openSeq.current === seq) setActionError(err);
     } finally {
-      setOpening(false);
+      if (openSeq.current === seq) setOpening(false);
     }
+  }, []);
+
+  // 받는 중에 닫으면 `opening` 이 남아 팝업이 안 닫힌다. 둘을 같이 끄고, 도는 요청을
+  // 버린다.
+  const close = useCallback(() => {
+    openSeq.current += 1;
+    setDetail(null);
+    setOpening(false);
   }, []);
 
   const remove = useCallback(async (course) => {
@@ -475,25 +317,31 @@ export function AdminSystemCourseView() {
         </div>
       )}
 
+      {/* 캐시된 코스 편집기와 **같은 크기의 팝업**이다. 지도가 한쪽을 통째로 쓰므로
+          680px 로는 코스도 지도도 못 본다. */}
       <Modal
         open={Boolean(detail) || opening}
-        onClose={() => setDetail(null)}
+        onClose={close}
         labelledBy="system-course-editor"
-        panelClassName="w-[min(680px,94vw)] overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(20,24,45,0.28)]"
+        panelClassName="h-[92dvh] w-[92vw] max-w-[1680px] overflow-hidden rounded-[24px] border border-[#e1e4ed] bg-white shadow-[0_30px_90px_rgba(20,24,50,0.28)]"
       >
         {detail ? (
-          <CourseEditor
+          <AdminSystemCourseEditor
+            key={detail.courseId}
             detail={detail}
-            onClose={() => setDetail(null)}
+            onClose={close}
             onSaved={() => {
-              setDetail(null);
+              close();
               // 목록을 다시 읽는다. 수정이 `updated_at` 을 바꾸는데 그 값은 서버가
               // 정하므로, 손에 든 것으로 덮어쓰면 카드의 "마지막 수정" 이 안 맞는다.
               reload();
             }}
           />
         ) : (
-          <div className="px-6 py-10 text-center text-sm text-[#7a8095]">불러오는 중…</div>
+          <div className="flex h-full items-center justify-center gap-3 text-sm font-semibold text-[#596078]">
+            <span className="size-5 animate-spin rounded-full border-2 border-[#d9ddef] border-t-brand" />
+            코스를 불러오는 중
+          </div>
         )}
       </Modal>
     </section>
