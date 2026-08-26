@@ -58,7 +58,7 @@ export function CourseDetailActions({ course = {} }) {
 
   return (
     <>
-      <div className="mt-5 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+      <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:mt-5">
         {/* 코스 저장 / 북마크 버튼 */}
         <button
           type="button"

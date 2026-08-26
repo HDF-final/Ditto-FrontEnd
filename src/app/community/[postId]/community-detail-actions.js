@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -19,6 +19,14 @@ import { useTranslations } from "next-intl";
 export function CommunityDetailActions({ course = {} }) {
   const t = useTranslations("community");
   const router = useRouter();
+
+  // 이 컴포넌트는 모바일/데스크톱 히어로에서 두 번 렌더된다. 그라디언트 id가 같으면
+  // url(#id) 는 문서 첫 정의를 잡는데, 그게 lg:hidden(display:none) 블록 안이면
+  // 스파클이 칠해지지 않는다. 인스턴스마다 고유 id 로 갈라 준다.
+  const sparkleUid = useId();
+  const likeGradId = `communityLikeSparkleGradient-${sparkleUid}`;
+  const likeHighlightId = `communityLikeSparkleHighlight-${sparkleUid}`;
+  const likeIdleId = `communityLikeSparkleIdle-${sparkleUid}`;
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
 
@@ -153,7 +161,7 @@ export function CommunityDetailActions({ course = {} }) {
             >
               <defs>
                 <linearGradient
-                  id="communityLikeSparkleGradient"
+                  id={likeGradId}
                   x1="3"
                   y1="2"
                   x2="21"
@@ -165,7 +173,7 @@ export function CommunityDetailActions({ course = {} }) {
                   <stop offset="100%" stopColor="#4b18d8" />
                 </linearGradient>
                 <radialGradient
-                  id="communityLikeSparkleHighlight"
+                  id={likeHighlightId}
                   cx="35%"
                   cy="28%"
                   r="55%"
@@ -175,7 +183,7 @@ export function CommunityDetailActions({ course = {} }) {
                   <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
                 </radialGradient>
                 <linearGradient
-                  id="communityLikeSparkleIdle"
+                  id={likeIdleId}
                   x1="4"
                   y1="3"
                   x2="20"
@@ -190,15 +198,13 @@ export function CommunityDetailActions({ course = {} }) {
               <path
                 d="M12 1.55C13.38 7.02 16.98 10.62 22.45 12 16.98 13.38 13.38 16.98 12 22.45 10.62 16.98 7.02 13.38 1.55 12 7.02 10.62 10.62 7.02 12 1.55Z"
                 fill={
-                  isLiked
-                    ? "url(#communityLikeSparkleGradient)"
-                    : "url(#communityLikeSparkleIdle)"
+                  isLiked ? `url(#${likeGradId})` : `url(#${likeIdleId})`
                 }
                 opacity={isLiked ? "1" : "0.92"}
               />
               <path
                 d="M12 3.25C13.02 7.32 15.6 9.82 19.95 12 15.6 14.18 13.02 16.68 12 20.75 10.98 16.68 8.4 14.18 4.05 12 8.4 9.82 10.98 7.32 12 3.25Z"
-                fill="url(#communityLikeSparkleHighlight)"
+                fill={`url(#${likeHighlightId})`}
                 opacity={isLiked ? "0.9" : "0.55"}
               />
               <path

@@ -17,6 +17,8 @@ import {
 } from "./community-author-meta";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
 import { CommunityStopList } from "@/components/community/community-stop-list";
+import { HomeSnapScroller } from "@/components/home/home-snap-scroller";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +75,7 @@ function AuthorNote({ course, t, locale, authorPersona, travelerText }) {
     course.note || course.description || "작성자가 남긴 후기가 없습니다.";
 
   return (
-    <section className="bg-surface-soft px-4 py-8 sm:px-14 lg:px-52 lg:py-10 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-3 py-8 sm:px-14 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -100,7 +102,7 @@ function AuthorNote({ course, t, locale, authorPersona, travelerText }) {
           </CommunityOtherCoursesLink>
         </div>
 
-        <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
+        <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:mt-4 lg:p-5">
           <div className="flex items-center gap-4 border-b border-line/60 pb-6">
             <AuthorAvatar
               persona={authorPersona}
@@ -130,8 +132,20 @@ function AuthorNote({ course, t, locale, authorPersona, travelerText }) {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[20px] bg-surface-soft p-4 text-base font-semibold leading-8 text-ink sm:rounded-[24px] sm:p-7 sm:text-lg lg:p-7">
-            <p className="whitespace-pre-line break-keep text-ink">{noteText}</p>
+          <div className="relative mt-6 flex items-start gap-4 rounded-[20px] bg-surface-soft p-4 text-base font-semibold leading-8 text-ink sm:mt-7 sm:gap-5 sm:rounded-[24px] sm:p-7 sm:text-lg">
+            {/* 작성자의 한마디를 인용처럼 — 코스 상세 BONI NOTE와 동일한 스타일 */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 40 40"
+              fill="currentColor"
+              className="mt-1 size-8 shrink-0 text-brand sm:size-9"
+              style={{ opacity: 0.3 }}
+            >
+              <path d="M17 8c-5.5 0-10 4.5-10 10v14h13V18h-6c0-3.3 1.7-5 5-5V8Zm16 0c-5.5 0-10 4.5-10 10v14h13V18h-6c0-3.3 1.7-5 5-5V8Z" />
+            </svg>
+            <p className="relative min-w-0 whitespace-pre-line break-keep leading-relaxed text-ink">
+              {noteText}
+            </p>
           </div>
         </article>
       </div>
@@ -210,8 +224,10 @@ export default async function CommunityCourseDetailPage({ params }) {
   );
 
   return (
-    <main className="min-w-0 overflow-x-hidden bg-white">
-      <section className="bg-surface-soft px-4 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
+    <HomeSnapScroller>
+      {/* ── 덩어리 1: 브레드크럼(위 고정) + 히어로(남은 공간 중앙) ── */}
+      <div className="home-snap-panel min-w-0 overflow-x-hidden bg-white lg:flex lg:flex-col">
+      <section className="bg-surface-soft px-3 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
         <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
           <div className="flex min-w-0 items-center gap-2">
             <Link href="/" className="shrink-0 hover:text-brand">
@@ -233,9 +249,10 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-4 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-8 lg:pt-8 xl:px-60 2xl:px-72">
+      <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center">
+      <section className="px-3 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-8 lg:pt-8 xl:px-60 2xl:px-72">
         <div className="mx-auto max-w-7xl min-w-0 lg:hidden">
-          <div className="relative flex aspect-[4/3] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
+          <div className="relative flex aspect-[4/3] w-full flex-col justify-between overflow-hidden rounded-[24px] bg-slate-950 shadow-[0_12px_30px_rgba(30,15,70,0.22)]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
                 postId={course.postId || postId}
@@ -245,16 +262,17 @@ export default async function CommunityCourseDetailPage({ params }) {
                 className="h-full w-full object-cover"
               />
             </div>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
-            <div className="pointer-events-none relative z-10 p-6">{venueBadge}</div>
-            <div className="relative z-10 p-6">
-              <h1 className="break-keep text-[22px] font-black leading-tight text-white sm:text-[26px]">
+            <div className="relative z-10 p-5">{venueBadge}</div>
+            <div className="relative z-10 p-5">
+              <h1 className="break-keep text-[22px] font-black leading-tight text-white drop-shadow-md">
                 {course.title}
               </h1>
             </div>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-4">
             {authorBlock}
             <CourseDetailStats
               spotCount={stopMeta.spotCount}
@@ -285,11 +303,6 @@ export default async function CommunityCourseDetailPage({ params }) {
             <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
               {course.title}
             </h2>
-            {course.description ? (
-              <p className="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">
-                {course.description}
-              </p>
-            ) : null}
             <CourseDetailStats
               spotCount={stopMeta.spotCount}
               floorLabel={stopMeta.floorLabel}
@@ -299,14 +312,23 @@ export default async function CommunityCourseDetailPage({ params }) {
           </div>
         </div>
       </section>
+      </div>
 
-      <section className="px-4 py-5 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+      </div>
+
+      {/* ── 덩어리 2 (중간, 크게): 코스 장소 목록 & 3D 실내 맵 동선 ── */}
+      <div className="home-snap-panel min-w-0 overflow-x-hidden bg-white lg:flex lg:flex-col lg:justify-center">
+      <section className="px-3 py-5 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72 lg:w-full">
         <div className="mx-auto grid max-w-7xl min-w-0 gap-4 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
           <CommunityStopList stops={course.stops} courseId={course.courseId} />
           <CommunityCourseDetailMap stops={course.stops} />
         </div>
       </section>
+      </div>
 
+      {/* ── 덩어리 3: 작성자 노트 + 하단 버튼 + 푸터 (한 덩어리) ── */}
+      <div className="home-snap-panel bg-surface-soft lg:flex lg:flex-col">
+      <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center">
       <AuthorNote
         course={course}
         t={t}
@@ -315,7 +337,7 @@ export default async function CommunityCourseDetailPage({ params }) {
         travelerText={travelerText}
       />
 
-      <section className="bg-surface-soft px-4 pb-10 sm:px-14 lg:px-52 lg:pb-10 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-3 pb-10 sm:px-14 lg:px-52 lg:pb-4 xl:px-60 2xl:px-72">
         <div className="mx-auto flex max-w-7xl justify-center">
           <Link
             href="/community"
@@ -325,6 +347,9 @@ export default async function CommunityCourseDetailPage({ params }) {
           </Link>
         </div>
       </section>
-    </main>
+      </div>
+      <SiteFooter embedded />
+      </div>
+    </HomeSnapScroller>
   );
 }
