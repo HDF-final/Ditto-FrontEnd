@@ -19,7 +19,11 @@ function getCourseImage(course) {
   );
 }
 
-export function RecommendedCourseTicket({ course, className = "" }) {
+export function RecommendedCourseTicket({
+  course,
+  className = "",
+  showPlacesOnHover = true,
+}) {
   const image = getCourseImage(course);
   const places = Array.isArray(course.places) ? course.places.slice(0, 4) : [];
   const tags = (
@@ -30,11 +34,10 @@ export function RecommendedCourseTicket({ course, className = "" }) {
     .filter(Boolean)
     .map((tag) => String(tag).replace(/^#/, ""))
     .slice(0, 2);
-  const rankNumber =
-    Number.parseInt(String(course.rank || "").replace(/\D/g, ""), 10) || 1;
-
   return (
-    <article className={`${styles.wrapper} ${className}`}>
+    <article
+      className={`${styles.wrapper} ${showPlacesOnHover ? "" : styles.presentationOnly} ${className}`}
+    >
       <div className={styles.ticket}>
         <div className={styles.main}>
           <div
@@ -42,37 +45,32 @@ export function RecommendedCourseTicket({ course, className = "" }) {
             style={{ backgroundImage: `url(${image})` }}
           />
 
-          <div className={styles.header}>
-            <span className={styles.rankBadge} aria-label={`${rankNumber}위`}>
-              {rankNumber}
-            </span>
-            <span className={styles.pass}>COURSE PASS</span>
-          </div>
-
-          <div className={styles.placesOverlay} aria-hidden="true">
-            <p className={styles.placesTitle}>COURSE SPOTS</p>
-            {places.length > 0 ? (
-              <ol className={styles.placesList}>
-                {places.map((place, index) => (
-                  <li
-                    key={
-                      place.placeId ||
-                      `${place.floorCode || place.floor}-${place.name}-${index}`
-                    }
-                    className={styles.place}
-                  >
-                    <span className={styles.placeIndex}>{index + 1}</span>
-                    <span className={styles.placeFloor}>
-                      {place.floorCode || place.floor || "1F"}
-                    </span>
-                    <span className={styles.placeName}>{place.name}</span>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className={styles.emptyPlaces}>코스 장소를 준비하고 있어요.</p>
-            )}
-          </div>
+          {showPlacesOnHover ? (
+            <div className={styles.placesOverlay} aria-hidden="true">
+              <p className={styles.placesTitle}>COURSE SPOTS</p>
+              {places.length > 0 ? (
+                <ol className={styles.placesList}>
+                  {places.map((place, index) => (
+                    <li
+                      key={
+                        place.placeId ||
+                        `${place.floorCode || place.floor}-${place.name}-${index}`
+                      }
+                      className={styles.place}
+                    >
+                      <span className={styles.placeIndex}>{index + 1}</span>
+                      <span className={styles.placeFloor}>
+                        {place.floorCode || place.floor || "1F"}
+                      </span>
+                      <span className={styles.placeName}>{place.name}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className={styles.emptyPlaces}>코스 장소를 준비하고 있어요.</p>
+              )}
+            </div>
+          ) : null}
         </div>
 
         <div className={styles.stub}>

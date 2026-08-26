@@ -43,12 +43,12 @@ function HeroCta({ href, label, tone = "solid", size = "md" }) {
   const sizeStyles =
     size === "sm"
       ? "min-h-8 gap-1.5 px-4 text-[11px]"
-      : "gap-2 px-6 py-3 text-sm";
+      : "min-h-[52px] gap-2.5 px-7 py-3.5 text-base";
   const toneStyles =
     tone === "solid"
       ? "bg-white text-ink shadow-control hover:bg-white/90"
       : "border border-white/50 bg-white/10 text-white backdrop-blur-md hover:bg-white/18";
-  const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  const iconSize = size === "sm" ? "h-3 w-3" : "h-[18px] w-[18px]";
 
   return (
     <Link
@@ -78,7 +78,7 @@ function SlideIndicators({
           aria-current={activeIndex === index}
           onClick={() => onSelect(index)}
           className={`rounded-full transition-all ${
-            compact ? "h-1.5" : "h-2.5"
+            compact ? "h-1.5" : "h-3"
           } ${
             activeIndex === index
               ? compact
@@ -86,15 +86,15 @@ function SlideIndicators({
                   ? "w-5 bg-white"
                   : "w-5 bg-brand"
                 : light
-                  ? "w-7 bg-white"
-                  : "w-7 bg-brand"
+                  ? "w-9 bg-white"
+                  : "w-9 bg-brand"
               : compact
                 ? light
                   ? "w-1.5 bg-white/45 hover:bg-white/75"
                   : "w-1.5 bg-line-strong hover:bg-brand/50"
                 : light
-                  ? "w-2.5 bg-white/45 hover:bg-white/75"
-                  : "w-2.5 bg-line-strong hover:bg-brand/50"
+                  ? "w-3 bg-white/45 hover:bg-white/75"
+                  : "w-3 bg-line-strong hover:bg-brand/50"
           }`}
         />
       ))}
@@ -104,15 +104,41 @@ function SlideIndicators({
 
 export function HomeHero({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [displayedIndex, setDisplayedIndex] = useState(0);
+  const [copyPhase, setCopyPhase] = useState("idle");
 
   // 데스크톱 히어로용 자동 넘김
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setActiveIndex((current) => (current + 1) % slides.length);
-    }, 5000);
+    }, 6500);
 
-    return () => window.clearInterval(timer);
-  }, [slides.length]);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, slides.length]);
+
+  // 데스크톱 문구는 먼저 흐려진 뒤 교체하고 다시 선명하게 보여줍니다.
+  useEffect(() => {
+    if (activeIndex === displayedIndex) {
+      const settleTimer = window.setTimeout(() => {
+        setCopyPhase("idle");
+      }, 420);
+
+      return () => window.clearTimeout(settleTimer);
+    }
+
+    const leaveTimer = window.setTimeout(() => {
+      setCopyPhase("leaving");
+    }, 0);
+    const swapTimer = window.setTimeout(() => {
+      setDisplayedIndex(activeIndex);
+      setCopyPhase("entering");
+    }, 180);
+
+    return () => {
+      window.clearTimeout(leaveTimer);
+      window.clearTimeout(swapTimer);
+    };
+  }, [activeIndex, displayedIndex]);
 
   // 모바일 히어로: 손가락 따라오는 드래그 + 스냅
   const {
@@ -124,9 +150,7 @@ export function HomeHero({ slides }) {
   } = useDragCarousel({ length: slides.length, auto: true, interval: 5000 });
   const mobileSlide = slides[heroIndex];
 
-  const activeSlide = slides[activeIndex];
-  const heroMinHeight = "clamp(480px, 44vw, 640px)";
-
+  const activeSlide = slides[displayedIndex];
   return (
     <>
       <section
@@ -188,12 +212,12 @@ export function HomeHero({ slides }) {
         </div>
       </section>
 
-      <section className="relative hidden w-full overflow-hidden lg:block">
-        <div className="relative" style={{ minHeight: heroMinHeight }}>
+      <section className="home-snap-panel relative hidden w-full overflow-hidden lg:block">
+        <div className="relative h-full min-h-[480px]">
           <div className="absolute inset-0 bg-linear-to-br from-[#1b1826] via-[#282338] to-[#372f4b]" />
 
           {/* 오른쪽에 크게 깔되 가장자리는 배경에 스며들도록 마스크 페이드 */}
-          <div className="absolute inset-y-0 right-0 w-[60%]">
+          <div className="absolute inset-y-0 right-0 w-[58%]">
             <video
               className="absolute inset-0 h-full w-full object-cover"
               src={HERO_VIDEO_SRC}
@@ -204,9 +228,9 @@ export function HomeHero({ slides }) {
               aria-hidden="true"
               style={{
                 WebkitMaskImage:
-                  "linear-gradient(to right, transparent 0%, #000 40%)",
+                  "linear-gradient(to right, transparent 0%, #000 54%)",
                 maskImage:
-                  "linear-gradient(to right, transparent 0%, #000 40%)",
+                  "linear-gradient(to right, transparent 0%, #000 54%)",
               }}
             />
           </div>
@@ -214,41 +238,51 @@ export function HomeHero({ slides }) {
           {/* 텍스트 가독성용 좌측 어둠 */}
           <div className="absolute inset-0 bg-linear-to-r from-[#1b1826]/88 via-[#1b1826]/38 to-transparent" />
 
-          <div
-            className="relative flex w-full max-w-2xl flex-col justify-center gap-7 px-6 sm:px-12 lg:px-32"
-            style={{ minHeight: heroMinHeight }}
-          >
-            <p className="text-sm font-black tracking-wide text-white/82">
-              {activeSlide.eyebrow}
-            </p>
-            <h1 className="text-3xl font-black leading-snug text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-5xl">
-              <span className="block">{activeSlide.titleLine}</span>
-              <span className="block whitespace-nowrap">
-                <span className="text-white">{activeSlide.accent}</span>
-                {activeSlide.suffix}
-              </span>
-            </h1>
-            <p className="max-w-xl whitespace-pre-line text-sm font-semibold leading-7 text-white/84 sm:text-base">
-              {activeSlide.description}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <HeroCta
-                href={activeSlide.primaryCta.href}
-                label={activeSlide.primaryCta.label}
-                tone="solid"
-              />
-              <HeroCta
-                href={activeSlide.secondaryCta.href}
-                label={activeSlide.secondaryCta.label}
-                tone="outline"
+          <div className="home-content-boundary relative flex h-full items-center">
+            <div className="flex w-full max-w-4xl flex-col gap-8">
+              <div
+                key={displayedIndex}
+                className={`home-hero-copy flex flex-col gap-8 ${
+                  copyPhase === "leaving"
+                    ? "is-leaving"
+                    : copyPhase === "entering"
+                      ? "is-entering"
+                      : ""
+                }`}
+              >
+                <p className="text-base font-black tracking-wide text-white/82">
+                  {activeSlide.eyebrow}
+                </p>
+                <h1 className="text-3xl font-black leading-[1.18] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-[clamp(3.5rem,4.2vw,4.75rem)]">
+                  <span className="block">{activeSlide.titleLine}</span>
+                  <span className="block whitespace-nowrap">
+                    <span className="text-white">{activeSlide.accent}</span>
+                    {activeSlide.suffix}
+                  </span>
+                </h1>
+                <p className="max-w-2xl whitespace-pre-line text-sm font-semibold leading-8 text-white/84 sm:text-base lg:text-lg">
+                  {activeSlide.description}
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <HeroCta
+                    href={activeSlide.primaryCta.href}
+                    label={activeSlide.primaryCta.label}
+                    tone="solid"
+                  />
+                  <HeroCta
+                    href={activeSlide.secondaryCta.href}
+                    label={activeSlide.secondaryCta.label}
+                    tone="outline"
+                  />
+                </div>
+              </div>
+              <SlideIndicators
+                slides={slides}
+                activeIndex={activeIndex}
+                onSelect={setActiveIndex}
+                light
               />
             </div>
-            <SlideIndicators
-              slides={slides}
-              activeIndex={activeIndex}
-              onSelect={setActiveIndex}
-              light
-            />
           </div>
         </div>
       </section>

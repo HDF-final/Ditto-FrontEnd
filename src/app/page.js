@@ -2,7 +2,9 @@ import { BoniLauncher } from "@/components/home/boni-launcher";
 import { CommunityPreviewSection } from "@/components/home/community-preview-section";
 import { DittoPicksSection } from "@/components/home/ditto-picks-section";
 import { HomeHero } from "@/components/home/home-hero";
+import { HomeSnapScroller } from "@/components/home/home-snap-scroller";
 import { NewsletterPreviewSection } from "@/components/home/newsletter-preview-section";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { heroSlides } from "@/lib/fixtures/home";
 import { fetchPublicCoursesServer } from "@/lib/api/community.server";
 import { fetchNewsFeedsServer } from "@/lib/api/news.server";
@@ -37,7 +39,7 @@ function sortCommunityCoursesByPopularity(courses = []) {
 export default async function Home() {
   const [newsList, systemCourses, communityCourses, t] = await Promise.all([
     fetchNewsFeedsServer({ page: 0, size: 5 }),
-    fetchSystemCoursesServer({ size: 3 }).catch(() => []),
+    fetchSystemCoursesServer({ size: 50 }).catch(() => []),
     fetchPublicCoursesServer({ page: 0, size: 50 }).catch(() => []),
     getTranslations("home"),
   ]);
@@ -53,12 +55,15 @@ export default async function Home() {
   });
 
   return (
-    <main className="bg-background max-lg:space-y-5">
+    <HomeSnapScroller>
       <HomeHero slides={localizedHeroSlides} />
       <DittoPicksSection initialCourses={systemCourses} />
       <CommunityPreviewSection initialCourses={popularCommunityCourses} />
-      <NewsletterPreviewSection items={newsList} />
+      <div className="home-snap-panel bg-surface-soft lg:flex lg:flex-col">
+        <NewsletterPreviewSection items={newsList} />
+        <SiteFooter embedded />
+      </div>
       <BoniLauncher />
-    </main>
+    </HomeSnapScroller>
   );
 }

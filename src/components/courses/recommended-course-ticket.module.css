@@ -28,6 +28,12 @@
   filter: drop-shadow(14px 22px 30px rgb(34 20 74 / 30%));
 }
 
+.presentationOnly:hover .ticket,
+.presentationOnly:focus-within .ticket {
+  transform: none;
+  filter: drop-shadow(0 16px 22px rgb(34 20 74 / 22%));
+}
+
 .ticket::after {
   content: "";
   position: absolute;
@@ -56,6 +62,11 @@
   background-position: 0 0;
 }
 
+.presentationOnly:hover .ticket::after,
+.presentationOnly:focus-within .ticket::after {
+  background-position: 100% 100%;
+}
+
 .main {
   position: relative;
   min-height: 0;
@@ -79,40 +90,9 @@
   transform: scale(1.08);
 }
 
-.header {
-  position: absolute;
-  inset: 20px 20px auto;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rankBadge {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 55%);
-  border-radius: 999px;
-  background: linear-gradient(145deg, #8d66ff, #5c2ef5);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 950;
-  box-shadow:
-    0 7px 18px rgb(45 22 117 / 42%),
-    inset 0 1px 0 rgb(255 255 255 / 45%);
-}
-
-.pass {
-  border: 1px solid rgb(143 97 255 / 90%);
-  border-radius: 999px;
-  padding: 6px 10px;
-  color: #cbbdff;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.2em;
+.presentationOnly:hover .image,
+.presentationOnly:focus-within .image {
+  transform: scale(1.025);
 }
 
 .placesOverlay {

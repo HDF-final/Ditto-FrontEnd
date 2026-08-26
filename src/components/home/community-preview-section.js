@@ -17,7 +17,7 @@ import {
   unbookmarkCourse,
 } from "@/lib/api/community";
 
-function CommunityCourseCard({ course, onAuthRequired }) {
+function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
   const t = useTranslations("home");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -122,7 +122,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
   return (
     <Link
       href={href}
-      className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] aspect-[4/3] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]"
+      className={`group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] aspect-[4/3] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px] ${className}`}
     >
       {/* Full Background Image */}
       <img
@@ -241,6 +241,7 @@ function CommunitySlider({
   onAuthRequired,
   isPaused,
   enableDrag = false,
+  cardClassName = "",
 }) {
   const t = useTranslations("home");
   const slides = [];
@@ -283,6 +284,7 @@ function CommunitySlider({
                   key={course.rank}
                   course={course}
                   onAuthRequired={onAuthRequired}
+                  className={cardClassName}
                 />
               ))}
             </div>
@@ -320,49 +322,52 @@ export function CommunityPreviewSection({ initialCourses = [] }) {
   return (
     <section
       id="community"
-      className="scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-5 lg:scroll-mt-[94px] lg:px-52 lg:py-16 xl:px-60 2xl:px-72"
+      className="home-snap-panel scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-5 lg:flex lg:scroll-mt-0 lg:px-0 lg:py-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <SectionHeading
-        eyebrow="TRAVELER COMMUNITY"
-        title={t("communityTitle")}
-        description={t("communityDescription")}
-        href="/community"
-        linkLabel={t("browseCommunity")}
-        inverse
-      />
+      <div className="home-content-boundary lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:justify-center lg:py-[clamp(28px,5dvh,56px)]">
+        <SectionHeading
+          eyebrow="TRAVELER COMMUNITY"
+          title={t("communityTitle")}
+          description={t("communityDescription")}
+          href="/community"
+          linkLabel={t("browseCommunity")}
+          inverse
+        />
 
-      <div className="lg:hidden">
-        {courses.length > 0 ? (
-          <CommunitySlider
-            courses={courses}
-            itemsPerSlide={1}
-            columnsClassName="grid-cols-1"
-            onAuthRequired={() => setIsLoginModalOpen(true)}
-            isPaused={isPaused}
-            enableDrag
-          />
-        ) : (
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-8 text-center text-sm font-bold text-white/80">
-            아직 공유된 커스텀 코스가 없습니다.
-          </div>
-        )}
-      </div>
-      <div className="hidden lg:block">
-        {courses.length > 0 ? (
-          <CommunitySlider
-            courses={courses}
-            itemsPerSlide={3}
-            columnsClassName="grid-cols-3"
-            onAuthRequired={() => setIsLoginModalOpen(true)}
-            isPaused={isPaused}
-          />
-        ) : (
-          <div className="rounded-[26px] border border-white/15 bg-white/10 p-12 text-center text-sm font-bold text-white/80">
-            아직 공유된 커스텀 코스가 없습니다.
-          </div>
-        )}
+        <div className="lg:hidden">
+          {courses.length > 0 ? (
+            <CommunitySlider
+              courses={courses}
+              itemsPerSlide={1}
+              columnsClassName="grid-cols-1"
+              onAuthRequired={() => setIsLoginModalOpen(true)}
+              isPaused={isPaused}
+              enableDrag
+            />
+          ) : (
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-8 text-center text-sm font-bold text-white/80">
+              아직 공유된 커스텀 코스가 없습니다.
+            </div>
+          )}
+        </div>
+        <div className="hidden lg:block">
+          {courses.length > 0 ? (
+            <CommunitySlider
+              courses={courses}
+              itemsPerSlide={3}
+              columnsClassName="grid-cols-3"
+              onAuthRequired={() => setIsLoginModalOpen(true)}
+              isPaused={isPaused}
+              cardClassName="home-community-card"
+            />
+          ) : (
+            <div className="rounded-[26px] border border-white/15 bg-white/10 p-12 text-center text-sm font-bold text-white/80">
+              아직 공유된 커스텀 코스가 없습니다.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 로그인 필요 알림 모달 */}
