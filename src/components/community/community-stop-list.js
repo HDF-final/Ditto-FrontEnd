@@ -1,126 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   attachPlaceIdsToCourseDataset,
   loadCourseRoutingDataset,
-  getFallbackPlaceImage,
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
-
-function SpotDetailModal({ stop, index, onClose }) {
-  if (!stop) return null;
-
-  const floorText = stop.floor ? `${stop.floor}` : "1F";
-  const image =
-    stop.image ||
-    stop.imageUrl ||
-    stop.placeImg ||
-    getFallbackPlaceImage(stop);
-
-  const destinationParam = stop.navigationKey || stop.placeId || "";
-
-  return (
-    <div
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-xs animate-in fade-in duration-150"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="relative flex w-full max-w-[440px] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh]"
-      >
-        {/* Top Image Banner */}
-        <div className="relative h-48 w-full bg-slate-900 shrink-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={image}
-            alt={stop.name}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            className="absolute right-3.5 top-3.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-black/70 cursor-pointer"
-          >
-            <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Floor & Spot Badge */}
-          <div className="absolute bottom-3.5 left-4 flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-lg bg-brand text-[11px] font-black text-white shadow-xs">
-              {index + 1}
-            </span>
-            <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-black text-ink shadow-xs">
-              {floorText}
-            </span>
-            {stop.category && (
-              <span className="rounded-full bg-black/50 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-xs">
-                {stop.category}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Info Content */}
-        <div className="flex flex-col gap-4 p-5 sm:p-6 overflow-y-auto">
-          <div>
-            <h3 className="text-xl font-black text-ink">
-              {stop.name || `스팟 #${index + 1}`}
-            </h3>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-brand">
-              <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>더현대 서울 {floorText}</span>
-            </p>
-          </div>
-
-          {/* Note / Description */}
-          {stop.description && (
-            <div className="rounded-2xl bg-surface-soft p-4 border border-line/60">
-              <p className="text-[11px] font-bold text-ink-muted mb-1">코스 추천 팁</p>
-              <p className="text-sm font-medium text-ink leading-relaxed">
-                {stop.description}
-              </p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="mt-2 flex items-center gap-2.5">
-            <Link
-              href={destinationParam ? `/scan-map?destination=${destinationParam}` : "/scan-map"}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-brand py-3 text-xs font-black text-white shadow-xs transition hover:bg-brand-dark cursor-pointer text-center"
-            >
-              <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              <span>실내 지도에서 위치 보기</span>
-            </Link>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-line bg-surface-soft px-5 py-3 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { PlaceModal } from "@/components/ai-course/recommend/place-modal";
 
 export function CommunityStopList({ stops = [], courseId }) {
   const t = useTranslations("community");
@@ -266,11 +153,10 @@ export function CommunityStopList({ stops = [], courseId }) {
         </div>
       </div>
 
-      {/* Spot Info Modal */}
+      {/* Spot Info Modal — ai-course 상세 모달 재사용 (매장 안내 + 더현대Hi 상품 + 매장 사진) */}
       {selectedSpot ? (
-        <SpotDetailModal
-          stop={selectedSpot}
-          index={selectedSpot.index}
+        <PlaceModal
+          place={selectedSpot}
           onClose={() => setSelectedSpot(null)}
         />
       ) : null}
