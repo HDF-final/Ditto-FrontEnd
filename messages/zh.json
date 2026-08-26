@@ -394,7 +394,7 @@
     "optimize": "优化",
     "savingShort": "保存中",
     "saveShort": "保存",
-    "dragHint": "拖动卡片调整顺序 · 优化时会保持起点、终点和锁定地点不变",
+    "dragHint": "点击数字或拖动卡片调整顺序 · 优化时会保持起点、终点和锁定地点不变",
     "transportOptions": "移动方式条件",
     "excludeElevator": "排除电梯",
     "excludeEscalator": "排除扶梯",

@@ -39,12 +39,61 @@ import {
 } from "@/lib/api/courses";
 
 const MAX_COURSE_PLACES = 8;
-// 모바일에서 한 페이지에 보여줄 장소 카드 수. 어떤 기기에서도 동일하게
-// 이 개수만 노출하고, 나머지는 페이지(이전/다음)로 넘깁니다.
-const CARDS_PER_PAGE = 3;
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
+}
+
+function reorderWithFixedSlots(list, lockedPlaceIds, fromIndex, toIndex) {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= list.length ||
+    toIndex >= list.length
+  ) {
+    return list;
+  }
+
+  const fixedSlots = new Map();
+  for (let i = 1; i < list.length; i += 1) {
+    if (lockedPlaceIds.has(list[i]?.id)) {
+      fixedSlots.set(i, list[i]);
+    }
+  }
+
+  if (fixedSlots.has(fromIndex) || fixedSlots.has(toIndex)) {
+    return list;
+  }
+
+  const unlockedSlots = [];
+  for (let i = 0; i < list.length; i += 1) {
+    if (!fixedSlots.has(i)) {
+      unlockedSlots.push(i);
+    }
+  }
+
+  const unlockedItems = unlockedSlots.map((i) => list[i]);
+  const fromUnlockedIdx = unlockedSlots.indexOf(fromIndex);
+  const toUnlockedIdx = unlockedSlots.indexOf(toIndex);
+
+  if (fromUnlockedIdx === -1 || toUnlockedIdx === -1) {
+    return list;
+  }
+
+  const nextUnlocked = [...unlockedItems];
+  const [moved] = nextUnlocked.splice(fromUnlockedIdx, 1);
+  nextUnlocked.splice(toUnlockedIdx, 0, moved);
+
+  const result = new Array(list.length);
+  for (const [slotIdx, place] of fixedSlots.entries()) {
+    result[slotIdx] = place;
+  }
+  for (let k = 0; k < unlockedSlots.length; k += 1) {
+    result[unlockedSlots[k]] = nextUnlocked[k];
+  }
+
+  return result;
 }
 
 function normalizePlaceName(name) {
@@ -161,7 +210,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const [draggingId, setDraggingId] = useState(null);
   const [courseTitle, setCourseTitle] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const [cardPage, setCardPage] = useState(0);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
   const [lockedPlaceIds, setLockedPlaceIds] = useState(() => new Set());
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
@@ -296,7 +344,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
         setHistory([]);
         setVisited(new Set());
         setLockedPlaceIds(new Set());
-        setCardPage(0);
         setNotice(hydratedPlaces.length > 0 ? "" : t("placeLoadFailed"));
       })
       .catch((error) => {
@@ -373,7 +420,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     setHistory([]);
     setVisited(new Set());
     setLockedPlaceIds(new Set());
-    setCardPage(0);
     setNotice("");
   }
 
@@ -465,7 +511,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   };
 
   const toggleLocked = (id, index) => {
-    if (index === 0 || index === items.length - 1) return;
+    if (index === 0) return;
     setLockedPlaceIds((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -584,13 +630,45 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const handleDragEnter = (index) => {
     const from = dragIndex.current;
     if (from === null || from === index) return;
-    setItems((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(index, 0, moved);
-      return next;
-    });
+    const list = itemsRef.current;
+    const fromPlace = list[from];
+    const targetPlace = list[index];
+
+    const isFromFixed = from > 0 && lockedPlaceIds.has(fromPlace?.id);
+    const isTargetFixed = index > 0 && lockedPlaceIds.has(targetPlace?.id);
+    if (isFromFixed || isTargetFixed) return;
+
+    const next = reorderWithFixedSlots(list, lockedPlaceIds, from, index);
+    if (!next || sameOrder(next, list)) return;
+
+    setItems(next);
     dragIndex.current = index;
+  };
+
+  const moveItemOrder = (fromIndex, toIndex) => {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      toIndex >= items.length
+    ) {
+      return;
+    }
+    const list = itemsRef.current;
+    const fromPlace = list[fromIndex];
+    const toPlace = list[toIndex];
+    const isFromFixed = fromIndex > 0 && lockedPlaceIds.has(fromPlace?.id);
+    const isToFixed = toIndex > 0 && lockedPlaceIds.has(toPlace?.id);
+    if (isFromFixed || isToFixed) return;
+
+    const next = reorderWithFixedSlots(list, lockedPlaceIds, fromIndex, toIndex);
+    if (!next || sameOrder(next, list)) return;
+
+    const before = itemsRef.current;
+    if (before) {
+      setHistory((h) => [...h, before]);
+    }
+    setItems(next);
   };
 
   const handleDragEnd = () => {
@@ -647,12 +725,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const onPlacePointerDown = (event, index) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (event.target.closest("[data-no-drag]")) return;
-    if (
-      event.target.closest("button") &&
-      !event.target.closest("[data-drag-handle]")
-    ) {
-      return;
-    }
+
+    const list = itemsRef.current;
+    const place = list[index];
+    const isFixed = index > 0 && lockedPlaceIds.has(place?.id);
+    if (isFixed) return;
+
     clearPointerTimer();
     pointerDrag.current = {
       pointerId: event.pointerId,
@@ -663,32 +741,25 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
       timer: null,
     };
     const row = event.currentTarget;
+    try {
+      row.setPointerCapture(event.pointerId);
+    } catch {
+      // ignore
+    }
+
     if (event.target.closest("[data-drag-handle]")) {
       event.preventDefault();
       beginPointerReorder(index);
-      try {
-        row.setPointerCapture(event.pointerId);
-      } catch {
-        // capture can fail if the pointer was already released
-      }
       return;
     }
+
     if (event.pointerType === "mouse") {
-      try {
-        row.setPointerCapture(event.pointerId);
-      } catch {
-        // ignore
-      }
       return;
     }
+
     pointerDrag.current.timer = setTimeout(() => {
       beginPointerReorder(index);
-      try {
-        row.setPointerCapture(event.pointerId);
-      } catch {
-        // ignore
-      }
-    }, 280);
+    }, 120);
   };
 
   const onPlacePointerMove = (event) => {
@@ -696,41 +767,38 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     if (drag.from === null) return;
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
+
     if (!drag.active) {
-      if (event.pointerType === "mouse") {
-        if (Math.hypot(dx, dy) < 8) return;
-        beginPointerReorder(drag.from);
-      } else if (Math.hypot(dx, dy) > 10) {
+      if (Math.hypot(dx, dy) >= 5) {
         clearPointerTimer();
-        return;
+        beginPointerReorder(drag.from);
       } else {
         return;
       }
     }
-    event.preventDefault();
+
+    if (event.cancelable) {
+      event.preventDefault();
+    }
     movePointerReorder(event.clientY);
   };
 
-  const onPlacePointerUp = () => {
+  const onPlacePointerUp = (event) => {
     const wasActive = pointerDrag.current.active;
     clearPointerTimer();
+    if (event && pointerDrag.current.pointerId !== null) {
+      try {
+        event.currentTarget.releasePointerCapture(pointerDrag.current.pointerId);
+      } catch {
+        // ignore
+      }
+    }
     resetPointerDrag();
     if (wasActive) {
       didDragRef.current = true;
       handleDragEnd();
     }
   };
-
-  // 장소 카드 페이징 (모바일). 데스크톱은 리스트가 자체 스크롤되므로 전부 노출.
-  const totalCardPages = Math.max(1, Math.ceil(items.length / CARDS_PER_PAGE));
-  if (cardPage > totalCardPages - 1) {
-    setCardPage(totalCardPages - 1);
-  }
-  const usePaging = !isDesktop && items.length > CARDS_PER_PAGE;
-  const pageStart = usePaging ? cardPage * CARDS_PER_PAGE : 0;
-  const visibleItems = usePaging
-    ? items.slice(pageStart, pageStart + CARDS_PER_PAGE)
-    : items;
 
   return (
     <>
@@ -889,49 +957,22 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
           </div>
         )}
 
-        {/* 장소 목록 전용 페이지 이동 (이동수단 조건과 분리) */}
-        {usePaging ? (
-          <div className="flex shrink-0 items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-[#6b6685]">
-              코스 장소 {items.length}곳
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCardPage((p) => Math.max(0, p - 1))}
-                disabled={cardPage === 0}
-                aria-label="이전 장소"
-                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                &lt;
-              </button>
-              <span className="min-w-[38px] text-center text-[11px] font-black text-[#5c2ef5]">
-                {cardPage + 1} / {totalCardPages}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setCardPage((p) => Math.min(totalCardPages - 1, p + 1))
-                }
-                disabled={cardPage === totalCardPages - 1}
-                aria-label="다음 장소"
-                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
-        ) : null}
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <span className="text-[11px] font-bold text-[#6b6685]">
+            코스 장소 {items.length}곳
+          </span>
+        </div>
 
         {/* Place cards */}
         <div
           ref={listRef}
-          className="flex flex-col gap-[10px] max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:pr-0.5"
+          className="flex flex-col gap-[10px] min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5"
         >
-          {visibleItems.map((place, localIndex) => {
-            const index = pageStart + localIndex;
-            const isEndpoint = index === 0 || index === items.length - 1;
-            const isLocked = isEndpoint || lockedPlaceIds.has(place.id);
+          {items.map((place, index) => {
+            const isStart = index === 0;
+            const isManuallyLocked = lockedPlaceIds.has(place.id);
+            const isFixed = !isStart && isManuallyLocked;
+            const isLocked = isStart || isManuallyLocked;
 
             return (
             <div
@@ -944,17 +985,20 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
               onPointerCancel={onPlacePointerUp}
               style={{
                 opacity: draggingId === place.id ? 0.4 : 1,
-                cursor: draggingId === place.id ? "grabbing" : "grab",
-                touchAction: draggingId === place.id ? "none" : "pan-y",
+                cursor: isFixed ? "default" : draggingId === place.id ? "grabbing" : "grab",
+                touchAction: isFixed ? "pan-y" : "none",
               }}
             >
               <div
-                data-drag-handle
-                className="mt-2 flex shrink-0 cursor-grab touch-none flex-col items-center active:cursor-grabbing sm:mt-[14px]"
-                aria-label={t("dragHint")}
+                className="mt-2 flex shrink-0 flex-col items-center sm:mt-[14px]"
               >
                 <div
-                  className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px]"
+                  data-drag-handle={!isFixed ? true : undefined}
+                  className={`group relative flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px] ${
+                    isFixed
+                      ? "cursor-default opacity-85"
+                      : "cursor-pointer active:scale-95 hover:scale-105"
+                  }`}
                   style={{
                     backgroundColor: visited.has(place.id)
                       ? "#4a2fa8"
@@ -968,8 +1012,38 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
                     border: `2px solid ${visited.has(place.id) ? "#4a2fa8" : "#5c2ef5"}`,
                     boxShadow: hoveredId === place.id ? "0 4px 12px #5c2ef544" : "none",
                   }}
+                  title={
+                    isFixed
+                      ? t("unlockOrder")
+                      : `${index + 1}번 (선택하여 순서 변경, 또는 드래그)`
+                  }
                 >
-                  {index + 1}
+                  <span className="pointer-events-none select-none">{index + 1}</span>
+                  {!isFixed && (
+                    <select
+                      data-no-drag
+                      value={index + 1}
+                      onChange={(e) => {
+                        const targetOrder = parseInt(e.target.value, 10);
+                        if (!Number.isNaN(targetOrder)) {
+                          moveItemOrder(index, targetOrder - 1);
+                        }
+                      }}
+                      className="absolute inset-0 z-10 size-full cursor-pointer opacity-0 text-ink"
+                      title={`${index + 1}번 순서 변경 (선택하여 이동)`}
+                      aria-label={`${place.name} 순서 변경`}
+                    >
+                      {items.map((optPlace, optIdx) => {
+                        const isOptFixed = optIdx > 0 && lockedPlaceIds.has(optPlace.id) && optIdx !== index;
+                        return (
+                          <option key={optIdx} value={optIdx + 1} disabled={isOptFixed}>
+                            {optIdx + 1}번 {optIdx === 0 ? `(${t("start")})` : optIdx === items.length - 1 ? `(${t("end")})` : `(${t("via")})`}
+                            {isOptFixed ? " [고정됨]" : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  )}
                 </div>
                 <span className="mt-1 whitespace-nowrap text-[9px] font-bold text-[#6b6685]">
                   {index === 0
@@ -981,7 +1055,9 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
               </div>
               <button
                 type="button"
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
+                className={`flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px] ${
+                  isFixed ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+                }`}
                 style={{
                   borderColor: hoveredId === place.id ? "#5c2ef5" : "transparent",
                   boxShadow:
@@ -1061,18 +1137,16 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
                 <button
                   type="button"
                   onClick={() => toggleLocked(place.id, index)}
-                  disabled={isEndpoint}
+                  disabled={isStart}
                   title={
-                    isEndpoint
-                      ? t("endpointFixed", {
-                          point: index === 0 ? t("startPoint") : t("endPoint"),
-                        })
+                    isStart
+                      ? t("endpointFixed", { point: t("startPoint") })
                       : isLocked
                         ? t("unlockOrder")
                         : t("lockOrder")
                   }
                   aria-label={
-                    isEndpoint
+                    isStart
                       ? t("orderFixed", { name: place.name })
                       : t("orderAction", {
                           name: place.name,

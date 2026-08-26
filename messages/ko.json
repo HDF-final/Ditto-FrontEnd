@@ -394,7 +394,7 @@
     "optimize": "최적화",
     "savingShort": "저장 중",
     "saveShort": "저장",
-    "dragHint": "카드를 드래그해 순서를 바꾸세요 · 출발·도착과 잠근 순서는 최적화해도 유지돼요",
+    "dragHint": "숫자를 누르거나 카드를 드래그해 순서를 바꾸세요 · 출발·도착과 잠근 순서는 최적화해도 유지돼요",
     "transportOptions": "이동수단 조건",
     "excludeElevator": "엘리베이터 제외",
     "excludeEscalator": "에스컬레이터 제외",

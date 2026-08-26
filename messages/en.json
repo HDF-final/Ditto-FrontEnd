@@ -394,7 +394,7 @@
     "optimize": "Optimize",
     "savingShort": "Saving",
     "saveShort": "Save",
-    "dragHint": "Drag cards to reorder · Start, end, and locked stops stay fixed during optimization",
+    "dragHint": "Tap the number or drag cards to reorder · Start, end, and locked stops stay fixed during optimization",
     "transportOptions": "Transport options",
     "excludeElevator": "Exclude elevators",
     "excludeEscalator": "Exclude escalators",
