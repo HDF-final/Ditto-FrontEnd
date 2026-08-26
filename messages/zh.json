@@ -201,7 +201,9 @@
     "viewAllReviews": "查看全部128条评价 →",
     "saveCourse": "保存路线",
     "share": "分享",
-    "coverPhoto": "路线封面图"
+    "coverPhoto": "路线封面图",
+    "spotStat": "站点",
+    "floorStat": "楼层"
   },
   "community": {
     "publicCourseDescription": "与{title}关联的定制推荐路线。",
@@ -295,7 +297,9 @@
     "justNow": "刚刚",
     "daysAgo": "{count}天",
     "hoursAgo": "{count}小时",
-    "minutesAgo": "{count}分钟"
+    "minutesAgo": "{count}分钟",
+    "spotStat": "站点",
+    "floorStat": "楼层"
   },
   "mypage": {
     "title": "个人主页",

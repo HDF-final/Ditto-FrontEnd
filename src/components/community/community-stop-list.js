@@ -8,6 +8,7 @@ import {
 } from "@/lib/navigation/course-routing-service";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import { PlaceModal } from "@/components/ai-course/recommend/place-modal";
+import { getFallbackPlaceImage } from "@/lib/navigation/course-routing-service";
 
 export function CommunityStopList({ stops = [], courseId }) {
   const t = useTranslations("community");
@@ -97,7 +98,7 @@ export function CommunityStopList({ stops = [], courseId }) {
   const list = hydratedStops.length > 0 ? hydratedStops : stops;
 
   return (
-    <section className="flex min-w-0 flex-col justify-between rounded-[22px] bg-surface-soft p-4 sm:rounded-[28px] sm:p-6 lg:p-7">
+    <section className="flex h-full min-w-0 flex-col rounded-[22px] bg-surface-soft p-4 sm:rounded-[28px] sm:p-6 lg:p-7">
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-ink">
@@ -127,6 +128,14 @@ export function CommunityStopList({ stops = [], courseId }) {
                 <span className="relative z-20 flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-black text-white shadow-xs group-hover:scale-105 transition-transform">
                   {index + 1}
                 </span>
+                <div className="relative z-20 size-12 shrink-0 overflow-hidden rounded-[12px] bg-surface-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={stop.image || getFallbackPlaceImage(stop)}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-black text-ink group-hover:text-brand transition-colors">
                     {stop.floor ? `${stop.floor} ` : ""}{stop.name || `스팟 #${index + 1}`}

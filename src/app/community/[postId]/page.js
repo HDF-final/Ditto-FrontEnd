@@ -5,6 +5,8 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { getPersonaById } from "@/lib/fixtures/personas";
+import { getCourseStopMeta } from "@/lib/utils/course-detail";
+import { CourseDetailStats } from "@/components/community/course-detail-stats";
 import { CommunityDetailActions } from "./community-detail-actions";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 import {
@@ -32,8 +34,27 @@ export async function generateMetadata({ params }) {
   return { title: course.title };
 }
 
-function AuthorNote({ course, t, locale }) {
-  const travelerText = t && t.has("traveler") ? t("traveler") : "여행자";
+function AuthorAvatar({ persona, name }) {
+  return (
+    <div
+      className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
+      style={{
+        backgroundColor: persona.theme?.bgColor || "#fff1e6",
+      }}
+    >
+      <Image
+        src={persona.imageSrc}
+        alt={name}
+        width={40}
+        height={40}
+        className="size-10 object-contain"
+        unoptimized
+      />
+    </div>
+  );
+}
+
+function AuthorNote({ course, t, locale, authorPersona, travelerText }) {
   const authorRecordText =
     t && t.has("authorRecord") ? t("authorRecord") : "작성자가 남긴 기록";
   const otherCoursesText =
@@ -48,14 +69,11 @@ function AuthorNote({ course, t, locale }) {
             : "2026.03.02",
         })
       : `${course.createdAt ? new Date(course.createdAt).toLocaleDateString(locale) : "2026.03.02"} 작성`;
-
-  const authorPersona = getPersonaById(
-    course.persona || course.shoppingType || course.personaId || "sohwak",
-    locale,
-  );
+  const noteText =
+    course.note || course.description || "작성자가 남긴 후기가 없습니다.";
 
   return (
-    <section className="bg-surface-soft px-4 py-8 sm:px-14 lg:px-52 lg:py-16 xl:px-60 2xl:px-72">
+    <section className="bg-surface-soft px-4 py-8 sm:px-14 lg:px-52 lg:py-10 xl:px-60 2xl:px-72">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -84,21 +102,10 @@ function AuthorNote({ course, t, locale }) {
 
         <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
           <div className="flex items-center gap-4 border-b border-line/60 pb-6">
-            <div
-              className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
-              style={{
-                backgroundColor: authorPersona.theme?.bgColor || "#fff1e6",
-              }}
-            >
-              <Image
-                src={authorPersona.imageSrc}
-                alt={course.name || travelerText}
-                width={40}
-                height={40}
-                className="size-10 object-contain"
-                unoptimized
-              />
-            </div>
+            <AuthorAvatar
+              persona={authorPersona}
+              name={course.name || travelerText}
+            />
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-black text-ink">
@@ -123,24 +130,8 @@ function AuthorNote({ course, t, locale }) {
             </div>
           </div>
 
-          <div className="mt-6 grid items-stretch gap-7 lg:grid-cols-[0.86fr_1fr]">
-            <div className="relative min-h-[220px] w-full overflow-hidden rounded-[20px] bg-slate-950 shadow-md sm:min-h-[320px] md:min-h-[380px]">
-              <CommunityDetailHeroImage
-                postId={course.postId}
-                courseId={course.courseId}
-                fallbackImage={course.image}
-                alt="작성자 첨부 사진"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <div className="flex h-full min-h-[200px] flex-col justify-start rounded-[20px] bg-surface-soft p-4 text-base font-semibold leading-8 text-ink sm:min-h-[320px] sm:rounded-[24px] sm:p-7 sm:text-lg md:min-h-[380px] lg:text-xl lg:leading-9">
-              <p className="whitespace-pre-line break-keep text-ink">
-                {course.note ||
-                  course.description ||
-                  "작성자가 남긴 후기가 없습니다."}
-              </p>
-            </div>
+          <div className="mt-6 rounded-[20px] bg-surface-soft p-4 text-base font-semibold leading-8 text-ink sm:rounded-[24px] sm:p-7 sm:text-lg lg:p-7">
+            <p className="whitespace-pre-line break-keep text-ink">{noteText}</p>
           </div>
         </article>
       </div>
@@ -167,15 +158,60 @@ export default async function CommunityCourseDetailPage({ params }) {
   const viewAllCoursesText = t.has("viewAllCourses")
     ? t("viewAllCourses")
     : "코스 목록 전체보기 →";
+  const stopMeta = getCourseStopMeta(course.stops);
+  const statsLabels = {
+    spotLabel: t.has("spotStat") ? t("spotStat") : "스팟",
+    floorLabelTitle: t.has("floorStat") ? t("floorStat") : "층",
+  };
 
   const authorPersona = getPersonaById(
     course.persona || course.shoppingType || course.personaId || "sohwak",
     locale,
   );
 
+  const authorBlock = (
+    <div className="flex items-center gap-3.5">
+      <AuthorAvatar
+        persona={authorPersona}
+        name={course.name || travelerText}
+      />
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-2">
+          <span className="text-base font-black text-ink">
+            <CommunityAuthorName
+              name={course.name}
+              travelerText={travelerText}
+              postId={course.postId}
+              courseId={course.courseId}
+            />
+          </span>
+          <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+            <CommunityAuthorCountry
+              country={course.country}
+              postId={course.postId}
+              courseId={course.courseId}
+            />
+          </span>
+        </div>
+        <p className="mt-0.5 text-xs font-medium text-ink-muted">
+          DITTO {travelerText} ·{" "}
+          {course.createdAt
+            ? new Date(course.createdAt).toLocaleDateString(locale)
+            : "2026.03.02"}
+        </p>
+      </div>
+    </div>
+  );
+
+  const venueBadge = (
+    <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs">
+      {course.label || "THE HYUNDAI SEOUL"}
+    </span>
+  );
+
   return (
     <main className="min-w-0 overflow-x-hidden bg-white">
-      <section className="bg-surface-soft px-4 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-4 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
         <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
           <div className="flex min-w-0 items-center gap-2">
             <Link href="/" className="shrink-0 hover:text-brand">
@@ -197,9 +233,9 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <section className="px-4 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-16 lg:pt-[40px] xl:px-60 2xl:px-72">
-        <div className="mx-auto grid max-w-7xl min-w-0 gap-6 sm:gap-8 lg:grid-cols-[0.78fr_1.32fr] lg:items-center lg:gap-12">
-          <div className="relative flex aspect-[4/3] max-h-[380px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)] lg:aspect-[3/4]">
+      <section className="px-4 pb-8 pt-5 sm:px-14 sm:pb-10 sm:pt-6 lg:px-52 lg:pb-8 lg:pt-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto max-w-7xl min-w-0 lg:hidden">
+          <div className="relative flex aspect-[4/3] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
                 postId={course.postId || postId}
@@ -210,60 +246,55 @@ export default async function CommunityCourseDetailPage({ params }) {
               />
             </div>
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
-
-            <div className="pointer-events-none relative z-10 p-6">
-              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-black text-white backdrop-blur-xs">
-                {course.label || "THE HYUNDAI SEOUL"}
-              </span>
+            <div className="pointer-events-none relative z-10 p-6">{venueBadge}</div>
+            <div className="relative z-10 p-6">
+              <h1 className="break-keep text-[22px] font-black leading-tight text-white sm:text-[26px]">
+                {course.title}
+              </h1>
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-3.5">
-              <div
-                className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-xs ring-2 ring-black/5"
-                style={{
-                  backgroundColor: authorPersona.theme?.bgColor || "#fff1e6",
-                }}
-              >
-                <Image
-                  src={authorPersona.imageSrc}
-                  alt={course.name || travelerText}
-                  width={40}
-                  height={40}
-                  className="size-10 object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-black text-ink">
-                    <CommunityAuthorName
-                      name={course.name}
-                      travelerText={travelerText}
-                      postId={course.postId}
-                      courseId={course.courseId}
-                    />
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                    <CommunityAuthorCountry
-                      country={course.country}
-                      postId={course.postId}
-                      courseId={course.courseId}
-                    />
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs font-medium text-ink-muted">
-                  DITTO {travelerText} ·{" "}
-                  {course.createdAt
-                    ? new Date(course.createdAt).toLocaleDateString(locale)
-                    : "2026.03.02"}
-                </p>
-              </div>
+          <div className="mt-5">
+            {authorBlock}
+            <CourseDetailStats
+              spotCount={stopMeta.spotCount}
+              floorLabel={stopMeta.floorLabel}
+              {...statsLabels}
+            />
+            <CommunityDetailActions course={course} />
+          </div>
+        </div>
+
+        <div className="mx-auto hidden max-w-7xl min-w-0 lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-8">
+          <div className="relative min-h-[280px] w-full overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
+            <div className="absolute inset-0">
+              <CommunityDetailHeroImage
+                postId={course.postId || postId}
+                courseId={course.courseId}
+                fallbackImage={course.image}
+                alt={course.title}
+                className="h-full w-full object-cover"
+              />
             </div>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/70 to-transparent" />
+            <div className="relative z-10 p-6">{venueBadge}</div>
+          </div>
+
+          <div className="flex min-w-0 flex-col justify-center">
+            {authorBlock}
             <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
               {course.title}
             </h2>
+            {course.description ? (
+              <p className="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">
+                {course.description}
+              </p>
+            ) : null}
+            <CourseDetailStats
+              spotCount={stopMeta.spotCount}
+              floorLabel={stopMeta.floorLabel}
+              {...statsLabels}
+            />
             <CommunityDetailActions course={course} />
           </div>
         </div>
@@ -276,9 +307,15 @@ export default async function CommunityCourseDetailPage({ params }) {
         </div>
       </section>
 
-      <AuthorNote course={course} t={t} locale={locale} />
+      <AuthorNote
+        course={course}
+        t={t}
+        locale={locale}
+        authorPersona={authorPersona}
+        travelerText={travelerText}
+      />
 
-      <section className="bg-surface-soft px-4 pb-10 sm:px-14 lg:px-52 lg:pb-16 xl:px-60 2xl:px-72">
+      <section className="bg-surface-soft px-4 pb-10 sm:px-14 lg:px-52 lg:pb-10 xl:px-60 2xl:px-72">
         <div className="mx-auto flex max-w-7xl justify-center">
           <Link
             href="/community"
