@@ -103,12 +103,31 @@ function SlotRow({ slot, index, active, onSelect, reason, onReasonChange }) {
         </span>
       </button>
 
-      <input
+      {/*
+        **추천 사유다. 꼬리표가 아니다.**
+
+        예전에는 한 줄짜리 `<input>` 이었다. 그때는 반영 람다가 LLM 으로 15~30자 딱지를
+        지어 넣었기 때문인데("제니가 글로벌 앰배서더로 있는 브랜드"), 지금은 승인 화면에서
+        확정한 원문이 그대로 저장된다 — 기사 요약과 "그래서 이 자리를 담았다" 가 든 몇
+        문장이다. 한 줄 칸에 두면 관리자가 쓸 수 있는 길이를 UI 가 막는다.
+
+        손님이 코스 상세에서 자리를 누르면 여기 적힌 글이 그대로 뜬다.
+      */}
+      <textarea
         value={reason}
         onChange={(event) => onReasonChange(slot.placeId, event.target.value)}
-        placeholder="장소 이름 밑에 붙는 한 줄"
-        className="mt-2 w-full rounded-lg border border-[#dfe2ec] px-2.5 py-1.5 text-[12px] text-[#171b30] outline-none focus:border-brand"
+        rows={4}
+        placeholder="이 자리를 담은 이유. 손님이 자리를 누르면 이 글이 그대로 보입니다."
+        className="mt-2 w-full resize-y rounded-lg border border-[#dfe2ec] px-2.5 py-1.5 text-[12px] leading-[1.6] text-[#171b30] outline-none focus:border-brand"
       />
+      <p className="mt-1 text-right text-[10px] text-[#adb2c0]">
+        {reason.trim().length}자
+        {reason.trim().length > 0 && reason.trim().length < 40 ? (
+          <span className="ml-1 text-[#b3384f]">
+            — 옛 꼬리표만 남은 자리일 수 있습니다
+          </span>
+        ) : null}
+      </p>
     </li>
   );
 }
