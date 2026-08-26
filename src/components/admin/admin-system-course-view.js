@@ -75,6 +75,102 @@ function CountryChip({ code }) {
   );
 }
 
+// 나라를 안 정한 코스가 섞여 있다. 이 창구가 생기기 전에 올린 것들이라 빈칸이 맞는데,
+// 탭에서는 "없음" 도 골라 볼 수 있어야 한다 — 나라를 채워 넣을 대상을 찾는 자리가 여기다.
+const NO_COUNTRY = "__none__";
+const ALL_COUNTRY = "__all__";
+
+/** 한 쪽에 그릴 카드 수. 한 줄 4개 × 3줄. */
+const PAGE_SIZE = 12;
+
+function CountryTabs({ counts, value, onChange }) {
+  const tabs = [
+    { key: ALL_COUNTRY, label: "전체" },
+    ...Object.entries(COUNTRY_META).map(([code, meta]) => ({
+      key: code,
+      label: `${meta.flag} ${meta.name}`,
+    })),
+    { key: NO_COUNTRY, label: "나라 미지정" },
+  ];
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+      {tabs.map((tab) => {
+        const count = counts[tab.key] || 0;
+        const active = value === tab.key;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => onChange(tab.key)}
+            aria-pressed={active}
+            // 0건인 나라도 안 지운다 — 탭이 나타났다 사라지면 누르려던 자리가 움직인다.
+            // 대신 흐리게 두어 고를 것이 없다는 것이 보이게 한다.
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+              active
+                ? "bg-[#231f35] text-white shadow-[0_4px_12px_rgba(20,24,45,0.18)]"
+                : count === 0
+                  ? "border border-[#eceef4] bg-white text-[#c2c6d4]"
+                  : "border border-[#dfe2ec] bg-white text-[#4d536a] hover:border-brand hover:text-brand"
+            }`}
+          >
+            {tab.label}
+            <span className={`ml-1.5 ${active ? "text-white/70" : "text-[#9aa0b0]"}`}>{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function Pager({ page, pages, total, onChange }) {
+  if (pages <= 1) return null;
+  // 쪽수가 늘어도 버튼이 줄바꿈으로 번지지 않게 현재 쪽 둘레만 그린다.
+  const from = Math.max(1, Math.min(page - 2, pages - 4));
+  const to = Math.min(pages, from + 4);
+  const numbers = [];
+  for (let n = from; n <= to; n += 1) numbers.push(n);
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange(page - 1)}
+        disabled={page <= 1}
+        className="rounded-lg border border-[#dfe2ec] bg-white px-3 py-1.5 text-xs font-bold text-[#4d536a] disabled:opacity-35"
+      >
+        이전
+      </button>
+      {numbers.map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          aria-current={n === page ? "page" : undefined}
+          className={`min-w-8 rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+            n === page
+              ? "bg-[#231f35] text-white"
+              : "border border-[#dfe2ec] bg-white text-[#4d536a] hover:border-brand hover:text-brand"
+          }`}
+        >
+          {n}
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange(page + 1)}
+        disabled={page >= pages}
+        className="rounded-lg border border-[#dfe2ec] bg-white px-3 py-1.5 text-xs font-bold text-[#4d536a] disabled:opacity-35"
+      >
+        다음
+      </button>
+      <span className="ml-2 text-[11px] text-[#9aa0b0]">
+        {total}건 중 {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}
+      </span>
+    </div>
+  );
+}
+
 function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelDelete }) {
   const inFlight = course.state === "queued" || course.state === "running";
   // 반영이 아직 도는 코스는 코스 번호가 없다 — 열 것이 없다.
@@ -179,7 +275,7 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
                 event.stopPropagation();
                 onCancelDelete();
               }}
-              className="rounded-xl border border-[#dfe2ec] px-3 py-2 text-xs font-bold text-[#5b6076]"
+              className="rounded-xl border border-[#dfe2ec] bg-white px-3 py-2 text-xs font-bold text-[#5b6076] transition hover:border-brand hover:text-brand"
             >
               취소
             </button>
@@ -192,7 +288,10 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
               onAskDelete(course.courseId);
             }}
             disabled={!openable}
-            className="rounded-xl border border-[#dfe2ec] px-3 py-2 text-xs font-bold text-[#a3323f] disabled:cursor-not-allowed disabled:text-[#c9ccd8]"
+            // 캐시된 코스의 '내리기' 와 같은 손맛 — 색은 그대로 두고 테두리만 짙어진다.
+            // 여기는 카드 전체가 누르는 자리라, 올린 것이 카드인지 이 버튼인지가
+            // 보여야 되돌릴 수 없는 동작을 잘못 누르지 않는다.
+            className="rounded-xl border border-[#f0d6d9] bg-white px-3 py-2 text-xs font-bold text-[#a3323f] transition hover:border-[#c0392b] disabled:cursor-not-allowed disabled:border-[#eceef4] disabled:text-[#c9ccd8]"
           >
             내리기
           </button>
@@ -210,8 +309,41 @@ export function AdminSystemCourseView() {
   const [detail, setDetail] = useState(null);
   const [opening, setOpening] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [country, setCountry] = useState(ALL_COUNTRY);
+  const [page, setPage] = useState(1);
 
   const error = actionError || loadError;
+
+  // 나라별 건수. **탭에 늘 다 그린다** — 0건인 나라를 지우면 코스를 하나 내릴 때마다
+  // 탭이 사라져 누르려던 자리가 움직인다.
+  const counts = useMemo(() => {
+    const rows = courses || [];
+    const out = { [ALL_COUNTRY]: rows.length, [NO_COUNTRY]: 0 };
+    for (const code of Object.keys(COUNTRY_META)) out[code] = 0;
+    for (const row of rows) {
+      const key = row.countryCode || NO_COUNTRY;
+      out[key] = (out[key] || 0) + 1;
+    }
+    return out;
+  }, [courses]);
+
+  const filtered = useMemo(() => {
+    const rows = courses || [];
+    if (country === ALL_COUNTRY) return rows;
+    if (country === NO_COUNTRY) return rows.filter((row) => !row.countryCode);
+    return rows.filter((row) => row.countryCode === country);
+  }, [courses, country]);
+
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // 마지막 쪽의 코스를 내리면 쪽수가 줄어 빈 쪽에 남는다. 렌더에서 눌러 둔다 —
+  // 이펙트로 되돌리면 빈 화면이 한 번 스쳤다가 채워진다.
+  const current = Math.min(page, pages);
+  const visible = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
+  const changeCountry = useCallback((next) => {
+    setCountry(next);
+    setPage(1);
+  }, []);
 
   // 반영은 뒤에서 1~2분간 돈다. 도는 것이 하나라도 있으면 목록을 다시 읽어 관리자가
   // 새로고침을 안 눌러도 "진행 중 → 진행 완료" 가 바뀌게 한다. 다 끝나면 멈춘다 —
@@ -294,6 +426,8 @@ export function AdminSystemCourseView() {
         </p>
       ) : null}
 
+      <CountryTabs counts={counts} value={country} onChange={changeCountry} />
+
       {courses.length === 0 ? (
         <div className="rounded-2xl border border-[#e5e7ef] bg-white p-10 text-center">
           <h2 className="font-bold text-[#171b30]">아직 걸린 코스가 없습니다</h2>
@@ -301,20 +435,42 @@ export function AdminSystemCourseView() {
             승인 대기 코스에서 <b>기본 추천 코스로 승인</b>을 누르면 여기에 올라옵니다.
           </p>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {courses.map((course) => (
-            <CourseCard
-              key={course.courseId ?? `pending-${course.celebrity}`}
-              course={course}
-              onOpen={open}
-              deleting={deletingId === course.courseId}
-              onDelete={remove}
-              onAskDelete={setDeletingId}
-              onCancelDelete={() => setDeletingId(null)}
-            />
-          ))}
+      ) : filtered.length === 0 ? (
+        // 코스는 있는데 고른 나라에만 없는 경우다. 위의 "하나도 없다" 와 같은 문구를
+        // 쓰면 관리자가 탭을 켜 둔 것을 잊고 코스가 다 날아간 줄 안다.
+        <div className="rounded-2xl border border-[#e5e7ef] bg-white p-10 text-center">
+          <h2 className="font-bold text-[#171b30]">이 나라로 걸린 코스가 없습니다</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#7a8095]">
+            전체 {courses.length}건 중 여기 해당하는 것이 없습니다. 나라는 코스를 열어
+            고칠 수 있습니다.
+          </p>
+          <button
+            type="button"
+            onClick={() => changeCountry(ALL_COUNTRY)}
+            className="mt-5 rounded-xl bg-[#231f35] px-5 py-2.5 text-xs font-bold text-white"
+          >
+            전체 보기
+          </button>
         </div>
+      ) : (
+        <>
+          {/* 한 줄에 넷. 카드가 사진을 얹어 세로로 길어졌으니 셋보다 넷이 한 화면에
+              더 들어오고, 넘치는 것은 쪽으로 가른다. */}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {visible.map((course) => (
+              <CourseCard
+                key={course.courseId ?? `pending-${course.celebrity}`}
+                course={course}
+                onOpen={open}
+                deleting={deletingId === course.courseId}
+                onDelete={remove}
+                onAskDelete={setDeletingId}
+                onCancelDelete={() => setDeletingId(null)}
+              />
+            ))}
+          </div>
+          <Pager page={current} pages={pages} total={filtered.length} onChange={setPage} />
+        </>
       )}
 
       {/* 캐시된 코스 편집기와 **같은 크기의 팝업**이다. 지도가 한쪽을 통째로 쓰므로
