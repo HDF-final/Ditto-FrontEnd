@@ -80,3 +80,22 @@ export function approveAdminCourse(celebrity, draft) {
     ),
   );
 }
+
+/**
+ * 초안을 **기본 추천 코스로** 올린다. 캐시 승인까지 같이 한다.
+ *
+ * 캐시 승인과 **같은 몸통**을 보낸다 — 편집기 하나가 두 버튼을 내려면 그래야 한다.
+ *
+ * **응답이 빨리 온다.** 서비스 DB 반영(문안 LLM 1콜 + 사진 업로드 + 네 테이블)은 뒤에서
+ * 1~2분간 도는 별도 함수라, 이 호출은 캐시 승인만 끝내고 `publishState: "queued"` 로
+ * 즉시 돌아온다. 진행 상태는 기본 추천 코스 화면(`/admin/courses/system`)에서 본다.
+ */
+export function publishAdminCourse(celebrity, draft) {
+  return requestData(
+    apiClient.post(
+      `/admin/admin-courses/${encodeURIComponent(celebrity)}/publish`,
+      draft,
+      { timeout: 60_000 },
+    ),
+  );
+}
