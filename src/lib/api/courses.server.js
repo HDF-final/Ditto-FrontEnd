@@ -57,15 +57,23 @@ export async function fetchSystemCoursesServer({ size = 3 } = {}) {
     const engTitle = c.englishTitle || (c.name ? c.name.toUpperCase() : `TOP ${i + 1} COURSE`);
 
     return {
+      courseId: c.courseId ?? c.id,
       rank: `TOP ${i + 1}`,
       englishTitle: engTitle,
       title: c.name || c.title || "기본 추천 코스",
+      description: c.description || "DITTO가 엄선한 추천 코스입니다.",
       tags: rawTags,
+      places: Array.isArray(c.places) ? c.places : [],
       href: c.courseId
         ? `/courses/${c.courseId}`
         : c.slug
           ? `/courses/${c.slug}`
           : `/courses`,
+      image:
+        c.image ||
+        c.imageUrl ||
+        c.thumbnailUrl ||
+        c.coverImageUrl,
       gradient: c.gradient || GRADIENTS[i % GRADIENTS.length],
     };
   });

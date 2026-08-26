@@ -186,8 +186,8 @@
     "termsRequired": "请同意使用条款和隐私政策。"
   },
   "courses": {
-    "listTitle": "路线列表",
-    "listDescription": "按国家趋势及K-POP、K-BEAUTY、FASHION、GOURMET分类探索路线。",
+    "listTitle": "当下热门K-POP精选！",
+    "listDescription": "探索根据各国K-POP趋势精心挑选的推荐路线。",
     "recommendedCourse": "推荐路线",
     "coursePlaces": "路线地点",
     "view": "查看",
@@ -206,8 +206,8 @@
   "community": {
     "publicCourseDescription": "与{title}关联的定制推荐路线。",
     "publicCourseHash": "#推荐路线 #TheHyundai",
-    "title": "现代首尔路线",
-    "description": "分享你在现代首尔走过的路线，查看旅行者分享的地点与交流。",
+    "title": "旅行者定制路线",
+    "description": "浏览旅行者亲自创建并分享的定制路线，了解每条路线中的地点与故事。",
     "popular": "热门",
     "latest": "最新",
     "shareMine": "分享我的路线 →",

@@ -78,7 +78,7 @@ export function NewsFeed({ items = [] }) {
               href={`/news/${slug}`}
               className="flex min-w-0 flex-col gap-2.5 rounded-[18px] border border-line bg-white p-3 shadow-card lg:gap-4 lg:rounded-[28px] lg:p-7 lg:transition lg:hover:-translate-y-1 lg:hover:border-line-strong"
             >
-              <h3 className="line-clamp-3 text-[14px] font-black leading-snug text-ink lg:line-clamp-2 lg:text-xl">
+              <h3 className="line-clamp-3 text-[14px] font-black leading-snug text-ink lg:line-clamp-2 lg:text-[22px]">
                 {item.title}
               </h3>
               <div className="relative aspect-[4/3] overflow-hidden rounded-[14px] lg:min-h-[190px] lg:rounded-[20px] lg:aspect-auto">
@@ -97,13 +97,13 @@ export function NewsFeed({ items = [] }) {
                 )}
               </div>
               {item.summary ? (
-                <p className="hidden line-clamp-2 text-sm leading-6 text-ink-muted lg:block">
+                <p className="hidden line-clamp-2 text-sm leading-6 text-ink-muted lg:block lg:text-base lg:leading-7">
                   {item.summary}
                 </p>
               ) : null}
               {item.date ? (
                 <div className="mt-auto pt-1.5 lg:pt-2">
-                  <span className="text-[10px] font-semibold text-ink-muted lg:text-xs">
+                  <span className="text-[10px] font-semibold text-ink-muted lg:text-sm">
                     {item.date}
                   </span>
                 </div>

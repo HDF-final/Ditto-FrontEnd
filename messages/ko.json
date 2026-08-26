@@ -186,8 +186,8 @@
     "termsRequired": "이용약관 및 개인정보처리방침에 동의해 주세요."
   },
   "courses": {
-    "listTitle": "코스 리스트",
-    "listDescription": "국가별 트렌드와 K-POP, K-BEAUTY, FASHION, GOURMET 카테고리로 기본 코스를 탐색하세요.",
+    "listTitle": "지금 뜨는 K-POP 추천 픽!",
+    "listDescription": "국가별 K-POP 트렌드를 바탕으로 엄선한 추천 코스를 탐색하세요.",
     "recommendedCourse": "추천 코스",
     "coursePlaces": "코스 장소",
     "view": "보기",
@@ -206,8 +206,8 @@
   "community": {
     "publicCourseDescription": "{title}에 연결된 맞춤형 추천 코스입니다.",
     "publicCourseHash": "#추천코스 #더현대",
-    "title": "더현대 코스",
-    "description": "더현대 서울에서 직접 돈 코스를 공유하고, 여행자들이 남긴 장소와 대화를 확인해보세요.",
+    "title": "여행자 커스텀 코스",
+    "description": "여행자들이 직접 만들고 공유한 커스텀 코스를 둘러보고, 코스에 담긴 장소와 이야기를 확인해보세요.",
     "popular": "인기순",
     "latest": "최신순",
     "shareMine": "내 코스 공유하기 →",

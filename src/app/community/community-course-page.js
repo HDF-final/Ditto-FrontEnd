@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { CountryFlag } from "@/components/common/country-flag";
 import {
   likeCourse,
   unlikeCourse,
@@ -22,30 +21,6 @@ import { useTranslations } from "next-intl";
 const tabs = ["popular", "latest"];
 const MOBILE_ITEMS_PER_PAGE = 1;
 const DESKTOP_ITEMS_PER_PAGE = 6;
-
-function getFlagEmoji(countryCode) {
-  if (!countryCode) return "";
-  const normalizedCode = String(countryCode).trim().toUpperCase();
-  const codeMap = {
-    JAPAN: "JP",
-    일본: "JP",
-    CHINA: "CN",
-    중국: "CN",
-    USA: "US",
-    "UNITED STATES": "US",
-    미국: "US",
-    KOREA: "KR",
-    "SOUTH KOREA": "KR",
-    한국: "KR",
-    대한민국: "KR",
-  };
-  const code = codeMap[normalizedCode] || normalizedCode;
-  if (code === "JP") return "🇯🇵";
-  if (code === "CN") return "🇨🇳";
-  if (code === "US") return "🇺🇸";
-  if (code === "KR") return "🇰🇷";
-  return "";
-}
 
 function CommunityCard({ card, rank, onAuthRequired }) {
   const t = useTranslations("community");
@@ -82,8 +57,6 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     ? getPostAuthor(card.postId, card.courseId, slugKey, numKey)
     : null;
   const gradient = card.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
-  const countryCode = card.country || card.flag || localAuthor?.country;
-  const flagEmoji = getFlagEmoji(countryCode);
   const displayName =
     card.name ||
     card.writerNickname ||
@@ -91,7 +64,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     card.userNickname ||
     card.nickname ||
     localAuthor?.name ||
-    "";
+    "DITTO 여행자";
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -192,20 +165,13 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       {/* Top Header Overlay (Transparent background) */}
       <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-5">
         <div className="inline-flex max-w-full items-center gap-2.5 overflow-hidden rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:px-3.5 lg:py-2">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-[13px]">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-sm">
             {rank}
           </span>
-          <CountryFlag
-            code={countryCode}
-            emoji={flagEmoji}
-            className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
-          />
           <div className="min-w-0 leading-none">
-            {displayName ? (
-              <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-[13px]">
-                {displayName}
-              </span>
-            ) : null}
+            <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-sm">
+              {displayName}
+            </span>
           </div>
         </div>
       </div>
@@ -214,31 +180,31 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
         {/* Title & Description */}
         <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
-          <h3 className="line-clamp-2 break-keep text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-2xl">
+          <h3 className="line-clamp-2 break-keep text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[26px]">
             {card.title}
           </h3>
           {card.description ? (
-            <p className="line-clamp-1 text-[11px] font-medium leading-snug text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <p className="line-clamp-1 text-[11px] font-medium leading-snug text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] lg:text-sm">
               {card.description}
             </p>
           ) : null}
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 pt-0.5 text-[11px] font-bold text-white/95 lg:gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 pt-0.5 text-sm font-bold text-white/95 lg:gap-3 lg:text-base">
           {/* Like button */}
           <button
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 py-1 backdrop-blur-2xs transition lg:gap-1.5 lg:px-3 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-3.5 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
+              className={`size-5 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -254,9 +220,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
+            className="pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1.5 lg:px-3"
           >
-            <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="size-5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>{card.comments ?? 0}</span>
@@ -267,14 +233,14 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 py-1 backdrop-blur-2xs transition lg:gap-1.5 lg:px-3 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-3.5 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
+              className={`size-5 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -351,16 +317,16 @@ export function CommunityCoursePage({
 
   return (
     <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
-      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-8 lg:pb-16 lg:pt-[94px] xl:px-10 2xl:px-12">
-        <div className="mx-auto flex max-w-[1020px] flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-[1020px] flex-col gap-2.5 lg:max-w-none lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
-            <p className="text-[10px] font-black text-brand lg:text-xs">
+            <p className="text-[10px] font-black text-brand lg:text-sm">
               THE HYUNDAI SEOUL COMMUNITY
             </p>
-            <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[36px] lg:leading-none">
+            <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[42px] lg:leading-none">
               {pageTitle}
             </h1>
-            <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-sm">
+            <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-base lg:leading-7">
               {pageDescription}
             </p>
             <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
@@ -369,7 +335,7 @@ export function CommunityCoursePage({
                   key={tab}
                   type="button"
                   onClick={() => handleTabChange(tab)}
-                  className={`-mb-px cursor-pointer border-b-2 pb-2 text-[13px] font-black transition lg:pb-3 lg:text-sm ${
+                  className={`-mb-px cursor-pointer border-b-2 pb-2 text-[13px] font-black transition lg:pb-3 lg:text-base ${
                     activeTab === tab
                       ? "border-brand text-brand"
                       : "border-transparent text-ink-muted hover:text-ink"
@@ -382,7 +348,7 @@ export function CommunityCoursePage({
           </div>
           <Link
             href={isAuthorFiltered ? "/community" : "/community/share"}
-            className={`inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:w-fit lg:px-8 lg:py-4 lg:text-sm ${
+            className={`inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:w-fit lg:px-8 lg:py-4 lg:text-base ${
               isAuthorFiltered
                 ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
                 : "bg-brand text-white hover:bg-brand-dark"
@@ -393,8 +359,8 @@ export function CommunityCoursePage({
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-8 lg:py-14 xl:px-10 2xl:px-12">
-        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-[1020px] lg:block">
+      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-none lg:block">
           <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.length > 0 ? (
               paginatedCards.map((card, index) => {

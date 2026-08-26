@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CountryFlag } from "@/components/common/country-flag";
 import { SectionHeading } from "@/components/home/section-heading";
 import { useDragCarousel } from "@/hooks/use-drag-carousel";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -17,16 +16,6 @@ import {
   bookmarkCourse,
   unbookmarkCourse,
 } from "@/lib/api/community";
-
-function getFlagEmoji(countryCode) {
-  if (!countryCode) return "🇰🇷";
-  const code = countryCode.toUpperCase();
-  if (code === "JP") return "🇯🇵";
-  if (code === "CN") return "🇨🇳";
-  if (code === "US") return "🇺🇸";
-  if (code === "KR") return "🇰🇷";
-  return "🌐";
-}
 
 function CommunityCourseCard({ course, onAuthRequired }) {
   const t = useTranslations("home");
@@ -46,7 +35,7 @@ function CommunityCourseCard({ course, onAuthRequired }) {
     course.userNickname ||
     course.nickname ||
     localAuthor?.name ||
-    "";
+    "DITTO 여행자";
 
   const postId =
     course.postId ||
@@ -156,17 +145,11 @@ function CommunityCourseCard({ course, onAuthRequired }) {
           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-[13px]">
             {course.rank}
           </span>
-          {/* Flag */}
-          <CountryFlag
-            code={course.flag || course.country || localAuthor?.country}
-            emoji={getFlagEmoji(course.flag || course.country || localAuthor?.country)}
-            className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
-          />
           {/* Name */}
           <div className="min-w-0 leading-none">
-            {authorName ? (
-              <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-[13px]">{authorName}</span>
-            ) : null}
+            <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-sm">
+              {authorName}
+            </span>
           </div>
         </div>
       </div>
@@ -186,20 +169,20 @@ function CommunityCourseCard({ course, onAuthRequired }) {
         </div>
 
         {/* Bottom Interactive Stats */}
-        <div className="flex items-center justify-end gap-2 pt-0.5 text-[11px] font-bold text-white/95 lg:gap-3.5 lg:text-xs">
+        <div className="flex items-center justify-end gap-2 pt-0.5 text-sm font-bold text-white/95 lg:gap-3.5 lg:text-base">
           {/* Like button */}
           <button
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 backdrop-blur-2xs transition lg:px-3 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-4 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
+              className={`size-5 ${isLiked ? "fill-current text-red-500" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -215,9 +198,9 @@ function CommunityCourseCard({ course, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comment")}
-            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs hover:bg-white/20 text-white/90"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:px-3"
           >
-            <svg className="size-4 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="size-5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>{course.comments ?? 0}</span>
@@ -228,14 +211,14 @@ function CommunityCourseCard({ course, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition cursor-pointer backdrop-blur-2xs ${
+            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 backdrop-blur-2xs transition lg:px-3 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
             }`}
           >
             <svg
-              className={`size-4 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
+              className={`size-5 ${isBookmarked ? "fill-current text-brand" : "text-white/90"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
