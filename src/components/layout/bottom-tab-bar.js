@@ -72,6 +72,12 @@ const sideTabs = [
   },
 ];
 
+function isTextInputElement(element) {
+  if (!element) return false;
+  const tagName = element.tagName?.toLowerCase();
+  return tagName === "input" || tagName === "textarea" || element.isContentEditable;
+}
+
 function ScanLoginPrompt({ open, onClose, onLogin }) {
   if (!open) return null;
   return (
@@ -123,6 +129,40 @@ export function BottomTabBar() {
   const [scanImage, setScanImage] = useState(null);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const viewport = window.visualViewport;
+
+    function syncKeyboardState() {
+      const activeElement = document.activeElement;
+      const focusedTextInput = isTextInputElement(activeElement);
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const keyboardVisible =
+        focusedTextInput && window.innerHeight - viewportHeight > 120;
+
+      setKeyboardOpen(keyboardVisible);
+      if (keyboardVisible) setMenuOpen(false);
+    }
+
+    syncKeyboardState();
+
+    viewport?.addEventListener("resize", syncKeyboardState);
+    viewport?.addEventListener("scroll", syncKeyboardState);
+    window.addEventListener("focusin", syncKeyboardState);
+    window.addEventListener("focusout", syncKeyboardState);
+    window.addEventListener("resize", syncKeyboardState);
+
+    return () => {
+      viewport?.removeEventListener("resize", syncKeyboardState);
+      viewport?.removeEventListener("scroll", syncKeyboardState);
+      window.removeEventListener("focusin", syncKeyboardState);
+      window.removeEventListener("focusout", syncKeyboardState);
+      window.removeEventListener("resize", syncKeyboardState);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -160,7 +200,9 @@ export function BottomTabBar() {
     <>
     <nav
       aria-label="주요 메뉴"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[430px] border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className={`fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[430px] border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md transition-transform duration-200 lg:hidden ${
+        keyboardOpen ? "pointer-events-none translate-y-full" : "translate-y-0"
+      }`}
     >
       <ul className="grid h-16 grid-cols-5 items-end px-1">
         {sideTabs.slice(0, 2).map((tab) => {

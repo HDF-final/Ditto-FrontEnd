@@ -61,18 +61,29 @@ function StateBadge({ state, step }) {
   );
 }
 
-function CountryChip({ code }) {
-  // 나라를 아직 안 정한 코스가 있다. 이 창구가 생기기 전에 올린 것들이고, 빈칸으로
-  // 두는 것이 맞다 — 사람이 확인한 적 없는 나라를 붙이면 나중에 나라별로 가를 때 틀린다.
-  if (!code) {
-    return <span className="rounded-md bg-[#f1f2f7] px-2 py-0.5 text-[11px] font-semibold text-[#9aa0b0]">나라 미지정</span>;
+/** 이 코스가 걸린 나라들. 하나도 없으면 손님 화면 어디에도 안 뜬다는 뜻이라 붉게 알린다. */
+function CountryChips({ codes }) {
+  if (!codes?.length) {
+    return (
+      <span
+        className="rounded-md bg-[#fff1f2] px-2 py-0.5 text-[11px] font-bold text-[#b3384f]"
+        title="나라가 없으면 손님 화면의 어느 나라 버튼에서도 안 보입니다"
+      >
+        나라 미지정 — 안 보입니다
+      </span>
+    );
   }
-  const meta = COUNTRY_META[code];
-  return (
-    <span className="rounded-md bg-[#eef0f8] px-2 py-0.5 text-[11px] font-semibold text-[#4a5170]">
-      {meta ? `${meta.flag} ${meta.name}` : code}
-    </span>
-  );
+  return codes.map((code) => {
+    const meta = COUNTRY_META[code];
+    return (
+      <span
+        key={code}
+        className="rounded-md bg-[#eef0f8] px-2 py-0.5 text-[11px] font-semibold text-[#4a5170]"
+      >
+        {meta ? `${meta.flag} ${meta.name}` : code}
+      </span>
+    );
+  });
 }
 
 // 나라를 안 정한 코스가 섞여 있다. 이 창구가 생기기 전에 올린 것들이라 빈칸이 맞는데,
@@ -222,7 +233,7 @@ function CourseCard({ course, onOpen, deleting, onDelete, onAskDelete, onCancelD
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <CountryChip code={course.countryCode} />
+        <CountryChips codes={course.countryCodes} />
         <span className="rounded-md bg-[#eef0f8] px-2 py-0.5 text-[11px] font-semibold text-[#4a5170]">
           자리 {course.placeCount}
         </span>
@@ -321,8 +332,14 @@ export function AdminSystemCourseView() {
     const out = { [ALL_COUNTRY]: rows.length, [NO_COUNTRY]: 0 };
     for (const code of Object.keys(COUNTRY_META)) out[code] = 0;
     for (const row of rows) {
-      const key = row.countryCode || NO_COUNTRY;
-      out[key] = (out[key] || 0) + 1;
+      const codes = Array.isArray(row.countryCodes) ? row.countryCodes : [];
+      if (!codes.length) {
+        out[NO_COUNTRY] += 1;
+        continue;
+      }
+      // **한 코스가 여러 탭에 센다.** 한국·일본에 같이 걸린 코스는 양쪽에서 다 보여야
+      // 하므로, 합이 전체보다 클 수 있다 — 그게 맞다.
+      for (const code of codes) out[code] = (out[code] || 0) + 1;
     }
     return out;
   }, [courses]);
@@ -330,8 +347,8 @@ export function AdminSystemCourseView() {
   const filtered = useMemo(() => {
     const rows = courses || [];
     if (country === ALL_COUNTRY) return rows;
-    if (country === NO_COUNTRY) return rows.filter((row) => !row.countryCode);
-    return rows.filter((row) => row.countryCode === country);
+    if (country === NO_COUNTRY) return rows.filter((row) => !row.countryCodes?.length);
+    return rows.filter((row) => row.countryCodes?.includes(country));
   }, [courses, country]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));

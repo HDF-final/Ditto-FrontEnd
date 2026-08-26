@@ -497,11 +497,11 @@ function StandardPlaceModalContent({ place, onClose }) {
 
   return (
     <div
-      className="relative flex flex-col md:flex-row w-full max-w-[1060px] h-[60dvh] max-h-[60dvh] sm:h-[85vh] sm:max-h-[720px] md:h-[640px] overflow-hidden rounded-t-[22px] sm:rounded-[32px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
+      className="relative flex max-h-[88dvh] w-full max-w-[1060px] flex-col overflow-y-auto rounded-t-[22px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200 sm:max-h-[720px] sm:rounded-[32px] md:h-[640px] md:flex-row md:overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Left Column: 매장 정보, 컴팩트한 매장 사진, 매장 안내 */}
-      <div className="w-full md:w-[440px] md:min-w-[400px] md:max-w-[460px] flex-1 min-h-0 md:h-full flex flex-col justify-between overflow-y-auto overscroll-contain bg-white p-4 sm:p-6 border-b md:border-b-0 md:border-r border-line/60">
+      <div className="w-full shrink-0 border-b border-line/60 bg-white p-4 sm:p-6 md:h-full md:w-[440px] md:min-w-[400px] md:max-w-[460px] md:overflow-y-auto md:border-b-0 md:border-r">
         <div>
           {/* Top Bar: Category Badge & Mobile Close */}
           <div className="flex items-center justify-between gap-3 mb-3">
@@ -616,7 +616,7 @@ function StandardPlaceModalContent({ place, onClose }) {
       </div>
 
       {/* Right Column: 수동 추가 장소는 매장 사진, 뉴스피드는 기존 지도 유지 */}
-      <div className="w-full md:flex-1 h-[52%] md:h-full min-h-[320px] relative bg-[#F7F3EF] overflow-hidden">
+      <div className="relative min-h-[320px] w-full shrink-0 overflow-hidden bg-[#F7F3EF] sm:min-h-[380px] md:h-full md:min-h-0 md:flex-1">
         {/* Top Close button on desktop */}
         <div className="absolute right-4 top-4 z-20 hidden md:block">
           <button

@@ -116,7 +116,11 @@ function SlotRow({ slot, index, active, onSelect, reason, onReasonChange }) {
 export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
   const [name, setName] = useState(detail.name || "");
   const [description, setDescription] = useState(detail.description || "");
-  const [countryCode, setCountryCode] = useState(detail.countryCode || "");
+  const [countryCodes, setCountryCodes] = useState(() =>
+    Array.isArray(detail.countryCodes) ? detail.countryCodes : [],
+  );
+  // 관리자가 직접 고른 대표 사진의 S3 키. **빈 문자열이 "기본값을 쓴다"** 는 뜻이다.
+  const [mainImage, setMainImage] = useState(detail.mainImage || "");
   const [postContent, setPostContent] = useState(detail.postContent || "");
   const [reasons, setReasons] = useState(() =>
     Object.fromEntries(
@@ -164,7 +168,8 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
   const dirty =
     name !== (detail.name || "") ||
     description !== (detail.description || "") ||
-    countryCode !== (detail.countryCode || "") ||
+    countryCodes.join(",") !== (detail.countryCodes || []).join(",") ||
+    mainImage !== (detail.mainImage || "") ||
     postContent !== (detail.postContent || "") ||
     (detail.places || []).some(
       (place) => (reasons[place.placeId] ?? "") !== (place.recommendationReason || ""),
@@ -177,7 +182,8 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
   const reset = useCallback(() => {
     setName(detail.name || "");
     setDescription(detail.description || "");
-    setCountryCode(detail.countryCode || "");
+    setCountryCodes(Array.isArray(detail.countryCodes) ? detail.countryCodes : []);
+    setMainImage(detail.mainImage || "");
     setPostContent(detail.postContent || "");
     setReasons(
       Object.fromEntries(
@@ -195,7 +201,8 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
       const saved = await updateSystemCourse(detail.courseId, {
         name: nameTrimmed,
         description,
-        countryCode,
+        countryCodes,
+        mainImage,
         postContent,
         places: Object.entries(reasons).map(([placeId, recommendationReason]) => ({
           placeId: Number(placeId),
@@ -208,8 +215,8 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
     } finally {
       setSaving(false);
     }
-  }, [saving, nameEmpty, nameTooLong, detail.courseId, nameTrimmed, description, countryCode,
-      postContent, reasons, onSaved]);
+  }, [saving, nameEmpty, nameTooLong, detail.courseId, nameTrimmed, description, countryCodes,
+      mainImage, postContent, reasons, onSaved]);
 
   return (
     <div className="flex h-[92dvh] flex-col">
@@ -301,19 +308,85 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
             />
           </Field>
 
-          <Field label="나라" hint="비워 두면 나라를 안 가리고 모든 목록에 나옵니다">
-            <select
-              value={countryCode}
-              onChange={(event) => setCountryCode(event.target.value)}
-              className={INPUT_CLASS}
-            >
-              <option value="">나라 미지정</option>
-              {Object.entries(COUNTRY_META).map(([code, meta]) => (
-                <option key={code} value={code}>
-                  {meta.flag} {meta.name} ({code})
-                </option>
-              ))}
-            </select>
+          {/* **여러 나라를 걸 수 있다.** 손님 화면의 나라 버튼에 "전체" 가 없어서,
+              하나도 안 고르면 어느 버튼에서도 안 보인다 — 사실상 내리는 것이다. */}
+          <Field label="나라" hint="여러 나라를 고를 수 있습니다">
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(COUNTRY_META).map(([code, meta]) => {
+                const on = countryCodes.includes(code);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() =>
+                      setCountryCodes((prev) =>
+                        prev.includes(code)
+                          ? prev.filter((item) => item !== code)
+                          : [...prev, code],
+                      )
+                    }
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+                      on
+                        ? "bg-[#231f35] text-white shadow-[0_4px_12px_rgba(20,24,45,0.18)]"
+                        : "border border-[#dfe2ec] bg-white text-[#4d536a] hover:border-brand hover:text-brand"
+                    }`}
+                  >
+                    {meta.flag} {meta.name}
+                  </button>
+                );
+              })}
+            </div>
+            {!countryCodes.length ? (
+              <span className="mt-1.5 block text-[11px] font-semibold text-[#a3323f]">
+                나라가 없으면 손님 화면의 어느 나라 버튼에서도 안 보입니다.
+              </span>
+            ) : null}
+          </Field>
+
+          {/* **코스의 얼굴.** 어드민 카드·손님 추천 리스트·코스 상세가 같은 사진을 쓴다.
+              여기서는 이 코스에 이미 붙어 있는 사진 중에서만 고른다 — 새 사진을 넣는
+              것은 승인 편집기의 일이고, 그건 반영 람다가 받아 올린다. */}
+          <Field
+            label="대표 사진"
+            hint="비우면 첫 자리 사진이 자동으로 쓰입니다 · 자리 사진 중에서 고릅니다"
+          >
+            <div className="flex gap-3">
+              <Thumb url={mainImage ? detail.mainImageUrl : detail.heroImageUrl} alt="대표 사진" />
+              <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1.5">
+                <span className="w-full text-[10px] font-bold text-[#9aa0b0]">
+                  {mainImage ? "직접 지정" : "기본값 사용 중"}
+                </span>
+                {slots.map((slot) =>
+                  slot.imageUrl ? (
+                    <button
+                      key={slot.placeId}
+                      type="button"
+                      onClick={() => setMainImage(slot.imageKey || "")}
+                      disabled={!slot.imageKey}
+                      title={slot.name}
+                      className={`overflow-hidden rounded-md border transition disabled:opacity-40 ${
+                        mainImage && mainImage === slot.imageKey
+                          ? "border-brand ring-2 ring-brand/25"
+                          : "border-[#e6e8f0] hover:border-brand"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={slot.imageUrl} alt="" loading="lazy" className="size-9 object-cover" />
+                    </button>
+                  ) : null,
+                )}
+                {mainImage ? (
+                  <button
+                    type="button"
+                    onClick={() => setMainImage("")}
+                    className="rounded-lg border border-[#dfe2ec] bg-white px-2 py-1 text-[10px] font-bold text-[#4d536a] hover:border-brand hover:text-brand"
+                  >
+                    기본값으로
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </Field>
 
           <Field label="코스 소개 문안" hint="코스를 소개하는 본문 · 커뮤니티에는 안 나갑니다">
