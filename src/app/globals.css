@@ -90,6 +90,122 @@ body {
   background: var(--background);
 }
 
+@media (min-width: 1024px) {
+  .app-shell:has(.home-snap) {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .home-snap {
+    height: 100%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+
+  .home-snap.home-snap-moving {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .home-hero-copy {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+    transition:
+      opacity 180ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    will-change: opacity, filter, transform;
+  }
+
+  .home-hero-copy.is-leaving {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(6px);
+  }
+
+  .home-hero-copy.is-entering {
+    animation: home-hero-copy-enter 420ms cubic-bezier(0.22, 1, 0.36, 1)
+      both;
+  }
+
+  .home-snap-panel {
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .home-content-boundary {
+    width: 100%;
+    max-width: none;
+    margin-inline: auto;
+    padding-inline: clamp(3.5rem, 4.5vw, 6rem);
+  }
+
+  .home-snap-panel .home-recommended-ticket,
+  .home-snap-panel .home-community-card {
+    width: min(100%, clamp(260px, calc(75dvh - 240px), 440px));
+    margin-inline: auto;
+  }
+
+  .home-closing-footer {
+    flex: none;
+    padding-block: clamp(18px, 2.5dvh, 28px) clamp(14px, 2dvh, 22px);
+  }
+}
+
+@keyframes home-hero-copy-enter {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-copy,
+  .home-hero-copy.is-leaving,
+  .home-hero-copy.is-entering {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .home-news-image {
+    height: 118px;
+  }
+
+  .home-news-copy {
+    padding: 14px 16px;
+  }
+
+  .home-news-summary {
+    display: none;
+  }
+
+  .home-news-date {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+}
+
 @media (max-width: 1023px) {
   html,
   body {
@@ -143,6 +259,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-snap {
+    scroll-behavior: auto;
+  }
+
   .boni-float {
     animation: none;
   }

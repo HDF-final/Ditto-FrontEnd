@@ -32,11 +32,18 @@ const footerColumns = [
   },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ embedded = false }) {
   const t = useTranslations();
 
   return (
-    <footer className="hidden bg-white px-10 pb-5 pt-8 sm:px-14 lg:block lg:px-52 xl:px-60 2xl:px-72">
+    <footer
+      className={`hidden bg-white px-10 pb-5 pt-8 sm:px-14 lg:block ${
+        embedded
+          ? "home-closing-footer lg:px-0"
+          : "lg:px-52 xl:px-60 2xl:px-72"
+      }`}
+    >
+      <div className={embedded ? "home-content-boundary" : ""}>
       <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 xl:gap-x-10 2xl:gap-x-12">
         <div className="min-w-[140px]">
           <Link href="/" className="block" aria-label={t("navigation.dittoHome")}>
@@ -102,6 +109,7 @@ export function SiteFooter() {
           <Link href="/news">{t("footer.privacy")}</Link>
           <Link href="/news">{t("footer.locationTerms")}</Link>
         </div>
+      </div>
       </div>
     </footer>
   );

@@ -20,6 +20,7 @@ export function AppFrame({ children }) {
   const pathname = usePathname();
   const isAuthRoute = AUTH_PATHS.has(pathname);
   const isAdminRoute = pathname.startsWith("/admin");
+  const isHomeRoute = pathname === "/";
   const isCourseStudio = pathname.startsWith("/ai-course");
   const isScanMap = pathname.startsWith("/scan-map");
   const setUser = useAuthStore((state) => state.setUser);
@@ -96,7 +97,7 @@ export function AppFrame({ children }) {
         {children}
       </div>
       {isScanMap ? null : <BottomTabBar />}
-      {isCourseStudio || isScanMap ? null : <SiteFooter />}
+      {isHomeRoute || isCourseStudio || isScanMap ? null : <SiteFooter />}
     </>
   );
 }
