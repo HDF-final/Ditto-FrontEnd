@@ -12,6 +12,19 @@ export function getAdminCourseRun() {
   return requestData(apiClient.get("/admin/admin-courses/run"));
 }
 
+/**
+ * 지금 손님에게 나가고 있는 코스 목록. 초안이 아니라 **승인이 끝난 것**이다.
+ *
+ * 승인하면 그 인물의 초안은 지워지므로 `/admin/admin-courses` 목록에서 사라진다.
+ * 그 뒤를 보는 창구가 이쪽이고, 전부 다음 00시(KST)에 만료된다.
+ *
+ * 머리말만 오는데 **대표 사진이 같이 온다** — 초안 목록과 달리 카드를 그리려고
+ * 상세를 미리 받을 일이 없다.
+ */
+export function getCachedAdminCourses() {
+  return requestData(apiClient.get("/admin/admin-courses/cached"));
+}
+
 export function getAdminCourse(celebrity) {
   return requestData(
     apiClient.get(`/admin/admin-courses/${encodeURIComponent(celebrity)}`),

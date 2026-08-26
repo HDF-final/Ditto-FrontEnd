@@ -5,7 +5,7 @@ import { Modal } from "@/components/common/modal";
 import { getAdminCourseRun, getAdminCourses } from "@/lib/api/admin-courses";
 import { clearCachedDrafts, getAdminCourseCached } from "@/lib/api/admin-course-cache";
 import { useAdminTrendArtifact } from "@/hooks/use-admin-trend-artifact";
-import { ArtifactError, ArtifactLoading } from "./admin-artifact-ui";
+import { ArtifactError, ArtifactLoading, CardHero, ttlLabel } from "./admin-artifact-ui";
 import { AdminCourseEditor } from "./admin-course-editor";
 
 // 초안은 `ditto-celeb-warm-2` 배치가 만들어 Redis 에 하루 두는 것이고, 관리자가 승인해야
@@ -29,14 +29,6 @@ function statusTone(status) {
   return "bg-[#fff4dc] text-[#a96700]";
 }
 
-function ttlLabel(seconds) {
-  const value = Number(seconds);
-  if (!Number.isFinite(value) || value <= 0) return "만료됨";
-  const hours = Math.floor(value / 3600);
-  if (hours >= 1) return `${hours}시간 뒤 만료`;
-  return `${Math.max(1, Math.floor(value / 60))}분 뒤 만료`;
-}
-
 /** 카드에 얹을 대표 사진. 근거 사진을 먼저 고른다 — 그게 이 초안의 얼굴이다. */
 function heroOf(detail) {
   const places = detail?.payload?.places;
@@ -45,41 +37,6 @@ function heroOf(detail) {
   const any = places.find((place) => place.image?.url);
   const picked = evidence || any;
   return picked ? { ...picked.image, place_name: picked.place_name } : null;
-}
-
-function CardHero({ hero, celebrity, loading }) {
-  // 실패한 주소를 기억한다. 참/거짓으로 두면 초안이 바뀌어 사진이 갈려도 계속 빈 자리다.
-  const [failedUrl, setFailedUrl] = useState(null);
-
-  if (hero?.url && failedUrl !== hero.url) {
-    return (
-      <span className="relative block h-[168px] overflow-hidden rounded-xl bg-[#f1f2f6]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={hero.url}
-          alt={hero.caption || celebrity}
-          loading="lazy"
-          onError={() => setFailedUrl(hero.url)}
-          className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
-        />
-        {hero.caption ? (
-          <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/65 to-transparent px-3 pb-2 pt-6 text-[11px] font-semibold text-white">
-            {hero.caption}
-          </span>
-        ) : null}
-      </span>
-    );
-  }
-
-  return (
-    <span className="flex h-[168px] items-center justify-center rounded-xl bg-gradient-to-br from-[#efeaff] to-[#f7f5ff]">
-      {loading ? (
-        <span className="size-5 animate-spin rounded-full border-2 border-[#d9ddef] border-t-brand" />
-      ) : (
-        <span className="text-3xl font-black text-[#c7bdf5]">{celebrity.slice(0, 2)}</span>
-      )}
-    </span>
-  );
 }
 
 function DraftCard({ draft, hero, loading, onOpen }) {
@@ -91,7 +48,7 @@ function DraftCard({ draft, hero, loading, onOpen }) {
       onClick={onOpen}
       className="group flex h-full flex-col rounded-2xl border border-[#e1e4ed] bg-white p-4 text-left shadow-[0_10px_35px_rgba(31,36,66,0.05)] transition hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_16px_45px_rgba(92,46,245,0.12)]"
     >
-      <CardHero hero={hero} celebrity={draft.celebrity} loading={loading} />
+      <CardHero hero={hero} name={draft.celebrity} loading={loading} />
 
       <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
