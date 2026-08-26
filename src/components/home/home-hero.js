@@ -22,7 +22,21 @@ function ArrowRightIcon({ className = "" }) {
   );
 }
 
-const HERO_VIDEO_SRC = "/assets/home/ditto-main-banner.mp4";
+// 히어로 배너 동영상은 CloudFront(course-resource/home/*)에서 나갑니다.
+// 지도 자산(navigation-dataset.js)과 같은 CDN 규칙: 값을 안 주면 CDN 기본값,
+// `NEXT_PUBLIC_CDN_BASE=` 빈 값이면 public/ 로 떨어집니다("" 과 미지정을 구분).
+// 다른 버킷·배포로 옮길 때만 값을 주세요(Dockerfile 에 같은 이름의 ARG 가 있습니다).
+const CDN_BASE_DEFAULT = "https://d1bxld598du04o.cloudfront.net/course-resource";
+const CDN_BASE_OVERRIDE = process.env.NEXT_PUBLIC_CDN_BASE;
+const CDN_BASE = (
+  typeof CDN_BASE_OVERRIDE === "string" ? CDN_BASE_OVERRIDE : CDN_BASE_DEFAULT
+)
+  .trim()
+  .replace(/\/+$/, "");
+
+const HERO_VIDEO_SRC = CDN_BASE
+  ? `${CDN_BASE}/home/ditto-main-banner.mp4`
+  : "/assets/home/ditto-main-banner.mp4";
 
 // 히어로 CTA 버튼 (모바일=sm, 데스크톱=md / solid=흰버튼, outline=글래스)
 function HeroCta({ href, label, tone = "solid", size = "md" }) {
