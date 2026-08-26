@@ -159,20 +159,32 @@ export function HomeHero({ slides }) {
 
       <section className="relative hidden w-full overflow-hidden lg:block">
         <div className="relative" style={{ minHeight: heroMinHeight }}>
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            src={HERO_VIDEO_SRC}
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-hidden="true"
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-black/78 via-black/44 to-black/12" />
-          <div className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-linear-to-br from-[#1b1826] via-[#282338] to-[#372f4b]" />
+
+          {/* 오른쪽에 크게 깔되 가장자리는 배경에 스며들도록 마스크 페이드 */}
+          <div className="absolute inset-y-0 right-0 w-[60%]">
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={HERO_VIDEO_SRC}
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-hidden="true"
+              style={{
+                WebkitMaskImage:
+                  "linear-gradient(to right, transparent 0%, #000 40%)",
+                maskImage:
+                  "linear-gradient(to right, transparent 0%, #000 40%)",
+              }}
+            />
+          </div>
+
+          {/* 텍스트 가독성용 좌측 어둠 */}
+          <div className="absolute inset-0 bg-linear-to-r from-[#1b1826]/88 via-[#1b1826]/38 to-transparent" />
 
           <div
-            className="relative mx-auto flex w-full max-w-7xl flex-col justify-center gap-5 px-8 sm:px-14 lg:px-16"
+            className="relative flex w-full max-w-2xl flex-col justify-center gap-7 px-6 sm:px-12 lg:px-32"
             style={{ minHeight: heroMinHeight }}
           >
             <p className="text-sm font-black tracking-wide text-white/82">
