@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
 import styles from "./recommended-course-ticket.module.css";
+import { cssUrl } from "@/lib/courses/css-url";
 
 function getCourseImage(course) {
   const rankNumber = Number.parseInt(
@@ -42,7 +43,7 @@ export function RecommendedCourseTicket({
         <div className={styles.main}>
           <div
             className={styles.image}
-            style={{ backgroundImage: `url(${image})` }}
+            style={{ backgroundImage: cssUrl(image) }}
           />
 
           {showPlacesOnHover ? (

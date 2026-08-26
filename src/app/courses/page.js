@@ -4,6 +4,7 @@ import { CourseCountryFilter } from "@/components/courses/course-country-filter"
 import { RecommendedCourseTicket } from "@/components/courses/recommended-course-ticket";
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
 import { fetchRawSystemCoursesServer } from "@/lib/api/courses.server";
+import { cssUrl } from "@/lib/courses/css-url";
 
 export async function generateMetadata() {
   const t = await getTranslations("courses");
@@ -190,7 +191,7 @@ export default async function CoursesPage({ searchParams }) {
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                       style={{
-                        backgroundImage: `url(${getCourseImage(course, mobilePageStart + index)})`,
+                        backgroundImage: cssUrl(getCourseImage(course, mobilePageStart + index)),
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-black/55" />
