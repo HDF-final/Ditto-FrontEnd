@@ -65,12 +65,13 @@ function usePlaceProducts(navigationKey, limit = 3) {
 function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
   if (!products.length) return null;
 
+  const theHyLogoAlt = t.has("theHyLogoAlt") ? t("theHyLogoAlt") : "더현대Hi";
   const label = t.has("brandProducts")
     ? t("brandProducts")
-    : "더하이앱 상품 바로가기";
+    : "더현대Hi 상품 바로가기";
   const hint = t.has("brandProductsHint")
     ? t("brandProductsHint")
-    : "상품을 누르면 더하이앱 상품 페이지로 이동해요.";
+    : "상품을 누르면 더현대Hi 상품 페이지로 이동해요.";
   const getAlt = (product, idx) => {
     const name = product.productName || place.name;
     if (t.has("brandProductAlt")) {
@@ -83,15 +84,24 @@ function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
   };
 
   return (
-    <div className={className}>
-      <div className="mb-3 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[13px] font-black tracking-tight text-[#5c2ef5]">
-            {label}
-          </p>
-          <p className="mt-1 text-[11px] font-semibold leading-snug text-[#9994ad]">
-            {hint}
-          </p>
+      <div className={className}>
+      <div className="mb-4">
+        <div className="flex items-start gap-2">
+          <div className="inline-flex h-9 items-center rounded-full border border-[#eee8ff] bg-white px-3.5 shadow-[0_8px_18px_rgba(92,46,245,0.08)]">
+            <img
+              src="/assets/common/thehy-app-logo.png"
+              alt={theHyLogoAlt}
+              className="h-4 w-auto object-contain"
+            />
+          </div>
+          <div className="pt-0.5">
+            <p className="text-[14px] font-black tracking-tight text-[#5c2ef5]">
+              {label}
+            </p>
+            <p className="mt-1.5 text-[11px] font-semibold leading-snug text-[#9994ad]">
+              {hint}
+            </p>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
@@ -492,9 +502,9 @@ function StandardPlaceModalContent({ place, onClose }) {
           ) : null}
 
           {/* 매장 안내 카드 */}
-          <div className="mt-3 rounded-[18px] bg-[#faf8ff] border border-[#e0d9f8] p-4 shadow-xs">
+          <div className="mt-7 rounded-[18px] bg-[#faf8ff] border border-[#e0d9f8] p-4 shadow-xs sm:mt-8">
             <div className="flex items-center gap-1.5 text-[14px] font-black text-[#5c2ef5] mb-1.5">
-              <span>💡</span>
+              <span>✨</span>
               <span>{t("storeGuide")}</span>
             </div>
             <p className="text-[13px] sm:text-[14px] font-medium leading-[1.65] text-[#2d2745] break-keep">
@@ -506,7 +516,7 @@ function StandardPlaceModalContent({ place, onClose }) {
             products={brandProducts}
             place={place}
             t={t}
-            className="mt-5 pb-2"
+            className="mt-7 pb-2 sm:mt-8"
           />
 
           {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
