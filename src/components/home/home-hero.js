@@ -83,7 +83,6 @@ export function HomeHero({ slides }) {
     setIndex: setHeroIndex,
     dragging: heroDragging,
     viewportRef: heroViewportRef,
-    trackStyle: heroTrackStyle,
     handlers: heroHandlers,
   } = useDragCarousel({ length: slides.length, auto: true, interval: 5000 });
   const mobileSlide = slides[heroIndex];
@@ -93,66 +92,67 @@ export function HomeHero({ slides }) {
 
   return (
     <>
-      <section className="px-5 pb-2 pt-5 lg:hidden">
-        <p className="text-[11px] font-black tracking-wide text-brand">
-          {mobileSlide.eyebrow}
-        </p>
-        <h1 className="mt-2.5 text-[24px] font-black leading-[1.5] text-ink">
-          <span className="block">{mobileSlide.titleLine}</span>
-          <span className="mt-1.5 block">
-            <span className="text-brand">{mobileSlide.accent}</span>
-            {mobileSlide.suffix}
-          </span>
-        </h1>
+      <section
+        ref={heroViewportRef}
+        className={`relative min-h-[410px] select-none overflow-hidden bg-[#100b24] px-5 pb-6 pt-6 text-white lg:hidden ${
+          heroDragging ? "cursor-grabbing" : ""
+        }`}
+        {...heroHandlers}
+      >
+        <video
+          className="absolute inset-0 h-full w-full scale-[1.32] object-cover object-[66%_center]"
+          src={HERO_VIDEO_SRC}
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-black/78 via-black/24 to-black/82" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#170f34]/82 via-black/28 to-transparent" />
 
-        <div
-          ref={heroViewportRef}
-          className={`relative mt-4 select-none overflow-hidden rounded-[22px] ${
-            heroDragging ? "cursor-grabbing" : ""
-          }`}
-          {...heroHandlers}
-        >
-          <div className="flex" style={heroTrackStyle}>
-            {slides.map((slide) => (
-              <div
-                key={slide.titleLine}
-                className="relative min-w-full shrink-0 basis-full overflow-hidden rounded-[22px]"
+        <div className="relative flex min-h-[350px] flex-col justify-end">
+          <div>
+            <span className="inline-flex rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-black tracking-[0.12em] text-white/86 backdrop-blur-md">
+              LIVE K-TREND
+            </span>
+            <h1 className="mt-3.5 text-[29px] font-black leading-[1.18] text-white drop-shadow-[0_3px_22px_rgba(0,0,0,0.55)]">
+              <span className="block">{mobileSlide.titleLine}</span>
+              <span className="mt-1 block">
+                <span>{mobileSlide.accent}</span>
+                {mobileSlide.suffix}
+              </span>
+            </h1>
+            <p className="mt-3 max-w-[290px] text-[13px] font-semibold leading-6 text-white/82">
+              {mobileSlide.description}
+            </p>
+            <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
+              <Link
+                href={mobileSlide.primaryCta.href}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-[12px] font-black text-ink shadow-control"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url("${slide.image}")` }}
-                  role="img"
-                  aria-label={slide.alt}
-                />
-                <div className="absolute inset-0 bg-linear-to-br from-[#2d1b8e]/92 via-[#5c2ef5]/78 to-[#8c57fa]/70" />
-                <div className="relative flex min-h-[168px] flex-col justify-between p-5">
-                  <p className="text-[28px] font-black tracking-tight text-white">
-                    DITTO
-                  </p>
-                  <div>
-                    <p className="text-[13px] font-semibold leading-6 text-white/90">
-                      {slide.description.split("\n")[0]}
-                    </p>
-                    <Link
-                      href={slide.primaryCta.href}
-                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-black text-brand"
-                    >
-                      {slide.primaryCta.label}
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
+                {mobileSlide.primaryCta.label}
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+              <Link
+                href={mobileSlide.secondaryCta.href}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-white/45 bg-white/10 px-4 text-[12px] font-black text-white backdrop-blur-md"
+                aria-label={mobileSlide.secondaryCta.label}
+                title={mobileSlide.secondaryCta.label}
+              >
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="mt-3">
+        <div className="relative mt-4">
           <SlideIndicators
             slides={slides}
             activeIndex={heroIndex}
             onSelect={setHeroIndex}
             compact
+            light
           />
         </div>
       </section>

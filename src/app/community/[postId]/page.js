@@ -7,6 +7,12 @@ import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { CommunityDetailActions } from "./community-detail-actions";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
+import {
+  CommunityAuthorCountry,
+  CommunityAuthorDescription,
+  CommunityAuthorName,
+  CommunityOtherCoursesLink,
+} from "./community-author-meta";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
 import { CommunityStopList } from "@/components/community/community-stop-list";
 
@@ -30,10 +36,6 @@ function AuthorNote({ course, t, locale }) {
   const travelerText = t && t.has("traveler") ? t("traveler") : "여행자";
   const authorRecordText =
     t && t.has("authorRecord") ? t("authorRecord") : "작성자가 남긴 기록";
-  const authorRecordDescText =
-    t && t.has("authorRecordDescription")
-      ? t("authorRecordDescription", { name: course.name || travelerText })
-      : `이 코스를 만든 ${course.name || travelerText}님이 직접 쓴 글이에요.`;
   const otherCoursesText =
     t && t.has("otherCourses")
       ? t("otherCourses")
@@ -62,15 +64,22 @@ function AuthorNote({ course, t, locale }) {
               {authorRecordText}
             </h2>
             <p className="mt-2 text-sm font-medium text-ink-muted">
-              {authorRecordDescText}
+              <CommunityAuthorDescription
+                name={course.name}
+                travelerText={travelerText}
+                postId={course.postId}
+                courseId={course.courseId}
+              />
             </p>
           </div>
-          <Link
-            href="/community"
+          <CommunityOtherCoursesLink
+            authorId={course.authorId}
+            authorName={course.name}
+            courseId={course.courseId}
             className="text-sm font-black text-brand transition hover:text-brand-dark"
           >
             {otherCoursesText}
-          </Link>
+          </CommunityOtherCoursesLink>
         </div>
 
         <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
@@ -93,10 +102,19 @@ function AuthorNote({ course, t, locale }) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-black text-ink">
-                  {course.name || travelerText}
+                  <CommunityAuthorName
+                    name={course.name}
+                    travelerText={travelerText}
+                    postId={course.postId}
+                    courseId={course.courseId}
+                  />
                 </p>
                 <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                  {course.country || "KR"}
+                  <CommunityAuthorCountry
+                    country={course.country}
+                    postId={course.postId}
+                    courseId={course.courseId}
+                  />
                 </span>
               </div>
               <p className="mt-0.5 text-xs font-medium text-ink-muted">
@@ -116,8 +134,8 @@ function AuthorNote({ course, t, locale }) {
               />
             </div>
 
-            <div className="flex h-full min-h-[200px] flex-col justify-start rounded-[20px] bg-surface-soft p-4 text-sm font-medium leading-7 text-ink sm:min-h-[320px] sm:rounded-[24px] sm:p-7 sm:text-base md:min-h-[380px]">
-              <p className="whitespace-pre-line leading-relaxed text-ink">
+            <div className="flex h-full min-h-[200px] flex-col justify-start rounded-[20px] bg-surface-soft p-4 text-base font-semibold leading-8 text-ink sm:min-h-[320px] sm:rounded-[24px] sm:p-7 sm:text-lg md:min-h-[380px] lg:text-xl lg:leading-9">
+              <p className="whitespace-pre-line break-keep text-ink">
                 {course.note ||
                   course.description ||
                   "작성자가 남긴 후기가 없습니다."}
@@ -220,10 +238,19 @@ export default async function CommunityCourseDetailPage({ params }) {
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
                   <span className="text-base font-black text-ink">
-                    {course.name || travelerText}
+                    <CommunityAuthorName
+                      name={course.name}
+                      travelerText={travelerText}
+                      postId={course.postId}
+                      courseId={course.courseId}
+                    />
                   </span>
                   <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                    {course.country || "KR"}
+                    <CommunityAuthorCountry
+                      country={course.country}
+                      postId={course.postId}
+                      courseId={course.courseId}
+                    />
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs font-medium text-ink-muted">

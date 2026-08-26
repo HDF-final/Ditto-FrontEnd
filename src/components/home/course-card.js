@@ -1,26 +1,45 @@
 import Link from "next/link";
+import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
+
+const IMAGE_LAYER_CLASS =
+  "absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105";
+const READABILITY_GRADIENT_CLASS =
+  "absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/55";
+
+function getCourseImage(course) {
+  const rankNumber = parseInt(String(course.rank || "").replace(/\D/g, ""), 10);
+  const index = Number.isNaN(rankNumber) ? 0 : Math.max(0, rankNumber - 1);
+  return course.image || DEFAULT_COMMUNITY_COURSE_IMAGES[index % DEFAULT_COMMUNITY_COURSE_IMAGES.length];
+}
 
 export function CourseCard({ course }) {
+  const image = getCourseImage(course);
+
   return (
     <Link
       href={course.href}
-      className="group flex h-full flex-col overflow-hidden rounded-[14px] bg-white shadow-[0_6px_18px_rgba(43,28,89,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(43,28,89,0.12)] lg:rounded-[32px]"
+      className="group flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_10px_26px_rgba(43,28,89,0.08)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(43,28,89,0.13)] lg:min-h-[395px] lg:rounded-[30px]"
     >
       <div
-        className={`flex h-[4.75rem] shrink-0 flex-col justify-between bg-linear-to-br p-3 text-white lg:h-auto lg:aspect-[4/3] lg:p-7 ${course.gradient}`}
+        className={`relative flex h-[170px] shrink-0 flex-col justify-between overflow-hidden bg-linear-to-br p-7 text-white lg:h-[205px] ${course.gradient}`}
       >
-        <span className="w-fit rounded-full bg-white/20 px-1.5 py-0.5 text-[8px] font-black tracking-wide lg:px-3 lg:py-1 lg:text-[10px]">
+        <div
+          className={IMAGE_LAYER_CLASS}
+          style={{ backgroundImage: `url(${image})` }}
+        />
+        <div className={READABILITY_GRADIENT_CLASS} />
+        <span className="relative z-10 w-fit rounded-full bg-white/25 px-3 py-1.5 text-[10px] font-black tracking-wide text-white/95 backdrop-blur-md">
           {course.rank}
         </span>
-        <p className="line-clamp-2 text-[11px] font-black leading-[1.3] tracking-tight sm:text-xl lg:text-[21px] xl:text-[24px] lg:leading-7 xl:leading-8">
+        <p className="relative z-10 line-clamp-2 break-keep text-[23px] font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] lg:text-[25px]">
           {course.englishTitle}
         </p>
       </div>
-      <div className="flex flex-1 flex-col justify-center p-3 sm:p-5 lg:min-h-[130px] lg:justify-start lg:p-6 xl:p-7">
-        <h3 className="line-clamp-2 text-[11px] font-black leading-[1.35] text-ink group-hover:text-brand sm:text-base lg:text-[16px] xl:text-lg">
+      <div className="flex min-w-0 flex-1 flex-col p-7">
+        <h3 className="line-clamp-2 break-keep text-xl font-black leading-snug text-ink group-hover:text-brand lg:text-[22px]">
           {course.title}
         </h3>
-        <p className="mt-1 truncate text-[9px] font-semibold leading-[1.3] text-ink-muted lg:mt-1 lg:text-xs">
+        <p className="mt-2 truncate text-sm font-semibold leading-snug text-ink-muted">
           {course.tags.map((tag) => `#${tag}`).join(" ")}
         </p>
       </div>

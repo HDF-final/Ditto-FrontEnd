@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 export const COUNTRY_META = {
   KR: { flag: "🇰🇷", name: "한국" },
   CN: { flag: "🇨🇳", name: "중국" },
@@ -73,14 +77,64 @@ export function ArtifactError({ error, onRetry }) {
   );
 }
 
-export function WarningPanel({ warnings = [] }) {
+// `open`·`label` 은 코스 초안 화면이 쓴다. 거기서는 경고가 곁다리가 아니라 관리자가
+// 제일 먼저 봐야 하는 것이라 펼친 채로 띄운다. 기본값은 트렌드 화면의 지금 모습 그대로다.
+export function WarningPanel({ warnings = [], open = false, label = "수집 경고" }) {
   if (!warnings.length) return null;
   return (
-    <details className="mt-6 rounded-2xl border border-[#f0dfb8] bg-[#fffaf0] px-5 py-4">
-      <summary className="cursor-pointer text-sm font-bold text-[#7d5912]">수집 경고 {warnings.length}건 확인</summary>
+    <details open={open} className="mt-6 rounded-2xl border border-[#f0dfb8] bg-[#fffaf0] px-5 py-4">
+      <summary className="cursor-pointer text-sm font-bold text-[#7d5912]">{label} {warnings.length}건 확인</summary>
       <ul className="mt-3 space-y-2 border-t border-[#f0dfb8] pt-3 text-xs leading-5 text-[#856c3a]">
         {warnings.map((warning, index) => <li key={`${index}-${String(warning)}`}>• {typeof warning === "string" ? warning : JSON.stringify(warning)}</li>)}
       </ul>
     </details>
+  );
+}
+
+// 아래 둘은 **초안 카드와 캐시된 코스 카드가 같이 쓴다.** 둘 다 인물 하나를 카드로
+// 늘어놓는 화면이고, 사진이 깨졌을 때의 처리와 남은 시간 문구가 달라야 할 이유가 없다.
+
+/** 셀럽 캐시는 전부 다음 00시(KST)에 만료된다. 남은 초를 사람 말로 옮긴다. */
+export function ttlLabel(seconds) {
+  const value = Number(seconds);
+  if (!Number.isFinite(value) || value <= 0) return "만료됨";
+  const hours = Math.floor(value / 3600);
+  if (hours >= 1) return `${hours}시간 뒤 만료`;
+  return `${Math.max(1, Math.floor(value / 60))}분 뒤 만료`;
+}
+
+/** 카드 위쪽 사진. 없거나 깨졌으면 이름 두 글자를 대신 띄운다. */
+export function CardHero({ hero, name, loading = false }) {
+  // 실패한 주소를 기억한다. 참/거짓으로 두면 사진이 갈려도 계속 빈 자리다.
+  const [failedUrl, setFailedUrl] = useState(null);
+
+  if (hero?.url && failedUrl !== hero.url) {
+    return (
+      <span className="relative block h-[168px] overflow-hidden rounded-xl bg-[#f1f2f6]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={hero.url}
+          alt={hero.caption || name}
+          loading="lazy"
+          onError={() => setFailedUrl(hero.url)}
+          className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
+        />
+        {hero.caption ? (
+          <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/65 to-transparent px-3 pb-2 pt-6 text-[11px] font-semibold text-white">
+            {hero.caption}
+          </span>
+        ) : null}
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex h-[168px] items-center justify-center rounded-xl bg-gradient-to-br from-[#efeaff] to-[#f7f5ff]">
+      {loading ? (
+        <span className="size-5 animate-spin rounded-full border-2 border-[#d9ddef] border-t-brand" />
+      ) : (
+        <span className="text-3xl font-black text-[#c7bdf5]">{String(name || "").slice(0, 2)}</span>
+      )}
+    </span>
   );
 }

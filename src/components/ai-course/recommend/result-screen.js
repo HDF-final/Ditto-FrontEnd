@@ -19,8 +19,6 @@ import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseSaveSuccessModal } from "./course-save-success-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
-import { CameraScanner } from "@/components/layout/camera-scanner";
-import { ScanResult } from "@/components/layout/scan-result";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useScanLocationStore } from "@/stores/use-scan-location-store";
 import {
@@ -36,16 +34,151 @@ import {
   addCoursePlace,
   createCourse,
   deleteCoursePlace,
+  getCourseDetail,
   updateCourse,
 } from "@/lib/api/courses";
 
 const MAX_COURSE_PLACES = 8;
-// 모바일에서 한 페이지에 보여줄 장소 카드 수. 어떤 기기에서도 동일하게
-// 이 개수만 노출하고, 나머지는 페이지(이전/다음)로 넘깁니다.
-const CARDS_PER_PAGE = 3;
 
 function sameOrder(a, b) {
   return a.length === b.length && a.every((item, i) => item.id === b[i].id);
+}
+
+function reorderWithFixedSlots(list, lockedPlaceIds, fromIndex, toIndex) {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= list.length ||
+    toIndex >= list.length
+  ) {
+    return list;
+  }
+
+  const fixedSlots = new Map();
+  for (let i = 1; i < list.length; i += 1) {
+    if (lockedPlaceIds.has(list[i]?.id)) {
+      fixedSlots.set(i, list[i]);
+    }
+  }
+
+  if (fixedSlots.has(fromIndex) || fixedSlots.has(toIndex)) {
+    return list;
+  }
+
+  const unlockedSlots = [];
+  for (let i = 0; i < list.length; i += 1) {
+    if (!fixedSlots.has(i)) {
+      unlockedSlots.push(i);
+    }
+  }
+
+  const unlockedItems = unlockedSlots.map((i) => list[i]);
+  const fromUnlockedIdx = unlockedSlots.indexOf(fromIndex);
+  const toUnlockedIdx = unlockedSlots.indexOf(toIndex);
+
+  if (fromUnlockedIdx === -1 || toUnlockedIdx === -1) {
+    return list;
+  }
+
+  const nextUnlocked = [...unlockedItems];
+  const [moved] = nextUnlocked.splice(fromUnlockedIdx, 1);
+  nextUnlocked.splice(toUnlockedIdx, 0, moved);
+
+  const result = new Array(list.length);
+  for (const [slotIdx, place] of fixedSlots.entries()) {
+    result[slotIdx] = place;
+  }
+  for (let k = 0; k < unlockedSlots.length; k += 1) {
+    result[unlockedSlots[k]] = nextUnlocked[k];
+  }
+
+  return result;
+}
+
+function normalizePlaceName(name) {
+  return String(name || "").replace(/\s+/g, "").toLowerCase();
+}
+
+function getSourcePlaceId(place) {
+  return place?.placeId ?? place?.place_id ?? place?.id ?? null;
+}
+
+function getSourceNavigationKey(place) {
+  return place?.navigationKey ?? place?.navigation_key ?? null;
+}
+
+function getSourcePlaceImage(place) {
+  return (
+    place?.image ||
+    place?.imageUrl ||
+    place?.image_url ||
+    place?.placeImg ||
+    place?.place_img ||
+    null
+  );
+}
+
+function findCatalogPlace(sourcePlace, placeCatalog) {
+  const navigationKey = getSourceNavigationKey(sourcePlace);
+  const placeId = getSourcePlaceId(sourcePlace);
+  const sourceName = normalizePlaceName(
+    sourcePlace?.name ?? sourcePlace?.placeName ?? sourcePlace?.place_name,
+  );
+
+  return placeCatalog.find((candidate) => {
+    if (navigationKey && candidate.navigationKey === navigationKey) return true;
+    if (placeId !== null && String(candidate.placeId) === String(placeId)) return true;
+    return sourceName && normalizePlaceName(candidate.name) === sourceName;
+  });
+}
+
+function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
+  return coursePlaces
+    .map((rawPlace, index) => {
+      const place = rawPlace?.place && typeof rawPlace.place === "object"
+        ? { ...rawPlace.place, ...rawPlace }
+        : rawPlace;
+      const catalogPlace = findCatalogPlace(place, placeCatalog);
+      const image = getSourcePlaceImage(place);
+      const fallbackName =
+        place?.name ?? place?.placeName ?? place?.place_name ?? catalogPlace?.name;
+      const fallbackFloor =
+        place?.floorCode ?? place?.floor_code ?? place?.floor ?? catalogPlace?.floor;
+
+      if (catalogPlace) {
+        return {
+          ...catalogPlace,
+          ...place,
+          id: catalogPlace.id,
+          placeId: catalogPlace.placeId ?? getSourcePlaceId(place),
+          navigationKey: catalogPlace.navigationKey,
+          floor: catalogPlace.floor ?? fallbackFloor,
+          name: fallbackName,
+          desc: place?.description ?? place?.desc ?? catalogPlace.desc,
+          description: place?.description ?? place?.desc ?? catalogPlace.description,
+          image: image ?? catalogPlace.image,
+          imageUrl: image ?? catalogPlace.imageUrl,
+          isAiRecommended: false,
+        };
+      }
+
+      return {
+        id: getSourceNavigationKey(place) ?? getSourcePlaceId(place) ?? `source-course-${index}`,
+        placeId: getSourcePlaceId(place),
+        navigationKey: getSourceNavigationKey(place),
+        floor: fallbackFloor,
+        name: fallbackName,
+        category: place?.category,
+        desc: place?.description ?? place?.desc ?? `${fallbackFloor ?? ""} ${fallbackName ?? ""}`.trim(),
+        description: place?.description ?? place?.desc,
+        image,
+        imageUrl: image,
+        location: `더현대서울 ${fallbackFloor ?? ""}`.trim(),
+        isAiRecommended: false,
+      };
+    })
+    .filter((place) => place.name);
 }
 
 /**
@@ -55,7 +188,7 @@ function sameOrder(a, b) {
  * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
-export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
+export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceCourseId = "" }) {
   const t = useTranslations("aiCourse");
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
@@ -77,27 +210,48 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   const [draggingId, setDraggingId] = useState(null);
   const [courseTitle, setCourseTitle] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const [cardPage, setCardPage] = useState(0);
   const [visited, setVisited] = useState(() => new Set()); // ids marked "다녀옴"
   const [lockedPlaceIds, setLockedPlaceIds] = useState(() => new Set());
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
-  const [locateOpen, setLocateOpen] = useState(false);
-  const [locateImage, setLocateImage] = useState(null);
   const scanLocation = useScanLocationStore((state) => state.location);
   const hydrateLocation = useScanLocationStore((state) => state.hydrate);
   const isDesktop = useIsDesktop();
 
   const dragIndex = useRef(null);
   const dragStartOrder = useRef(null);
+  const itemsRef = useRef(items);
+  const listRef = useRef(null);
+  const pointerDrag = useRef({
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    from: null,
+    active: false,
+    timer: null,
+  });
+  const didDragRef = useRef(false);
   const chatOccluderRef = useRef(null);
   const seededFromScanRef = useRef(false);
+  const seededSourceCourseRef = useRef("");
+
+  // 드래그 이벤트 핸들러가 최신 items 를 stale 없이 읽도록 ref 를 동기화합니다.
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
-    hydrateLocation();
-  }, [hydrateLocation]);
+    if (seedFromScan) hydrateLocation();
+  }, [hydrateLocation, seedFromScan]);
+
+  useEffect(
+    () => () => {
+      if (pointerDrag.current.timer) clearTimeout(pointerDrag.current.timer);
+    },
+    [],
+  );
 
   const aiCourse = chat?.course ?? null;
   const chatPending = chat?.pending ?? null;
@@ -160,6 +314,48 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
       active = false;
     };
   }, [t]);
+
+  useEffect(() => {
+    if (!sourceCourseId || datasetStatus !== "ready") return;
+    if (seededSourceCourseRef.current === sourceCourseId) return;
+    let active = true;
+    seededSourceCourseRef.current = sourceCourseId;
+    setNotice("");
+
+    getCourseDetail(sourceCourseId)
+      .then((course) => {
+        if (!active) return;
+        const sourcePlaces = Array.isArray(course?.places)
+          ? course.places
+          : Array.isArray(course?.coursePlaces)
+            ? course.coursePlaces
+            : Array.isArray(course?.placeList)
+              ? course.placeList
+              : Array.isArray(course?.coursePlaceList)
+                ? course.coursePlaceList
+                : [];
+        const hydratedPlaces = hydrateSourceCoursePlaces(sourcePlaces, placeCatalog);
+
+        setItems(hydratedPlaces);
+        setCourseTitle(course?.name || course?.title || t("recommendedCourseName"));
+        setSavedCourse(null);
+        setSaveStatus("idle");
+        setSaveSuccessOpen(false);
+        setHistory([]);
+        setVisited(new Set());
+        setLockedPlaceIds(new Set());
+        setNotice(hydratedPlaces.length > 0 ? "" : t("placeLoadFailed"));
+      })
+      .catch((error) => {
+        if (!active) return;
+        seededSourceCourseRef.current = "";
+        setNotice(error?.message || t("placeLoadFailed"));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [datasetStatus, placeCatalog, sourceCourseId, t]);
 
   // 브랜드 로고는 지도 핑(출발·도착)에만 쓰는 장식이라, 실패해도 지도/코스 로딩을
   // 막지 않도록 별도 effect로 느슨하게 붙입니다. 이름으로 매칭하는 조회 맵을 만듭니다.
@@ -224,7 +420,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setHistory([]);
     setVisited(new Set());
     setLockedPlaceIds(new Set());
-    setCardPage(0);
     setNotice("");
   }
 
@@ -316,7 +511,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
   };
 
   const toggleLocked = (id, index) => {
-    if (index === 0 || index === items.length - 1) return;
+    if (index === 0) return;
     setLockedPlaceIds((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -371,7 +566,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setNotice(t("savingCourse"));
     try {
       if (!savedCourse) {
-        const created = await createCourse({ name, placeIds });
+        const created = await createCourse({
+          name,
+          placeIds,
+          courseType: sourceCourseId ? "COPIED" : "MANUAL",
+          sourceCourseId: sourceCourseId || null,
+        });
         setSavedCourse({
           courseId: created.courseId,
           placeIds: created.places.map((place) => place.placeId),
@@ -424,34 +624,56 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     }
   };
 
-  // ── Drag to reorder (native HTML5 DnD) ──
-  const handleDragStart = (event, index) => {
-    dragIndex.current = index;
-    dragStartOrder.current = items;
-    setDraggingId(items[index].id);
-    event.dataTransfer.effectAllowed = "move";
-    try {
-      event.dataTransfer.setData("text/plain", String(index));
-    } catch {
-      // Some browsers disallow setData outside a user gesture — safe to ignore.
-    }
-  };
-
+  // ── Drag to reorder (pointer events: mouse + touch) ──
+  // HTML5 DnD does not run on iOS/Android, and an inner <button> also blocks
+  // desktop drag. Pointer capture + a short press/move threshold works in the PWA.
   const handleDragEnter = (index) => {
     const from = dragIndex.current;
     if (from === null || from === index) return;
-    setItems((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(index, 0, moved);
-      return next;
-    });
+    const list = itemsRef.current;
+    const fromPlace = list[from];
+    const targetPlace = list[index];
+
+    const isFromFixed = from > 0 && lockedPlaceIds.has(fromPlace?.id);
+    const isTargetFixed = index > 0 && lockedPlaceIds.has(targetPlace?.id);
+    if (isFromFixed || isTargetFixed) return;
+
+    const next = reorderWithFixedSlots(list, lockedPlaceIds, from, index);
+    if (!next || sameOrder(next, list)) return;
+
+    setItems(next);
     dragIndex.current = index;
+  };
+
+  const moveItemOrder = (fromIndex, toIndex) => {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      toIndex >= items.length
+    ) {
+      return;
+    }
+    const list = itemsRef.current;
+    const fromPlace = list[fromIndex];
+    const toPlace = list[toIndex];
+    const isFromFixed = fromIndex > 0 && lockedPlaceIds.has(fromPlace?.id);
+    const isToFixed = toIndex > 0 && lockedPlaceIds.has(toPlace?.id);
+    if (isFromFixed || isToFixed) return;
+
+    const next = reorderWithFixedSlots(list, lockedPlaceIds, fromIndex, toIndex);
+    if (!next || sameOrder(next, list)) return;
+
+    const before = itemsRef.current;
+    if (before) {
+      setHistory((h) => [...h, before]);
+    }
+    setItems(next);
   };
 
   const handleDragEnd = () => {
     const before = dragStartOrder.current;
-    if (before && !sameOrder(before, items)) {
+    if (before && !sameOrder(before, itemsRef.current)) {
       setHistory((h) => [...h, before]);
     }
     dragIndex.current = null;
@@ -459,16 +681,124 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
     setDraggingId(null);
   };
 
-  // 장소 카드 페이징 (모바일). 데스크톱은 리스트가 자체 스크롤되므로 전부 노출.
-  const totalCardPages = Math.max(1, Math.ceil(items.length / CARDS_PER_PAGE));
-  if (cardPage > totalCardPages - 1) {
-    setCardPage(totalCardPages - 1);
-  }
-  const usePaging = !isDesktop && items.length > CARDS_PER_PAGE;
-  const pageStart = usePaging ? cardPage * CARDS_PER_PAGE : 0;
-  const visibleItems = usePaging
-    ? items.slice(pageStart, pageStart + CARDS_PER_PAGE)
-    : items;
+  const clearPointerTimer = () => {
+    if (pointerDrag.current.timer) {
+      clearTimeout(pointerDrag.current.timer);
+      pointerDrag.current.timer = null;
+    }
+  };
+
+  const beginPointerReorder = (index) => {
+    const list = itemsRef.current;
+    if (!list[index] || list.length < 2) return;
+    pointerDrag.current.active = true;
+    pointerDrag.current.from = index;
+    dragIndex.current = index;
+    dragStartOrder.current = list;
+    setDraggingId(list[index].id);
+  };
+
+  const movePointerReorder = (clientY) => {
+    if (dragIndex.current === null || !listRef.current) return;
+    const rows = listRef.current.querySelectorAll("[data-place-index]");
+    for (const row of rows) {
+      const rect = row.getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) {
+        const to = Number(row.getAttribute("data-place-index"));
+        if (Number.isFinite(to)) handleDragEnter(to);
+        break;
+      }
+    }
+  };
+
+  const resetPointerDrag = () => {
+    pointerDrag.current = {
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      from: null,
+      active: false,
+      timer: null,
+    };
+  };
+
+  const onPlacePointerDown = (event, index) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (event.target.closest("[data-no-drag]")) return;
+
+    const list = itemsRef.current;
+    const place = list[index];
+    const isFixed = index > 0 && lockedPlaceIds.has(place?.id);
+    if (isFixed) return;
+
+    clearPointerTimer();
+    pointerDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      from: index,
+      active: false,
+      timer: null,
+    };
+    const row = event.currentTarget;
+    try {
+      row.setPointerCapture(event.pointerId);
+    } catch {
+      // ignore
+    }
+
+    if (event.target.closest("[data-drag-handle]")) {
+      event.preventDefault();
+      beginPointerReorder(index);
+      return;
+    }
+
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    pointerDrag.current.timer = setTimeout(() => {
+      beginPointerReorder(index);
+    }, 120);
+  };
+
+  const onPlacePointerMove = (event) => {
+    const drag = pointerDrag.current;
+    if (drag.from === null) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+
+    if (!drag.active) {
+      if (Math.hypot(dx, dy) >= 5) {
+        clearPointerTimer();
+        beginPointerReorder(drag.from);
+      } else {
+        return;
+      }
+    }
+
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    movePointerReorder(event.clientY);
+  };
+
+  const onPlacePointerUp = (event) => {
+    const wasActive = pointerDrag.current.active;
+    clearPointerTimer();
+    if (event && pointerDrag.current.pointerId !== null) {
+      try {
+        event.currentTarget.releasePointerCapture(pointerDrag.current.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+    resetPointerDrag();
+    if (wasActive) {
+      didDragRef.current = true;
+      handleDragEnd();
+    }
+  };
 
   return (
     <>
@@ -490,23 +820,12 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
             variant={isDesktop ? "course" : "scan"}
             fitPreset={isDesktop ? undefined : "course-mobile"}
             showFloorSelector={isDesktop}
-            showUserLocation={!seedFromScan}
           />
         </div>
-        {items.length > 0 && !seedFromScan && !isDesktop ? (
-          <button
-            type="button"
-            onClick={() => setLocateOpen(true)}
-            className="absolute bottom-2 right-2 z-30 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-[#1E3A8A] shadow-[0_6px_16px_rgba(37,99,235,0.18)] sm:bottom-3 sm:right-3 sm:px-3 sm:py-2 sm:text-[11px]"
-          >
-            <span className="size-2 rounded-full bg-[#2563EB]" />
-            {scanLocation ? t("locateMeAgain") : t("locateMe")}
-          </button>
-        ) : null}
       </div>
 
       <div
-        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-7 lg:py-6"
+        className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-6 lg:py-4"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
         {/* Editable title */}
@@ -620,7 +939,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
 
         {/* Empty course — guide the user to add their first place */}
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-[320px] lg:gap-4 lg:py-20">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-[#d8d3ee] bg-[#faf8ff] px-5 py-10 text-center lg:min-h-0 lg:flex-1 lg:gap-4 lg:py-8">
             <p className="text-[14px] font-semibold text-[#1a142e] lg:text-[18px]">
               {t("emptyPlaces")}
             </p>
@@ -638,64 +957,48 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
           </div>
         )}
 
-        {/* 장소 목록 전용 페이지 이동 (이동수단 조건과 분리) */}
-        {usePaging ? (
-          <div className="flex shrink-0 items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-[#6b6685]">
-              코스 장소 {items.length}곳
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCardPage((p) => Math.max(0, p - 1))}
-                disabled={cardPage === 0}
-                aria-label="이전 장소"
-                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                &lt;
-              </button>
-              <span className="min-w-[38px] text-center text-[11px] font-black text-[#5c2ef5]">
-                {cardPage + 1} / {totalCardPages}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setCardPage((p) => Math.min(totalCardPages - 1, p + 1))
-                }
-                disabled={cardPage === totalCardPages - 1}
-                aria-label="다음 장소"
-                className="flex size-6 items-center justify-center rounded-full border border-[#d8d3e8] bg-white text-[13px] font-black leading-none text-[#5c2ef5] transition-colors disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
-        ) : null}
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <span className="text-[11px] font-bold text-[#6b6685]">
+            코스 장소 {items.length}곳
+          </span>
+        </div>
 
         {/* Place cards */}
-        <div className="flex flex-col gap-[10px] max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:pr-0.5">
-          {visibleItems.map((place, localIndex) => {
-            const index = pageStart + localIndex;
-            const isEndpoint = index === 0 || index === items.length - 1;
-            const isLocked = isEndpoint || lockedPlaceIds.has(place.id);
+        <div
+          ref={listRef}
+          className="flex flex-col gap-[10px] min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5"
+        >
+          {items.map((place, index) => {
+            const isStart = index === 0;
+            const isManuallyLocked = lockedPlaceIds.has(place.id);
+            const isFixed = !isStart && isManuallyLocked;
+            const isLocked = isStart || isManuallyLocked;
 
             return (
             <div
               key={place.id}
+              data-place-index={index}
               className="flex min-w-0 items-start gap-2 sm:gap-[12px]"
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnter={() => handleDragEnter(index)}
-              onDragOver={(e) => e.preventDefault()}
-              onDragEnd={handleDragEnd}
+              onPointerDown={(event) => onPlacePointerDown(event, index)}
+              onPointerMove={onPlacePointerMove}
+              onPointerUp={onPlacePointerUp}
+              onPointerCancel={onPlacePointerUp}
               style={{
                 opacity: draggingId === place.id ? 0.4 : 1,
-                cursor: "grab",
+                cursor: isFixed ? "default" : draggingId === place.id ? "grabbing" : "grab",
+                touchAction: isFixed ? "pan-y" : "none",
               }}
             >
-              <div className="mt-2 flex shrink-0 flex-col items-center sm:mt-[14px]">
+              <div
+                className="mt-2 flex shrink-0 flex-col items-center sm:mt-[14px]"
+              >
                 <div
-                  className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px]"
+                  data-drag-handle={!isFixed ? true : undefined}
+                  className={`group relative flex size-6 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-150 sm:size-7 sm:text-[12px] ${
+                    isFixed
+                      ? "cursor-default opacity-85"
+                      : "cursor-pointer active:scale-95 hover:scale-105"
+                  }`}
                   style={{
                     backgroundColor: visited.has(place.id)
                       ? "#4a2fa8"
@@ -709,8 +1012,38 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                     border: `2px solid ${visited.has(place.id) ? "#4a2fa8" : "#5c2ef5"}`,
                     boxShadow: hoveredId === place.id ? "0 4px 12px #5c2ef544" : "none",
                   }}
+                  title={
+                    isFixed
+                      ? t("unlockOrder")
+                      : `${index + 1}번 (선택하여 순서 변경, 또는 드래그)`
+                  }
                 >
-                  {index + 1}
+                  <span className="pointer-events-none select-none">{index + 1}</span>
+                  {!isFixed && (
+                    <select
+                      data-no-drag
+                      value={index + 1}
+                      onChange={(e) => {
+                        const targetOrder = parseInt(e.target.value, 10);
+                        if (!Number.isNaN(targetOrder)) {
+                          moveItemOrder(index, targetOrder - 1);
+                        }
+                      }}
+                      className="absolute inset-0 z-10 size-full cursor-pointer opacity-0 text-ink"
+                      title={`${index + 1}번 순서 변경 (선택하여 이동)`}
+                      aria-label={`${place.name} 순서 변경`}
+                    >
+                      {items.map((optPlace, optIdx) => {
+                        const isOptFixed = optIdx > 0 && lockedPlaceIds.has(optPlace.id) && optIdx !== index;
+                        return (
+                          <option key={optIdx} value={optIdx + 1} disabled={isOptFixed}>
+                            {optIdx + 1}번 {optIdx === 0 ? `(${t("start")})` : optIdx === items.length - 1 ? `(${t("end")})` : `(${t("via")})`}
+                            {isOptFixed ? " [고정됨]" : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  )}
                 </div>
                 <span className="mt-1 whitespace-nowrap text-[9px] font-bold text-[#6b6685]">
                   {index === 0
@@ -721,7 +1054,10 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 </span>
               </div>
               <button
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px]"
+                type="button"
+                className={`flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border-2 bg-white p-2.5 text-left transition-all duration-150 sm:gap-[12px] sm:p-[16px] ${
+                  isFixed ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+                }`}
                 style={{
                   borderColor: hoveredId === place.id ? "#5c2ef5" : "transparent",
                   boxShadow:
@@ -730,7 +1066,15 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                       : "0 2px 8px rgba(0,0,0,0.05)",
                   opacity: visited.has(place.id) ? 0.6 : 1,
                 }}
-                onClick={() => onPlaceClick?.(place)}
+                onClick={(event) => {
+                  if (didDragRef.current) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    didDragRef.current = false;
+                    return;
+                  }
+                  onPlaceClick?.(place);
+                }}
                 onMouseEnter={() => setHoveredId(place.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -773,7 +1117,10 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
               </button>
 
               {/* Per-card controls: visited toggle + order lock + delete */}
-              <div className="mt-2 flex shrink-0 flex-col gap-1 sm:mt-[14px] sm:gap-[6px]">
+              <div
+                data-no-drag
+                className="mt-2 flex shrink-0 flex-col gap-1 sm:mt-[14px] sm:gap-[6px]"
+              >
                 <button
                   onClick={() => toggleVisited(place.id)}
                   title={visited.has(place.id) ? t("visitedOff") : t("visitedOn")}
@@ -790,18 +1137,16 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
                 <button
                   type="button"
                   onClick={() => toggleLocked(place.id, index)}
-                  disabled={isEndpoint}
+                  disabled={isStart}
                   title={
-                    isEndpoint
-                      ? t("endpointFixed", {
-                          point: index === 0 ? t("startPoint") : t("endPoint"),
-                        })
+                    isStart
+                      ? t("endpointFixed", { point: t("startPoint") })
                       : isLocked
                         ? t("unlockOrder")
                         : t("lockOrder")
                   }
                   aria-label={
-                    isEndpoint
+                    isStart
                       ? t("orderFixed", { name: place.name })
                       : t("orderAction", {
                           name: place.name,
@@ -865,24 +1210,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false }) {
         onCancel={chat?.cancel}
       />
     ) : null}
-
-    <CameraScanner
-      open={locateOpen}
-      overlayClassName=""
-      onClose={() => setLocateOpen(false)}
-      onCapture={(dataUrl) => setLocateImage(dataUrl)}
-    />
-    <ScanResult
-      open={Boolean(locateImage)}
-      image={locateImage}
-      afterMatch="stay"
-      overlayClassName=""
-      onClose={() => setLocateImage(null)}
-      onRescan={() => {
-        setLocateImage(null);
-        setLocateOpen(true);
-      }}
-    />
     </>
   );
 }

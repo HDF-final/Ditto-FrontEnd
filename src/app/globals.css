@@ -84,7 +84,7 @@ body {
 .app-shell {
   position: relative;
   display: flex;
-  min-height: 100dvh;
+  min-height: 100svh;
   width: 100%;
   flex-direction: column;
   background: var(--background);
@@ -158,13 +158,9 @@ body {
   outline-offset: 3px;
 }
 
-/* Mobile: single vertical scroller so nothing is clipped behind the tab bar
-   and the list always scrolls to the end, regardless of the phone's dvh quirks
-   (in-app browsers etc.). Desktop restores the split grid below. */
-/* Mobile: fixed one-screen layout — map (top) / list (middle, only the cards
-   scroll internally) / Boni chat (bottom, always visible). Explicit height so
-   it fits the visible area even when the parent flex chain / dvh is unreliable
-   (in-app browsers). No page-level scroll. Desktop restores the split grid. */
+/* Mobile: map (top) / list (middle). Explicit height so it fits the visible
+   area even when the parent flex chain / dvh is unreliable. Desktop overrides
+   below to flex-fill the remaining viewport under the 94px header. */
 .course-studio {
   display: flex;
   flex-direction: column;
@@ -184,9 +180,11 @@ body {
 
 .course-studio-list {
   grid-area: list;
+  display: flex;
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -197,10 +195,22 @@ body {
 }
 
 @media (min-width: 1024px) {
+  html:has(.course-studio),
+  body:has(.course-studio) {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-shell:has(.course-studio) {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
   .course-studio {
     display: grid;
-    height: calc(100dvh - 72px);
-    flex: none;
+    flex: 1 1 0;
+    height: 100%;
     grid-template-columns: minmax(340px, 33%) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     grid-template-areas: "list map";

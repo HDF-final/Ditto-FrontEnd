@@ -122,6 +122,23 @@ export function buildScanLocation(place, brand) {
 }
 
 /**
+ * OCR "내 위치"는 스캔 직후 지도와 그 코스 생성 화면에서만 유지합니다.
+ * 다른 경로로 나가면 store/sessionStorage 를 비웁니다.
+ */
+export function isScanLocationFlowRoute(pathname, search = "") {
+  const path = String(pathname ?? "");
+  if (path === "/scan-map" || path.startsWith("/scan-map/")) return true;
+  if (path === "/ai-course" || path.startsWith("/ai-course/")) {
+    const query = String(search ?? "");
+    const params = new URLSearchParams(
+      query.startsWith("?") ? query.slice(1) : query,
+    );
+    return params.get("from") === "scan";
+  }
+  return false;
+}
+
+/**
  * OCR 후보의 키·이름 중 하나로 실내 지도 매장을 찾습니다.
  * 백엔드 navigationKey 가 원장에 없어도 한글/영문 상호로 다시 찾습니다.
  */

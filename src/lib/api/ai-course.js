@@ -12,6 +12,7 @@ import { apiClient } from "./client";
  */
 
 const CHAT_ENDPOINT = "/ai/course-recommendations/chat";
+const PLACE_PRODUCTS_ENDPOINT = "/ai/course-recommendations/places";
 
 /** 40초 응답 + 서버 지연 여유. */
 export const COURSE_CHAT_TIMEOUT_MS = 120_000;
@@ -40,4 +41,19 @@ export async function sendCourseChatMessage({ sessionId, message, signal }) {
   }
 
   return data?.data ?? null;
+}
+
+export async function getAiPlaceProductImages(navigationKey, { limit = 3, signal } = {}) {
+  if (!navigationKey) return [];
+
+  const { data } = await apiClient.get(
+    `${PLACE_PRODUCTS_ENDPOINT}/${encodeURIComponent(navigationKey)}/products`,
+    { params: { limit }, signal },
+  );
+
+  if (data?.success === false) {
+    throw new Error(data.message || "상품 이미지를 불러오지 못했어요.");
+  }
+
+  return Array.isArray(data?.data) ? data.data : [];
 }

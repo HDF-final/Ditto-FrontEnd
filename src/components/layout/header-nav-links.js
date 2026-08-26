@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 
 const baseNavigation = [
   { href: "/ai-course", labelKey: "createCourse", badge: "NEW" },
-  { href: "/#picks", labelKey: "courseRecommendations" },
+  { href: "/courses", labelKey: "courseRecommendations" },
   { href: "/community", labelKey: "community" },
   { href: "/news", labelKey: "news" },
 ];

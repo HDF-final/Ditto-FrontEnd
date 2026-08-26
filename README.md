@@ -211,7 +211,7 @@ Ditto-FrontEnd/
 
 `lib/fixtures`는 API 연동 전 화면을 구성하기 위한 정적 샘플 데이터만 관리합니다. 국가 목록은 `lib/fixtures/countries.js`, 쇼핑 타입은 `lib/fixtures/personas.js`를 단일 소스로 씁니다. `lib/utils`는 날짜 포맷터, 문자열 변환, 값 검증처럼 React와 브라우저 상태에 의존하지 않는 순수 유틸리티를 관리합니다. API endpoint는 `lib/api`에서 백엔드 계약이 확정된 뒤 추가합니다.
 
-코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 하단 `+` 카메라로 로고를 OCR 스캔하면 `POST /api/v1/ocr/locations/recognize`로 간판 이미지를 보내고, `/scan-map`에서 **전체층** 3D 지도에 작은 지도 핀으로 내 위치를 표시합니다. **AI 코스 생성하기**를 누르면 빈 코스 편집 화면이 열리고 1번 장소가 방금 인식한 매장으로 채워집니다. 이미 코스가 만들어진 편집 화면에서는 **내 위치 확인**으로 같은 핀을 코스 지도 위에 올립니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
+코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는 `src/stores/use-course-editor-store.js`에 둡니다. 하단 `+` 카메라로 로고를 OCR 스캔하면 `POST /api/v1/ocr/locations/recognize`로 간판 이미지를 보내고, `/scan-map`에서 **전체층** 3D 지도에 작은 지도 핀으로 내 위치를 표시합니다. **AI 코스 생성하기**를 누르면 `/ai-course?from=scan` 빈 코스 편집 화면이 열리고 1번 장소가 방금 인식한 매장으로 채워집니다. 이 OCR 내 위치는 그 두 화면에만 유지되고, 탭·헤더·뒤로가기로 나가면 바로 지웁니다. 국가·언어는 `src/stores/use-preference-store.js`에서 서로 독립적으로 관리하고, SSR에서도 읽을 수 있는 `ditto-country`, `ditto-language` 쿠키에 보존합니다. 인증 정보와 세션 값은 브라우저 저장소에 넣지 않습니다. 한 화면 내부에서만 필요한 상태는 전역 store로 올리지 않고 해당 컴포넌트의 React state로 관리합니다.
 
 국가·언어 설정 우선순위는 다음과 같습니다.
 
@@ -306,7 +306,7 @@ K-컬처 트렌드 뉴스피드 조회 API 엔드포인트:
 - **서버 컴포넌트(`src/app/news/page.js`, `src/app/news/[slug]/page.js`, `src/app/sitemap.js`)**: `lib/api/news.server.js`를 통해 SSR/SSG 및 백엔드 미가동 시 안전한 폴백(fixtures) 처리를 지원합니다.
 - **클라이언트 컴포넌트**: `lib/api/news.js`를 통해 브라우저 공통 Axios 인스턴스로 API 통신을 수행합니다.
 
-## 관리자 트렌드 화면
+## 관리자 화면
 
 `ROLE_ADMIN` 계정만 접근할 수 있는 조회 전용 운영 화면입니다. 일반 서비스 헤더·푸터와 분리된 사이드바 레이아웃을 사용하며, 백엔드가 S3의 최신 트렌드 JSON을 읽어 제공한 결과를 표시합니다.
 
@@ -316,8 +316,74 @@ K-컬처 트렌드 뉴스피드 조회 API 엔드포인트:
 | 국가별 TOP 10 | `/admin/trends/rankings` | 한국·중국·일본·미국 최종 순위 |
 | 국가별 후보군 | `/admin/trends/candidates` | 국가별 교차 검증 후보군 |
 | YouTube 급상승 | `/admin/trends/youtube` | 최근 7일 전체·한국·일본·미국 급상승 신호 |
+| 승인 대기 코스 초안 | `/admin/courses` | 배치가 만든 셀럽 코스 초안 — 카드로 보고, 팝업에서 편집 |
 
-1차 범위는 조회와 새로고침만 지원합니다. 순위 수동 변경, RDS 오버라이드, Lambda 재실행은 포함하지 않습니다.
+트렌드 화면의 1차 범위는 조회와 새로고침만 지원합니다. 순위 수동 변경, RDS 오버라이드, Lambda 재실행은 포함하지 않습니다.
+
+### 승인 대기 코스 초안 (`/admin/courses`)
+
+`ditto-celeb-warm-2` 배치가 셀럽 한 명을 조사해 **매장 3 + 카페 1 + 여가 1** 짜리 코스 초안을 만들어 Redis에 하루 동안 둡니다. 관리자가 보고 승인해야 손님에게 나갑니다.
+
+초안이 **카드**로 늘어서고, 카드를 누르면 **팝업 편집기**가 열립니다. 화면을 통째로 바꾸지 않는 것은 관리자가 목록으로 돌아오는 비용을 없애기 위해서입니다. `Esc`, 배경 클릭, 닫기 버튼으로 닫습니다.
+
+| 용도 | 메서드 | 엔드포인트 | 클라이언트 함수 |
+| --- | --- | --- | --- |
+| 초안 목록 조회 | `GET` | `/api/v1/admin/admin-courses` | `getAdminCourses()` |
+| 오늘 실행 상황 조회 | `GET` | `/api/v1/admin/admin-courses/run` | `getAdminCourseRun()` |
+| 초안 상세 조회 | `GET` | `/api/v1/admin/admin-courses/{celebrity}` | `getAdminCourse(name)` |
+| 장소 카탈로그 조회 | `GET` | `/api/v1/admin/admin-courses/places` | `getAdminCoursePlaces()` |
+
+#### 편집기에서 고칠 수 있는 것
+
+| | |
+| --- | --- |
+| 동선 | 드래그 또는 ↑↓ 버튼으로 순서 변경, ✕ 로 자리 빼기 |
+| 매장 교체 | 차순위 후보에서, 또는 더현대 전체 147곳에서 이름·카테고리·층으로 검색 |
+| 텍스트 | 안내 문장, 추천 사유, 근거 인물·브랜드·문장, 근거 기사 URL |
+| 사진 | 사진 URL, 캡션(`카리나 × 프라다`), 출처, 사진이 실린 기사 URL, 사진 종류 |
+| 분류 | 자리의 분류(매장·음식점·카페·여가), 근거 종류(셀럽 근거·동선·관리자) |
+
+- **편집은 저장되지 않습니다.** 백엔드에도 람다에도 초안을 고치는 창구가 아직 없어(읽기와 삭제만 있습니다) 팝업을 닫으면 사라집니다. 결과는 **JSON 복사·내려받기**로 가져가 승인 람다에 넘깁니다. 편집기 맨 위가 이 사실을 계속 말해 줍니다.
+- **매장을 갈면 근거는 그대로 두고 근거 사진만 뗍니다.** 남의 브랜드 사진이 새 매장에 붙는 것이 이 배치가 실제로 냈던 사고입니다(카리나 × 디젤 근거 자리에 MLB가 들어갔는데 사진과 캡션만 디젤이었습니다). 새 매장 이름이 근거 브랜드를 품고 있으면 그대로 둡니다.
+- 목록은 머리말만 옵니다(인물·상태·코스 모양·경고 수·남은 TTL). 초안 하나가 조사 원문까지 들고 있어 수십 KB라, 전문은 연 초안만 따로 가져옵니다.
+- **경고를 펼친 채로 맨 위에 둡니다.** "사진 없음", "근거는 있는데 근거 사진을 못 찾았다", "코스 모양이 어긋났다"가 관리자가 초안에서 제일 먼저 봐야 하는 것입니다.
+- 사진은 `next/image`가 아니라 `<img>`로 그립니다. 사진이 기사에서 와서 호스트를 미리 알 수 없는데 `next.config.mjs`의 `remotePatterns`는 호스트를 열거해야 통과시킵니다. 원본이 핫링크를 막으면 그 자리만 접습니다.
+- 배치 실행 상황(`/run`)을 못 읽어도 목록은 보입니다 — 위 띠만 접힙니다.
+
+#### 로컬에서 배포된 백엔드에 붙기
+
+프론트만 고칠 때는 백엔드를 로컬에 띄울 필요가 없습니다. `.env.local`을 `.env.example` 그대로 두면 됩니다.
+
+```
+NEXT_PUBLIC_API_BASE_URL=/api/v1
+API_PROXY_TARGET=http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com
+```
+
+브라우저는 `localhost:3000/api/*`만 부르고 `next.config.mjs`의 rewrite가 서버 사이드로 ALB에 넘깁니다. **같은 오리진이라 CORS를 안 탑니다.** `localhost:3000`은 백엔드 CORS 허용 목록에도 들어 있으므로, `NEXT_PUBLIC_API_BASE_URL`을 절대 주소로 바꿔 브라우저가 ALB를 직접 부르게 해도 동작합니다.
+
+관리자 API는 세션 인증이므로 `pnpm dev`로 띄운 뒤 `/login`에서 **ROLE_ADMIN 계정으로 로그인**해야 `/admin/courses`가 보입니다.
+
+## 실내 지도 정적 자산 (CDN)
+
+실내 지도 원장(JSON **588KB**)과 층 텍스처(PNG **2.2MB**)는 한 번 만들어지면 바뀌지 않습니다. CloudFront 의 `course-resource/*` 동작이 S3 `hdf-ditto-images` 를 내보내고, 오브젝트마다 3주짜리 `Cache-Control` 이 붙어 있습니다.
+
+```
+https://d1bxld598du04o.cloudfront.net/course-resource
+```
+
+| 무엇 | 어디 |
+| --- | --- |
+| 층 그래프 8개 · 장소 원장 147곳 · 방 폴리곤 · 매니페스트 | `{CDN}/navigation/v2/*.json` |
+| 층 텍스처 8장 | `{CDN}/maps/floor-*.png` |
+
+- 위 주소가 **소스의 기본값**입니다(`src/lib/navigation/navigation-dataset.js`). `NEXT_PUBLIC_CDN_BASE` 는 다른 버킷·배포로 옮길 때만 줍니다.
+- **`NEXT_PUBLIC_CDN_BASE=` 를 빈 값으로 주면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이 막혔을 때의 안전장치이고, 그 경로에도 3주 캐시 헤더를 붙여 뒀습니다(`next.config.mjs`).
+- **기본값이 폴백이 아니라 CDN 인 이유.** `NEXT_PUBLIC_*` 는 `next build` 가 번들에 박아 넣는 값인데, 배포는 도커 이미지를 만들 때 `.env` 를 안 넣고 컨테이너를 띄울 때만 넣습니다(`--env-file`). 그래서 예전 기본값(`public/` 사본)이 배포본에 그대로 박혀, 런타임 `.env` 에 CDN 주소가 있어도 손님은 **늘** `ditto-global.com/navigation/v2/*.json` 으로 588KB 를 퍼 갔습니다. 배포본의 값을 바꾸려면 `docker build --build-arg NEXT_PUBLIC_CDN_BASE=...` 로 **빌드할 때** 주세요(`Dockerfile` 에 `ARG` 가 있습니다).
+- 회귀는 `pnpm test:navigation-assets` 가 잡습니다 — 환경변수 없이 들여왔을 때 8개 층의 원장·텍스처 주소가 전부 CDN 을 가리키는지 봅니다.
+- 백엔드의 `ditto.map-assets.base-url` 과 **같은 곳**을 가리켜야 합니다. `GET /api/v1/places/navigation/assets` 가 같은 주소를 돌려주므로, 주소를 옮길 때는 두 곳을 같이 바꿉니다.
+- 크로스 오리진이라 CloudFront `course-resource/*` 에 `Managed-SimpleCORS` 응답 헤더 정책이 붙어 있습니다. `Managed-CachingOptimized` 는 `Origin` 을 원본에 넘기지 않아, 버킷 CORS 만으로는 브라우저에서 막힙니다.
+- 층 텍스처는 three.js `useTexture` 가 받습니다(`next/image` 가 아닙니다). WebGL 텍스처라 CORS 헤더가 필요하고, 위 정책이 그것을 채웁니다.
+- 원장을 다시 만들면 경로의 `v2` 를 올리세요. 같은 키를 덮어쓰면 최대 3주 동안 옛 파일이 나갑니다.
 
 ## Zustand 사용법
 

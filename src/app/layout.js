@@ -62,7 +62,7 @@ export default async function RootLayout({ children }) {
       className="h-full antialiased"
       data-scroll-behavior="smooth"
     >
-      <body className="min-h-dvh bg-[#e8e2f6] lg:min-h-full lg:bg-background">
+      <body className="min-h-svh bg-[#e8e2f6] lg:min-h-full lg:bg-background">
         <PreferenceStoreProvider initialPreferences={initialPreferences}>
           <NextIntlClientProvider
             locale={initialPreferences.languageCode}

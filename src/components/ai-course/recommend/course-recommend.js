@@ -26,13 +26,14 @@ import { useCourseChat } from "./use-course-chat";
 export function CourseRecommend() {
   const searchParams = useSearchParams();
   const promptParam = searchParams?.get("prompt")?.trim() || "";
+  const courseIdParam = searchParams?.get("courseId")?.trim() || "";
   const fromScan = searchParams?.get("from") === "scan";
   const handledPromptRef = useRef("");
 
   const [phase, setPhase] = useState(() =>
-    promptParam || fromScan ? "result" : "prompt",
+    promptParam || fromScan || courseIdParam ? "result" : "prompt",
   );
-  const [mode, setMode] = useState(() => (fromScan ? "manual" : "auto"));
+  const [mode, setMode] = useState(() => (fromScan || courseIdParam ? "manual" : "auto"));
   const [activePlace, setActivePlace] = useState(null);
   const chat = useCourseChat();
 
@@ -45,7 +46,7 @@ export function CourseRecommend() {
   }, [promptParam, chat]);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-white lg:min-h-[calc(100dvh-72px)]">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-white lg:overflow-hidden">
       {phase === "prompt" ? (
         <PromptScreen
           mode={mode}
@@ -61,6 +62,7 @@ export function CourseRecommend() {
           chat={chat}
           onPlaceClick={setActivePlace}
           seedFromScan={fromScan}
+          sourceCourseId={courseIdParam}
         />
       )}
 

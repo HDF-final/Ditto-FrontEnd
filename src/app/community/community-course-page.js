@@ -3,9 +3,10 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { CountryFlag } from "@/components/common/country-flag";
 import {
   likeCourse,
   unlikeCourse,
@@ -14,41 +15,36 @@ import {
 } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
+import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 
 const tabs = ["popular", "latest"];
-const storageKey = "ditto:shared-community-courses";
 const MOBILE_ITEMS_PER_PAGE = 1;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
-function subscribe(callback) {
-  if (typeof window === "undefined" || typeof window.addEventListener !== "function") return () => {};
-  window.addEventListener("storage", callback);
-  return () => {
-    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-      window.removeEventListener("storage", callback);
-    }
-  };
-}
-
-function getSnapshot() {
-  if (typeof window === "undefined") return "[]";
-  return localStorage.getItem(storageKey) || "[]";
-}
-
-function getServerSnapshot() {
-  return "[]";
-}
-
 function getFlagEmoji(countryCode) {
-  if (!countryCode) return "🇰🇷";
-  const code = countryCode.toUpperCase();
+  if (!countryCode) return "";
+  const normalizedCode = String(countryCode).trim().toUpperCase();
+  const codeMap = {
+    JAPAN: "JP",
+    일본: "JP",
+    CHINA: "CN",
+    중국: "CN",
+    USA: "US",
+    "UNITED STATES": "US",
+    미국: "US",
+    KOREA: "KR",
+    "SOUTH KOREA": "KR",
+    한국: "KR",
+    대한민국: "KR",
+  };
+  const code = codeMap[normalizedCode] || normalizedCode;
   if (code === "JP") return "🇯🇵";
   if (code === "CN") return "🇨🇳";
   if (code === "US") return "🇺🇸";
   if (code === "KR") return "🇰🇷";
-  return "🌐";
+  return "";
 }
 
 function CommunityCard({ card, rank, onAuthRequired }) {
@@ -67,6 +63,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   const href = `/community/${card.postId || card.slug || rank || "1"}`;
   const mounted = useIsMounted();
   const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
+  const getPostAuthor = useCommunityPostAuthorsStore(
+    (state) => state.getPostAuthor,
+  );
 
   const slugKey = card.slug ? String(card.slug) : "";
   const numKey = String(card.postId || postId || rank || "1");
@@ -78,10 +77,21 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       getPostImage(numKey)
     : null;
 
-  const image =
-    customImage ||
-    card.image ||
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+  const image = customImage || card.image || null;
+  const localAuthor = mounted
+    ? getPostAuthor(card.postId, card.courseId, slugKey, numKey)
+    : null;
+  const gradient = card.gradient || "from-[#2d1b8e] via-[#5c2ef5] to-[#8c57fa]";
+  const countryCode = card.country || card.flag || localAuthor?.country;
+  const flagEmoji = getFlagEmoji(countryCode);
+  const displayName =
+    card.name ||
+    card.writerNickname ||
+    card.authorNickname ||
+    card.userNickname ||
+    card.nickname ||
+    localAuthor?.name ||
+    "";
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -153,49 +163,58 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   }
 
   return (
-    <Link
-      href={href}
-      className="group relative flex aspect-[4/5] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[20px] bg-slate-950 shadow-[0_8px_24px_rgba(30,15,70,0.15)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_36px_rgba(30,15,70,0.35)] lg:aspect-[3/4] lg:rounded-[22px]"
+    <article
+      className={`group relative flex aspect-[4/3] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[18px] bg-linear-to-br ${gradient} shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]`}
     >
-      {/* Full Background Image */}
-      <img
-        src={image}
-        alt={card.title}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      <Link
+        href={href}
+        aria-label={card.title}
+        className="absolute inset-0 z-10"
       />
 
+      {/* Full Background Image */}
+      {image ? (
+        <img
+          src={image}
+          alt={card.title}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,0.25),transparent_28%),linear-gradient(145deg,rgba(255,255,255,0.12),transparent_45%)]" />
+      )}
+
       {/* Top Gradient for text legibility */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-24" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-28" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-52" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-60" />
 
       {/* Top Header Overlay (Transparent background) */}
-      <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xs lg:gap-2 lg:px-2.5">
-          {/* Rank Badge */}
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[10px] font-black text-white shadow-sm lg:size-6 lg:rounded-lg lg:text-[11px]">
+      <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-5">
+        <div className="inline-flex max-w-full items-center gap-2.5 overflow-hidden rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:px-3.5 lg:py-2">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-[13px]">
             {rank}
           </span>
-          {/* Flag */}
-          <span className="shrink-0 text-xs leading-none lg:text-sm">{getFlagEmoji(card.country || card.flag)}</span>
-          {/* Name & Tag */}
-          <div className="min-w-0 flex-1 leading-tight lg:flex lg:flex-col lg:items-start">
-            <span className="block truncate text-[11px] font-bold text-white drop-shadow-sm">
-              {card.name || t("traveler")}
-            </span>
-            <span className="block truncate text-[10px] font-semibold text-violet-200 drop-shadow-sm">
-              {card.hash || "#더현대"}
-            </span>
+          <CountryFlag
+            code={countryCode}
+            emoji={flagEmoji}
+            className="h-[13px] w-[19px] lg:h-[17px] lg:w-[24px]"
+          />
+          <div className="min-w-0 leading-none">
+            {displayName ? (
+              <span className="block max-w-[126px] truncate text-xs font-black text-white drop-shadow-sm lg:max-w-[172px] lg:text-[13px]">
+                {displayName}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="relative z-10 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:p-4 lg:pt-0">
+      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
         {/* Title & Description */}
         <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
-          <h3 className="line-clamp-2 break-keep text-[16px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[20px]">
+          <h3 className="line-clamp-2 break-keep text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-2xl">
             {card.title}
           </h3>
           {card.description ? (
@@ -212,7 +231,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleLike}
             aria-label={t("like")}
-            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isLiked
                 ? "bg-red-500/30 text-red-400 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -235,7 +254,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleCommentClick}
             aria-label={t("comments")}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
+            className="pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 text-white/90 backdrop-blur-2xs transition hover:bg-white/20 lg:gap-1 lg:px-2.5"
           >
             <svg className="size-3.5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -248,7 +267,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
             type="button"
             onClick={handleBookmark}
             aria-label={t("save")}
-            className={`inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
+            className={`pointer-events-auto relative z-30 inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-1 backdrop-blur-2xs transition lg:gap-1 lg:px-2.5 ${
               isBookmarked
                 ? "bg-brand/40 text-violet-300 font-black shadow-xs scale-105"
                 : "hover:bg-white/20 text-white/90"
@@ -267,11 +286,15 @@ function CommunityCard({ card, rank, onAuthRequired }) {
           </button>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
-export function CommunityCoursePage({ initialCards = [] }) {
+export function CommunityCoursePage({
+  initialCards = [],
+  authorFilterName = "",
+  isAuthorFiltered = false,
+}) {
   const t = useTranslations("community");
   const router = useRouter();
   const mounted = useIsMounted();
@@ -279,7 +302,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const sharedCardsRaw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const pageTitle = isAuthorFiltered
+    ? authorFilterName
+      ? `${authorFilterName}님의 공유 코스`
+      : "이 사용자의 공유 코스"
+    : t("title");
+  const pageDescription = isAuthorFiltered
+    ? "해당 사용자가 커뮤니티에 공유한 코스만 모아봤어요."
+    : t("description");
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -289,29 +319,17 @@ export function CommunityCoursePage({ initialCards = [] }) {
     return () => media.removeEventListener("change", apply);
   }, []);
 
-  const itemsPerPage = isDesktopLayout
+  const itemsPerPage = mounted && isDesktopLayout
     ? DESKTOP_ITEMS_PER_PAGE
     : MOBILE_ITEMS_PER_PAGE;
 
-  const sharedCards = useMemo(() => {
-    if (!mounted) return [];
-    try {
-      const parsed = JSON.parse(sharedCardsRaw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, [mounted, sharedCardsRaw]);
-
   const cards = useMemo(() => {
-    const combined = [...initialCards, ...sharedCards];
-
     if (activeTab === "latest") {
-      return [...combined].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
+      return [...initialCards].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
     }
     // 기본값: 인기순
-    return [...combined].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
-  }, [initialCards, sharedCards, activeTab]);
+    return [...initialCards].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
+  }, [initialCards, activeTab]);
 
   // 탭 변경 시 1페이지로 리셋
   const handleTabChange = (tab) => {
@@ -320,17 +338,11 @@ export function CommunityCoursePage({ initialCards = [] }) {
   };
 
   const totalPages = Math.ceil(cards.length / itemsPerPage) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedCards = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
+    const startIdx = (safeCurrentPage - 1) * itemsPerPage;
     return cards.slice(startIdx, startIdx + itemsPerPage);
-  }, [cards, currentPage, itemsPerPage]);
-
-  // itemsPerPage(레이아웃) 변경 시 1페이지로 리셋
-  const [prevItemsPerPage, setPrevItemsPerPage] = useState(itemsPerPage);
-  if (itemsPerPage !== prevItemsPerPage) {
-    setPrevItemsPerPage(itemsPerPage);
-    setCurrentPage(1);
-  }
+  }, [cards, safeCurrentPage, itemsPerPage]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -339,17 +351,17 @@ export function CommunityCoursePage({ initialCards = [] }) {
 
   return (
     <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
-      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-8 lg:pb-16 lg:pt-[94px] xl:px-10 2xl:px-12">
+        <div className="mx-auto flex max-w-[1020px] flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div>
             <p className="text-[10px] font-black text-brand lg:text-xs">
               THE HYUNDAI SEOUL COMMUNITY
             </p>
             <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[36px] lg:leading-none">
-              {t("title")}
+              {pageTitle}
             </h1>
             <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-sm">
-              {t("description")}
+              {pageDescription}
             </p>
             <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
               {tabs.map((tab) => (
@@ -369,42 +381,63 @@ export function CommunityCoursePage({ initialCards = [] }) {
             </div>
           </div>
           <Link
-            href="/community/share"
-            className="inline-flex w-full items-center justify-center rounded-full bg-brand px-5 py-2 text-[11px] font-black text-white shadow-control transition hover:bg-brand-dark lg:w-fit lg:px-8 lg:py-4 lg:text-sm"
+            href={isAuthorFiltered ? "/community" : "/community/share"}
+            className={`inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:w-fit lg:px-8 lg:py-4 lg:text-sm ${
+              isAuthorFiltered
+                ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
+                : "bg-brand text-white hover:bg-brand-dark"
+            }`}
           >
-            {t("shareMine")}
+            {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
           </Link>
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
-        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:max-w-[1020px] lg:block">
+      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-8 lg:py-14 xl:px-10 2xl:px-12">
+        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-[1020px] lg:block">
           <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
-            {paginatedCards.map((card, index) => {
-              const actualRank = (currentPage - 1) * itemsPerPage + index + 1;
-              return (
-                <div
-                  key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                  className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
-                >
-                  <CommunityCard
-                    card={card}
-                    rank={actualRank}
-                    onAuthRequired={() => setIsLoginModalOpen(true)}
-                  />
+            {paginatedCards.length > 0 ? (
+              paginatedCards.map((card, index) => {
+                const actualRank = (safeCurrentPage - 1) * itemsPerPage + index + 1;
+                return (
+                  <div
+                    key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
+                    className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
+                  >
+                    <CommunityCard
+                      card={card}
+                      rank={actualRank}
+                      onAuthRequired={() => setIsLoginModalOpen(true)}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex min-h-[280px] items-center justify-center rounded-[24px] border border-dashed border-line bg-white p-8 text-center lg:col-span-3">
+                <div>
+                  <h2 className="text-lg font-black text-ink">
+                    {isAuthorFiltered
+                      ? "이 사용자가 공유한 다른 코스가 없어요"
+                      : "공유된 코스가 아직 없어요"}
+                  </h2>
+                  <p className="mt-2 text-sm font-medium text-ink-muted">
+                    {isAuthorFiltered
+                      ? "전체 커뮤니티에서 다른 코스를 둘러볼 수 있어요."
+                      : "내 코스를 커뮤니티에 공유하면 이곳에 표시됩니다."}
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
 
           {totalPages > 1 ? (
             <div className="mt-3 flex shrink-0 items-center justify-center gap-3 lg:hidden">
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
                 className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
-                  currentPage === 1
+                  safeCurrentPage === 1
                     ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
                     : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
                 }`}
@@ -413,14 +446,14 @@ export function CommunityCoursePage({ initialCards = [] }) {
                 ‹
               </button>
               <span className="min-w-14 text-center text-xs font-black text-brand">
-                {currentPage} / {totalPages}
+                {safeCurrentPage} / {totalPages}
               </span>
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
                 className={`flex size-8 items-center justify-center rounded-xl text-sm font-black transition ${
-                  currentPage === totalPages
+                  safeCurrentPage === totalPages
                     ? "cursor-not-allowed border border-brand/20 bg-brand-soft/50 text-brand/30"
                     : "cursor-pointer border border-brand bg-brand-soft text-brand shadow-xs"
                 }`}
@@ -437,10 +470,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               {/* 이전 버튼 */}
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
-                  currentPage === 1
+                  safeCurrentPage === 1
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}
@@ -456,11 +489,11 @@ export function CommunityCoursePage({ initialCards = [] }) {
                   type="button"
                   onClick={() => handlePageChange(pageNum)}
                   className={`flex size-8 sm:size-9 items-center justify-center rounded-xl text-xs font-black transition cursor-pointer ${
-                    currentPage === pageNum
+                    safeCurrentPage === pageNum
                       ? "bg-brand text-white shadow-md"
                       : "border border-line bg-white text-ink-muted hover:border-brand hover:text-brand shadow-xs"
                   }`}
-                  aria-current={currentPage === pageNum ? "page" : undefined}
+                  aria-current={safeCurrentPage === pageNum ? "page" : undefined}
                 >
                   {pageNum}
                 </button>
@@ -469,10 +502,10 @@ export function CommunityCoursePage({ initialCards = [] }) {
               {/* 다음 버튼 */}
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
                 className={`flex size-8 sm:size-9 items-center justify-center rounded-xl font-bold transition text-xs sm:text-sm ${
-                  currentPage === totalPages
+                  safeCurrentPage === totalPages
                     ? "cursor-not-allowed text-ink-muted/40 border border-line bg-white/50"
                     : "cursor-pointer border border-line bg-white text-ink hover:border-brand hover:text-brand shadow-xs"
                 }`}
