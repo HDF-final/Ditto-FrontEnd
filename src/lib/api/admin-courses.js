@@ -38,6 +38,33 @@ export function getAdminCourse(celebrity) {
 // 백엔드에 `/admin/admin-courses/places` 가 있지만 이 화면은 더 이상 안 쓴다.
 
 /**
+ * 서비스 중인 코스 하나. **초안 상세와 같은 칸으로 온다** — 편집기가 두 가지 모양을
+ * 알 이유가 없다. 승인이 초안을 지우므로, 올린 뒤에 고치려면 여기서 되짚는다.
+ */
+export function getCachedAdminCourse(celebrity, aspect = "BRAND") {
+  // **축을 같이 보낸다.** 한 인물이 브랜드 코스와 음식 코스를 동시에 가질 수 있어,
+  // 안 주면 음식 카드를 열었는데 브랜드 코스가 열린다 — 그대로 다시 올리면 엉뚱한
+  // 축을 덮어쓴다.
+  return requestData(
+    apiClient.get(`/admin/admin-courses/cached/${encodeURIComponent(celebrity)}`, {
+      params: { aspect },
+    }),
+  );
+}
+
+/**
+ * 코스를 내린다 — 코스(전 축)·조사 재료·사전 매칭 표기를 통째로 뺀다.
+ *
+ * **되돌리는 창구는 없다.** 다시 올리려면 배치를 돌려 초안을 새로 만들고 승인해야 한다.
+ * 화면이 두 번 눌러야 나가게 해 둔 것이 그 때문이다.
+ */
+export function revokeAdminCourse(celebrity) {
+  return requestData(
+    apiClient.delete(`/admin/admin-courses/cached/${encodeURIComponent(celebrity)}`),
+  );
+}
+
+/**
  * 초안을 승인해 손님 캐시로 올린다. 성공하면 그 인물의 초안은 사라진다.
  *
  * **타임아웃을 따로 준다.** 기본 클라이언트가 15초인데(`client.js`) 승인은 Redis 네 번에
