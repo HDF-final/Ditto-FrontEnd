@@ -31,6 +31,12 @@ export function CommunityDetailActions({ course = {} }) {
       : 1);
 
   const postIdentifier = String(course.postId || course.slug || postId || "1");
+  const customizeCourseId =
+    course.courseId ||
+    course.sourceCourseId ||
+    course.originalCourseId ||
+    course.id ||
+    "";
 
   const [liveLikes, setLiveLikes] = useState(
     typeof course.likes === "number"
@@ -126,57 +132,140 @@ export function CommunityDetailActions({ course = {} }) {
 
   return (
     <>
-      <div className="mt-5 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-        {/* 좋아요 버튼 */}
-        <button
-          type="button"
-          onClick={handleLikeToggle}
-          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
-            isLiked
-              ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
-              : "border-line bg-white text-ink hover:border-red-300 hover:text-red-500"
-          }`}
-        >
-          <svg
-            className={`size-4.5 transition-transform ${isLiked ? "fill-current scale-110" : ""}`}
-            viewBox="0 0 24 24"
-            fill={isLiked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2.2"
+      <div className="mt-5 flex min-w-0 flex-col gap-3 sm:max-w-[560px]">
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={handleLikeToggle}
+            aria-label={t("like")}
+            className={`inline-flex size-12 cursor-pointer items-center justify-center rounded-full border transition ${
+              isLiked
+                ? "border-[#eadcff] bg-white shadow-[0_10px_24px_rgba(154,116,255,0.26)] hover:bg-[#fbf8ff]"
+                : "border-[#ebe5fb] bg-[#fbf9ff] text-white shadow-[0_8px_18px_rgba(108,84,180,0.08)] hover:border-brand/30 hover:bg-brand-soft/20"
+            }`}
           >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span>{t("like")}</span>
-          <span className="text-xs font-bold opacity-80">{likesCount}</span>
-        </button>
+            <svg
+              className={`size-8 drop-shadow-[0_5px_7px_rgba(137,112,212,0.23)] transition-transform ${isLiked ? "scale-105" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            >
+              <defs>
+                <linearGradient
+                  id="communityLikeSparkleGradient"
+                  x1="3"
+                  y1="2"
+                  x2="21"
+                  y2="22"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#b99cff" />
+                  <stop offset="42%" stopColor="#6d36ff" />
+                  <stop offset="100%" stopColor="#4b18d8" />
+                </linearGradient>
+                <radialGradient
+                  id="communityLikeSparkleHighlight"
+                  cx="35%"
+                  cy="28%"
+                  r="55%"
+                >
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                  <stop offset="48%" stopColor="#ffffff" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient
+                  id="communityLikeSparkleIdle"
+                  x1="4"
+                  y1="3"
+                  x2="20"
+                  y2="21"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#c8b7ff" />
+                  <stop offset="48%" stopColor="#8f67ff" />
+                  <stop offset="100%" stopColor="#6d36ff" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M12 1.55C13.38 7.02 16.98 10.62 22.45 12 16.98 13.38 13.38 16.98 12 22.45 10.62 16.98 7.02 13.38 1.55 12 7.02 10.62 10.62 7.02 12 1.55Z"
+                fill={
+                  isLiked
+                    ? "url(#communityLikeSparkleGradient)"
+                    : "url(#communityLikeSparkleIdle)"
+                }
+                opacity={isLiked ? "1" : "0.92"}
+              />
+              <path
+                d="M12 3.25C13.02 7.32 15.6 9.82 19.95 12 15.6 14.18 13.02 16.68 12 20.75 10.98 16.68 8.4 14.18 4.05 12 8.4 9.82 10.98 7.32 12 3.25Z"
+                fill="url(#communityLikeSparkleHighlight)"
+                opacity={isLiked ? "0.9" : "0.55"}
+              />
+              <path
+                d="M7.25 11.55C9.2 10.95 10.95 8.95 12 5.8c1.05 3.15 2.8 5.15 4.75 5.75"
+                stroke="#ffffff"
+                strokeWidth="0.85"
+                opacity={isLiked ? "0.75" : "0.52"}
+              />
+            </svg>
+            <span className="sr-only">
+              {t("like")} {likesCount}
+            </span>
+          </button>
 
-        {/* 코스 저장 / 북마크 버튼 */}
-        <button
-          type="button"
-          onClick={handleBookmarkToggle}
-          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[130px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-6 sm:text-sm ${
-            isBookmarked
-              ? "border border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
-              : "bg-brand text-white hover:bg-brand-dark"
-          }`}
-        >
-          <svg
-            className={`size-4.5 ${isBookmarked ? "fill-current" : ""}`}
-            viewBox="0 0 24 24"
-            fill={isBookmarked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2.2"
+          <button
+            type="button"
+            onClick={handleBookmarkToggle}
+            aria-label={isBookmarked ? t("saved") : t("saveCourse")}
+            className={`inline-flex size-11 cursor-pointer items-center justify-center rounded-full border transition ${
+              isBookmarked
+                ? "border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
+                : "border-line bg-white text-ink-muted hover:border-brand/40 hover:bg-brand-soft/30 hover:text-brand"
+            }`}
           >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-          </svg>
-          <span>{isBookmarked ? t("saved") : t("saveCourse")}</span>
-        </button>
+            <svg
+              className={`size-4 ${isBookmarked ? "fill-current" : ""}`}
+              viewBox="0 0 24 24"
+              fill={isBookmarked ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2.2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+            <span className="sr-only">{isBookmarked ? t("saved") : t("saveCourse")}</span>
+          </button>
 
-        {/* 공유하기 버튼 */}
-        <CommunityShareButton />
+          <CommunityShareButton variant="compact" />
+        </div>
 
-        {/* 대화 참여 버튼 */}
-        <CommunityChatButton course={course} />
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => {
+              const query = customizeCourseId
+                ? `?courseId=${encodeURIComponent(String(customizeCourseId))}`
+                : "";
+              router.push(`/ai-course${query}`);
+            }}
+            className="inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark sm:h-13 sm:text-base"
+          >
+            <svg
+              className="size-4.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+            <span>커스텀하기</span>
+          </button>
+
+          <CommunityChatButton course={course} variant="secondary" />
+        </div>
       </div>
 
       {/* 로그인 필요 알림 모달 */}

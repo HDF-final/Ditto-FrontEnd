@@ -94,7 +94,7 @@ function deduplicateComments(list) {
   });
 }
 
-export function CommunityChatButton({ course = {} }) {
+export function CommunityChatButton({ course = {}, variant = "default" }) {
   const t = useTranslations("community");
   const locale = useLocale();
   const router = useRouter();
@@ -468,7 +468,13 @@ export function CommunityChatButton({ course = {} }) {
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full bg-brand px-3 text-xs font-black text-white shadow-control transition hover:bg-brand-dark cursor-pointer sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm"
+        className={
+          variant === "primary"
+            ? "inline-flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-black text-white shadow-control transition hover:bg-brand-dark cursor-pointer sm:h-13 sm:text-base"
+            : variant === "secondary"
+              ? "inline-flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-line bg-white px-5 text-sm font-black text-ink-muted shadow-xs transition hover:border-brand/40 hover:bg-brand-soft/30 hover:text-brand cursor-pointer sm:h-13 sm:flex-[0.82] sm:text-base"
+            : "inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full bg-brand px-3 text-xs font-black text-white shadow-control transition hover:bg-brand-dark cursor-pointer sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm"
+        }
       >
         <svg
           aria-hidden="true"
