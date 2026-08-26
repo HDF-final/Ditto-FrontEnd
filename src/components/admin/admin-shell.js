@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/trends/candidates", label: "국가별 후보군", icon: "users" },
   { href: "/admin/trends/youtube", label: "YouTube 급상승", icon: "play" },
   { href: "/admin/courses", label: "승인 대기 코스", icon: "route" },
+  { href: "/admin/courses/cached", label: "캐시된 코스", icon: "cache" },
 ];
 
 const PAGE_TITLES = {
@@ -18,6 +19,7 @@ const PAGE_TITLES = {
   "/admin/trends/candidates": ["국가별 후보군", "국가별 비교 분석에 투입된 후보군을 확인합니다."],
   "/admin/trends/youtube": ["YouTube 급상승", "최근 7일 K-컬처 영상 급상승 신호를 확인합니다."],
   "/admin/courses": ["승인 대기 코스 초안", "배치가 만든 셀럽 코스 초안을 승인 전에 확인합니다."],
+  "/admin/courses/cached": ["캐시된 코스", "승인이 끝나 지금 손님에게 나가고 있는 코스입니다. 오늘 자정에 만료됩니다."],
 };
 
 function NavIcon({ name }) {
@@ -27,6 +29,7 @@ function NavIcon({ name }) {
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
     play: <><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3Z"/></>,
     route: <><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h6"/></>,
+    cache: <><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></>,
   };
   return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -35,6 +38,12 @@ export function AdminShell({ children }) {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const [title, description] = PAGE_TITLES[pathname] || PAGE_TITLES["/admin"];
+
+  // **제일 긴 것 하나만 켠다.** `startsWith` 로만 가르면 /admin/courses/cached 에서
+  // "승인 대기 코스" 와 "캐시된 코스" 가 같이 켜져, 지금 어느 화면인지 알 수 없다.
+  const activeHref = NAV_ITEMS.map((item) => item.href)
+    .filter((href) => pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`)))
+    .sort((a, b) => b.length - a.length)[0];
 
   return (
     <div className="flex min-h-dvh bg-[#f3f5fa] text-[#181b2f]">
@@ -47,7 +56,7 @@ export function AdminShell({ children }) {
         <p className="mb-3 mt-10 px-3 text-[10px] font-bold tracking-[0.18em] text-[#747d9f] max-md:hidden">TREND OPERATIONS</p>
         <nav className="space-y-2" aria-label="관리자 메뉴">
           {NAV_ITEMS.map((item) => {
-            const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
+            const active = item.href === activeHref;
             return (
               <Link key={item.href} href={item.href} title={item.label} className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-colors max-md:justify-center max-md:px-0 ${active ? "bg-brand text-white shadow-[0_10px_25px_rgba(92,46,245,0.28)]" : "text-[#aeb5ce] hover:bg-white/6 hover:text-white"}`}>
                 <NavIcon name={item.icon} />
