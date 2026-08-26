@@ -21,7 +21,22 @@ COPY . .
 
 # Next.js 텔레메트리 비활성화 및 빌드
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+
+# 지도 원장(JSON)·층 텍스처(PNG)를 받아 올 CDN 주소.
+#
+# `NEXT_PUBLIC_*` 는 **이 빌드 시점에** 번들로 박히는 값입니다. 컨테이너를 띄울 때 주는
+# `--env-file` 은 서버 프로세스에만 닿고 브라우저가 받는 코드에는 못 닿습니다 — 그래서
+# 이 값은 배포 스크립트의 .env 가 아니라 여기서 줘야 합니다.
+#
+# 안 주면 소스의 기본값(CloudFront `course-resource/*`)을 씁니다. 다른 버킷·배포로
+# 옮길 때만 `docker build --build-arg NEXT_PUBLIC_CDN_BASE=https://...` 로 주세요.
+ARG NEXT_PUBLIC_CDN_BASE
+
+# 빈 값은 "CDN 말고 public/ 사본으로 떨어져라" 라는 뜻입니다. `ARG` 를 선언만 하고 안
+# 주면 도커가 빈 값으로 넘길 수 있어, 안 준 것과 구분되게 지웁니다 — 안 그러면 빌드가
+# 조용히 폴백으로 떨어집니다.
+RUN if [ -z "${NEXT_PUBLIC_CDN_BASE:-}" ]; then unset NEXT_PUBLIC_CDN_BASE; fi; \
+    npm run build
 
 # 4. 런타임 실행 (Runner)
 FROM base AS runner

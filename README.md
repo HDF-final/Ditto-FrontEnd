@@ -368,7 +368,7 @@ API_PROXY_TARGET=http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.co
 실내 지도 원장(JSON **588KB**)과 층 텍스처(PNG **2.2MB**)는 한 번 만들어지면 바뀌지 않습니다. CloudFront 의 `course-resource/*` 동작이 S3 `hdf-ditto-images` 를 내보내고, 오브젝트마다 3주짜리 `Cache-Control` 이 붙어 있습니다.
 
 ```
-NEXT_PUBLIC_CDN_BASE=https://d1bxld598du04o.cloudfront.net/course-resource
+https://d1bxld598du04o.cloudfront.net/course-resource
 ```
 
 | 무엇 | 어디 |
@@ -376,7 +376,10 @@ NEXT_PUBLIC_CDN_BASE=https://d1bxld598du04o.cloudfront.net/course-resource
 | 층 그래프 8개 · 장소 원장 147곳 · 방 폴리곤 · 매니페스트 | `{CDN}/navigation/v2/*.json` |
 | 층 텍스처 8장 | `{CDN}/maps/floor-*.png` |
 
-- **비워 두면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이 막혔을 때의 안전장치이고, 그 경로에도 3주 캐시 헤더를 붙여 뒀습니다(`next.config.mjs`).
+- 위 주소가 **소스의 기본값**입니다(`src/lib/navigation/navigation-dataset.js`). `NEXT_PUBLIC_CDN_BASE` 는 다른 버킷·배포로 옮길 때만 줍니다.
+- **`NEXT_PUBLIC_CDN_BASE=` 를 빈 값으로 주면 `public/` 안의 사본으로 떨어집니다.** 사본을 지우지 않은 것이 CDN 이 막혔을 때의 안전장치이고, 그 경로에도 3주 캐시 헤더를 붙여 뒀습니다(`next.config.mjs`).
+- **기본값이 폴백이 아니라 CDN 인 이유.** `NEXT_PUBLIC_*` 는 `next build` 가 번들에 박아 넣는 값인데, 배포는 도커 이미지를 만들 때 `.env` 를 안 넣고 컨테이너를 띄울 때만 넣습니다(`--env-file`). 그래서 예전 기본값(`public/` 사본)이 배포본에 그대로 박혀, 런타임 `.env` 에 CDN 주소가 있어도 손님은 **늘** `ditto-global.com/navigation/v2/*.json` 으로 588KB 를 퍼 갔습니다. 배포본의 값을 바꾸려면 `docker build --build-arg NEXT_PUBLIC_CDN_BASE=...` 로 **빌드할 때** 주세요(`Dockerfile` 에 `ARG` 가 있습니다).
+- 회귀는 `pnpm test:navigation-assets` 가 잡습니다 — 환경변수 없이 들여왔을 때 8개 층의 원장·텍스처 주소가 전부 CDN 을 가리키는지 봅니다.
 - 백엔드의 `ditto.map-assets.base-url` 과 **같은 곳**을 가리켜야 합니다. `GET /api/v1/places/navigation/assets` 가 같은 주소를 돌려주므로, 주소를 옮길 때는 두 곳을 같이 바꿉니다.
 - 크로스 오리진이라 CloudFront `course-resource/*` 에 `Managed-SimpleCORS` 응답 헤더 정책이 붙어 있습니다. `Managed-CachingOptimized` 는 `Origin` 을 원본에 넘기지 않아, 버킷 CORS 만으로는 브라우저에서 막힙니다.
 - 층 텍스처는 three.js `useTexture` 가 받습니다(`next/image` 가 아닙니다). WebGL 텍스처라 CORS 헤더가 필요하고, 위 정책이 그것을 채웁니다.
