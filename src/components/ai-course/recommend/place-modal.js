@@ -21,6 +21,113 @@ import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import { getAiPlaceProductImages } from "@/lib/api/ai-course";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 
+function getProductNavigationKey(place) {
+  return place?.navigationKey || place?.navigation_key;
+}
+
+function usePlaceProducts(navigationKey, limit = 3) {
+  const [productResult, setProductResult] = useState({
+    navigationKey: null,
+    products: [],
+  });
+
+  useEffect(() => {
+    if (!navigationKey) return undefined;
+
+    const controller = new AbortController();
+    getAiPlaceProductImages(navigationKey, {
+      limit,
+      signal: controller.signal,
+    })
+      .then((products) => {
+        setProductResult({
+          navigationKey,
+          products: products.filter((product) => product?.imageUrl),
+        });
+      })
+      .catch((error) => {
+        if (error?.code === "ERR_CANCELED") return;
+        setProductResult({
+          navigationKey,
+          products: [],
+        });
+      });
+
+    return () => controller.abort();
+  }, [limit, navigationKey]);
+
+  const isLoading =
+    Boolean(navigationKey) && productResult.navigationKey !== navigationKey;
+
+  return isLoading ? [] : productResult.products;
+}
+
+function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
+  if (!products.length) return null;
+
+  const label = t.has("brandProducts") ? t("brandProducts") : "브랜드 상품";
+  const getAlt = (product, idx) => {
+    const name = product.productName || place.name;
+    if (t.has("brandProductAlt")) {
+      return t("brandProductAlt", {
+        name,
+        index: idx + 1,
+      });
+    }
+    return `${name} 상품 ${idx + 1}`;
+  };
+
+  return (
+    <div className={className}>
+      <p className="mb-3 text-[12px] font-bold tracking-wide text-[#9994ad]">
+        {label}
+      </p>
+      <div className="grid grid-cols-3 gap-3">
+        {products.map((product, idx) => {
+          const productImage = (
+            <>
+              <img
+                src={product.imageUrl}
+                alt={getAlt(product, idx)}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  e.currentTarget.src = getFallbackPlaceImage(place);
+                }}
+              />
+              <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-transparent" />
+            </>
+          );
+
+          const itemClassName =
+            "group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]";
+
+          return product.productUrl ? (
+            <a
+              key={product.productId ?? `${product.imageUrl}-${idx}`}
+              href={product.productUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={itemClassName}
+              aria-label={getAlt(product, idx)}
+              title={product.productName || product.brandName || place.name}
+            >
+              {productImage}
+            </a>
+          ) : (
+            <div
+              key={product.productId ?? `${product.imageUrl}-${idx}`}
+              className={itemClassName}
+              title={product.productName || product.brandName || place.name}
+            >
+              {productImage}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
  * - 좌측: 브랜드명, 브랜드 위치, AI 추천 이유, 매장 사진 갤러리 (3장), 방문 CTA
@@ -28,11 +135,8 @@ import { CourseNavigationMap } from "@/components/navigation/course-navigation-m
  */
 function AiPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
-  const productNavigationKey = place.navigationKey || place.navigation_key;
-  const [productResult, setProductResult] = useState({
-    navigationKey: null,
-    products: [],
-  });
+  const productNavigationKey = getProductNavigationKey(place);
+  const brandProducts = usePlaceProducts(productNavigationKey, 3);
   const locationText = place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   // 브랜드별 컨텍스트 매핑 (프라다 카리나, 아디다스 손흥민/제니 등)
@@ -68,47 +172,7 @@ function AiPlaceModalContent({ place, onClose }) {
   const rightImageCaption =
     rightImage && rightImage === place.aiImage ? place.aiImageCaption : null;
 
-  useEffect(() => {
-    if (!productNavigationKey) return undefined;
-
-    const controller = new AbortController();
-    getAiPlaceProductImages(productNavigationKey, {
-      limit: 3,
-      signal: controller.signal,
-    })
-      .then((products) => {
-        setProductResult({
-          navigationKey: productNavigationKey,
-          products: products.filter((product) => product?.imageUrl),
-        });
-      })
-      .catch((error) => {
-        if (error?.code === "ERR_CANCELED") return;
-        setProductResult({
-          navigationKey: productNavigationKey,
-          products: [],
-        });
-      });
-
-    return () => controller.abort();
-  }, [productNavigationKey]);
-
-  const isProductLoading =
-    Boolean(productNavigationKey) &&
-    productResult.navigationKey !== productNavigationKey;
-  const brandProducts = isProductLoading ? [] : productResult.products;
   const boniReasonLabel = t.has("boniReason") ? t("boniReason") : "보니 추천 이유";
-  const brandProductsLabel = t.has("brandProducts") ? t("brandProducts") : "브랜드 상품";
-  const getBrandProductAlt = (product, idx) => {
-    const name = product.productName || place.name;
-    if (t.has("brandProductAlt")) {
-      return t("brandProductAlt", {
-        name,
-        index: idx + 1,
-      });
-    }
-    return `${name} 상품 ${idx + 1}`;
-  };
 
   return (
     <div
@@ -166,36 +230,7 @@ function AiPlaceModalContent({ place, onClose }) {
           </div>
 
           {/* 브랜드 상품 이미지 */}
-          {brandProducts.length > 0 ? (
-            <div className="mt-6">
-              <p className="text-[12px] font-bold tracking-wide text-[#9994ad] mb-3">
-                {brandProductsLabel}
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {brandProducts.map((product, idx) => (
-                  <a
-                    key={product.productId ?? `${product.imageUrl}-${idx}`}
-                    href={product.productUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative aspect-4/3 overflow-hidden rounded-[14px] border border-[#e0d9f8]/60 bg-[#f0ecfa] shadow-xs outline-none transition focus-visible:ring-2 focus-visible:ring-[#5c2ef5]"
-                    aria-label={getBrandProductAlt(product, idx)}
-                    title={product.productName || product.brandName || place.name}
-                  >
-                    <img
-                      src={product.imageUrl}
-                      alt={getBrandProductAlt(product, idx)}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.src = getFallbackPlaceImage(place);
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <BrandProductsGrid products={brandProducts} place={place} t={t} />
         </div>
 
         {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
@@ -265,6 +300,8 @@ function AiPlaceModalContent({ place, onClose }) {
  */
 function StandardPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
+  const productNavigationKey = getProductNavigationKey(place);
+  const brandProducts = usePlaceProducts(productNavigationKey, 3);
   const [routeState, setRouteState] = useState({
     status: "loading",
     itinerary: null,
@@ -453,6 +490,13 @@ function StandardPlaceModalContent({ place, onClose }) {
             </p>
           </div>
 
+          <BrandProductsGrid
+            products={brandProducts}
+            place={place}
+            t={t}
+            className="mt-5 pb-2"
+          />
+
           {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
           {storeImages && storeImages.length > 0 ? (
             <div className="mt-3">
@@ -530,9 +574,6 @@ function StandardPlaceModalContent({ place, onClose }) {
               <h3 className="text-2xl font-black leading-tight break-keep sm:text-3xl">
                 {place.name}
               </h3>
-              <p className="mt-2 line-clamp-2 max-w-[520px] text-[13px] font-semibold leading-[1.6] text-white/85 sm:text-sm">
-                {storeDescription}
-              </p>
               {storeImages && storeImages.length > 0 ? (
                 <div className="mt-4 flex gap-2">
                   {storeImages.slice(0, 3).map((imgUrl, idx) => (
