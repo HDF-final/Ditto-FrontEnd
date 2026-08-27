@@ -3,31 +3,19 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from "react";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
-import { useIsMounted } from "@/hooks/use-is-mounted";
 
 export function CommunityDetailHeroImage({
-  postId,
-  courseId,
+  images: serverImages,
   fallbackImage,
   alt = "코스 대표 사진",
   className = "h-full w-full object-cover",
   showControls = true,
 }) {
-  const mounted = useIsMounted();
-  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
-
-  const customImages = mounted
-    ? getPostImages(postId).length > 0
-      ? getPostImages(postId)
-      : courseId
-        ? getPostImages(courseId)
-        : []
-    : [];
+  const uploaded = Array.isArray(serverImages) ? serverImages.filter(Boolean) : [];
 
   const images =
-    customImages.length > 0
-      ? customImages
+    uploaded.length > 0
+      ? uploaded
       : [
           fallbackImage ||
             "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",

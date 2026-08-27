@@ -13,7 +13,6 @@ import {
   unbookmarkCourse,
 } from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
@@ -37,7 +36,6 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
   const href = `/community/${card.postId || card.slug || rank || "1"}`;
   const mounted = useIsMounted();
-  const getPostImage = useCommunityPostImagesStore((state) => state.getPostImage);
   const getPostAuthor = useCommunityPostAuthorsStore(
     (state) => state.getPostAuthor,
   );
@@ -45,14 +43,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   const slugKey = card.slug ? String(card.slug) : "";
   const numKey = String(card.postId || postId || rank || "1");
 
-  const customImage = mounted
-    ? getPostImage(card.postId) ||
-      getPostImage(card.courseId) ||
-      getPostImage(slugKey) ||
-      getPostImage(numKey)
-    : null;
-
-  const image = customImage || card.image || null;
+  const image = card.image || null;
   const localAuthor = mounted
     ? getPostAuthor(card.postId, card.courseId, slugKey, numKey)
     : null;

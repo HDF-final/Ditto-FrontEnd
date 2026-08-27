@@ -39,6 +39,38 @@ export function createCoursePost({
 }
 
 /**
+ * 코스 게시글 사진 업로드 (여러 장).
+ * POST /api/v1/community/courses/{postId}/images (multipart/form-data)
+ *
+ * 백엔드가 S3에 올리고 게시글의 전체 사진 URL 목록을 돌려줍니다.
+ * 게시글당 최대 10장이며, 기존 사진 뒤에 이어 붙습니다.
+ *
+ * @param {number|string} postId 사진을 붙일 게시글 ID
+ * @param {Array<File|Blob>} files 업로드할 이미지 파일들
+ * @returns {Promise<{ postId: number, imageUrls: string[] }>}
+ */
+export function uploadCoursePostImages(postId, files) {
+  const list = (Array.isArray(files) ? files : [files]).filter(Boolean);
+  const form = new FormData();
+  list.forEach((file, index) => {
+    const named =
+      file instanceof File
+        ? file
+        : new File([file], `photo-${index + 1}.jpg`, {
+            type: file?.type || "image/jpeg",
+          });
+    // 백엔드 @RequestPart("images") List<MultipartFile>
+    form.append("images", named);
+  });
+  return requestData(
+    apiClient.post(`/community/courses/${postId}/images`, form, {
+      timeout: 60_000,
+      headers: { "Content-Type": undefined },
+    }),
+  );
+}
+
+/**
  * 코스 게시글 수정.
  * PATCH /api/v1/community/courses/{postId}
  */
