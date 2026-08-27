@@ -201,7 +201,9 @@
     "viewAllReviews": "후기 128개 모두 보기 →",
     "saveCourse": "코스 저장",
     "share": "공유하기",
-    "coverPhoto": "코스 대표 사진"
+    "coverPhoto": "코스 대표 사진",
+    "spotStat": "스팟",
+    "floorStat": "층"
   },
   "community": {
     "publicCourseDescription": "{title}에 연결된 맞춤형 추천 코스입니다.",
@@ -295,7 +297,9 @@
     "justNow": "방금",
     "daysAgo": "{count}일",
     "hoursAgo": "{count}시간",
-    "minutesAgo": "{count}분"
+    "minutesAgo": "{count}분",
+    "spotStat": "스팟",
+    "floorStat": "층"
   },
   "mypage": {
     "title": "마이페이지",

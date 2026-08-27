@@ -201,7 +201,9 @@
     "viewAllReviews": "128件のレビューをすべて見る →",
     "saveCourse": "コースを保存",
     "share": "共有",
-    "coverPhoto": "コースのメイン写真"
+    "coverPhoto": "コースのメイン写真",
+    "spotStat": "スポット",
+    "floorStat": "フロア"
   },
   "community": {
     "publicCourseDescription": "{title}につながるカスタムおすすめコースです。",
@@ -295,7 +297,9 @@
     "justNow": "たった今",
     "daysAgo": "{count}日",
     "hoursAgo": "{count}時間",
-    "minutesAgo": "{count}分"
+    "minutesAgo": "{count}分",
+    "spotStat": "スポット",
+    "floorStat": "フロア"
   },
   "mypage": {
     "title": "マイページ",
