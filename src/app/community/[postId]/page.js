@@ -255,8 +255,7 @@ export default async function CommunityCourseDetailPage({ params }) {
           <div className="relative flex aspect-[4/3] w-full flex-col justify-between overflow-hidden rounded-[24px] bg-slate-950 shadow-[0_12px_30px_rgba(30,15,70,0.22)]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
-                postId={course.postId || postId}
-                courseId={course.courseId}
+                images={course.images}
                 fallbackImage={course.image}
                 alt={course.title}
                 className="h-full w-full object-cover"
@@ -287,8 +286,7 @@ export default async function CommunityCourseDetailPage({ params }) {
           <div className="relative min-h-[280px] w-full overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
-                postId={course.postId || postId}
-                courseId={course.courseId}
+                images={course.images}
                 fallbackImage={course.image}
                 alt={course.title}
                 className="h-full w-full object-cover"

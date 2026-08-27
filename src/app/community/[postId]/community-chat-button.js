@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -100,8 +99,6 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
-  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
-  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
   const getPostAuthor = useCommunityPostAuthorsStore(
     (state) => state.getPostAuthor,
   );
@@ -280,16 +277,6 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
           setPostLikes(serverLikes);
         }
 
-        const serverImg =
-          detail?.representativeImageUrl ||
-          detail?.course?.representativeImageUrl ||
-          detail?.imageUrl;
-        if (serverImg) {
-          const current = getPostImages(id);
-          if (current.length === 0) {
-            setPostImages(id, [serverImg]);
-          }
-        }
       }
     } catch (err) {
       console.warn("[CommunityChat] Error loading comments:", err.message);
@@ -507,8 +494,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
             <div className="relative flex h-[180px] shrink-0 flex-col justify-between overflow-hidden bg-slate-950 p-4 select-none sm:h-[280px] sm:p-6 md:h-full md:w-[56%]">
               <div className="absolute inset-0">
                 <CommunityDetailHeroImage
-                  postId={postId}
-                  courseId={course?.courseId}
+                  images={course?.images}
                   fallbackImage={course?.image}
                   alt={course?.title || t("courseImage")}
                   className="h-full w-full object-cover"

@@ -9,10 +9,13 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
 import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import { logout } from "@/lib/api/auth";
-import { getPublicCourses, updateCoursePost } from "@/lib/api/community";
+import {
+  getPublicCourses,
+  updateCoursePost,
+  uploadCoursePostImages,
+} from "@/lib/api/community";
 import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
-import { compressImage } from "@/lib/utils/image-compression";
+import { compressImage, dataUrlToBlob } from "@/lib/utils/image-compression";
 import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
@@ -78,9 +81,10 @@ function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러�
           linkedCourse?.description ||
           "커뮤니티에 공유한 코스입니다.",
         image:
-          post.representativeImageUrl ||
+          (Array.isArray(post.imageUrls) && post.imageUrls[0]) ||
           linkedCourse?.image ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        images: Array.isArray(post.imageUrls) ? post.imageUrls.filter(Boolean) : [],
         likes: Number(post.likeCount) || 0,
         comments: Number(post.commentCount) || 0,
         saves: Number(post.bookmarkCount) || 0,
@@ -224,9 +228,6 @@ export function MypageView() {
   const [editPhotos, setEditPhotos] = useState([]);
   const [isEditingPost, setIsEditingPost] = useState(false);
   const fileInputRef = useRef(null);
-  const getPostImages = useCommunityPostImagesStore((state) => state.getPostImages);
-  const setPostImages = useCommunityPostImagesStore((state) => state.setPostImages);
-
   const handleEditFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -262,12 +263,24 @@ export function MypageView() {
       await updateCoursePost(targetId, {
         title: editTitle.trim(),
         content: editContent.trim(),
-        representativeImageUrl: editPhotos[0] || undefined,
       });
 
-      setPostImages(targetId, editPhotos);
-      if (postToEdit.courseId) {
-        setPostImages(postToEdit.courseId, editPhotos);
+      // 새로 추가한 사진만 업로드합니다(백엔드는 기존 뒤에 이어 붙임). 편집창에
+      // 이미 있던 사진은 http URL 이라 dataUrlToBlob 이 걸러내고, 방금 고른 사진만
+      // base64 → Blob 으로 변환되어 전송됩니다. 응답의 imageUrls 로 목록을 갱신합니다.
+      let nextImages = Array.isArray(postToEdit.images)
+        ? postToEdit.images.filter(Boolean)
+        : [];
+      const newBlobs = editPhotos.map(dataUrlToBlob).filter(Boolean);
+      if (newBlobs.length > 0) {
+        try {
+          const uploaded = await uploadCoursePostImages(targetId, newBlobs);
+          if (Array.isArray(uploaded?.imageUrls)) {
+            nextImages = uploaded.imageUrls.filter(Boolean);
+          }
+        } catch (uploadError) {
+          console.warn("Failed to upload edited course post images:", uploadError);
+        }
       }
 
       setSharedCourses((prev) =>
@@ -277,7 +290,8 @@ export function MypageView() {
                 ...p,
                 title: editTitle.trim(),
                 description: editContent.trim(),
-                image: editPhotos[0] || p.image,
+                images: nextImages,
+                image: nextImages[0] || p.image,
               }
             : p,
         ),
@@ -500,9 +514,11 @@ export function MypageView() {
             setPostToEdit(post);
             setEditTitle(post.title || "");
             setEditContent(post.description || "");
-            const images = getPostImages(post.postId || post.id);
-            if (images && images.length > 0) {
-              setEditPhotos(images);
+            const serverImages = Array.isArray(post.images)
+              ? post.images.filter(Boolean)
+              : [];
+            if (serverImages.length > 0) {
+              setEditPhotos(serverImages);
             } else if (post.image && !post.image.includes("unsplash.com")) {
               setEditPhotos([post.image]);
             } else {
