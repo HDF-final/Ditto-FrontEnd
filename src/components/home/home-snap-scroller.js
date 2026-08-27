@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-const WHEEL_GESTURE_IDLE_MS = 60;
+const WHEEL_GESTURE_IDLE_MS = 320;
+const MIN_GESTURE_LOCK_MS = 860;
 const TRANSITION_DURATION_MS = 540;
 
 function easeOutCubic(progress) {
@@ -24,8 +25,47 @@ export function HomeSnapScroller({ children }) {
     let gestureIdleTimer = 0;
     let resizeFrame = 0;
     let gestureHandled = false;
+    let gestureHandledAt = 0;
     let animating = false;
     let activePanelIndex = 0;
+    let lastWheelAt = 0;
+
+    function scheduleGestureRelease() {
+      window.clearTimeout(gestureIdleTimer);
+
+      if (!gestureHandled) return;
+
+      const now = performance.now();
+      const remainingIdleTime = Math.max(
+        0,
+        WHEEL_GESTURE_IDLE_MS - (now - lastWheelAt),
+      );
+      const remainingLockTime = Math.max(
+        0,
+        MIN_GESTURE_LOCK_MS - (now - gestureHandledAt),
+      );
+
+      gestureIdleTimer = window.setTimeout(() => {
+        if (animating) {
+          scheduleGestureRelease();
+          return;
+        }
+
+        const releaseAt = performance.now();
+        const wheelIsStillMoving =
+          releaseAt - lastWheelAt < WHEEL_GESTURE_IDLE_MS;
+        const minimumLockIsActive =
+          releaseAt - gestureHandledAt < MIN_GESTURE_LOCK_MS;
+
+        if (wheelIsStillMoving || minimumLockIsActive) {
+          scheduleGestureRelease();
+          return;
+        }
+
+        gestureHandled = false;
+        gestureHandledAt = 0;
+      }, Math.max(16, remainingIdleTime, remainingLockTime));
+    }
 
     function getPanels() {
       return Array.from(scroller.querySelectorAll(":scope > .home-snap-panel"));
@@ -57,9 +97,7 @@ export function HomeSnapScroller({ children }) {
 
       if (reducedMotionMedia.matches || Math.abs(distance) < 1) {
         scroller.scrollTo({ top: targetTop, behavior: "auto" });
-        gestureIdleTimer = window.setTimeout(() => {
-          gestureHandled = false;
-        }, WHEEL_GESTURE_IDLE_MS);
+        scheduleGestureRelease();
         return;
       }
 
@@ -83,9 +121,7 @@ export function HomeSnapScroller({ children }) {
         scroller.scrollTo({ top: targetTop, behavior: "auto" });
         scroller.classList.remove("home-snap-moving");
         animating = false;
-        gestureIdleTimer = window.setTimeout(() => {
-          gestureHandled = false;
-        }, WHEEL_GESTURE_IDLE_MS);
+        scheduleGestureRelease();
       }
 
       animationFrame = window.requestAnimationFrame(step);
@@ -102,6 +138,8 @@ export function HomeSnapScroller({ children }) {
       }
 
       event.preventDefault();
+      lastWheelAt = performance.now();
+      scheduleGestureRelease();
       if (animating || gestureHandled) return;
 
       const panels = getPanels();
@@ -117,6 +155,7 @@ export function HomeSnapScroller({ children }) {
       if (targetIndex === currentIndex) return;
 
       gestureHandled = true;
+      gestureHandledAt = performance.now();
       window.clearTimeout(gestureIdleTimer);
       animateToPanel(panels[targetIndex], targetIndex);
     }
@@ -135,7 +174,6 @@ export function HomeSnapScroller({ children }) {
       window.clearTimeout(gestureIdleTimer);
       scroller.classList.remove("home-snap-moving");
       animating = false;
-      gestureHandled = false;
 
       const panels = getPanels();
       if (panels.length === 0) return;
@@ -148,6 +186,8 @@ export function HomeSnapScroller({ children }) {
         top: getPanelScrollTop(panels[activePanelIndex]),
         behavior: "auto",
       });
+
+      if (gestureHandled) scheduleGestureRelease();
     }
 
     function scheduleRealign() {
