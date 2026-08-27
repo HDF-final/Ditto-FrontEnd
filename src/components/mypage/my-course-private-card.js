@@ -50,7 +50,7 @@ function StopRow({ stop, idx, compact }) {
 
 export function MyCoursePrivateCard({ course }) {
   const courseId = course?.courseId || course?.id;
-  const href = `/ai-course?courseId=${courseId}`;
+  const href = `/ai-course?courseId=${courseId}&from=mypage`;
   const stops = Array.isArray(course?.stops) ? course.stops.filter(Boolean) : [];
   const previewStops = stops.slice(0, 3);
   const spotCountText =

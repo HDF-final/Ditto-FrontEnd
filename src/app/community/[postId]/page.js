@@ -227,22 +227,22 @@ export default async function CommunityCourseDetailPage({ params }) {
     <HomeSnapScroller>
       {/* ── 덩어리 1: 브레드크럼(위 고정) + 히어로(남은 공간 중앙) ── */}
       <div className="home-snap-panel min-w-0 overflow-x-hidden bg-white lg:flex lg:flex-col">
-      <section className="bg-surface-soft px-3 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
-          <div className="flex min-w-0 items-center gap-2">
+      <section className="shrink-0 bg-surface-soft px-3 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-4">
+          <nav className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap text-xs font-bold text-ink-muted lg:text-sm">
             <Link href="/" className="shrink-0 hover:text-brand">
               {breadcrumbHomeText}
             </Link>
-            <span className="shrink-0">›</span>
+            <span className="shrink-0" aria-hidden="true">›</span>
             <Link href="/community" className="shrink-0 hover:text-brand">
               {breadcrumbCommunityText}
             </Link>
-            <span className="shrink-0">›</span>
+            <span className="shrink-0" aria-hidden="true">›</span>
             <span className="min-w-0 truncate text-ink">{course.title}</span>
-          </div>
+          </nav>
           <Link
             href="/community"
-            className="text-xs font-black text-brand transition hover:text-brand-dark"
+            className="shrink-0 whitespace-nowrap text-xs font-black text-brand transition hover:text-brand-dark lg:text-sm"
           >
             {listText}
           </Link>

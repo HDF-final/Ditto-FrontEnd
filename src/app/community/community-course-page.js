@@ -18,7 +18,7 @@ import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
 
 const tabs = ["popular", "latest"];
-const MOBILE_ITEMS_PER_PAGE = 1;
+const MOBILE_ITEMS_PER_PAGE = 2;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
 function CommunityCard({ card, rank, onAuthRequired }) {
@@ -128,7 +128,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
   return (
     <article
-      className={`group relative flex aspect-[4/3] min-h-0 min-w-0 w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[18px] bg-linear-to-br ${gradient} shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]`}
+      className={`group relative flex aspect-[4/3] min-h-0 min-w-0 h-auto w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[18px] bg-linear-to-br ${gradient} shadow-[0_14px_36px_rgba(30,15,70,0.3)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_44px_rgba(30,15,70,0.45)] lg:aspect-[3/4] lg:rounded-[26px]`}
     >
       <Link
         href={href}
@@ -148,14 +148,14 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       )}
 
       {/* Top Gradient for text legibility */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-28" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/80 via-black/35 to-transparent lg:h-28" />
 
       {/* Bottom Gradient for title and metrics legibility */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-60" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/95 via-black/55 to-transparent lg:h-60" />
 
       {/* Top Header Overlay (Transparent background) */}
       <div className="pointer-events-none relative z-20 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-5">
-        <div className="inline-flex max-w-full items-center gap-2.5 overflow-hidden rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:px-3.5 lg:py-2">
+        <div className="inline-flex max-w-full items-center gap-2 overflow-hidden rounded-full border border-white/15 bg-black/35 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur-md lg:gap-2.5 lg:px-3.5 lg:py-2">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#5c2ef5] text-[11px] font-black text-white shadow-sm lg:size-8 lg:text-sm">
             {rank}
           </span>
@@ -168,7 +168,7 @@ function CommunityCard({ card, rank, onAuthRequired }) {
       </div>
 
       {/* Bottom Content Area (Transparent overlay on image) */}
-      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-2 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
+      <div className="pointer-events-none relative z-20 flex min-w-0 flex-col gap-1.5 p-3 pt-0 lg:gap-3 lg:p-5 lg:pt-0">
         {/* Title & Description */}
         <div className="flex min-w-0 flex-col gap-0.5 lg:gap-1">
           <h3 className="line-clamp-2 break-keep text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-[26px]">
@@ -307,19 +307,33 @@ export function CommunityCoursePage({
   };
 
   return (
-    <main className="min-w-0 overflow-x-hidden bg-background max-lg:flex max-lg:min-h-[calc(100dvh-var(--app-header)-var(--app-tabbar))] max-lg:flex-col lg:min-h-screen">
-      <section className="shrink-0 bg-white px-4 pb-3 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-[1020px] flex-col gap-2.5 lg:max-w-none lg:flex-row lg:items-end lg:justify-between lg:gap-10">
-          <div>
-            <p className="text-[10px] font-black text-brand lg:text-sm">
-              THE HYUNDAI SEOUL COMMUNITY
-            </p>
-            <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[42px] lg:leading-none">
-              {pageTitle}
-            </h1>
-            <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-base lg:leading-7">
-              {pageDescription}
-            </p>
+    <main className="min-w-0 overflow-x-hidden bg-surface-soft max-lg:flex max-lg:min-h-0 max-lg:flex-1 max-lg:flex-col max-lg:overflow-hidden lg:min-h-screen lg:bg-background">
+      <section className="shrink-0 bg-white px-4 pb-0 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
+        <div className="mx-auto flex max-w-[1020px] flex-col gap-2 lg:max-w-none lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3 lg:block">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black text-brand lg:text-sm">
+                  THE HYUNDAI SEOUL COMMUNITY
+                </p>
+                <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[42px] lg:leading-none">
+                  {pageTitle}
+                </h1>
+                <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-base lg:leading-7">
+                  {pageDescription}
+                </p>
+              </div>
+              <Link
+                href={isAuthorFiltered ? "/community" : "/community/share"}
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-black shadow-control transition lg:hidden ${
+                  isAuthorFiltered
+                    ? "border border-brand bg-white text-brand"
+                    : "bg-brand text-white"
+                }`}
+              >
+                {isAuthorFiltered ? "전체 보기" : t("share")}
+              </Link>
+            </div>
             <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
               {tabs.map((tab) => (
                 <button
@@ -339,7 +353,7 @@ export function CommunityCoursePage({
           </div>
           <Link
             href={isAuthorFiltered ? "/community" : "/community/share"}
-            className={`inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:w-fit lg:px-8 lg:py-4 lg:text-base ${
+            className={`hidden items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:inline-flex lg:w-fit lg:px-8 lg:py-4 lg:text-base ${
               isAuthorFiltered
                 ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
                 : "bg-brand text-white hover:bg-brand-dark"
@@ -350,16 +364,16 @@ export function CommunityCoursePage({
         </div>
       </section>
 
-      <section className="flex min-h-0 flex-1 flex-col bg-surface-soft px-4 py-3 lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
-        <div className="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-none lg:block">
-          <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-3 lg:gap-5">
+      <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-surface-soft p-6 lg:overflow-visible lg:px-52 lg:py-14 xl:px-60 2xl:px-72">
+        <div className="flex w-full flex-col gap-6 lg:block">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-5">
             {paginatedCards.length > 0 ? (
               paginatedCards.map((card, index) => {
                 const actualRank = (safeCurrentPage - 1) * itemsPerPage + index + 1;
                 return (
                   <div
                     key={`${card.postId || card.slug || card.name}-${card.title}-${index}`}
-                    className="min-h-0 min-w-0 max-lg:flex max-lg:items-center"
+                    className="min-h-0 min-w-0"
                   >
                     <CommunityCard
                       card={card}
@@ -388,7 +402,7 @@ export function CommunityCoursePage({
           </div>
 
           {totalPages > 1 ? (
-            <div className="mt-3 flex shrink-0 items-center justify-center gap-3 lg:hidden">
+            <div className="flex shrink-0 items-center justify-center gap-3 lg:mt-12 lg:hidden">
               <button
                 type="button"
                 onClick={() => handlePageChange(safeCurrentPage - 1)}

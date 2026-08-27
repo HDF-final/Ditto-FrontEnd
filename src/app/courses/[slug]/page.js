@@ -105,22 +105,22 @@ export default async function RecommendedCourseDetailPage({ params }) {
       {/* ── 덩어리 1: 브레드크럼(위 고정) + 히어로(남은 공간 중앙) ── */}
       <div className="home-snap-panel min-w-0 overflow-x-hidden bg-white lg:flex lg:flex-col">
       {/* 1. 상단 브레드크럼 섹션 — 헤더 바로 아래 붙임 */}
-      <section className="bg-surface-soft px-3 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-5 xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center justify-between gap-3 text-xs font-bold text-ink-muted">
-          <div className="flex min-w-0 items-center gap-2">
+      <section className="shrink-0 bg-surface-soft px-3 py-4 sm:px-14 sm:py-6 lg:px-52 lg:py-8 xl:px-60 2xl:px-72">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-4">
+          <nav className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap text-xs font-bold text-ink-muted lg:text-sm">
             <Link href="/" className="shrink-0 transition hover:text-brand">
               홈
             </Link>
-            <span className="shrink-0">›</span>
+            <span className="shrink-0" aria-hidden="true">›</span>
             <Link href="/courses" className="shrink-0 transition hover:text-brand">
               기본 코스 추천
             </Link>
-            <span className="shrink-0">›</span>
+            <span className="shrink-0" aria-hidden="true">›</span>
             <span className="min-w-0 truncate text-ink">{course.title}</span>
-          </div>
+          </nav>
           <Link
             href="/courses"
-            className="text-xs font-black text-brand transition hover:text-brand-dark"
+            className="shrink-0 whitespace-nowrap text-xs font-black text-brand transition hover:text-brand-dark lg:text-sm"
           >
             목록
           </Link>

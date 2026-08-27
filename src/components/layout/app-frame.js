@@ -23,11 +23,25 @@ export function AppFrame({ children }) {
   const isHomeRoute = pathname === "/";
   const isCourseStudio = pathname.startsWith("/ai-course");
   const isScanMap = pathname.startsWith("/scan-map");
+  const isSoftCanvasRoute =
+    pathname === "/" ||
+    pathname === "/community" ||
+    pathname === "/news" ||
+    pathname.startsWith("/news/");
   // 코스/커뮤니티 상세는 홈처럼 덩어리 스냅이라 푸터를 마지막 패널 안에 넣는다.
   // 형제 푸터를 그대로 두면 데스크톱에서 스냅 영역이 푸터 높이만큼 쭈그러든다.
   const isSnapDetail = /^\/(courses|community)\/[^/]+/.test(pathname);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
+
+  useEffect(() => {
+    const shell = document.querySelector(".app-shell");
+    if (!shell) return undefined;
+    shell.classList.toggle("app-shell-soft-canvas", isSoftCanvasRoute);
+    return () => {
+      shell.classList.remove("app-shell-soft-canvas");
+    };
+  }, [isSoftCanvasRoute]);
 
   useEffect(() => {
     if (AUTH_PATHS.has(pathname)) return undefined;
@@ -94,7 +108,9 @@ export function AppFrame({ children }) {
             ? "h-dvh overflow-hidden"
             : isCourseStudio
               ? "pb-[calc(var(--app-tabbar)+0.5rem)] max-lg:h-[calc(100dvh-var(--app-header))] max-lg:overflow-hidden lg:min-h-0 lg:overflow-hidden lg:pb-0"
-              : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
+              : isSoftCanvasRoute
+                ? "max-lg:bg-surface-soft max-lg:pb-[var(--app-tabbar)] lg:pb-0"
+                : "pb-[calc(var(--app-tabbar)+0.5rem)] lg:pb-0"
         }`}
       >
         {children}

@@ -89,7 +89,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
             <p className="text-xs font-black uppercase tracking-[0.12em] text-brand lg:hidden">
               DITTO PICKS
             </p>
-            <h2 className="mt-2 text-[26px] font-black leading-tight text-ink lg:mt-0 lg:text-5xl lg:leading-[1.18]">
+            <h2 className="mt-2 break-keep text-[26px] font-black leading-tight text-ink lg:mt-0 lg:break-normal lg:text-5xl lg:leading-[1.18]">
               {t("picksTitle")}
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-ink-muted lg:text-lg lg:font-semibold lg:leading-8">
@@ -99,13 +99,13 @@ export function DittoPicksSection({ initialCourses = [] }) {
         </div>
 
         <div className="home-section-stage mt-6">
-          <div className="grid gap-5 lg:hidden">
+          <div className="grid grid-cols-3 gap-2.5 lg:hidden">
             {displayCourses.length > 0 ? (
               displayCourses.slice(0, 3).map((course) => (
                 <CourseCard key={course.rank} course={course} />
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-line bg-white p-8 text-center text-sm font-medium text-ink-muted lg:col-span-3">
+              <div className="col-span-3 rounded-2xl border border-dashed border-line bg-white p-8 text-center text-sm font-medium text-ink-muted">
                 등록된 기본 추천 코스가 없습니다.
               </div>
             )}

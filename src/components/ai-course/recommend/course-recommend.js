@@ -27,13 +27,16 @@ export function CourseRecommend() {
   const searchParams = useSearchParams();
   const promptParam = searchParams?.get("prompt")?.trim() || "";
   const courseIdParam = searchParams?.get("courseId")?.trim() || "";
-  const fromScan = searchParams?.get("from") === "scan";
+  const fromParam = searchParams?.get("from")?.trim() || "";
+  const fromScan = fromParam === "scan";
+  const fromMypage = fromParam === "mypage";
   const handledPromptRef = useRef("");
 
   const [phase, setPhase] = useState(() =>
     promptParam || fromScan || courseIdParam ? "result" : "prompt",
   );
   const [mode, setMode] = useState(() => (fromScan || courseIdParam ? "manual" : "auto"));
+  const [startedEmpty, setStartedEmpty] = useState(false);
   const [activePlace, setActivePlace] = useState(null);
   const chat = useCourseChat();
 
@@ -53,6 +56,8 @@ export function CourseRecommend() {
           initialPrompt={promptParam}
           onModeChange={setMode}
           onStart={(prompt) => {
+            const isEmptyStart = !prompt;
+            setStartedEmpty(isEmptyStart);
             setPhase("result");
             if (prompt) chat.send(prompt);
           }}
@@ -63,6 +68,7 @@ export function CourseRecommend() {
           onPlaceClick={setActivePlace}
           seedFromScan={fromScan}
           sourceCourseId={courseIdParam}
+          fromMypage={fromMypage && Boolean(courseIdParam) && !startedEmpty}
         />
       )}
 

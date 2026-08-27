@@ -150,7 +150,7 @@ export function CameraScanner({
   if (!open) return null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex flex-col bg-black ${overlayClassName}`}>
+    <div className={`fixed inset-0 z-[200] flex flex-col bg-black ${overlayClassName}`}>
       <div className="flex items-center justify-between px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white">
         <span className="text-sm font-bold">로고 스캔 (OCR)</span>
         <button

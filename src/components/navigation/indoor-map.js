@@ -172,9 +172,12 @@ const SCAN_MOBILE_CAMERA_FIT = {
   ...SCAN_CAMERA_FIT,
   // Mobile scan view was over-filling the canvas enough to crop the right edge.
   // Pull the default overview back slightly and keep a small horizontal margin.
+  // Frame the floor plates themselves so layer labels on the right do not tug
+  // the stack left of centre.
   fill: 0.88,
   verticalBias: -0.08,
-  horizontalBias: 0.06,
+  horizontalBias: 0.013,
+  centerPlates: true,
   pad: 18,
 };
 const COURSE_MOBILE_CAMERA_FIT = {
@@ -242,7 +245,7 @@ function OccludingHtml({ children, ...htmlProps }) {
 const FLOOR_LABEL_POINT = new THREE.Vector3(53, 1.2, -31);
 const FLOOR_LABEL_PAD = 14;
 
-function collectFloorBounds(floors) {
+function collectFloorBounds(floors, { includeLabels = true } = {}) {
   const min = new THREE.Vector3(Infinity, Infinity, Infinity);
   const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
 
@@ -263,6 +266,7 @@ function collectFloorBounds(floors) {
         z + halfD,
       ),
     );
+    if (!includeLabels) continue;
     min.min(
       new THREE.Vector3(
         FLOOR_LABEL_POINT.x - FLOOR_LABEL_PAD,
@@ -293,7 +297,11 @@ function overviewViewBasis() {
 
 function fitOverviewCamera(floors, viewport, options = {}) {
   const bounds = collectFloorBounds(floors);
-  const { min, max, center } = bounds;
+  const plateBounds = options.centerPlates
+    ? collectFloorBounds(floors, { includeLabels: false })
+    : bounds;
+  const { min, max } = bounds;
+  const center = plateBounds.center;
   const position = center.clone().add(OVERVIEW_CAMERA_OFFSET);
   const { right, up } = overviewViewBasis();
   const viewX = (point) => point.clone().sub(position).dot(right);
@@ -842,7 +850,7 @@ function RouteMarker({
       center
       sprite
       style={{ pointerEvents: "none" }}
-      zIndexRange={[5, 1]}
+      zIndexRange={[120, 80]}
     >
       <div
         className="relative flex flex-col items-center"
@@ -917,7 +925,7 @@ function UserLocationMarker({ position, name, compact = false }) {
       center
       sprite
       style={{ pointerEvents: "none" }}
-      zIndexRange={[8, 2]}
+      zIndexRange={[20, 0]}
     >
       <div
         className="relative flex flex-col items-center"
