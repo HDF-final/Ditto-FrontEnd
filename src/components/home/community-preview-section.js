@@ -311,30 +311,300 @@ function CommunitySlider({
   );
 }
 
+function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const mounted = useIsMounted();
+  const [copied, setCopied] = useState(false);
+  const slugKey = course.slug ? String(course.slug) : "";
+  const postId = course.postId || course.id || course.courseId || course.rank;
+  const numKey = String(postId || "1");
+  const isLikedStored = useCommunityInteractionsStore((state) =>
+    state.isLiked(slugKey, numKey),
+  );
+  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
+    state.isBookmarked(slugKey, numKey),
+  );
+  const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const setBookmarked = useCommunityInteractionsStore(
+    (state) => state.setBookmarked,
+  );
+  const isLiked = mounted ? isLikedStored : false;
+  const isBookmarked = mounted ? isBookmarkedStored : false;
+
+  async function handleLike() {
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+    const nextState = !isLiked;
+    setLiked(slugKey, nextState, numKey);
+    try {
+      if (nextState) await likeCourse(postId);
+      else await unlikeCourse(postId);
+    } catch (err) {
+      console.warn("[Home Feature Like] error:", err);
+    }
+  }
+
+  async function handleBookmark() {
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+    const nextState = !isBookmarked;
+    setBookmarked(slugKey, nextState, numKey);
+    try {
+      if (nextState) await bookmarkCourse(postId);
+      else await unbookmarkCourse(postId);
+    } catch (err) {
+      console.warn("[Home Feature Bookmark] error:", err);
+    }
+  }
+
+  async function handleShare() {
+    if (typeof window === "undefined") return;
+    const url = new URL(detailHref, window.location.origin).toString();
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: course.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      }
+    } catch (err) {
+      if (err?.name !== "AbortError") {
+        console.warn("[Home Feature Share] error:", err);
+      }
+    }
+  }
+
+  const actionClass =
+    "inline-flex size-11 cursor-pointer items-center justify-center rounded-full border border-[#e5dff3] bg-white text-[#6d6680] shadow-[0_8px_20px_rgba(70,48,130,0.08)] transition hover:-translate-y-0.5 hover:border-brand/35 hover:bg-brand-soft/35 hover:text-brand";
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <button
+        type="button"
+        onClick={handleLike}
+        aria-label="찜하기"
+        title="찜하기"
+        className={`${actionClass} ${isLiked ? "border-brand/30 bg-brand-soft text-brand" : ""}`}
+      >
+        <svg className="size-5" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+            fill={isLiked ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={handleBookmark}
+        aria-label="저장하기"
+        title="저장하기"
+        className={`${actionClass} ${isBookmarked ? "border-brand/30 bg-brand-soft text-brand" : ""}`}
+      >
+        <svg
+          className="size-5"
+          viewBox="0 0 24 24"
+          fill={isBookmarked ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={handleShare}
+        aria-label="공유하기"
+        title={copied ? "링크가 복사되었습니다" : "공유하기"}
+        className={`${actionClass} ${copied ? "border-brand bg-brand text-white" : ""}`}
+      >
+        <svg
+          className="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="18" cy="5" r="2.5" />
+          <circle cx="6" cy="12" r="2.5" />
+          <circle cx="18" cy="19" r="2.5" />
+          <path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
+  const featuredCourses = courses.slice(0, 3);
+  const { index, setIndex, dragging, viewportRef, trackStyle, handlers } =
+    useDragCarousel({
+      length: featuredCourses.length,
+      auto: true,
+      interval: 5200,
+    });
+
+  if (featuredCourses.length === 0) {
+    return (
+      <div className="rounded-[34px] border border-[#e4def5] bg-white/80 p-12 text-center text-sm font-bold text-ink-muted shadow-[0_26px_70px_rgba(74,47,168,0.1)]">
+        아직 공유된 커스텀 코스가 없습니다.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-[min(82vw,1120px)]">
+      <div
+        ref={viewportRef}
+        className={`relative overflow-hidden rounded-[36px] select-none shadow-[0_30px_80px_rgba(50,32,110,0.16)] ${
+          dragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        {...handlers}
+      >
+        <div className="flex" style={trackStyle}>
+          {featuredCourses.map((course, slideIndex) => {
+            const courseId = course.courseId || course.id;
+            const detailHref = `/community/${course.slug || course.rank || "1"}`;
+            const customizeHref = courseId
+              ? `/ai-course?courseId=${encodeURIComponent(String(courseId))}`
+              : "/ai-course";
+
+            return (
+              <article
+                key={course.postId || course.slug || course.rank}
+                className="relative grid h-[clamp(440px,52dvh,520px)] min-w-full shrink-0 basis-full grid-cols-[minmax(0,1.08fr)_minmax(370px,0.92fr)] overflow-hidden bg-white"
+              >
+                <Link
+                  href={detailHref}
+                  className="group relative block h-full min-w-0 overflow-hidden"
+                >
+                  <img
+                    src={course.image}
+                    alt={course.title}
+                    draggable={false}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/25 via-transparent to-black/5" />
+                  <div className="absolute bottom-6 left-7 rounded-full border border-white/30 bg-black/35 px-4 py-2 text-sm font-black text-white backdrop-blur-md">
+                    여행자가 직접 걸은 코스
+                  </div>
+                </Link>
+
+                <div className="relative flex min-w-0 flex-col justify-center bg-[#fffefe] px-[clamp(34px,3.2vw,54px)] py-8">
+                  <span className="text-xs font-black tracking-[0.22em] text-brand">
+                    TOP {slideIndex + 1}
+                  </span>
+                  <h3 className="mt-4 line-clamp-2 text-[clamp(24px,1.8vw,34px)] font-black leading-[1.2] tracking-[-0.025em] text-ink">
+                    {course.title}
+                  </h3>
+                  <p className="mt-4 line-clamp-3 text-[clamp(13px,0.9vw,15px)] font-medium leading-[1.75] text-ink-muted">
+                    {course.description ||
+                      "여행자가 직접 걷고 기록한 장소들을 하나의 코스로 만나보세요."}
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-brand">
+                    <span className="rounded-full bg-brand-soft px-3 py-1.5">
+                      #{course.country || "GLOBAL"}
+                    </span>
+                    <span className="rounded-full bg-brand-soft px-3 py-1.5">
+                      {course.hash || "#여행자코스"}
+                    </span>
+                  </div>
+
+                  <div className="mt-6">
+                    <DesktopCommunityActions
+                      course={course}
+                      detailHref={detailHref}
+                      onAuthRequired={onAuthRequired}
+                    />
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <Link
+                      href={customizeHref}
+                      className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(92,46,245,0.24)] transition hover:-translate-y-0.5 hover:bg-brand-dark"
+                    >
+                      <span className="text-xl font-light leading-none">＋</span>
+                      커스텀하기
+                    </Link>
+                    <Link
+                      href={detailHref}
+                      className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[#ded8ef] bg-white px-6 text-sm font-black text-[#69627d] shadow-sm transition hover:-translate-y-0.5 hover:border-brand/35 hover:text-brand"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        className="size-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                      대화 참여
+                    </Link>
+                  </div>
+
+                  <div className="mt-6 flex items-center gap-2">
+                    {featuredCourses.map((_, dotIndex) => (
+                      <button
+                        key={dotIndex}
+                        type="button"
+                        onClick={() => setIndex(dotIndex)}
+                        aria-label={`인기 커스텀 코스 ${dotIndex + 1} 보기`}
+                        aria-current={index === dotIndex}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          index === dotIndex
+                            ? "w-8 bg-brand"
+                            : "w-2 bg-[#d8d1eb] hover:bg-brand/45"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <span className="pointer-events-none absolute -left-4 -top-4 size-8 rounded-full bg-[#f3f0fb] shadow-inner" />
+                  <span className="pointer-events-none absolute -bottom-4 -left-4 size-8 rounded-full bg-[#f3f0fb] shadow-inner" />
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CommunityPreviewSection({ initialCourses = [] }) {
   const t = useTranslations("home");
   const common = useTranslations("common");
   const router = useRouter();
-  const [isPaused, setIsPaused] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const courses = initialCourses.slice(0, 9);
 
   return (
     <section
       id="community"
-      className="home-snap-panel scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-5 lg:flex lg:scroll-mt-0 lg:px-0 lg:py-0"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      className="home-snap-panel scroll-mt-16 bg-linear-to-br from-[#2d1b8e] via-[#4a2fa8] to-[#6d28d9] px-5 py-5 lg:flex lg:scroll-mt-0 lg:bg-[radial-gradient(circle_at_12%_18%,rgba(166,139,255,0.14),transparent_28%),radial-gradient(circle_at_88%_76%,rgba(111,67,220,0.1),transparent_32%),linear-gradient(135deg,#f8f6fd_0%,#f1edfb_100%)] lg:px-0 lg:py-0"
     >
       <div className="home-content-boundary lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:justify-center lg:py-[clamp(28px,5dvh,56px)]">
-        <SectionHeading
-          eyebrow="TRAVELER COMMUNITY"
-          title={t("communityTitle")}
-          description={t("communityDescription")}
-          href="/community"
-          linkLabel={t("browseCommunity")}
-          inverse
-        />
+        <div className="lg:hidden">
+          <SectionHeading
+            eyebrow="TRAVELER COMMUNITY"
+            title={t("communityTitle")}
+            description={t("communityDescription")}
+            href="/community"
+            linkLabel={t("browseCommunity")}
+            inverse
+          />
+        </div>
 
         <div className="lg:hidden">
           {courses.length > 0 ? (
@@ -343,7 +613,7 @@ export function CommunityPreviewSection({ initialCourses = [] }) {
               itemsPerSlide={1}
               columnsClassName="grid-cols-1"
               onAuthRequired={() => setIsLoginModalOpen(true)}
-              isPaused={isPaused}
+              isPaused={false}
               enableDrag
             />
           ) : (
@@ -353,20 +623,22 @@ export function CommunityPreviewSection({ initialCourses = [] }) {
           )}
         </div>
         <div className="hidden lg:block">
-          {courses.length > 0 ? (
-            <CommunitySlider
-              courses={courses}
-              itemsPerSlide={3}
-              columnsClassName="grid-cols-3"
-              onAuthRequired={() => setIsLoginModalOpen(true)}
-              isPaused={isPaused}
-              cardClassName="home-community-card"
-            />
-          ) : (
-            <div className="rounded-[26px] border border-white/15 bg-white/10 p-12 text-center text-sm font-bold text-white/80">
-              아직 공유된 커스텀 코스가 없습니다.
+          <div className="text-center">
+            <h2 className="text-5xl font-black leading-[1.18] tracking-[-0.035em] text-ink">
+              누군가의 여행이, 나의 다음 코스가 되도록.
+            </h2>
+            <p className="mt-2 text-lg font-semibold leading-8 text-ink-muted">
+              각국의 여행자들이 직접 걷고 남긴 코스를 만나보세요.
+            </p>
+          </div>
+          <div className="home-section-stage flex items-center justify-center">
+            <div className="w-full translate-y-[clamp(4px,1dvh,10px)]">
+              <DesktopCommunityFeatureSlider
+                courses={courses}
+                onAuthRequired={() => setIsLoginModalOpen(true)}
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
 

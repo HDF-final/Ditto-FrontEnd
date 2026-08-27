@@ -84,12 +84,12 @@ export function DittoPicksSection({ initialCourses = [] }) {
       className="home-snap-panel scroll-mt-16 bg-surface-soft px-5 py-8 lg:flex lg:scroll-mt-0 lg:px-0 lg:py-0"
     >
       <div className="home-content-boundary lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:justify-center lg:py-[clamp(28px,5dvh,56px)]">
-        <div>
+        <div className="lg:text-center">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand lg:text-base lg:tracking-wide">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand lg:hidden">
               DITTO PICKS
             </p>
-            <h2 className="mt-2 text-[26px] font-black leading-tight text-ink lg:text-5xl lg:leading-[1.18]">
+            <h2 className="mt-2 text-[26px] font-black leading-tight text-ink lg:mt-0 lg:text-5xl lg:leading-[1.18]">
               {t("picksTitle")}
             </h2>
             <p className="mt-2 text-sm font-medium leading-6 text-ink-muted lg:text-lg lg:font-semibold lg:leading-8">
@@ -98,7 +98,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
           </div>
         </div>
 
-        <div className="mt-6 lg:mt-[clamp(18px,2.6dvh,30px)]">
+        <div className="home-section-stage mt-6">
           <div className="grid gap-5 lg:hidden">
             {displayCourses.length > 0 ? (
               displayCourses.slice(0, 3).map((course) => (

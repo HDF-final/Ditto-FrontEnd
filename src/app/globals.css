@@ -149,6 +149,14 @@ body {
     padding-inline: clamp(3.5rem, 4.5vw, 6rem);
   }
 
+  /* Keep desktop feature headings on the same vertical baseline regardless of
+     whether the content below is an orbit or a featured community card. */
+  .home-section-stage {
+    flex: none;
+    height: clamp(420px, calc(100dvh - 270px), 540px) !important;
+    margin-top: clamp(18px, 2.6dvh, 30px) !important;
+  }
+
   .home-snap-panel .home-recommended-ticket,
   .home-snap-panel .home-community-card {
     width: min(100%, clamp(260px, calc(75dvh - 240px), 440px));

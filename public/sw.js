@@ -1,7 +1,15 @@
 const CACHE_NAME = "ditto-pwa-v1";
 const PRECACHE_URLS = ["/", "/manifest.webmanifest"];
+const IS_LOCAL_DEVELOPMENT = ["localhost", "127.0.0.1"].includes(
+  self.location.hostname,
+);
 
 self.addEventListener("install", (event) => {
+  if (IS_LOCAL_DEVELOPMENT) {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
+
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -17,7 +25,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => IS_LOCAL_DEVELOPMENT || key !== CACHE_NAME)
             .map((key) => caches.delete(key)),
         ),
       )
@@ -26,6 +34,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (IS_LOCAL_DEVELOPMENT) return;
+
   const { request } = event;
   if (request.method !== "GET") return;
 
