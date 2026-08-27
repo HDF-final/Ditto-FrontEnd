@@ -199,6 +199,8 @@ export async function fetchPublicCoursesServer({
   size = 20,
   authorId = "",
   author = "",
+  cache = "no-store",
+  revalidate,
 } = {}) {
   const baseUrl = getBaseUrl();
   const params = new URLSearchParams({
@@ -211,10 +213,16 @@ export async function fetchPublicCoursesServer({
   const headers = await getServerApiHeaders({ Accept: "application/json" });
 
   try {
-    const response = await fetch(url, {
+    const fetchOptions = {
       method: "GET",
       headers,
-      cache: "no-store",
+      cache,
+    };
+    if (typeof revalidate === "number") {
+      fetchOptions.next = { revalidate };
+    }
+    const response = await fetch(url, {
+      ...fetchOptions,
     });
 
     if (!response.ok) {

@@ -196,15 +196,24 @@ export function normalizeNewsDetail(feed) {
  * Server Component용 뉴스피드 목록 조회.
  * 백엔드 연결 실패 시 fixtures 목록으로 안전하게 폴백합니다.
  */
-export async function fetchNewsFeedsServer({ page = 0, size = 60 } = {}) {
+export async function fetchNewsFeedsServer({
+  page = 0,
+  size = 60,
+  cache = "no-store",
+  revalidate,
+} = {}) {
   try {
     const headers = await getServerApiHeaders({ Accept: "application/json" });
+    const fetchOptions = {
+      cache,
+      headers,
+    };
+    if (typeof revalidate === "number") {
+      fetchOptions.next = { revalidate };
+    }
     const res = await fetch(
       `${getBaseUrl()}/api/v1/news?page=${page}&size=${size}`,
-      {
-        cache: "no-store",
-        headers,
-      },
+      fetchOptions,
     );
 
     if (res.ok) {

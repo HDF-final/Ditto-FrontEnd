@@ -11,7 +11,7 @@ import { fetchNewsFeedsServer } from "@/lib/api/news.server";
 import { fetchSystemCoursesServer } from "@/lib/api/courses.server";
 import { getTranslations } from "next-intl/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 function sortCommunityCoursesByPopularity(courses = []) {
   return [...courses]
@@ -38,9 +38,19 @@ function sortCommunityCoursesByPopularity(courses = []) {
 
 export default async function Home() {
   const [newsList, systemCourses, communityCourses, t] = await Promise.all([
-    fetchNewsFeedsServer({ page: 0, size: 5 }),
+    fetchNewsFeedsServer({
+      page: 0,
+      size: 5,
+      cache: "force-cache",
+      revalidate: 300,
+    }),
     fetchSystemCoursesServer({ size: 50 }).catch(() => []),
-    fetchPublicCoursesServer({ page: 0, size: 50 }).catch(() => []),
+    fetchPublicCoursesServer({
+      page: 0,
+      size: 50,
+      cache: "force-cache",
+      revalidate: 300,
+    }).catch(() => []),
     getTranslations("home"),
   ]);
   const popularCommunityCourses = sortCommunityCoursesByPopularity(communityCourses);
