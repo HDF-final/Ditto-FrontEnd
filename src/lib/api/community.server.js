@@ -55,7 +55,10 @@ export function normalizePublicCourseCard(post) {
     post.user?.nickname ||
     post.user?.name ||
     "";
+  // 백엔드가 게시글에 첨부된 사진 URL 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
+  const uploadedImages = Array.isArray(post.imageUrls) ? post.imageUrls.filter(Boolean) : [];
   const image =
+    uploadedImages[0] ||
     post.representativeImageUrl ||
     post.imageUrl ||
     post.image ||
@@ -79,6 +82,7 @@ export function normalizePublicCourseCard(post) {
     title: post.title,
     description: post.content || "",
     image,
+    images: uploadedImages,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
     saves: post.bookmarkCount ?? 0,
@@ -116,7 +120,10 @@ export function normalizePublicCourseDetail(detail) {
   }));
 
   const num = typeof postId === "number" ? postId : parseInt(String(postId).replace(/\D/g, ""), 10) || 0;
+  // 백엔드가 게시글에 첨부된 사진 URL 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
+  const uploadedImages = Array.isArray(detail.imageUrls) ? detail.imageUrls.filter(Boolean) : [];
   const image =
+    uploadedImages[0] ||
     detail.course?.representativeImageUrl ||
     detail.representativeImageUrl ||
     getDefaultCourseImage(num);
@@ -167,6 +174,7 @@ export function normalizePublicCourseDetail(detail) {
     title: detail.title,
     description: detail.content,
     image,
+    images: uploadedImages,
     likes: detail.likeCount ?? detail.likes ?? 0,
     commentsCount: comments.length,
     saves: detail.bookmarkCount ?? detail.bookmarks ?? 0,

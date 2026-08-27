@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+
+import { isCelebPhoto, toImageKey } from "@/lib/courses/hero-image";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import { updateSystemCourse } from "@/lib/api/admin-system-courses";
 import { COUNTRY_META, WarningPanel, formatAdminDate } from "./admin-artifact-ui";
@@ -64,6 +66,172 @@ function Thumb({ url, alt }) {
  * 다시 마운트하지 않아 끊김이 없고, 6층 코스에서 1층 자리를 확인할 때 실제로 필요한 것이
  * "그 층만 보기" 라 이걸로 충분하다.
  */
+/**
+ * 코스의 얼굴을 고른다. 어드민 카드·손님 추천 리스트·코스 상세가 이 사진을 같이 쓴다.
+ *
+ * **미리보기가 고른 값을 즉시 따라간다.** 예전에는 서버가 준 `mainImageUrl` 을 그렸는데,
+ * 그건 *저장된* 값이라 다른 사진을 누르는 순간 화면이 비었다 — 지금 코스는 전부 기본값
+ * (NULL)이라 늘 비었다. 무엇을 고른 건지 확인할 방법이 없는 상태였다.
+ *
+ * **셀럽 사진과 매장 사진을 구별해 보여준다.** 둘 다 그냥 사진으로 보이면 관리자는
+ * 어느 것이 그 인물의 근거 사진인지 알 수 없다. 기본값이 셀럽 사진을 먼저 고르므로,
+ * 화면도 같은 것을 알려 줘야 고르는 판단이 선다.
+ */
+function HeroPicker({ slots, mainImage, savedKey, savedUrl, defaultUrl, onChange }) {
+  const [draft, setDraft] = useState(mainImage);
+  const [error, setError] = useState(null);
+
+  // 썸네일을 누르거나 "기본값으로" 를 눌러 밖에서 값이 바뀌면 입력칸도 따라가야 한다.
+  // 효과로 맞추면 렌더가 한 번 더 도는 데다, 그 사이 한 프레임 동안 입력칸이 옛 값을
+  // 들고 있다. **바뀐 것을 알아차린 그 렌더에서 바로 맞춘다** — React 가 권하는 쪽이다.
+  const [syncedTo, setSyncedTo] = useState(mainImage);
+  if (mainImage !== syncedTo) {
+    setSyncedTo(mainImage);
+    setDraft(mainImage);
+    setError(null);
+  }
+
+  const picked = slots.find((slot) => slot.imageKey && slot.imageKey === mainImage);
+  // 자리에 없는 키를 손으로 넣었을 때, 서버가 준 주소는 **저장된 키의 것**이라
+  // 지금 고른 것과 다르면 쓰면 안 된다. 그때는 미리보기를 비우고 그렇다고 말한다.
+  const previewUrl = mainImage
+    ? (picked?.imageUrl ?? (mainImage === savedKey ? savedUrl : null))
+    : defaultUrl;
+  // 기본값이 고르는 차례와 같다 — 셀럽 사진이 먼저, 없으면 첫 자리 사진.
+  const defaultSlot =
+    slots.find((slot) => isCelebPhoto(slot.imageKey)) || slots.find((slot) => slot.imageUrl);
+
+  const commit = (value) => {
+    const { key, error: err } = toImageKey(value, slots);
+    setError(err);
+    if (!err) onChange(key);
+  };
+
+  return (
+    <div className="mb-4">
+      <span className="mb-1 flex flex-wrap items-baseline gap-2">
+        <span className="text-[11px] font-bold tracking-[0.04em] text-[#4d536a]">대표 사진</span>
+        <span className="text-[10px] text-[#9aa0b0]">
+          어드민 카드 · 추천 리스트 · 코스 상세가 같은 사진을 씁니다
+        </span>
+      </span>
+
+      <div className="flex gap-3">
+        <div className="shrink-0">
+          {previewUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewUrl}
+              alt="대표 사진 미리보기"
+              className="size-24 rounded-xl border border-[#eceef4] object-cover"
+            />
+          ) : (
+            <span className="flex size-24 items-center justify-center rounded-xl border border-dashed border-[#dfe2ec] bg-[#f8f9fc] px-2 text-center text-[10px] font-bold leading-4 text-[#9aa0b0]">
+              저장하면 보입니다
+            </span>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold text-[#4d536a]">
+            {mainImage ? (
+              <>
+                {isCelebPhoto(mainImage) ? "셀럽 사진" : "매장 사진"}
+                {picked ? (
+                  <span className="font-medium text-[#9aa0b0]">
+                    {" · "}
+                    {picked.visitOrder}번 {picked.name}
+                  </span>
+                ) : (
+                  <span className="font-medium text-[#9aa0b0]"> · 자리 밖에서 지정</span>
+                )}
+              </>
+            ) : (
+              <>
+                기본값 사용 중
+                {defaultSlot ? (
+                  <span className="font-medium text-[#9aa0b0]">
+                    {" · "}
+                    {defaultSlot.visitOrder}번 {defaultSlot.name}의{" "}
+                    {isCelebPhoto(defaultSlot.imageKey) ? "셀럽 사진" : "매장 사진"}
+                  </span>
+                ) : null}
+              </>
+            )}
+          </p>
+
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => commit(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                commit(event.currentTarget.value);
+              }
+            }}
+            placeholder={defaultSlot?.imageKey || "자리 사진에서 고르세요"}
+            aria-label="대표 사진 키"
+            aria-invalid={error ? "true" : undefined}
+            className={`mt-1.5 w-full rounded-lg border px-2.5 py-1.5 font-mono text-[11px] text-[#171b30] outline-none ${
+              error ? "border-[#d98a95] focus:border-[#b3384f]" : "border-[#dfe2ec] focus:border-brand"
+            }`}
+          />
+          {error ? (
+            <p className="mt-1 text-[10px] font-bold leading-4 text-[#b3384f]">{error}</p>
+          ) : null}
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {slots.map((slot) =>
+              slot.imageUrl ? (
+                <button
+                  key={slot.placeId}
+                  type="button"
+                  onClick={() => onChange(slot.imageKey || "")}
+                  disabled={!slot.imageKey}
+                  title={`${slot.visitOrder}번 ${slot.name}${
+                    isCelebPhoto(slot.imageKey) ? " · 셀럽 사진" : " · 매장 사진"
+                  }`}
+                  aria-pressed={Boolean(slot.imageKey) && slot.imageKey === mainImage}
+                  className={`relative overflow-hidden rounded-md border transition disabled:opacity-40 ${
+                    slot.imageKey && slot.imageKey === mainImage
+                      ? "border-brand ring-2 ring-brand/25"
+                      : "border-[#e6e8f0] hover:border-brand"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={slot.imageUrl} alt="" loading="lazy" className="size-11 object-cover" />
+                  <span className="absolute left-0 top-0 bg-[#171b30]/70 px-1 text-[9px] font-bold text-white">
+                    {slot.visitOrder}
+                  </span>
+                  {isCelebPhoto(slot.imageKey) ? (
+                    <span className="absolute bottom-0 right-0 bg-brand px-1 text-[9px] font-bold text-white">
+                      셀럽
+                    </span>
+                  ) : null}
+                </button>
+              ) : null,
+            )}
+            {mainImage ? (
+              <button
+                type="button"
+                onClick={() => onChange("")}
+                className="rounded-lg border border-[#dfe2ec] bg-white px-2 py-1 text-[10px] font-bold text-[#4d536a] hover:border-brand hover:text-brand"
+              >
+                기본값으로
+              </button>
+            ) : null}
+          </div>
+
+          <p className="mt-1.5 text-[10px] leading-4 text-[#9aa0b0]">
+            비우면 기본값으로 돌아갑니다 — 셀럽 사진이 있으면 그것, 없으면 첫 자리 사진입니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SlotRow({ slot, index, active, onSelect, reason, onReasonChange }) {
   return (
     <li
@@ -103,12 +271,31 @@ function SlotRow({ slot, index, active, onSelect, reason, onReasonChange }) {
         </span>
       </button>
 
-      <input
+      {/*
+        **추천 사유다. 꼬리표가 아니다.**
+
+        예전에는 한 줄짜리 `<input>` 이었다. 그때는 반영 람다가 LLM 으로 15~30자 딱지를
+        지어 넣었기 때문인데("제니가 글로벌 앰배서더로 있는 브랜드"), 지금은 승인 화면에서
+        확정한 원문이 그대로 저장된다 — 기사 요약과 "그래서 이 자리를 담았다" 가 든 몇
+        문장이다. 한 줄 칸에 두면 관리자가 쓸 수 있는 길이를 UI 가 막는다.
+
+        손님이 코스 상세에서 자리를 누르면 여기 적힌 글이 그대로 뜬다.
+      */}
+      <textarea
         value={reason}
         onChange={(event) => onReasonChange(slot.placeId, event.target.value)}
-        placeholder="장소 이름 밑에 붙는 한 줄"
-        className="mt-2 w-full rounded-lg border border-[#dfe2ec] px-2.5 py-1.5 text-[12px] text-[#171b30] outline-none focus:border-brand"
+        rows={4}
+        placeholder="이 자리를 담은 이유. 손님이 자리를 누르면 이 글이 그대로 보입니다."
+        className="mt-2 w-full resize-y rounded-lg border border-[#dfe2ec] px-2.5 py-1.5 text-[12px] leading-[1.6] text-[#171b30] outline-none focus:border-brand"
       />
+      <p className="mt-1 text-right text-[10px] text-[#adb2c0]">
+        {reason.trim().length}자
+        {reason.trim().length > 0 && reason.trim().length < 40 ? (
+          <span className="ml-1 text-[#b3384f]">
+            — 옛 꼬리표만 남은 자리일 수 있습니다
+          </span>
+        ) : null}
+      </p>
     </li>
   );
 }
@@ -344,50 +531,14 @@ export function AdminSystemCourseEditor({ detail, onClose, onSaved }) {
             ) : null}
           </Field>
 
-          {/* **코스의 얼굴.** 어드민 카드·손님 추천 리스트·코스 상세가 같은 사진을 쓴다.
-              여기서는 이 코스에 이미 붙어 있는 사진 중에서만 고른다 — 새 사진을 넣는
-              것은 승인 편집기의 일이고, 그건 반영 람다가 받아 올린다. */}
-          <Field
-            label="대표 사진"
-            hint="비우면 첫 자리 사진이 자동으로 쓰입니다 · 자리 사진 중에서 고릅니다"
-          >
-            <div className="flex gap-3">
-              <Thumb url={mainImage ? detail.mainImageUrl : detail.heroImageUrl} alt="대표 사진" />
-              <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1.5">
-                <span className="w-full text-[10px] font-bold text-[#9aa0b0]">
-                  {mainImage ? "직접 지정" : "기본값 사용 중"}
-                </span>
-                {slots.map((slot) =>
-                  slot.imageUrl ? (
-                    <button
-                      key={slot.placeId}
-                      type="button"
-                      onClick={() => setMainImage(slot.imageKey || "")}
-                      disabled={!slot.imageKey}
-                      title={slot.name}
-                      className={`overflow-hidden rounded-md border transition disabled:opacity-40 ${
-                        mainImage && mainImage === slot.imageKey
-                          ? "border-brand ring-2 ring-brand/25"
-                          : "border-[#e6e8f0] hover:border-brand"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={slot.imageUrl} alt="" loading="lazy" className="size-9 object-cover" />
-                    </button>
-                  ) : null,
-                )}
-                {mainImage ? (
-                  <button
-                    type="button"
-                    onClick={() => setMainImage("")}
-                    className="rounded-lg border border-[#dfe2ec] bg-white px-2 py-1 text-[10px] font-bold text-[#4d536a] hover:border-brand hover:text-brand"
-                  >
-                    기본값으로
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </Field>
+          <HeroPicker
+            slots={slots}
+            mainImage={mainImage}
+            savedKey={detail.mainImage || ""}
+            savedUrl={detail.mainImageUrl}
+            defaultUrl={detail.heroImageUrl}
+            onChange={setMainImage}
+          />
 
           <Field label="코스 소개 문안" hint="코스를 소개하는 본문 · 커뮤니티에는 안 나갑니다">
             <textarea

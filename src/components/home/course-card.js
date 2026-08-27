@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RecommendedCourseTicket } from "@/components/courses/recommended-course-ticket";
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
+import { cssUrl } from "@/lib/courses/css-url";
 
 const IMAGE_LAYER_CLASS =
   "absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105";
@@ -27,7 +28,7 @@ export function CourseCard({ course }) {
         >
           <div
             className={IMAGE_LAYER_CLASS}
-            style={{ backgroundImage: `url(${image})` }}
+            style={{ backgroundImage: cssUrl(image) }}
           />
           <div className={READABILITY_GRADIENT_CLASS} />
           <span className="relative z-10 w-fit rounded-full bg-white/25 px-3 py-1.5 text-[10px] font-black tracking-wide text-white/95 backdrop-blur-md">

@@ -23,6 +23,9 @@ export function AppFrame({ children }) {
   const isHomeRoute = pathname === "/";
   const isCourseStudio = pathname.startsWith("/ai-course");
   const isScanMap = pathname.startsWith("/scan-map");
+  // 코스/커뮤니티 상세는 홈처럼 덩어리 스냅이라 푸터를 마지막 패널 안에 넣는다.
+  // 형제 푸터를 그대로 두면 데스크톱에서 스냅 영역이 푸터 높이만큼 쭈그러든다.
+  const isSnapDetail = /^\/(courses|community)\/[^/]+/.test(pathname);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
 
@@ -97,7 +100,9 @@ export function AppFrame({ children }) {
         {children}
       </div>
       {isScanMap ? null : <BottomTabBar />}
-      {isHomeRoute || isCourseStudio || isScanMap ? null : <SiteFooter />}
+      {isHomeRoute || isCourseStudio || isScanMap || isSnapDetail ? null : (
+        <SiteFooter />
+      )}
     </>
   );
 }

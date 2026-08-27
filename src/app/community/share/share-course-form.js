@@ -6,12 +6,10 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createCoursePost } from "@/lib/api/community";
+import { createCoursePost, uploadCoursePostImages } from "@/lib/api/community";
 import { getMyProfile } from "@/lib/api/users";
-import { useCommunityPostImagesStore } from "@/stores/use-community-post-images-store";
 import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
-import { compressImage } from "@/lib/utils/image-compression";
-import { getRandomDefaultCommunityCourseImage } from "@/lib/community/default-course-images";
+import { compressImage, dataUrlToBlob } from "@/lib/utils/image-compression";
 
 function CourseOption({ course, selected, onSelect }) {
   return (
@@ -92,9 +90,6 @@ export function ShareCourseForm({ courses = [], loading = false }) {
   const [createdPostId, setCreatedPostId] = useState(null);
   const [alertModalMessage, setAlertModalMessage] = useState("");
 
-  const setPostImages = useCommunityPostImagesStore(
-    (state) => state.setPostImages,
-  );
   const setPostAuthor = useCommunityPostAuthorsStore(
     (state) => state.setPostAuthor,
   );
@@ -149,12 +144,18 @@ export function ShareCourseForm({ courses = [], loading = false }) {
         (typeof result === "number" ? result : null) ||
         courseId;
 
-      const postImages =
-        photos.length > 0 ? photos : [getRandomDefaultCommunityCourseImage()];
-
-      setPostImages(newPostId, postImages);
-      setPostImages(courseId, postImages);
-      if (selectedCourse?.id) setPostImages(selectedCourse.id, postImages);
+      // 첨부 사진을 백엔드에 업로드합니다. 미리보기용 base64 를 바이너리(Blob)로 바꿔
+      // multipart 로 전송하고, S3 URL 은 서버가 목록/상세 응답의 imageUrls 로 돌려줍니다.
+      if (photos.length > 0) {
+        try {
+          const blobs = photos.map(dataUrlToBlob).filter(Boolean);
+          if (blobs.length > 0) {
+            await uploadCoursePostImages(newPostId, blobs);
+          }
+        } catch (uploadError) {
+          console.warn("Failed to upload course post images:", uploadError);
+        }
+      }
 
       const responseAuthor =
         result?.writerNickname || result?.nickname || result?.name

@@ -201,7 +201,9 @@
     "viewAllReviews": "View all 128 reviews →",
     "saveCourse": "Save course",
     "share": "Share",
-    "coverPhoto": "Course cover photo"
+    "coverPhoto": "Course cover photo",
+    "spotStat": "Stops",
+    "floorStat": "Floors"
   },
   "community": {
     "publicCourseDescription": "A custom recommended course connected to {title}.",
@@ -295,7 +297,9 @@
     "justNow": "Just now",
     "daysAgo": "{count}d",
     "hoursAgo": "{count}h",
-    "minutesAgo": "{count}m"
+    "minutesAgo": "{count}m",
+    "spotStat": "Stops",
+    "floorStat": "Floors"
   },
   "mypage": {
     "title": "My page",
