@@ -54,13 +54,14 @@ export function CommunityAuthorDescription({
 }
 
 export function CommunityOtherCoursesLink({
+  postId = "",
   authorId = "",
   authorName = "",
   courseId = "",
   children,
   className = "",
 }) {
-  const storedAuthor = useStoredAuthor(authorId, courseId);
+  const storedAuthor = useStoredAuthor(postId, authorId, courseId);
   const resolvedAuthorName = authorName || storedAuthor?.name || "";
   const href = buildAuthorHref(authorId, resolvedAuthorName);
 

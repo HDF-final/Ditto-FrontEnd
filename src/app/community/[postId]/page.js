@@ -93,6 +93,7 @@ function AuthorNote({ course, t, locale, authorPersona, travelerText }) {
             </p>
           </div>
           <CommunityOtherCoursesLink
+            postId={course.postId}
             authorId={course.authorId}
             authorName={course.name}
             courseId={course.courseId}
