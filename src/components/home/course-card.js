@@ -19,30 +19,25 @@ export function CourseCard({ course }) {
 
   return (
     <>
+      {/* 모바일: DITTO PICKS 3열 그리드에 들어가는 컴팩트 카드 (1/3 폭). */}
       <Link
         href={course.href}
-        className="group flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_10px_26px_rgba(43,28,89,0.08)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(43,28,89,0.13)] lg:hidden"
+        className="group flex min-w-0 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_6px_16px_rgba(43,28,89,0.08)] transition-transform duration-200 active:scale-[0.98] lg:hidden"
       >
         <div
-          className={`relative flex h-[170px] shrink-0 flex-col justify-between overflow-hidden bg-linear-to-br p-7 text-white ${course.gradient}`}
+          className={`relative aspect-square shrink-0 overflow-hidden bg-linear-to-br ${course.gradient}`}
         >
           <div
             className={IMAGE_LAYER_CLASS}
             style={{ backgroundImage: cssUrl(image) }}
           />
           <div className={READABILITY_GRADIENT_CLASS} />
-          <span className="relative z-10 w-fit rounded-full bg-white/25 px-3 py-1.5 text-[10px] font-black tracking-wide text-white/95 backdrop-blur-md">
-            {course.rank}
-          </span>
-          <p className="relative z-10 line-clamp-2 break-keep text-[23px] font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">
-            {course.englishTitle}
-          </p>
         </div>
-        <div className="flex min-w-0 flex-1 flex-col p-7">
-          <h3 className="line-clamp-2 break-keep text-xl font-black leading-snug text-ink group-hover:text-brand">
+        <div className="flex min-w-0 flex-1 flex-col p-2.5">
+          <h3 className="line-clamp-2 break-keep text-[12px] font-black leading-snug text-ink group-hover:text-brand">
             {course.title}
           </h3>
-          <p className="mt-2 truncate text-sm font-semibold leading-snug text-ink-muted">
+          <p className="mt-1 truncate text-[9px] font-semibold leading-snug text-ink-muted">
             {course.tags.map((tag) => `#${tag}`).join(" ")}
           </p>
         </div>

@@ -8,7 +8,7 @@ export default async function NewsPage() {
   const feeds = await fetchNewsFeedsServer({ page: 0, size: 60 });
 
   return (
-    <main className="bg-background">
+    <main className="flex min-h-0 flex-1 flex-col bg-surface-soft lg:block lg:flex-none lg:bg-background">
       <NewsListView feeds={feeds} />
     </main>
   );

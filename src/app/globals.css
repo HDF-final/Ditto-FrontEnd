@@ -223,6 +223,10 @@ body {
     box-shadow: 0 0 48px rgba(43, 28, 89, 0.12);
   }
 
+  .app-shell.app-shell-soft-canvas {
+    background: var(--surface-soft);
+  }
+
   .app-shell:has(.admin-shell) {
     max-width: none;
     margin-inline: 0;
@@ -295,7 +299,13 @@ body {
 .course-studio-map {
   grid-area: map;
   position: absolute;
-  inset: 0;
+  inset-inline: 0;
+  top: 0;
+  /* 지도 캔버스를 '목록 위 영역'으로 한정한다. 목록이 하단을 덮지 않으므로
+     3D 층 스택이 목록에 가려 잘리지 않고, 드래그로 목록 크기를 바꾸면 캔버스가
+     리사이즈되며 카메라가 매 프레임 다시 fit 된다. (데스크톱은 아래 lg 규칙에서
+     inset:auto 로 재정의되어 영향 없음) */
+  bottom: var(--course-list-size, 64%);
   z-index: 0;
   flex: none;
   height: auto;

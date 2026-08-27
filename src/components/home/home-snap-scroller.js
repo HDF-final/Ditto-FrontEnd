@@ -183,7 +183,7 @@ export function HomeSnapScroller({ children }) {
   return (
     <main
       ref={scrollerRef}
-      className="home-snap bg-background max-lg:space-y-5"
+      className="home-snap bg-background max-lg:bg-surface-soft"
     >
       {children}
     </main>

@@ -67,7 +67,7 @@ export function NewsFeed({ items = [] }) {
     <section
       ref={sectionRef}
       id="news-feed-section"
-      className="bg-surface-soft px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72"
+      className="flex-1 bg-surface-soft px-5 py-6 lg:px-52 lg:py-[60px] xl:px-60 2xl:px-72"
     >
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
         {paginatedItems.map((item) => {

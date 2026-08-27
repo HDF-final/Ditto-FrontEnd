@@ -13,14 +13,13 @@ import {
   Trash2,
   Lock,
   LockOpen,
-  ChevronUp,
-  ChevronDown,
 } from "./recommend-icons";
 import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseSaveSuccessModal } from "./course-save-success-modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
+import { CourseMapScanButton } from "./course-map-scan-button";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useScanLocationStore } from "@/stores/use-scan-location-store";
 import {
@@ -42,8 +41,10 @@ import {
 
 const MAX_COURSE_PLACES = 8;
 const MOBILE_LIST_MIN_PERCENT = 36;
+// 마이페이지 '지도 보기'는 지도를 최대로 키울 수 있어야 한다.
+// 핸들만 남기고 1번 장소가 비치지 않을 높이.
+const MOBILE_LIST_MIN_PERCENT_MYPAGE = 9;
 const MOBILE_LIST_MAX_PERCENT = 92;
-const MOBILE_LIST_STEP_PERCENT = 12;
 
 function clampNumber(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -197,7 +198,13 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
  * 수동 모드는 사용자의 '장소 추가'가 코스를 채웁니다. Boni 요청이 진행 중인
  * 동안(`chat.pending`)에는 화면 전체 버퍼링 오버레이가 덮이고, 응답이 오면 풀립니다.
  */
-export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceCourseId = "" }) {
+export function ResultScreen({
+  chat,
+  onPlaceClick,
+  seedFromScan = false,
+  sourceCourseId = "",
+  fromMypage = false,
+}) {
   const t = useTranslations("aiCourse");
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
@@ -237,7 +244,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const mobileResizeDrag = useRef({
     pointerId: null,
     startY: 0,
-    startPercent: 64,
+    startPercent: 40,
     containerHeight: 1,
     removeListeners: null,
   });
@@ -253,7 +260,11 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
   const chatOccluderRef = useRef(null);
   const seededFromScanRef = useRef(false);
   const seededSourceCourseRef = useRef("");
-  const [mobileListPercent, setMobileListPercent] = useState(64);
+  // 기본은 층수 지도를 크게(지도 60% · 목록 40%). 핸들을 드래그하면 조절됩니다.
+  const [mobileListPercent, setMobileListPercent] = useState(40);
+  const mobileListMinPercent = fromMypage
+    ? MOBILE_LIST_MIN_PERCENT_MYPAGE
+    : MOBILE_LIST_MIN_PERCENT;
 
   // 드래그 이벤트 핸들러가 최신 items 를 stale 없이 읽도록 ref 를 동기화합니다.
   useEffect(() => {
@@ -849,7 +860,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
       const deltaY = moveEvent.clientY - drag.startY;
       const nextPercent = drag.startPercent - (deltaY / drag.containerHeight) * 100;
       setMobileListPercent(
-        clampNumber(nextPercent, MOBILE_LIST_MIN_PERCENT, MOBILE_LIST_MAX_PERCENT),
+        clampNumber(nextPercent, mobileListMinPercent, MOBILE_LIST_MAX_PERCENT),
       );
     };
 
@@ -881,16 +892,6 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
     window.addEventListener("pointercancel", handlePointerEnd);
   };
 
-  const nudgeMobileListSize = (delta) => {
-    setMobileListPercent((current) =>
-      clampNumber(
-        current + delta,
-        MOBILE_LIST_MIN_PERCENT,
-        MOBILE_LIST_MAX_PERCENT,
-      ),
-    );
-  };
-
   return (
     <>
     <main
@@ -907,7 +908,7 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
             route={routeState.itinerary}
             routeFloorIds={
               routeState.itinerary?.floorIds ??
-              (seedFromScan && scanLocation?.floor
+              ((seedFromScan || !isDesktop) && scanLocation?.floor
                 ? [scanLocation.floor]
                 : undefined)
             }
@@ -918,49 +919,31 @@ export function ResultScreen({ chat, onPlaceClick, seedFromScan = false, sourceC
             variant={isDesktop ? "course" : "scan"}
             fitPreset={isDesktop ? undefined : "course-mobile"}
             showFloorSelector={isDesktop}
+            showUserLocation={!isDesktop}
           />
         </div>
+        {/* OCR 위치 스캔: 마이페이지에서 '지도에서 보기'로 연 코스(모바일)에만.
+            카메라/결과 오버레이는 컴포넌트 내부에서 body 로 포털해 원본 레이아웃의
+            isolation 스태킹과 충돌하지 않습니다(드래그·카메라 동시 정상). */}
+        {!isDesktop && fromMypage ? <CourseMapScanButton /> : null}
       </div>
 
       <div
         className="course-studio-list flex min-h-0 min-w-0 flex-col gap-2 rounded-[16px] px-3 py-3 sm:gap-[14px] sm:rounded-[20px] sm:px-4 sm:py-4 lg:px-6 lg:py-4"
         style={{ background: "white", boxShadow: "0 2px 12px rgba(92,46,245,0.06)" }}
       >
+        {/* 지도 ↔ 목록 크기 조절 핸들(모바일). 화살표 없이 바를 위아래로 드래그. */}
         <div
-          className="-mx-1 -mt-2 mb-1 grid h-11 shrink-0 cursor-ns-resize touch-none grid-cols-[44px_1fr_44px] items-center rounded-t-[16px] px-1 lg:hidden"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-valuemin={mobileListMinPercent}
+          aria-valuemax={MOBILE_LIST_MAX_PERCENT}
+          aria-valuenow={Math.round(mobileListPercent)}
+          aria-label="지도와 코스 장소 목록 영역 크기 조절"
+          className="-mx-1 -mt-2 mb-1 flex h-11 shrink-0 cursor-ns-resize touch-none items-center justify-center rounded-t-[16px] px-1 lg:hidden"
           onPointerDown={onMobileResizePointerDown}
         >
-          <button
-            type="button"
-            title="코스 목록 크게 보기"
-            aria-label="코스 목록 크게 보기"
-            className="flex size-10 cursor-pointer items-center justify-center rounded-full text-[#5c2ef5] transition-colors hover:bg-[#f0ecfa] active:bg-[#e5ddff]"
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => nudgeMobileListSize(MOBILE_LIST_STEP_PERCENT)}
-          >
-            <ChevronUp size={18} />
-          </button>
-          <span
-            role="separator"
-            aria-orientation="horizontal"
-            aria-valuemin={MOBILE_LIST_MIN_PERCENT}
-            aria-valuemax={MOBILE_LIST_MAX_PERCENT}
-            aria-valuenow={Math.round(mobileListPercent)}
-            aria-label="지도와 코스 장소 목록 영역 크기 조절"
-            className="mx-auto flex h-10 w-full max-w-[132px] items-center justify-center"
-          >
-            <span className="h-1.5 w-16 rounded-full bg-[#d8d3ee]" />
-          </span>
-          <button
-            type="button"
-            title="지도 크게 보기"
-            aria-label="지도 크게 보기"
-            className="flex size-10 cursor-pointer items-center justify-center rounded-full text-[#5c2ef5] transition-colors hover:bg-[#f0ecfa] active:bg-[#e5ddff]"
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => nudgeMobileListSize(-MOBILE_LIST_STEP_PERCENT)}
-          >
-            <ChevronDown size={18} />
-          </button>
+          <span className="h-1.5 w-16 rounded-full bg-[#d8d3ee]" />
         </div>
 
         {/* Editable title */}
