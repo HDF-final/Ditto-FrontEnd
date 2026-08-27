@@ -72,17 +72,51 @@ export function uploadCoursePostImages(postId, files) {
 
 /**
  * 코스 게시글 수정.
- * PATCH /api/v1/community/courses/{postId}
+ * PATCH /api/v1/community/courses/{postId} (multipart/form-data)
  */
 export function updateCoursePost(
   postId,
-  { title, content },
+  {
+    title,
+    content,
+    deleteImageIds = [],
+    deleteAllImages = false,
+    images = [],
+  },
 ) {
   const payload = {
     title: (title || "").trim(),
     content: (content || "").trim(),
+    deleteImageIds: Array.isArray(deleteImageIds)
+      ? deleteImageIds
+          .map((id) => Number(id))
+          .filter((id) => Number.isFinite(id))
+      : [],
+    deleteAllImages: Boolean(deleteAllImages),
   };
-  return requestData(apiClient.patch(`/community/courses/${postId}`, payload));
+  const form = new FormData();
+  form.append(
+    "request",
+    new Blob([JSON.stringify(payload)], { type: "application/json" }),
+  );
+
+  const list = (Array.isArray(images) ? images : [images]).filter(Boolean);
+  list.forEach((file, index) => {
+    const named =
+      file instanceof File
+        ? file
+        : new File([file], `photo-${index + 1}.jpg`, {
+            type: file?.type || "image/jpeg",
+          });
+    form.append("images", named);
+  });
+
+  return requestData(
+    apiClient.patch(`/community/courses/${postId}`, form, {
+      timeout: 60_000,
+      headers: { "Content-Type": undefined },
+    }),
+  );
 }
 
 /**

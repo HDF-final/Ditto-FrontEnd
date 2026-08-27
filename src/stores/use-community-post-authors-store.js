@@ -31,19 +31,50 @@ function savePostAuthors(authorsMap) {
 
 function normalizeAuthor(author) {
   if (!author) return null;
+  const nestedUser =
+    author.user ||
+    author.authorUser ||
+    author.writerUser ||
+    author.member ||
+    author.author ||
+    author.writer ||
+    {};
   const name =
     author.name ||
     author.writerNickname ||
+    author.writerName ||
+    author.authorNickname ||
+    author.authorName ||
     author.nickname ||
     author.userName ||
+    author.displayName ||
+    nestedUser.nickname ||
+    nestedUser.name ||
+    nestedUser.userName ||
+    nestedUser.displayName ||
     "";
 
   if (!name) return null;
 
   return {
-    id: author.id || author.userId || author.writerId || "",
+    id:
+      author.id ||
+      author.userId ||
+      author.writerId ||
+      author.authorId ||
+      author.memberId ||
+      nestedUser.id ||
+      nestedUser.userId ||
+      nestedUser.memberId ||
+      "",
     name,
-    country: author.country || author.countryCode || author.nationality || "",
+    country:
+      author.country ||
+      author.countryCode ||
+      author.nationality ||
+      nestedUser.country ||
+      nestedUser.countryCode ||
+      "",
     persona: author.persona || author.shoppingType || author.personaId || "",
   };
 }

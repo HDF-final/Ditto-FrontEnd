@@ -27,36 +27,166 @@ function getDefaultCourseImage(id = 0) {
   return COURSE_IMAGES[num % COURSE_IMAGES.length];
 }
 
+function asCleanString(value) {
+  return String(value || "").trim();
+}
+
+function pickFirst(...values) {
+  return values.map(asCleanString).find(Boolean) || "";
+}
+
+function getAuthorName(source = {}) {
+  const nestedUser =
+    source.user ||
+    source.authorUser ||
+    source.writerUser ||
+    source.member ||
+    source.author ||
+    source.writer ||
+    source.createdByUser ||
+    {};
+  const course = source.course || {};
+  const courseUser =
+    course.user ||
+    course.authorUser ||
+    course.writerUser ||
+    course.member ||
+    course.author ||
+    course.writer ||
+    {};
+
+  return pickFirst(
+    source.writerNickname,
+    source.writerName,
+    source.authorNickname,
+    source.authorName,
+    source.createdByNickname,
+    source.createdByName,
+    source.userNickname,
+    source.userName,
+    source.nickname,
+    source.name,
+    nestedUser.nickname,
+    nestedUser.name,
+    nestedUser.userName,
+    nestedUser.displayName,
+    course.writerNickname,
+    course.writerName,
+    course.authorNickname,
+    course.authorName,
+    course.userNickname,
+    course.userName,
+    course.nickname,
+    course.author,
+    courseUser.nickname,
+    courseUser.name,
+    courseUser.userName,
+    courseUser.displayName,
+  );
+}
+
+function getAuthorId(source = {}) {
+  const nestedUser =
+    source.user ||
+    source.authorUser ||
+    source.writerUser ||
+    source.member ||
+    source.createdByUser ||
+    {};
+  const course = source.course || {};
+  const courseUser =
+    course.user ||
+    course.authorUser ||
+    course.writerUser ||
+    course.member ||
+    {};
+
+  return pickFirst(
+    source.writerId,
+    source.userId,
+    source.memberId,
+    source.authorId,
+    source.createdBy,
+    source.createdById,
+    nestedUser.userId,
+    nestedUser.id,
+    nestedUser.memberId,
+    course.writerId,
+    course.userId,
+    course.memberId,
+    course.authorId,
+    course.createdBy,
+    courseUser.userId,
+    courseUser.id,
+    courseUser.memberId,
+  );
+}
+
+function normalizePostImages(source = {}) {
+  const imageItems = Array.isArray(source.images)
+    ? source.images
+        .map((image, idx) => {
+          if (typeof image === "string") {
+            return {
+              postImageId: "",
+              imageUrl: image,
+              sortOrder: idx,
+            };
+          }
+
+          return {
+            postImageId:
+              image?.postImageId ||
+              image?.id ||
+              image?.imageId ||
+              image?.post_image_id ||
+              "",
+            imageUrl:
+              image?.imageUrl ||
+              image?.url ||
+              image?.src ||
+              image?.path ||
+              "",
+            sortOrder:
+              typeof image?.sortOrder === "number"
+                ? image.sortOrder
+                : typeof image?.sort_order === "number"
+                  ? image.sort_order
+                  : idx,
+          };
+        })
+        .filter((image) => image.imageUrl)
+    : [];
+
+  const imageUrls =
+    imageItems.length > 0
+      ? imageItems.map((image) => image.imageUrl)
+      : Array.isArray(source.imageUrls)
+        ? source.imageUrls.filter(Boolean)
+        : [];
+
+  return {
+    imageItems:
+      imageItems.length > 0
+        ? imageItems
+        : imageUrls.map((imageUrl, idx) => ({
+            postImageId: "",
+            imageUrl,
+            sortOrder: idx,
+          })),
+    imageUrls,
+  };
+}
+
 export function normalizePublicCourseCard(post) {
   if (!post) return null;
 
   const postId = post.postId;
   const slug = String(postId);
-  const authorId =
-    post.writerId ||
-    post.userId ||
-    post.memberId ||
-    post.authorId ||
-    post.createdBy ||
-    post.user?.userId ||
-    post.user?.id ||
-    "";
-  const authorName =
-    post.writerNickname ||
-    post.writerName ||
-    post.authorNickname ||
-    post.createdByNickname ||
-    post.userNickname ||
-    post.name ||
-    post.nickname ||
-    post.userName ||
-    post.authorName ||
-    post.author ||
-    post.user?.nickname ||
-    post.user?.name ||
-    "";
-  // 백엔드가 게시글에 첨부된 사진 URL 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
-  const uploadedImages = Array.isArray(post.imageUrls) ? post.imageUrls.filter(Boolean) : [];
+  const authorId = getAuthorId(post);
+  const authorName = getAuthorName(post);
+  // 백엔드가 게시글에 첨부된 사진 URL/ID 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
+  const { imageUrls: uploadedImages, imageItems } = normalizePostImages(post);
   const image =
     uploadedImages[0] ||
     post.representativeImageUrl ||
@@ -83,6 +213,7 @@ export function normalizePublicCourseCard(post) {
     description: post.content || "",
     image,
     images: uploadedImages,
+    imageItems,
     likes: post.likeCount ?? 0,
     comments: post.commentCount ?? 0,
     saves: post.bookmarkCount ?? 0,
@@ -120,41 +251,16 @@ export function normalizePublicCourseDetail(detail) {
   }));
 
   const num = typeof postId === "number" ? postId : parseInt(String(postId).replace(/\D/g, ""), 10) || 0;
-  // 백엔드가 게시글에 첨부된 사진 URL 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
-  const uploadedImages = Array.isArray(detail.imageUrls) ? detail.imageUrls.filter(Boolean) : [];
+  // 백엔드가 게시글에 첨부된 사진 URL/ID 목록(정렬순)을 내려줍니다. 없으면 빈 배열.
+  const { imageUrls: uploadedImages, imageItems } = normalizePostImages(detail);
   const image =
     uploadedImages[0] ||
     detail.course?.representativeImageUrl ||
     detail.representativeImageUrl ||
     getDefaultCourseImage(num);
 
-  const authorName =
-    detail.writerNickname ||
-    detail.writerName ||
-    detail.authorNickname ||
-    detail.createdByNickname ||
-    detail.userNickname ||
-    detail.name ||
-    detail.nickname ||
-    detail.userName ||
-    detail.authorName ||
-    detail.author ||
-    detail.user?.nickname ||
-    detail.user?.name ||
-    detail.course?.userName ||
-    detail.course?.author ||
-    "";
-  const authorId =
-    detail.writerId ||
-    detail.userId ||
-    detail.memberId ||
-    detail.authorId ||
-    detail.createdBy ||
-    detail.user?.userId ||
-    detail.user?.id ||
-    detail.course?.userId ||
-    detail.course?.authorId ||
-    "";
+  const authorName = getAuthorName(detail);
+  const authorId = getAuthorId(detail);
 
   return {
     postId,
@@ -175,6 +281,7 @@ export function normalizePublicCourseDetail(detail) {
     description: detail.content,
     image,
     images: uploadedImages,
+    imageItems,
     likes: detail.likeCount ?? detail.likes ?? 0,
     commentsCount: comments.length,
     saves: detail.bookmarkCount ?? detail.bookmarks ?? 0,
@@ -189,6 +296,41 @@ export function normalizePublicCourseDetail(detail) {
     reviews: comments,
     isRealDb: true,
   };
+}
+
+async function fetchPublicCourseSummaryByPostId(postId, headers, baseUrl) {
+  const targetPostId = String(postId || "");
+  if (!targetPostId) return null;
+
+  const pageSize = 100;
+  const maxPages = 5;
+
+  for (let page = 0; page < maxPages; page += 1) {
+    const params = new URLSearchParams({
+      page: String(page),
+      size: String(pageSize),
+    });
+    const response = await fetch(
+      `${baseUrl}/api/v1/community/courses?${params.toString()}`,
+      {
+        method: "GET",
+        headers,
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) return null;
+
+    const json = await response.json();
+    const content = Array.isArray(json?.data?.content)
+      ? json.data.content
+      : [];
+    const matched = content.find((post) => String(post?.postId) === targetPostId);
+    if (matched) return matched;
+    if (content.length < pageSize) return null;
+  }
+
+  return null;
 }
 
 /**
@@ -269,6 +411,33 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
         const json = await response.json();
         if (json?.data) {
           const detail = json.data;
+          try {
+            const summary = await fetchPublicCourseSummaryByPostId(
+              postIdOrSlug,
+              headers,
+              baseUrl,
+            );
+            if (summary) {
+              detail.writerNickname =
+                detail.writerNickname || summary.writerNickname;
+              detail.writerName = detail.writerName || summary.writerName;
+              detail.authorNickname =
+                detail.authorNickname || summary.authorNickname;
+              detail.userNickname = detail.userNickname || summary.userNickname;
+              detail.nickname = detail.nickname || summary.nickname;
+              detail.name = detail.name || summary.name;
+              detail.country = detail.country || summary.country;
+              detail.user = {
+                ...(detail.user || {}),
+                ...(summary.user || {}),
+              };
+            }
+          } catch (error) {
+            console.warn(
+              `[Community Server] Author summary fetch failed for ${postIdOrSlug}:`,
+              error.message,
+            );
+          }
           const courseId = detail.course?.courseId || detail.courseId;
           if (courseId) {
             try {
