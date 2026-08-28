@@ -11,6 +11,7 @@ import {
 } from "./routing-engine";
 import { resolvePlaceCategory } from "./place-category";
 import { STORE_CATEGORY_BY_NAVIGATION_KEY } from "./store-categories";
+import { getImageUrl } from "../courses/image-url";
 
 const DEFAULT_COURSE_KEYS = [
   "B2_STORE_0031",
@@ -29,14 +30,7 @@ function toCoursePlace(record) {
     record.category ?? STORE_CATEGORY_BY_NAVIGATION_KEY[navigationKey],
     { placeName: name },
   );
-  const img =
-    record.image_url ??
-    record.imageUrl ??
-    record.img_url ??
-    record.place_img ??
-    record.placeImg ??
-    record.image ??
-    null;
+  const img = getImageUrl(record);
   return {
     id: navigationKey ?? record.place_id ?? record.id,
     placeId: record.place_id ?? null,
@@ -177,8 +171,8 @@ export function attachPlaceIdsToCourseDataset(dataset, navigationPlaces) {
   // navigationKey로 이어 붙인다. 사진이 없는 장소는 카테고리 기반 폴백 이미지를 제공한다.
   const imageUrlByNavigationKey = new Map(
     navigationPlaces
-      .filter((place) => place.navigationKey && place.imageUrl)
-      .map((place) => [place.navigationKey, place.imageUrl]),
+      .filter((place) => place.navigationKey && getImageUrl(place))
+      .map((place) => [place.navigationKey, getImageUrl(place)]),
   );
   const descriptionByNavigationKey = new Map(
     navigationPlaces

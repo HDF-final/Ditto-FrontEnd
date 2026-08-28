@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/ai-course";
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
 import { resolvePlaceCategory } from "@/lib/navigation/place-category";
+import { getImageUrl } from "@/lib/courses/image-url";
 import { useTranslations } from "next-intl";
 
 /**
@@ -59,7 +60,7 @@ function toErrorMessage(error, t) {
  *               일반 <img>를 쓰는 곳만 읽도록 `image`/`placeImg`는 건드리지 않습니다.
  */
 function toAiImageFields(item) {
-  const url = item?.imageUrl || item?.image_url || item?.image?.url || null;
+  const url = getImageUrl(item);
   if (!url) return null;
 
   const kind = item?.image?.kind ?? null;
