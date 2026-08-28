@@ -4,9 +4,10 @@ import { useEffect, useRef } from "react";
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-const WHEEL_GESTURE_IDLE_MS = 420;
-const MIN_GESTURE_LOCK_MS = 920;
+const WHEEL_GESTURE_IDLE_MS = 260;
+const MIN_GESTURE_LOCK_MS = 620;
 const WHEEL_TRIGGER_THRESHOLD = 28;
+const REVERSE_GESTURE_THRESHOLD = 48;
 const TRANSITION_DURATION_MS = 540;
 
 function easeOutCubic(progress) {
@@ -38,6 +39,9 @@ export function HomeSnapScroller({ children }) {
     let lastWheelAt = 0;
     let pendingWheelDelta = 0;
     let resizePending = false;
+    let gestureDirection = 0;
+    let reverseWheelDelta = 0;
+    let queuedDirection = 0;
 
     function scheduleGestureRelease() {
       window.clearTimeout(gestureIdleTimer);
@@ -74,6 +78,9 @@ export function HomeSnapScroller({ children }) {
         gestureHandled = false;
         gestureHandledAt = 0;
         pendingWheelDelta = 0;
+        gestureDirection = 0;
+        reverseWheelDelta = 0;
+        queuedDirection = 0;
 
         if (resizePending) {
           resizePending = false;
@@ -102,6 +109,32 @@ export function HomeSnapScroller({ children }) {
         );
         return currentDistance < nearestDistance ? index : nearestIndex;
       }, 0);
+    }
+
+    function moveOnePanel(direction, startedAt = performance.now()) {
+      const panels = getPanels();
+      if (panels.length === 0) return;
+
+      const currentIndex = getNearestPanelIndex(panels);
+      const targetIndex = Math.max(
+        0,
+        Math.min(panels.length - 1, currentIndex + direction),
+      );
+
+      activePanelIndex = currentIndex;
+      gestureHandled = true;
+      gestureHandledAt = startedAt;
+      gestureDirection = direction;
+      pendingWheelDelta = 0;
+      reverseWheelDelta = 0;
+      window.clearTimeout(gestureIdleTimer);
+
+      if (targetIndex === currentIndex) {
+        scheduleGestureRelease();
+        return;
+      }
+
+      animateToPanel(panels[targetIndex], targetIndex);
     }
 
     function animateToPanel(panel, panelIndex) {
@@ -136,6 +169,13 @@ export function HomeSnapScroller({ children }) {
         scroller.scrollTo({ top: targetTop, behavior: "auto" });
         scroller.classList.remove("home-snap-moving");
         animating = false;
+        if (queuedDirection !== 0) {
+          const nextDirection = queuedDirection;
+          queuedDirection = 0;
+          moveOnePanel(nextDirection);
+          return;
+        }
+
         scheduleGestureRelease();
       }
 
@@ -157,9 +197,37 @@ export function HomeSnapScroller({ children }) {
       const gestureWasIdle =
         lastWheelAt === 0 || wheelAt - lastWheelAt >= WHEEL_GESTURE_IDLE_MS;
       const wheelDelta = normalizeWheelDelta(event, scroller.clientHeight);
+      const wheelDirection = wheelDelta > 0 ? 1 : -1;
       lastWheelAt = wheelAt;
       scheduleGestureRelease();
-      if (animating || gestureHandled) return;
+
+      if (animating || gestureHandled) {
+        if (queuedDirection !== 0) return;
+
+        if (gestureDirection === 0 || wheelDirection === gestureDirection) {
+          reverseWheelDelta = 0;
+          return;
+        }
+
+        if (
+          reverseWheelDelta !== 0 &&
+          Math.sign(reverseWheelDelta) !== wheelDirection
+        ) {
+          reverseWheelDelta = 0;
+        }
+
+        reverseWheelDelta += wheelDelta;
+        if (Math.abs(reverseWheelDelta) < REVERSE_GESTURE_THRESHOLD) return;
+
+        reverseWheelDelta = 0;
+        if (animating) {
+          queuedDirection = wheelDirection;
+          return;
+        }
+
+        moveOnePanel(wheelDirection, wheelAt);
+        return;
+      }
 
       if (gestureWasIdle) pendingWheelDelta = 0;
 
@@ -173,28 +241,8 @@ export function HomeSnapScroller({ children }) {
       pendingWheelDelta += wheelDelta;
       if (Math.abs(pendingWheelDelta) < WHEEL_TRIGGER_THRESHOLD) return;
 
-      const panels = getPanels();
-      if (panels.length === 0) return;
-
-      const currentIndex = getNearestPanelIndex(panels);
-      activePanelIndex = currentIndex;
       const direction = pendingWheelDelta > 0 ? 1 : -1;
-      const targetIndex = Math.max(
-        0,
-        Math.min(panels.length - 1, currentIndex + direction),
-      );
-
-      gestureHandled = true;
-      gestureHandledAt = wheelAt;
-      pendingWheelDelta = 0;
-      window.clearTimeout(gestureIdleTimer);
-
-      if (targetIndex === currentIndex) {
-        scheduleGestureRelease();
-        return;
-      }
-
-      animateToPanel(panels[targetIndex], targetIndex);
+      moveOnePanel(direction, wheelAt);
     }
 
     function handleScroll() {
