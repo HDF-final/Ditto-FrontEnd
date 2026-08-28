@@ -122,6 +122,8 @@ export function CommunityCourseDetailMap({ stops = [], className = "" }) {
         showFloorSelector={false}
         showControls={false}
         showUserLocation={false}
+        fitPreset="course-detail-focus"
+        focusRouteStopIndex={0}
         className="h-full w-full"
       />
     </div>

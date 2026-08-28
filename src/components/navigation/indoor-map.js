@@ -187,8 +187,17 @@ const COURSE_MOBILE_CAMERA_FIT = {
   bottomHud: 18,
   pad: 10,
 };
+const COURSE_DETAIL_FOCUS_CAMERA_FIT = {
+  fill: 0.96,
+  verticalBias: -0.01,
+  pad: 10,
+  focusZoomMultiplier: 5.6,
+  focusMinZoom: 2.4,
+  focusMaxZoom: 3.6,
+};
 
 function getCameraFitOptions(fitPreset) {
+  if (fitPreset === "course-detail-focus") return COURSE_DETAIL_FOCUS_CAMERA_FIT;
   if (fitPreset === "course-mobile") return COURSE_MOBILE_CAMERA_FIT;
   if (fitPreset === "scan-mobile") return SCAN_MOBILE_CAMERA_FIT;
   if (fitPreset === "scan") return SCAN_CAMERA_FIT;
@@ -366,6 +375,18 @@ function fitOverviewCamera(floors, viewport, options = {}) {
     position: framedCenter.clone().add(OVERVIEW_CAMERA_OFFSET),
     zoom,
   };
+}
+
+function getOverviewFocusZoom(baseZoom, viewport, options = {}) {
+  const responsiveScale =
+    viewport.width < 420 ? 0.82 : viewport.width < 720 ? 0.94 : 1;
+  return THREE.MathUtils.clamp(
+    (baseZoom ?? 0.48) *
+      (options.focusZoomMultiplier ?? 3) *
+      responsiveScale,
+    options.focusMinZoom ?? 1.05,
+    options.focusMaxZoom ?? 2.2,
+  );
 }
 
 class MapErrorBoundary extends Component {
@@ -699,6 +720,30 @@ function toWorldPoint(node, floor, flatView, yLift = 0) {
     floor.y + (flatView ? 0.4 : ROUTE_HEIGHT) + yLift,
     offsetZ + (node.uv.v - 0.5) * FLOOR_WIDTH * aspect * scale,
   ];
+}
+
+function getRouteStopFocusPoint({
+  route,
+  routeGraph,
+  visibleFloors,
+  stopIndex = 0,
+}) {
+  const stopPlaceId = route?.stopPlaceIds?.[stopIndex];
+  if (!stopPlaceId || !routeGraph) return null;
+
+  const place = routeGraph.places?.find(
+    (candidate) => String(candidate.id) === String(stopPlaceId),
+  );
+  const node = place
+    ? routeGraph.nodes?.find((candidate) => candidate.id === place.nodeId)
+    : null;
+  const floor = place?.floorId
+    ? visibleFloors.find((candidate) => candidate.id === place.floorId)
+    : null;
+
+  if (!node || !floor) return null;
+  const [x, y, z] = toWorldPoint(node, floor, false, ROUTE_MARKER_LIFT);
+  return new THREE.Vector3(x, y, z);
 }
 
 // 브랜드 로고를 같은 오리진 프록시로 받는 URL. (S3 원본은 CORS가 없어 캔버스
@@ -1257,6 +1302,7 @@ function MapCamera({
   resetSignal,
   onReady,
   fitPreset = "course",
+  overviewFocusPoint = null,
 }) {
   const { size, gl } = useThree();
   const cameraRef = useRef(null);
@@ -1281,9 +1327,13 @@ function MapCamera({
           visibleFloors,
           size,
           fitOptions,
-        )
+      )
       : null;
   const scanFit = fitOptions ?? null;
+  const overviewFocusZoom =
+    !singleFloor && overviewFocusPoint && overviewFit
+      ? getOverviewFocusZoom(overviewFit.zoom, size, fitOptions)
+      : null;
   const singleFloorFitW = size.width - (scanFit ? (scanFit.pad ?? 0) * 2 : 0);
   const singleFloorFitH =
     size.height -
@@ -1299,10 +1349,13 @@ function MapCamera({
             (FLOOR_WIDTH * singleFloorAspectRatio),
         ),
       )
-    : (overviewFit?.zoom ?? 2.2);
+    : (overviewFocusZoom ?? overviewFit?.zoom ?? 2.2);
+  const focusKey = overviewFocusPoint
+    ? `${overviewFocusPoint.x.toFixed(3)},${overviewFocusPoint.y.toFixed(3)},${overviewFocusPoint.z.toFixed(3)}`
+    : "none";
   const presetKey = `${viewMode}:${visibleFloors
     .map((floor) => `${floor.id}@${floor.y}`)
-    .join(",")}:${size.width}x${size.height}:${targetZoom.toFixed(4)}:${resetSignal}`;
+    .join(",")}:${size.width}x${size.height}:${targetZoom.toFixed(4)}:${focusKey}:${resetSignal}`;
 
   const applyPreset = () => {
     const camera = cameraRef.current;
@@ -1310,12 +1363,15 @@ function MapCamera({
     if (!camera || !controls || !viewportReady) return false;
     if (!singleFloor && !overviewFit) return false;
 
-    const target =
-      singleFloor || !overviewFit
+    const hasOverviewFocus = !singleFloor && overviewFocusPoint;
+    const target = hasOverviewFocus
+      ? overviewFocusPoint.clone()
+      : singleFloor || !overviewFit
         ? new THREE.Vector3(0, focusY, 0)
         : overviewFit.target.clone();
-    const position =
-      singleFloor || !overviewFit
+    const position = hasOverviewFocus
+      ? overviewFocusPoint.clone().add(OVERVIEW_CAMERA_OFFSET)
+      : singleFloor || !overviewFit
         ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
         : overviewFit.position.clone();
 
@@ -1413,6 +1469,7 @@ function MapCamera({
     // or ride high when the side panel / header / flex resolve after first paint.
     if (!singleFloor) {
       if (interactedRef.current || !visibleFloors.length) return;
+      if (overviewFocusPoint) return;
       const el = gl.domElement;
       const liveW = el.clientWidth;
       const liveH = el.clientHeight;
@@ -1550,6 +1607,7 @@ function FloorStack({
   userLocation,
   compactPin = false,
   fitPreset = "course",
+  focusRouteStopIndex = null,
 }) {
   const [singleFloorAspectRatio, setSingleFloorAspectRatio] = useState(
     DEFAULT_ASPECT_RATIO,
@@ -1562,6 +1620,15 @@ function FloorStack({
       })),
     [roomsByFloor, visibleFloors],
   );
+  const overviewFocusPoint = useMemo(() => {
+    if (focusRouteStopIndex === null || viewMode === "floor") return null;
+    return getRouteStopFocusPoint({
+      route,
+      routeGraph,
+      visibleFloors: floorsWithAspect,
+      stopIndex: focusRouteStopIndex,
+    });
+  }, [floorsWithAspect, focusRouteStopIndex, route, routeGraph, viewMode]);
 
   return (
     <>
@@ -1622,6 +1689,7 @@ function FloorStack({
         resetSignal={resetSignal}
         onReady={onCameraReady}
         fitPreset={fitPreset}
+        overviewFocusPoint={overviewFocusPoint}
       />
     </>
   );
@@ -1777,6 +1845,7 @@ export function IndoorMap({
   initialView = "route",
   variant = "course",
   fitPreset = null,
+  focusRouteStopIndex = null,
 }) {
   const isScanView = variant === "scan";
   const isDesktop = useIsDesktop();
@@ -1952,6 +2021,7 @@ export function IndoorMap({
                   userLocation={userLocation}
                   compactPin={isScanView}
                   fitPreset={activeFitPreset}
+                  focusRouteStopIndex={focusRouteStopIndex}
                 />
               </Suspense>
             </OverlayOccluderContext.Provider>
