@@ -103,13 +103,8 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    scroll-snap-type: y mandatory;
-    scroll-behavior: auto;
-  }
-
-  .home-snap.home-snap-moving {
-    scroll-snap-type: none;
-    scroll-behavior: auto;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
   }
 
   .home-hero-copy {
@@ -139,7 +134,6 @@ body {
     min-height: 100%;
     overflow: hidden;
     scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
 
   .home-content-boundary {
