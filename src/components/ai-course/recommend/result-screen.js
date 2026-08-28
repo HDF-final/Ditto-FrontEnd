@@ -38,6 +38,7 @@ import {
   getCourseDetail,
   updateCourse,
 } from "@/lib/api/courses";
+import { getImageUrl, pickCoursePlaceImage } from "@/lib/courses/image-url";
 
 const MAX_COURSE_PLACES = 8;
 const MOBILE_LIST_MIN_PERCENT = 36;
@@ -119,14 +120,7 @@ function getSourceNavigationKey(place) {
 }
 
 function getSourcePlaceImage(place) {
-  return (
-    place?.image ||
-    place?.imageUrl ||
-    place?.image_url ||
-    place?.placeImg ||
-    place?.place_img ||
-    null
-  );
+  return getImageUrl(place);
 }
 
 function findCatalogPlace(sourcePlace, placeCatalog) {
@@ -150,7 +144,7 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
         ? { ...rawPlace.place, ...rawPlace }
         : rawPlace;
       const catalogPlace = findCatalogPlace(place, placeCatalog);
-      const image = getSourcePlaceImage(place);
+      const image = pickCoursePlaceImage(place, catalogPlace);
       const fallbackName =
         place?.name ?? place?.placeName ?? place?.place_name ?? catalogPlace?.name;
       const fallbackFloor =
@@ -169,6 +163,7 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
           description: place?.description ?? place?.desc ?? catalogPlace.description,
           image: image ?? catalogPlace.image,
           imageUrl: image ?? catalogPlace.imageUrl,
+          placeImg: image ?? catalogPlace.placeImg,
           isAiRecommended: false,
         };
       }
@@ -415,15 +410,16 @@ export function ResultScreen({
       const catalogPlace = placeCatalog.find(
         (candidate) => candidate.navigationKey === place.navigationKey,
       );
-      // placeId와 함께 장소 사진 및 AI 추천 플래그를 보존한다.
+      const storeImage = pickCoursePlaceImage(place, catalogPlace);
+      // placeId와 함께 카탈로그 매장 사진 및 AI 추천 플래그를 보존한다.
       return catalogPlace
         ? {
             ...catalogPlace,
             ...place,
             placeId: catalogPlace.placeId,
-            // 추천 응답이 준 사진이 우선입니다. 카탈로그 사진은 presigned URL이라
-            // 30분 뒤 만료되고, 브랜드와 무관한 기본 매장 컷인 경우가 많습니다.
-            image: place.image || catalogPlace.image,
+            image: storeImage,
+            imageUrl: storeImage,
+            placeImg: storeImage,
             aiReason: place.aiReason || catalogPlace.aiReason,
             isAiRecommended: true,
           }

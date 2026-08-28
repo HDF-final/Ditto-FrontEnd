@@ -65,6 +65,29 @@ test("자리 사진이 aiImage 로 간다 — 셀럽 사진과 매장 사진 둘
   assert.equal(course.stops[0].image, course.stops[0].aiImage);
 });
 
+test("커뮤니티 업로드 사진이 CDN 호스트로 잘못 오면 S3 원본으로 되돌린다", () => {
+  const course = normalizeCourse(
+    {
+      courseId: 208,
+      name: "더현대에서 지수 립스틱 득템한 날",
+      places: [
+        {
+          placeId: 106,
+          name: "애플스토어",
+          imageUrl:
+            "https://d1bxld598du04o.cloudfront.net/images/community/posts/2026-08-27/66cd6c63-f97b-4b53-9101-8cf6370e41d9.jpg",
+        },
+      ],
+    },
+    "208",
+  );
+
+  assert.equal(
+    course.stops[0].image,
+    "https://hdf-ditto-images.s3.ap-northeast-2.amazonaws.com/images/community/posts/2026-08-27/66cd6c63-f97b-4b53-9101-8cf6370e41d9.jpg",
+  );
+});
+
 test("대표 사진은 백엔드가 준 것을 쓰고 기본 이미지로 안 떨어진다", () => {
   const course = normalizeCourse(RAW_COURSE, "187");
 
