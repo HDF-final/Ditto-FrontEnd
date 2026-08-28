@@ -56,30 +56,29 @@ function AuthorReasonCard({ course }) {
     course.note || course.description || "작성자가 남긴 후기가 없습니다.";
 
   return (
-    <article className="mt-4 min-w-0 rounded-[18px] bg-white p-4 shadow-[0_10px_28px_rgba(92,46,245,0.12)] ring-1 ring-brand-soft/80 sm:mt-5 sm:p-5">
-      <div className="border-b border-line/70 pb-3">
-        <p className="text-sm font-black text-ink">작성자가 남긴 이유</p>
-        <p className="mt-1 text-[11px] font-bold text-ink-muted">
-          커뮤니티 추천 코스 · 방문 기록
-        </p>
-      </div>
+    <div className="mt-4 sm:mt-5">
       <div
         data-home-snap-scroll-lock
-        className="mt-3 flex max-h-[132px] items-start gap-3 overflow-y-auto rounded-[14px] bg-brand-soft/50 px-4 py-3 overscroll-contain sm:max-h-[156px]"
+        className="max-h-[132px] overflow-y-auto rounded-[14px] bg-brand-soft/50 px-4 py-3 overscroll-contain sm:max-h-[156px]"
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="mt-1 size-4 shrink-0 text-brand/45"
-        >
-          <path d="M9.6 5.6c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7H7.5c.2-1.8 1.3-3 3.2-3.6L9.6 5.6Zm9.4 0c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7h-3.3c.2-1.8 1.3-3 3.2-3.6L19 5.6Z" />
-        </svg>
-        <p className="min-w-0 whitespace-pre-line break-keep text-xs font-semibold leading-6 text-ink-muted sm:text-sm">
-          {noteText}
+        <p className="inline-flex items-center rounded-full bg-white/85 px-3 py-1 text-sm font-black text-brand shadow-[0_6px_16px_rgba(92,46,245,0.12)] ring-1 ring-brand/10 sm:text-base">
+          작성자가 남긴 이유
         </p>
+        <div className="mt-2 flex items-start gap-3">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="mt-1 size-4 shrink-0 text-brand/45"
+          >
+            <path d="M9.6 5.6c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7H7.5c.2-1.8 1.3-3 3.2-3.6L9.6 5.6Zm9.4 0c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7h-3.3c.2-1.8 1.3-3 3.2-3.6L19 5.6Z" />
+          </svg>
+          <p className="min-w-0 whitespace-pre-line break-keep text-xs font-semibold leading-6 text-ink-muted sm:text-sm">
+            {noteText}
+          </p>
+        </div>
       </div>
-    </article>
+    </div>
   );
 }
 
@@ -203,7 +202,7 @@ export default async function CommunityCourseDetailPage({ params }) {
           </div>
         </div>
 
-        <div className="mx-auto hidden max-w-7xl min-w-0 lg:grid lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)] lg:items-stretch lg:gap-8">
+        <div className="mx-auto hidden max-w-4xl min-w-0 lg:grid lg:grid-cols-[minmax(220px,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:gap-6">
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
             <div className="absolute inset-0">
               <CommunityDetailHeroImage
@@ -219,7 +218,7 @@ export default async function CommunityCourseDetailPage({ params }) {
 
           <div className="flex min-w-0 flex-col justify-center">
             {authorBlock}
-            <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
+            <h2 className="mt-4 break-keep text-[22px] font-black leading-tight text-ink sm:text-[26px] lg:text-[30px]">
               {course.title}
             </h2>
             <AuthorReasonCard course={course} />
