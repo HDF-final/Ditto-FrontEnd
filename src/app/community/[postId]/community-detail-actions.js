@@ -189,14 +189,14 @@ export function CommunityDetailActions({ course = {} }) {
             type="button"
             onClick={handleLikeToggle}
             aria-label={t("like")}
-            className={`inline-flex size-12 cursor-pointer items-center justify-center rounded-full border transition ${
+            className={`inline-flex size-11 cursor-pointer items-center justify-center rounded-full border transition ${
               isLiked
-                ? "border-[#eadcff] bg-white shadow-[0_10px_24px_rgba(154,116,255,0.26)] hover:bg-[#fbf8ff]"
-                : "border-[#ebe5fb] bg-[#fbf9ff] text-white shadow-[0_8px_18px_rgba(108,84,180,0.08)] hover:border-brand/30 hover:bg-brand-soft/20"
+                ? "border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
+                : "border-line bg-white text-ink-muted hover:border-brand/40 hover:bg-brand-soft/30 hover:text-brand"
             }`}
           >
             <svg
-              className={`size-8 drop-shadow-[0_5px_7px_rgba(137,112,212,0.23)] transition-transform ${isLiked ? "scale-105" : ""}`}
+              className={`size-[17px] transition-transform ${isLiked ? "scale-105" : ""}`}
               viewBox="0 0 24 24"
               fill="none"
               strokeLinejoin="round"
@@ -239,23 +239,27 @@ export function CommunityDetailActions({ course = {} }) {
                 </linearGradient>
               </defs>
               <path
-                d="M12 1.55C13.38 7.02 16.98 10.62 22.45 12 16.98 13.38 13.38 16.98 12 22.45 10.62 16.98 7.02 13.38 1.55 12 7.02 10.62 10.62 7.02 12 1.55Z"
-                fill={
-                  isLiked ? `url(#${likeGradId})` : `url(#${likeIdleId})`
-                }
+                d="M12 21.35 10.62 20.1C5.72 15.66 2.5 12.74 2.5 9.15 2.5 6.23 4.79 3.95 7.7 3.95c1.64 0 3.22.76 4.3 1.96 1.08-1.2 2.66-1.96 4.3-1.96 2.91 0 5.2 2.28 5.2 5.2 0 3.59-3.22 6.51-8.12 10.96L12 21.35Z"
+                fill={isLiked ? `url(#${likeGradId})` : "#FFFFFF"}
+                stroke={isLiked ? "none" : "currentColor"}
+                strokeWidth={isLiked ? "0" : "2.2"}
                 opacity={isLiked ? "1" : "0.92"}
               />
-              <path
-                d="M12 3.25C13.02 7.32 15.6 9.82 19.95 12 15.6 14.18 13.02 16.68 12 20.75 10.98 16.68 8.4 14.18 4.05 12 8.4 9.82 10.98 7.32 12 3.25Z"
-                fill={`url(#${likeHighlightId})`}
-                opacity={isLiked ? "0.9" : "0.55"}
-              />
-              <path
-                d="M7.25 11.55C9.2 10.95 10.95 8.95 12 5.8c1.05 3.15 2.8 5.15 4.75 5.75"
-                stroke="#ffffff"
-                strokeWidth="0.85"
-                opacity={isLiked ? "0.75" : "0.52"}
-              />
+              {isLiked ? (
+                <>
+                  <path
+                    d="M7.35 6.25c-1.35 0-2.45 1.07-2.45 2.45 0 1.41.8 2.75 2.53 4.58"
+                    fill={`url(#${likeHighlightId})`}
+                    opacity="0.75"
+                  />
+                  <path
+                    d="M6.15 8.75c.2-1.05.98-1.78 2-1.78.68 0 1.28.25 1.82.74"
+                    stroke="#ffffff"
+                    strokeWidth="1.15"
+                    opacity="0.82"
+                  />
+                </>
+              ) : null}
             </svg>
             <span className="sr-only">
               {t("like")} {likesCount}
