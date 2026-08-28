@@ -4,12 +4,19 @@ import { useEffect, useRef } from "react";
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-const WHEEL_GESTURE_IDLE_MS = 320;
-const MIN_GESTURE_LOCK_MS = 860;
+const WHEEL_GESTURE_IDLE_MS = 420;
+const MIN_GESTURE_LOCK_MS = 920;
+const WHEEL_TRIGGER_THRESHOLD = 28;
 const TRANSITION_DURATION_MS = 540;
 
 function easeOutCubic(progress) {
   return 1 - Math.pow(1 - progress, 3);
+}
+
+function normalizeWheelDelta(event, pageHeight) {
+  if (event.deltaMode === 1) return event.deltaY * 16;
+  if (event.deltaMode === 2) return event.deltaY * pageHeight;
+  return event.deltaY;
 }
 
 export function HomeSnapScroller({ children }) {
@@ -29,6 +36,8 @@ export function HomeSnapScroller({ children }) {
     let animating = false;
     let activePanelIndex = 0;
     let lastWheelAt = 0;
+    let pendingWheelDelta = 0;
+    let resizePending = false;
 
     function scheduleGestureRelease() {
       window.clearTimeout(gestureIdleTimer);
@@ -64,6 +73,12 @@ export function HomeSnapScroller({ children }) {
 
         gestureHandled = false;
         gestureHandledAt = 0;
+        pendingWheelDelta = 0;
+
+        if (resizePending) {
+          resizePending = false;
+          scheduleRealign();
+        }
       }, Math.max(16, remainingIdleTime, remainingLockTime));
     }
 
@@ -138,25 +153,47 @@ export function HomeSnapScroller({ children }) {
       }
 
       event.preventDefault();
-      lastWheelAt = performance.now();
+      const wheelAt = performance.now();
+      const gestureWasIdle =
+        lastWheelAt === 0 || wheelAt - lastWheelAt >= WHEEL_GESTURE_IDLE_MS;
+      const wheelDelta = normalizeWheelDelta(event, scroller.clientHeight);
+      lastWheelAt = wheelAt;
       scheduleGestureRelease();
       if (animating || gestureHandled) return;
+
+      if (gestureWasIdle) pendingWheelDelta = 0;
+
+      if (
+        pendingWheelDelta !== 0 &&
+        Math.sign(pendingWheelDelta) !== Math.sign(wheelDelta)
+      ) {
+        pendingWheelDelta = 0;
+      }
+
+      pendingWheelDelta += wheelDelta;
+      if (Math.abs(pendingWheelDelta) < WHEEL_TRIGGER_THRESHOLD) return;
 
       const panels = getPanels();
       if (panels.length === 0) return;
 
       const currentIndex = getNearestPanelIndex(panels);
-      const direction = event.deltaY > 0 ? 1 : -1;
+      activePanelIndex = currentIndex;
+      const direction = pendingWheelDelta > 0 ? 1 : -1;
       const targetIndex = Math.max(
         0,
         Math.min(panels.length - 1, currentIndex + direction),
       );
 
-      if (targetIndex === currentIndex) return;
-
       gestureHandled = true;
-      gestureHandledAt = performance.now();
+      gestureHandledAt = wheelAt;
+      pendingWheelDelta = 0;
       window.clearTimeout(gestureIdleTimer);
+
+      if (targetIndex === currentIndex) {
+        scheduleGestureRelease();
+        return;
+      }
+
       animateToPanel(panels[targetIndex], targetIndex);
     }
 
@@ -170,6 +207,11 @@ export function HomeSnapScroller({ children }) {
     function realignCurrentPanel() {
       if (!desktopMedia.matches) return;
 
+      if (animating || gestureHandled) {
+        resizePending = true;
+        return;
+      }
+
       window.cancelAnimationFrame(animationFrame);
       window.clearTimeout(gestureIdleTimer);
       scroller.classList.remove("home-snap-moving");
@@ -178,16 +220,11 @@ export function HomeSnapScroller({ children }) {
       const panels = getPanels();
       if (panels.length === 0) return;
 
-      activePanelIndex = Math.max(
-        0,
-        Math.min(panels.length - 1, activePanelIndex),
-      );
+      activePanelIndex = getNearestPanelIndex(panels);
       scroller.scrollTo({
         top: getPanelScrollTop(panels[activePanelIndex]),
         behavior: "auto",
       });
-
-      if (gestureHandled) scheduleGestureRelease();
     }
 
     function scheduleRealign() {
