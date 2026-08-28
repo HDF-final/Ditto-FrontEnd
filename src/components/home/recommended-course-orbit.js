@@ -87,7 +87,7 @@ function getOrbitRadius(courseCount) {
 export function RecommendedCourseOrbit({ courses }) {
   const localizedCourses = courses.map(getLocalizedCourse);
   const courseCount = localizedCourses.length;
-  const duration = Math.max(52, courseCount * 5) * 1.1;
+  const duration = Math.max(52, courseCount * 5) * 1.25;
   const radius = getOrbitRadius(courseCount);
 
   return (
