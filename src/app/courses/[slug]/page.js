@@ -66,14 +66,11 @@ export async function generateMetadata({ params }) {
 
 function BoniReasonCard({ note }) {
   return (
-    <article className="mt-4 min-w-0 rounded-[18px] bg-white p-4 shadow-[0_10px_28px_rgba(92,46,245,0.12)] ring-1 ring-brand-soft/80 sm:mt-5 sm:p-5">
-      <div className="border-b border-line/70 pb-3">
-        <p className="text-sm font-black text-ink">보니가 추천하는 이유</p>
-        <p className="mt-1 text-[11px] font-bold text-ink-muted">
-          초행자 · 핫플레이스 · 최적 실내 동선 기준
-        </p>
-      </div>
-      <div className="mt-3 flex items-start gap-3 rounded-[14px] bg-brand-soft/50 px-4 py-3">
+    <div className="mt-4 rounded-[14px] bg-brand-soft/50 px-4 py-3 sm:mt-5">
+      <p className="inline-flex items-center rounded-full bg-white/85 px-3 py-1 text-sm font-black text-brand shadow-[0_6px_16px_rgba(92,46,245,0.12)] ring-1 ring-brand/10 sm:text-base">
+        보니가 추천하는 이유
+      </p>
+      <div className="mt-2 flex items-start gap-3">
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
@@ -86,7 +83,7 @@ function BoniReasonCard({ note }) {
           {note}
         </p>
       </div>
-    </article>
+    </div>
   );
 }
 
@@ -178,7 +175,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
           </div>
         </div>
 
-        <div className="mx-auto hidden max-w-7xl min-w-0 lg:grid lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)] lg:items-stretch lg:gap-8">
+        <div className="mx-auto hidden max-w-4xl min-w-0 lg:grid lg:grid-cols-[minmax(220px,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:gap-6">
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[28px] bg-slate-950 shadow-[0_14px_36px_rgba(30,15,70,0.25)]">
             <div className="absolute inset-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -200,7 +197,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
           <div className="flex min-w-0 flex-col lg:justify-center">
             {boniProfile}
 
-            <h2 className="mt-5 break-keep text-[22px] font-black leading-tight text-ink sm:mt-6 sm:text-[26px] lg:text-[38px]">
+            <h2 className="mt-4 break-keep text-[22px] font-black leading-tight text-ink sm:text-[26px] lg:text-[30px]">
               {course.title}
             </h2>
 
