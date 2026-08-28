@@ -21,6 +21,13 @@ const tabs = ["popular", "latest"];
 const MOBILE_ITEMS_PER_PAGE = 2;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
+function readLikeCount(response) {
+  if (typeof response?.likesCount === "number") return response.likesCount;
+  if (typeof response?.likeCount === "number") return response.likeCount;
+  if (typeof response?.likes === "number") return response.likes;
+  return null;
+}
+
 function CommunityCard({ card, rank, onAuthRequired }) {
   const t = useTranslations("community");
   const router = useRouter();
@@ -67,15 +74,21 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     state.getLikesDelta(slugKey, numKey),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
+  const cardKey = `${slugKey}:${numKey}`;
+  const [confirmedLikes, setConfirmedLikes] = useState(null);
 
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
-  const baseLikes = card.likes ?? 0;
+  const baseLikes =
+    confirmedLikes?.key === cardKey ? confirmedLikes.count : (card.likes ?? 0);
   const likesCount = Math.max(0, baseLikes + likesDelta);
   const baseSaves = card.saves ?? 0;
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
@@ -92,8 +105,14 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
     if (postId) {
       try {
-        if (nextState) await likeCourse(postId);
-        else await unlikeCourse(postId);
+        const response = nextState
+          ? await likeCourse(postId)
+          : await unlikeCourse(postId);
+        const serverLikeCount = readLikeCount(response);
+        if (serverLikeCount !== null) {
+          setConfirmedLikes({ key: cardKey, count: serverLikeCount });
+          clearLikesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Card Like] error:", err);
       }
