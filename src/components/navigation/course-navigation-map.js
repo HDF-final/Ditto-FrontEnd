@@ -37,6 +37,7 @@ export function CourseNavigationMap({
   showFloorSelector = true,
   showControls = true,
   fitPreset,
+  focusRouteStopIndex = null,
 }) {
   const t = useTranslations("aiCourse");
   const storedLocation = useScanLocationStore((state) => state.location);
@@ -58,6 +59,7 @@ export function CourseNavigationMap({
         initialView={initialView}
         variant={variant}
         fitPreset={fitPreset}
+        focusRouteStopIndex={focusRouteStopIndex}
       />
     </section>
   );

@@ -20,6 +20,21 @@ function normalizeWheelDelta(event, pageHeight) {
   return event.deltaY;
 }
 
+function canScrollLockedTarget(event) {
+  const lockedTarget = event.target?.closest?.("[data-home-snap-scroll-lock]");
+  if (!lockedTarget) return false;
+
+  const wheelDelta = normalizeWheelDelta(event, lockedTarget.clientHeight || 1);
+  if (wheelDelta > 0) {
+    return (
+      lockedTarget.scrollTop + lockedTarget.clientHeight <
+      lockedTarget.scrollHeight - 1
+    );
+  }
+
+  return lockedTarget.scrollTop > 1;
+}
+
 export function HomeSnapScroller({ children }) {
   const scrollerRef = useRef(null);
 
@@ -189,6 +204,10 @@ export function HomeSnapScroller({ children }) {
         Math.abs(event.deltaY) <= Math.abs(event.deltaX) ||
         event.deltaY === 0
       ) {
+        return;
+      }
+
+      if (canScrollLockedTarget(event)) {
         return;
       }
 
