@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import {
   fetchCourseDetailServer,
@@ -8,13 +7,10 @@ import {
 } from "@/lib/api/courses.server";
 import { normalizeCourse } from "@/lib/courses/normalize-course";
 import { recommendedCourses } from "@/lib/fixtures/recommended-courses";
-import { getCourseStopMeta } from "@/lib/utils/course-detail";
-import { CourseDetailStats } from "@/components/community/course-detail-stats";
 import { CommunityCourseDetailMap } from "@/components/community/community-course-detail-map";
 import { CommunityStopList } from "@/components/community/community-stop-list";
 import { BoniAvatar } from "@/components/courses/boni-avatar";
 import { HomeSnapScroller } from "@/components/home/home-snap-scroller";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { CourseDetailActions } from "./course-detail-actions";
 
 export const dynamic = "force-dynamic";
@@ -68,20 +64,39 @@ export async function generateMetadata({ params }) {
   return { title: `${course.title} | DITTO` };
 }
 
+function BoniReasonCard({ note }) {
+  return (
+    <article className="mt-4 min-w-0 rounded-[18px] bg-white p-4 shadow-[0_10px_28px_rgba(92,46,245,0.12)] ring-1 ring-brand-soft/80 sm:mt-5 sm:p-5">
+      <div className="border-b border-line/70 pb-3">
+        <p className="text-sm font-black text-ink">보니가 추천하는 이유</p>
+        <p className="mt-1 text-[11px] font-bold text-ink-muted">
+          초행자 · 핫플레이스 · 최적 실내 동선 기준
+        </p>
+      </div>
+      <div className="mt-3 flex items-start gap-3 rounded-[14px] bg-brand-soft/50 px-4 py-3">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="mt-1 size-4 shrink-0 text-brand/45"
+        >
+          <path d="M9.6 5.6c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7H7.5c.2-1.8 1.3-3 3.2-3.6L9.6 5.6Zm9.4 0c-3.3.9-5.5 3.8-5.5 7.5v5.3h6.7v-6.7h-3.3c.2-1.8 1.3-3 3.2-3.6L19 5.6Z" />
+        </svg>
+        <p className="min-w-0 line-clamp-3 break-keep text-xs font-semibold leading-6 text-ink-muted sm:text-sm">
+          {note}
+        </p>
+      </div>
+    </article>
+  );
+}
+
 export default async function RecommendedCourseDetailPage({ params }) {
   const { slug } = await params;
   const course = await getCourseData(slug);
-  const t = await getTranslations("courses");
 
   if (!course) {
     notFound();
   }
-
-  const stopMeta = getCourseStopMeta(course.stops);
-  const statsLabels = {
-    spotLabel: t.has("spotStat") ? t("spotStat") : "스팟",
-    floorLabelTitle: t.has("floorStat") ? t("floorStat") : "층",
-  };
 
   const boniProfile = (
     <div className="flex items-center gap-3.5">
@@ -158,11 +173,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
 
           <div className="mt-4">
             {boniProfile}
-            <CourseDetailStats
-              spotCount={stopMeta.spotCount}
-              floorLabel={stopMeta.floorLabel}
-              {...statsLabels}
-            />
+            <BoniReasonCard note={course.note} />
             <CourseDetailActions course={course} />
           </div>
         </div>
@@ -193,12 +204,7 @@ export default async function RecommendedCourseDetailPage({ params }) {
               {course.title}
             </h2>
 
-            <CourseDetailStats
-              spotCount={stopMeta.spotCount}
-              floorLabel={stopMeta.floorLabel}
-              {...statsLabels}
-            />
-
+            <BoniReasonCard note={course.note} />
             <CourseDetailActions course={course} />
           </div>
         </div>
@@ -214,81 +220,15 @@ export default async function RecommendedCourseDetailPage({ params }) {
           <CommunityStopList stops={course.stops} courseId={course.courseId} />
           <CommunityCourseDetailMap stops={course.stops} />
         </div>
-      </section>
-      </div>
-
-      {/* ── 덩어리 3: BONI NOTE + 하단 버튼 + 푸터 (한 덩어리) ── */}
-      <div className="home-snap-panel bg-surface-soft lg:flex lg:flex-col">
-      <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center">
-      {/* 4. BONI NOTE 섹션 (보니가 추천하는 이유) */}
-      <section className="bg-surface-soft px-3 py-8 sm:px-14 lg:px-52 lg:py-10 xl:px-60 2xl:px-72">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-black text-brand">BONI NOTE</p>
-              <h2 className="mt-3 text-[24px] font-black text-ink lg:text-[32px]">
-                보니가 추천하는 이유
-              </h2>
-              <p className="mt-2 text-sm font-medium text-ink-muted">
-                이 코스를 기획한 Boni가 직접 추천하는 가이드예요.
-              </p>
-            </div>
-            <Link
-              href="/courses"
-              className="text-sm font-black text-brand transition hover:text-brand-dark"
-            >
-              다른 추천 코스 둘러보기 →
-            </Link>
-          </div>
-
-          <article className="mt-6 min-w-0 rounded-[24px] bg-white p-4 shadow-[0_8px_20px_rgba(43,28,89,0.06)] sm:mt-8 sm:rounded-[28px] sm:p-5 lg:p-8">
-            <div className="flex items-center gap-4 border-b border-line/60 pb-6">
-              <BoniAvatar size="note" />
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-lg font-black text-ink">Boni</p>
-                  <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-                    AI MATE
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs font-medium text-ink-muted">
-                  초행자 · 핫플레이스 · 최적 실내 동선 기준
-                </p>
-              </div>
-            </div>
-
-            <div className="relative mt-6 flex items-start gap-4 rounded-[20px] bg-surface-soft p-5 text-sm font-medium leading-7 text-ink sm:mt-7 sm:gap-5 sm:rounded-[24px] sm:p-7 sm:text-base">
-              {/* 보니의 한마디를 인용처럼 — 짧은 노트도 비어 보이지 않게 */}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 40 40"
-                fill="currentColor"
-                className="mt-0.5 size-8 shrink-0 text-brand sm:size-9"
-                style={{ opacity: 0.3 }}
-              >
-                <path d="M17 8c-5.5 0-10 4.5-10 10v14h13V18h-6c0-3.3 1.7-5 5-5V8Zm16 0c-5.5 0-10 4.5-10 10v14h13V18h-6c0-3.3 1.7-5 5-5V8Z" />
-              </svg>
-              <p className="relative min-w-0 whitespace-pre-line leading-relaxed text-ink">
-                {course.note}
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      {/* 5. 하단 전체 목록 버튼 */}
-      <section className="bg-surface-soft px-3 pb-10 sm:px-14 lg:px-52 lg:pb-10 xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-7xl justify-center">
+        <div className="mx-auto mt-8 flex max-w-7xl justify-center sm:mt-10">
           <Link
             href="/courses"
-            className="cursor-pointer rounded-full border border-brand bg-white px-8 py-3 text-sm font-black text-brand shadow-xs transition hover:bg-brand hover:text-white"
+            className="cursor-pointer rounded-full border border-brand bg-white px-8 py-3 text-sm font-black text-brand shadow-xs transition hover:bg-brand hover:text-white sm:px-10 sm:py-3.5 sm:text-base"
           >
             코스 목록 전체보기 →
           </Link>
         </div>
       </section>
-      </div>
-      <SiteFooter embedded />
       </div>
     </HomeSnapScroller>
   );
