@@ -28,6 +28,7 @@ export function MypageCourseCard({
   onEdit,
 }) {
   const t = useTranslations("community");
+  const mypageT = useTranslations("mypage");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const mounted = useIsMounted();
@@ -132,7 +133,11 @@ export function MypageCourseCard({
       <div className="relative z-10 flex min-w-0 items-start justify-between gap-2 p-3 lg:p-4">
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xs lg:gap-2 lg:px-2.5">
           <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#5c2ef5] text-[9px] font-black leading-none whitespace-nowrap text-white shadow-xs lg:size-6 lg:rounded-lg lg:text-[11px]">
-            {course.badge === "MY COURSE" ? "ME" : course.badge === "SHARED" ? "공유" : "★"}
+            {course.badge === "MY COURSE"
+              ? "ME"
+              : course.badge === "SHARED"
+                ? mypageT("sharedBadge")
+                : "★"}
           </span>
           <span className="shrink-0 text-xs leading-none lg:text-sm">
             {getFlagEmoji(course.country || course.flag)}
@@ -143,7 +148,7 @@ export function MypageCourseCard({
             </span>
             {course.badge === "SHARED" ? null : (
               <span className="block truncate text-[10px] font-semibold text-violet-200">
-                {course.hash || "#더현대 #추천코스"}
+                {course.hash || mypageT("recommendedHash")}
               </span>
             )}
           </div>
@@ -157,7 +162,7 @@ export function MypageCourseCard({
               e.stopPropagation();
               onEdit(course);
             }}
-            title="게시글 수정"
+            title={mypageT("editPost")}
             className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-white shadow-sm backdrop-blur-xs transition hover:bg-brand"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
