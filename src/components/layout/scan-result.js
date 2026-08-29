@@ -1,14 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { resolveOcrLocationFromDataUrl } from "@/lib/navigation/resolve-ocr-location";
+import {
+  resolveOcrCandidate,
+  resolveOcrLocationFromDataUrl,
+} from "@/lib/navigation/resolve-ocr-location";
 import { useScanLocationStore } from "@/stores/use-scan-location-store";
 
 // 로고를 같은 오리진 프록시로 받는 URL. (S3 원본은 CORS가 없어 <img> 표시는
 // 되지만, 지도와 동일하게 프록시를 거쳐 일관되게 불러옵니다.)
 function logoProxyUrl(logoUrl) {
   return `/brand-logo?src=${encodeURIComponent(logoUrl)}`;
+}
+
+// "2" → "2F", "b1" → "B1", "2F" 는 그대로. 후보 층 배지 표시용.
+function candidateFloorLabel(floor) {
+  if (floor == null || floor === "") return null;
+  const text = String(floor).trim();
+  if (!text) return null;
+  if (/^\d+$/.test(text)) return `${text}F`;
+  return text.toUpperCase();
 }
 
 /**
@@ -27,12 +39,19 @@ export function ScanResult({
 }) {
   const router = useRouter();
   const setLocation = useScanLocationStore((state) => state.setLocation);
-  // "loading" | "matched" | "notfound" | "auth" | "error"
+  // "loading" | "select" | "matched" | "notfound" | "auth" | "error"
   const [status, setStatus] = useState("loading");
   const [brand, setBrand] = useState(null);
   const [mappedPlace, setMappedPlace] = useState(null);
   const [matchedLocation, setMatchedLocation] = useState(null);
+  const [candidates, setCandidates] = useState([]);
   const [error, setError] = useState(null);
+  const chooseAbortRef = useRef(null);
+
+  useEffect(
+    () => () => chooseAbortRef.current?.abort(),
+    [],
+  );
 
   useEffect(() => {
     if (!open || !image) return undefined;
@@ -45,12 +64,19 @@ export function ScanResult({
       setBrand(null);
       setMappedPlace(null);
       setMatchedLocation(null);
+      setCandidates([]);
       setError(null);
       try {
         const resolved = await resolveOcrLocationFromDataUrl(image, {
           signal: abort.signal,
         });
         if (cancelled) return;
+
+        if (resolved.requiresSelection) {
+          setCandidates(resolved.candidates ?? []);
+          setStatus("select");
+          return;
+        }
 
         if (!resolved.brand?.name) {
           setStatus("notfound");
@@ -95,6 +121,39 @@ export function ScanResult({
   function goToLogin() {
     onClose();
     router.push("/login?next=scan");
+  }
+
+  // 선택지에서 탭한 후보로 원래 진행 흐름(placeId/navigationKey → 위치)을 태웁니다.
+  async function chooseCandidate(candidate) {
+    chooseAbortRef.current?.abort();
+    const abort = new AbortController();
+    chooseAbortRef.current = abort;
+
+    setStatus("loading");
+    setError(null);
+    try {
+      const resolved = await resolveOcrCandidate(candidate, { signal: abort.signal });
+      if (abort.signal.aborted) return;
+
+      if (!resolved.brand?.name) {
+        setStatus("notfound");
+        return;
+      }
+      setMatchedLocation(resolved.location ?? null);
+      setBrand(resolved.brand);
+      setMappedPlace(resolved.place);
+      setStatus("matched");
+    } catch (err) {
+      if (abort.signal.aborted || err?.name === "AbortError") return;
+      const statusCode = Number(err?.status);
+      if (statusCode === 401 || statusCode === 403) {
+        setError("로고 스캔은 로그인 후 사용할 수 있어요.");
+        setStatus("auth");
+        return;
+      }
+      setError(err?.message || "인식에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setStatus("error");
+    }
   }
 
   return (
@@ -175,6 +234,42 @@ export function ScanResult({
                   : "닫기"}
               </button>
             </div>
+          </>
+        ) : status === "select" ? (
+          <>
+            <p className="text-lg font-black text-ink">어느 매장인가요?</p>
+            <p className="mt-1 text-sm leading-6 text-ink-subtle">
+              같은 이름의 매장이 여러 곳이에요. 지금 계신 곳을 골라주세요.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              {candidates.map((candidate, index) => {
+                const floorLabel = candidateFloorLabel(candidate.floor);
+                return (
+                  <button
+                    key={candidate.placeId ?? candidate.navigationKey ?? index}
+                    type="button"
+                    onClick={() => chooseCandidate(candidate)}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-line px-4 py-3 text-left"
+                  >
+                    <span className="truncate text-sm font-black text-ink">
+                      {candidate.name}
+                    </span>
+                    {floorLabel ? (
+                      <span className="shrink-0 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-bold text-brand">
+                        {floorLabel}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={onRescan}
+              className="mt-3 w-full rounded-full border border-line py-3 text-sm font-bold text-ink"
+            >
+              다시 스캔
+            </button>
           </>
         ) : status === "loading" ? (
           <p className="py-2 text-center text-sm text-ink-subtle">
