@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import {
   allNews,
   featuredNews,
@@ -42,11 +43,20 @@ export function formatNewsDate(dateString) {
 }
 
 const getBaseUrl = getServerApiBaseUrl;
+async function getNewsCopy() {
+  const t = await getTranslations("news");
+  return {
+    categoryFallback: t("categoryFallback"),
+    keywordCategory: (keyword) => t("keywordCategory", { keyword }),
+    keywordInsight: (keyword) => t("keywordInsight", { keyword }),
+    interactionInsight: t("interactionInsight"),
+  };
+}
 
 /**
  * 뉴스 요약 DTO -> UI 표준 객체 정규화
  */
-export function normalizeNewsSummary(item, index = 0) {
+export function normalizeNewsSummary(item, index = 0, copy = {}) {
   if (!item) return null;
   const slug =
     item.slug || (item.newsFeedId ? String(item.newsFeedId) : `news-${index}`);
@@ -65,7 +75,9 @@ export function normalizeNewsSummary(item, index = 0) {
   const category =
     item.category ||
     item.label ||
-    (keywords[0] ? `${keywords[0]} 뉴스` : "트렌드 뉴스");
+    (keywords[0]
+      ? copy.keywordCategory?.(keywords[0]) || keywords[0]
+      : copy.categoryFallback || "DITTO News");
 
   return {
     newsFeedId: item.newsFeedId,
@@ -88,7 +100,7 @@ export function normalizeNewsSummary(item, index = 0) {
 /**
  * 뉴스 상세 DTO -> UI 표준 객체 정규화
  */
-export function normalizeNewsDetail(feed) {
+export function normalizeNewsDetail(feed, copy = {}) {
   if (!feed) return null;
   const slug = feed.slug || (feed.newsFeedId ? String(feed.newsFeedId) : "");
   const rawKeywords = feed.keywords || feed.tags || [];
@@ -152,7 +164,9 @@ export function normalizeNewsDetail(feed) {
   const category =
     feed.label ||
     feed.category ||
-    (keywords[0] ? `${keywords[0]} 뉴스` : "트렌드 뉴스");
+    (keywords[0]
+      ? copy.keywordCategory?.(keywords[0]) || keywords[0]
+      : copy.categoryFallback || "DITTO News");
 
   const summaryPoints =
     summaries.length > 0
@@ -188,7 +202,9 @@ export function normalizeNewsDetail(feed) {
     navigationKey: feed.navigationKey || (feed.place && feed.place.navigationKey) || null,
     insight:
       feed.insight ||
-      (keywords[0] ? `${keywords[0]} 키워드` : "인터랙션 많은 기사"),
+      (keywords[0]
+        ? copy.keywordInsight?.(keywords[0]) || keywords[0]
+        : copy.interactionInsight || "DITTO insight"),
   };
 }
 
@@ -202,6 +218,7 @@ export async function fetchNewsFeedsServer({
   cache = "no-store",
   revalidate,
 } = {}) {
+  const copy = await getNewsCopy();
   try {
     const headers = await getServerApiHeaders({ Accept: "application/json" });
     const fetchOptions = {
@@ -219,7 +236,7 @@ export async function fetchNewsFeedsServer({
     if (res.ok) {
       const json = await res.json();
       if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map((item, i) => normalizeNewsSummary(item, i));
+        return json.data.map((item, i) => normalizeNewsSummary(item, i, copy));
       }
     }
   } catch {
@@ -227,7 +244,7 @@ export async function fetchNewsFeedsServer({
   }
 
   return [featuredNews, ...newsItems].map((item, i) =>
-    normalizeNewsSummary(item, i),
+    normalizeNewsSummary(item, i, copy),
   );
 }
 
@@ -238,6 +255,7 @@ export async function fetchNewsFeedsServer({
 export async function getNewsDetailBySlug(slug) {
   if (!slug) return null;
 
+  const copy = await getNewsCopy();
   try {
     const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(
@@ -251,7 +269,7 @@ export async function getNewsDetailBySlug(slug) {
     if (res.ok) {
       const json = await res.json();
       if (json?.success && json.data) {
-        return normalizeNewsDetail(json.data);
+        return normalizeNewsDetail(json.data, copy);
       }
     }
   } catch {
@@ -260,7 +278,7 @@ export async function getNewsDetailBySlug(slug) {
 
   const fixture = getFixtureNewsBySlug(slug);
   if (fixture) {
-    return normalizeNewsDetail(fixture);
+    return normalizeNewsDetail(fixture, copy);
   }
 
   return null;
@@ -273,6 +291,7 @@ export async function getNewsDetailBySlug(slug) {
 export async function getNewsDetailById(newsId) {
   if (!newsId) return null;
 
+  const copy = await getNewsCopy();
   try {
     const headers = await getServerApiHeaders({ Accept: "application/json" });
     const res = await fetch(`${getBaseUrl()}/api/v1/news/${newsId}`, {
@@ -283,7 +302,7 @@ export async function getNewsDetailById(newsId) {
     if (res.ok) {
       const json = await res.json();
       if (json?.success && json.data) {
-        return normalizeNewsDetail(json.data);
+        return normalizeNewsDetail(json.data, copy);
       }
     }
   } catch {
@@ -291,7 +310,7 @@ export async function getNewsDetailById(newsId) {
   }
 
   const found = allNews.find((n) => String(n.newsFeedId) === String(newsId));
-  return found ? normalizeNewsDetail(found) : null;
+  return found ? normalizeNewsDetail(found, copy) : null;
 }
 
 /**
@@ -334,5 +353,8 @@ export async function getRelatedNewsList(currentSlug) {
   if (filtered.length > 0) {
     return filtered.slice(0, 3);
   }
-  return getFixtureRelatedNews(currentSlug).map((f) => normalizeNewsSummary(f));
+  const copy = await getNewsCopy();
+  return getFixtureRelatedNews(currentSlug).map((feed) =>
+    normalizeNewsSummary(feed, 0, copy),
+  );
 }

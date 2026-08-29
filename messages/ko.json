@@ -32,7 +32,9 @@
     "mypage": "마이페이지",
     "likedCourses": "내가 좋아요한 커뮤니티 코스",
     "dittoHome": "DITTO 홈",
-    "preferences": "국가·언어 선택"
+    "preferences": "국가·언어 선택",
+    "admin": "관리자",
+    "adminPage": "관리자 페이지"
   },
   "footer": {
     "service": "서비스",
@@ -103,6 +105,15 @@
     "communityTitle": "지금 인기 있는 커스텀 코스",
     "communityDescription": "다른 여행자들이 직접 만들고 공유한 코스를 확인해보세요.",
     "browseCommunity": "커뮤니티 둘러보기",
+    "communityDesktopTitle": "누군가의 여행이, 나의 다음 코스가 되도록.",
+    "communityDesktopDescription": "각국의 여행자들이 직접 걷고 남긴 코스를 만나보세요.",
+    "travelerCourseBadge": "여행자가 직접 걸은 코스",
+    "communityCourseFallbackDescription": "이 코스를 직접 다녀온 작성자의 후기를 확인해보세요.",
+    "authorReviewLabel": "작성자가 남긴 후기",
+    "authorReviewFallback": "이 코스를 직접 다녀온 작성자의 후기가 곧 추가될 예정이에요.",
+    "customizeCourse": "커스텀하기",
+    "popularCommunitySlide": "인기 커스텀 코스 {index} 보기",
+    "emptyCommunityCourses": "아직 공유된 커스텀 코스가 없습니다.",
     "courseListItem": "{index}번째 코스 목록 보기",
     "like": "좋아요",
     "comment": "댓글",
@@ -158,7 +169,16 @@
     "viewLargePhoto": "사진 크게 보기",
     "createCourse": "코스 생성하기",
     "previousPage": "이전 페이지",
-    "nextPage": "다음 페이지"
+    "nextPage": "다음 페이지",
+    "storeDetailsAndDirections": "매장 상세 및 길찾기",
+    "source": "출처",
+    "sourcePublisherYonhap": "연합뉴스",
+    "relatedCoursePrompt": "{keyword} 관련한 코스 생성해줘",
+    "defaultCoursePrompt": "K-컬처 추천 코스 생성해줘",
+    "relatedCourseTitle": "{keyword} 관련 코스 생성하기",
+    "keywordCategory": "{keyword} 뉴스",
+    "keywordInsight": "{keyword} 키워드",
+    "interactionInsight": "인터랙션 많은 기사"
   },
   "auth": {
     "welcomeBack": "다시 오셨네요",

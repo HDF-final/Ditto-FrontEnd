@@ -102,9 +102,6 @@ body {
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
   }
 
   .home-hero-copy {
@@ -133,7 +130,6 @@ body {
     height: 100%;
     min-height: 100%;
     overflow: hidden;
-    scroll-snap-align: start;
   }
 
   .home-content-boundary {
@@ -265,10 +261,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-snap {
-    scroll-behavior: auto;
-  }
-
   .boni-float {
     animation: none;
   }

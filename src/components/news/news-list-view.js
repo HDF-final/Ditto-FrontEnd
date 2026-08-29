@@ -2,8 +2,10 @@
 
 import { NewsFeaturedCard } from "@/components/news/news-featured-card";
 import { NewsFeed } from "@/components/news/news-feed";
+import { useTranslations } from "next-intl";
 
 export function NewsListView({ feeds = [] }) {
+  const t = useTranslations("news");
   const items = Array.isArray(feeds) ? feeds : [];
   const featured = items[0] || null;
   const feedItems = items.length > 1 ? items.slice(1) : [];
@@ -16,10 +18,10 @@ export function NewsListView({ feeds = [] }) {
             DITTO NEWSLETTER
           </p>
           <h1 className="mt-1 text-[22px] font-black tracking-tight text-ink lg:text-[32px]">
-            뉴스피드
+            {t("title")}
           </h1>
           <p className="mt-1 text-[13px] text-ink-muted lg:text-base">
-            K-컬처와 브랜드, 그리고 우리 사회에 선한 변화를 만드는 소식.
+            {t("description")}
           </p>
         </div>
         {featured ? <NewsFeaturedCard news={featured} /> : null}

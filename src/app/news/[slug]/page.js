@@ -147,12 +147,9 @@ export default async function NewsDetailPage({ params }) {
   const tags = news.tags || news.keywords || [];
   const primaryTag = tags[0] || categoryLabel || "";
   const coursePrompt = primaryTag
-    ? `${primaryTag} 관련한 코스 생성해줘`
-    : "K-컬처 추천 코스 생성해줘";
-  const createCourseLabel =
-    typeof t?.has === "function" && t.has("createCourse")
-      ? t("createCourse")
-      : "코스 생성하기";
+    ? t("relatedCoursePrompt", { keyword: primaryTag })
+    : t("defaultCoursePrompt");
+  const createCourseLabel = t("createCourse");
 
   return (
     <main className="bg-surface-soft min-h-screen">
@@ -279,14 +276,14 @@ export default async function NewsDetailPage({ params }) {
                   (p.includes("출처:") || p.includes(news.sourceUrl)),
               ) ? (
                 <div className="pt-2 text-xs sm:text-sm font-medium text-ink-muted">
-                  출처:{" "}
+                  {t("source")}:{" "}
                   <a
                     href={news.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-bold text-brand underline decoration-brand/40 underline-offset-4 transition hover:text-brand-dark hover:decoration-brand inline-flex items-center gap-1"
                   >
-                    연합뉴스
+                    {t("sourcePublisherYonhap")}
                     <svg
                       aria-hidden="true"
                       className="inline size-3.5"
@@ -310,14 +307,14 @@ export default async function NewsDetailPage({ params }) {
                   {tags.map((tag, index) => (
                     <Link
                       key={tag}
-                      href={`/ai-course?prompt=${encodeURIComponent(`${tag} 관련한 코스 생성해줘`)}`}
+                      href={`/ai-course?prompt=${encodeURIComponent(t("relatedCoursePrompt", { keyword: tag }))}`}
                       className={[
                         "rounded-control px-2.5 py-1 text-[11px] font-black transition-all hover:scale-105 active:scale-95 cursor-pointer lg:px-5 lg:py-2 lg:text-xs",
                         index === 0
                           ? "bg-brand text-white shadow-sm hover:bg-brand-dark"
                           : "bg-brand-soft text-brand hover:bg-brand-soft/80",
                       ].join(" ")}
-                      title={`${tag} 관련 코스 생성하기`}
+                      title={t("relatedCourseTitle", { keyword: tag })}
                     >
                       #{tag}
                     </Link>
