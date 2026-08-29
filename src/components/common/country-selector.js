@@ -22,21 +22,29 @@ export function CountrySelector({ showCountry = true, variant = "default" }) {
   );
   const setCountryCode = usePreferenceStore((state) => state.setCountryCode);
   const setLanguageCode = usePreferenceStore((state) => state.setLanguageCode);
+  const hydratePreferences = usePreferenceStore(
+    (state) => state.hydratePreferences,
+  );
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  async function savePreferences(nextPreferences, commit) {
+  async function savePreferences(nextPreferences, previousPreferences, commit) {
     setIsSaving(true);
     setError("");
+
+    // Apply the visible preference first. The API client reads the same cookies,
+    // while refresh re-renders server components with the newly selected locale.
+    commit();
+    router.refresh();
 
     try {
       if (isAuthenticated) {
         await updateMyPreferences(nextPreferences);
       }
-      commit();
-      router.refresh();
     } catch (requestError) {
+      hydratePreferences(previousPreferences);
+      router.refresh();
       setError(requestError?.message || t("saveError"));
     } finally {
       setIsSaving(false);
@@ -68,7 +76,7 @@ export function CountrySelector({ showCountry = true, variant = "default" }) {
                 currentPreferences,
                 nextCountryCode,
               );
-              savePreferences(nextPreferences, () =>
+              savePreferences(nextPreferences, currentPreferences, () =>
                 setCountryCode(nextCountryCode),
               );
             }}
@@ -96,7 +104,7 @@ export function CountrySelector({ showCountry = true, variant = "default" }) {
               },
               currentPreferences,
             );
-            savePreferences(nextPreferences, () =>
+            savePreferences(nextPreferences, currentPreferences, () =>
               setLanguageCode(nextLanguageCode),
             );
           }}

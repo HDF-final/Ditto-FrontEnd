@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
+  const t = useTranslations("mypage");
   const persona = profile.persona;
 
   return (
@@ -64,7 +68,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
               }}
               className="w-full cursor-pointer rounded-full border px-4 py-2.5 text-xs sm:text-sm font-black transition-all hover:opacity-90 lg:w-auto lg:px-5 lg:py-2 shadow-xs whitespace-nowrap text-center"
             >
-              프로필 편집
+              {t("editProfile")}
             </button>
             {onLogoutClick ? (
               <button
@@ -72,7 +76,7 @@ export function MypageProfile({ profile, stats, onEditClick, onLogoutClick }) {
                 onClick={onLogoutClick}
                 className="hidden lg:inline-flex cursor-pointer rounded-full border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink-muted transition-all hover:border-brand hover:text-brand lg:px-5 lg:py-2 shadow-xs whitespace-nowrap shrink-0"
               >
-                로그아웃
+                {t("logout")}
               </button>
             ) : null}
           </div>

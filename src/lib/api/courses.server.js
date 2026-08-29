@@ -1,5 +1,6 @@
 import { getServerApiBaseUrl } from "./server-base-url";
 import { getServerApiHeaders } from "./server-language";
+import { getTranslations } from "next-intl/server";
 
 const GRADIENTS = [
   "from-[#5c2ef5] to-[#8c57fa]",
@@ -72,14 +73,17 @@ export async function fetchRawSystemCoursesServer({ size = 20, country } = {}) {
 }
 
 export async function fetchSystemCoursesServer({ size = 3 } = {}) {
-  const validCourses = await fetchRawSystemCoursesServer({ size });
+  const [validCourses, t] = await Promise.all([
+    fetchRawSystemCoursesServer({ size }),
+    getTranslations("home"),
+  ]);
 
   return validCourses.map((c, i) => {
     const rawTags = Array.isArray(c.places) && c.places.length > 0
       ? c.places.map((p) => p.name.replace(/^#/, "")).slice(0, 2)
       : Array.isArray(c.tags)
         ? c.tags.map((t) => t.replace(/^#/, "")).slice(0, 2)
-        : ["더현대", "DITTO"];
+        : [t("defaultTagHyundai"), t("defaultTagDitto")];
 
     const engTitle = c.englishTitle || (c.name ? c.name.toUpperCase() : `TOP ${i + 1} COURSE`);
 
@@ -87,8 +91,8 @@ export async function fetchSystemCoursesServer({ size = 3 } = {}) {
       courseId: c.courseId ?? c.id,
       rank: `TOP ${i + 1}`,
       englishTitle: engTitle,
-      title: c.name || c.title || "기본 추천 코스",
-      description: c.description || "DITTO가 엄선한 추천 코스입니다.",
+      title: c.name || c.title || t("defaultRecommendedTitle"),
+      description: c.description || t("defaultRecommendedDescription"),
       tags: rawTags,
       places: Array.isArray(c.places) ? c.places : [],
       href: c.courseId

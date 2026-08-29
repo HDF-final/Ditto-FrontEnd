@@ -20,7 +20,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
   useEffect(() => {
     let active = true;
     if (initialCourses.length > 0) {
-      return;
+      return undefined;
     }
     getSystemCourses({ page: 0, size: 50 })
       .then((data) => {
@@ -36,7 +36,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
               ? c.places.map((p) => p.name.replace(/^#/, "")).slice(0, 2)
               : Array.isArray(c.tags)
                 ? c.tags.map((t) => t.replace(/^#/, "")).slice(0, 2)
-                : ["더현대", "DITTO"];
+                : [t("defaultTagHyundai"), t("defaultTagDitto")];
 
             const engTitle = c.englishTitle || (c.name ? c.name.toUpperCase() : `TOP ${i + 1} COURSE`);
 
@@ -44,8 +44,8 @@ export function DittoPicksSection({ initialCourses = [] }) {
               courseId: c.courseId ?? c.id,
               rank: `TOP ${i + 1}`,
               englishTitle: engTitle,
-              title: c.name || c.title || "기본 추천 코스",
-              description: c.description || "DITTO가 엄선한 추천 코스입니다.",
+              title: c.name || c.title || t("defaultRecommendedTitle"),
+              description: c.description || t("defaultRecommendedDescription"),
               tags: rawTags,
               places: Array.isArray(c.places) ? c.places : [],
               href: c.slug
@@ -74,9 +74,10 @@ export function DittoPicksSection({ initialCourses = [] }) {
     return () => {
       active = false;
     };
-  }, [initialCourses]);
+  }, [initialCourses, t]);
 
-  const displayCourses = systemCourses.length > 0 ? systemCourses : initialCourses;
+  const displayCourses =
+    initialCourses.length > 0 ? initialCourses : systemCourses;
 
   return (
     <section
@@ -106,7 +107,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
               ))
             ) : (
               <div className="col-span-3 rounded-2xl border border-dashed border-line bg-white p-8 text-center text-sm font-medium text-ink-muted">
-                등록된 기본 추천 코스가 없습니다.
+                {t("emptyRecommended")}
               </div>
             )}
           </div>

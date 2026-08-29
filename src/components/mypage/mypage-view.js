@@ -5,6 +5,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
 import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
@@ -23,10 +24,16 @@ import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
 import { MypageCourseCarousel } from "@/components/mypage/mypage-course-carousel";
 import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
-import { mypageTabs } from "@/lib/fixtures/mypage";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 
 const ITEMS_PER_PAGE = 3;
+const TAB_IDS = ["mine", "shared", "liked", "saved"];
+const TAB_TRANSLATION_KEYS = {
+  mine: "myCourses",
+  shared: "sharedCourses",
+  liked: "likedCourses",
+  saved: "savedCourses",
+};
 
 function normalizePage(data) {
   if (Array.isArray(data)) {
@@ -43,7 +50,7 @@ function normalizePage(data) {
   };
 }
 
-function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러버") {
+function normalizeSharedCourses(publicPosts, userCourses, userName, t) {
   const userCourseMap = new Map();
   (userCourses || []).forEach((c) => {
     userCourseMap.set(Number(c.courseId || c.id || c.postId), c);
@@ -62,7 +69,9 @@ function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러�
       const stops = linkedCourse?.stops || [];
       const spotCount =
         linkedCourse?.spotCount ||
-        (stops.length > 0 ? `${stops.length}개 스팟` : "맞춤 코스");
+        (stops.length > 0
+          ? t("spotCount", { count: stops.length })
+          : t("customCourse"));
 
       return {
         id: post.postId,
@@ -71,15 +80,15 @@ function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러�
         slug: String(post.postId),
         href: `/community/${post.postId}`,
         badge: "SHARED",
-        name: userName,
+        name: userName || t("defaultUser"),
         country: "KR",
         flag: "KR",
-        hash: "#공유한코스 #더현대",
-        title: post.title || linkedCourse?.title || "공유한 코스",
+        hash: t("sharedHash"),
+        title: post.title || linkedCourse?.title || t("sharedCourse"),
         description:
           post.content ||
           linkedCourse?.description ||
-          "커뮤니티에 공유한 코스입니다.",
+          t("sharedCourseDescription"),
         image:
           (Array.isArray(post.imageUrls) && post.imageUrls[0]) ||
           linkedCourse?.image ||
@@ -94,7 +103,7 @@ function normalizeSharedCourses(publicPosts, userCourses, userName = "디또러�
     });
 }
 
-async function hydrateMyCourses(data, userName = "디또러버") {
+async function hydrateMyCourses(data, userName, t) {
   const page = normalizePage(data);
   const details = await Promise.allSettled(
     page.content.map((course) => getCourseDetail(course.courseId)),
@@ -116,18 +125,18 @@ async function hydrateMyCourses(data, userName = "디또러버") {
       const description =
         places.length > 0
           ? places.map((p) => p.name).join(" → ")
-          : `더현대 서울 · ${placeCount}개 스팟 맞춤 코스`;
+          : t("myCourseLocationDescription", { count: placeCount });
 
       return {
         id: course.courseId,
         postId: course.courseId,
         href: `/ai-course?courseId=${course.courseId}&from=mypage`,
         badge: "MY COURSE",
-        name: userName,
+        name: userName || t("defaultUser"),
         country: "KR",
         flag: "KR",
-        hash: "#나만의코스 #더현대",
-        title: detail?.name || course.name || "나만의 코스",
+        hash: t("myCourseHash"),
+        title: detail?.name || course.name || t("untitledCourse"),
         description,
         image:
           detail?.representativeImageUrl ||
@@ -136,17 +145,17 @@ async function hydrateMyCourses(data, userName = "디또러버") {
         likes: 0,
         comments: 0,
         saves: 0,
-        spotCount: `${placeCount}개 스팟`,
+        spotCount: t("spotCount", { count: placeCount }),
         stops: places.map((place) => ({
-          floor: place.floorCode || "층 정보 없음",
-          name: place.name || "이름 없는 장소",
+          floor: place.floorCode || t("floorUnknown"),
+          name: place.name || t("unnamedPlace"),
         })),
       };
     }),
   };
 }
 
-function normalizeBookmarks(data) {
+function normalizeBookmarks(data, t) {
   const page = normalizePage(data);
   return {
     totalElements: page.totalElements,
@@ -164,15 +173,16 @@ function normalizeBookmarks(data) {
         slug: fixture?.slug || String(postId),
         href: `/community/${fixture?.slug || postId}`,
         badge: "BOOKMARK",
-        name: fixture?.name || "여행자",
+        name: fixture?.name || t("traveler"),
         country: fixture?.country || "KR",
         flag: fixture?.flag || "KR",
-        hash: fixture?.hash || "#인기코스 #더현대",
-        title: bookmark.title || fixture?.title || "추천 커뮤니티 코스",
+        hash: fixture?.hash || t("popularCourseHash"),
+        title:
+          bookmark.title || fixture?.title || t("recommendedCommunityCourse"),
         description:
           bookmark.description ||
           fixture?.description ||
-          "더현대 서울 맞춤 추천 코스",
+          t("recommendedCommunityDescription"),
         image:
           fixture?.image ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
@@ -187,6 +197,8 @@ function normalizeBookmarks(data) {
 
 export function MypageView() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("mypage");
   const authUser = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setUser = useAuthStore((state) => state.setUser);
@@ -218,7 +230,7 @@ export function MypageView() {
   const [bookmarks, setBookmarks] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
-  const [activeTab, setActiveTab] = useState("내 코스");
+  const [activeTab, setActiveTab] = useState("mine");
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -255,7 +267,7 @@ export function MypageView() {
     if (!postToEdit) return;
     const targetId = postToEdit.postId || postToEdit.id;
     if (!editTitle.trim()) {
-      alert("게시글 제목을 입력해주세요.");
+      alert(t("postTitleRequired"));
       return;
     }
     setIsEditingPost(true);
@@ -298,7 +310,7 @@ export function MypageView() {
       );
       setPostToEdit(null);
     } catch (err) {
-      alert(err.message || "게시글 수정에 실패했습니다.");
+      alert(err.message || t("postEditFailed"));
     } finally {
       setIsEditingPost(false);
     }
@@ -310,13 +322,14 @@ export function MypageView() {
     async function loadMypageData() {
       setLoading(true);
       setLoadError("");
-      let currentUserName = "사토 유키";
+      let currentUserName = t("defaultUser");
       try {
         const userProfile = await getMyProfile();
         if (isMounted && userProfile) {
           setProfile(userProfile);
           setUser(userProfile);
-          currentUserName = userProfile.nickname || userProfile.name || "사토 유키";
+          currentUserName =
+            userProfile.nickname || userProfile.name || t("defaultUser");
         } else if (isMounted) {
           setUser();
         }
@@ -339,7 +352,11 @@ export function MypageView() {
           let hydratedCourses = [];
 
           if (myCoursesResult.status === "fulfilled") {
-            const hydrated = await hydrateMyCourses(myCoursesResult.value, currentUserName);
+            const hydrated = await hydrateMyCourses(
+              myCoursesResult.value,
+              currentUserName,
+              t,
+            );
             if (!isMounted) return;
             hydratedCourses = hydrated.courses;
             setCourses(hydrated.courses);
@@ -347,7 +364,7 @@ export function MypageView() {
           } else {
             setCourses([]);
             setCourseTotal(0);
-            failures.push("내 코스");
+            failures.push(t("myCourses"));
           }
 
           if (publicCoursesResult.status === "fulfilled") {
@@ -361,6 +378,7 @@ export function MypageView() {
                 publicList,
                 hydratedCourses,
                 currentUserName,
+                t,
               ),
             );
           } else {
@@ -368,22 +386,22 @@ export function MypageView() {
           }
 
           if (bookmarksResult.status === "fulfilled") {
-            const normalized = normalizeBookmarks(bookmarksResult.value);
+            const normalized = normalizeBookmarks(bookmarksResult.value, t);
             setBookmarks(normalized.bookmarks);
           } else {
             setBookmarks([]);
-            failures.push("저장한 코스");
+            failures.push(t("savedCourses"));
           }
 
           setLoadError(
             failures.length > 0
-              ? `${failures.join(", ")} 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.`
+              ? t("partialLoadFailed", { lists: failures.join(", ") })
               : "",
           );
         }
       } catch {
         if (isMounted) {
-          setLoadError("코스 목록을 불러오지 못했어요. 잠시 후 새로고침해주세요.");
+          setLoadError(t("loadFailed"));
         }
       } finally {
         if (isMounted) {
@@ -397,7 +415,7 @@ export function MypageView() {
     return () => {
       isMounted = false;
     };
-  }, [setUser]);
+  }, [setUser, t]);
 
   // If not logged in after loading, redirect to /login immediately
   useEffect(() => {
@@ -477,10 +495,10 @@ export function MypageView() {
 
   // Displayed courses list based on active tab
   const displayedCourses = useMemo(() => {
-    if (activeTab === "내 코스") return courses;
-    if (activeTab === "공유한 코스") return sharedCourses;
-    if (activeTab === "찜한 코스") return likedCourses;
-    if (activeTab === "저장한 코스") return bookmarkedCourses;
+    if (activeTab === "mine") return courses;
+    if (activeTab === "shared") return sharedCourses;
+    if (activeTab === "liked") return likedCourses;
+    if (activeTab === "saved") return bookmarkedCourses;
     return [];
   }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
 
@@ -501,11 +519,11 @@ export function MypageView() {
   };
 
   const renderCourseCard = (course) => {
-    if (activeTab === "내 코스") {
+    if (activeTab === "mine") {
       return <MyCoursePrivateCard course={course} />;
     }
 
-    if (activeTab === "공유한 코스") {
+    if (activeTab === "shared") {
       return (
         <MypageCourseCard
           course={course}
@@ -543,7 +561,7 @@ export function MypageView() {
       <main className="flex min-h-[60vh] items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
-          <p className="text-xs font-bold text-ink-muted">마이페이지 불러오는 중...</p>
+          <p className="text-xs font-bold text-ink-muted">{t("loading")}</p>
         </div>
       </main>
     );
@@ -562,7 +580,7 @@ export function MypageView() {
     currentUser.shoppingType ||
     currentUser.personaType ||
     "openrun";
-  const personaData = getPersonaById(personaRaw);
+  const personaData = getPersonaById(personaRaw, locale);
 
   const personaImage =
     currentUser.profileImageUrl ||
@@ -572,8 +590,10 @@ export function MypageView() {
     personaData.imageSrc;
 
   const displayProfile = {
-    name: currentUser.nickname || currentUser.name || "디또러버",
-    description: currentUser.description || `${currentUser.country || "한국"} · DITTO 탐험가`,
+    name: currentUser.nickname || currentUser.name || t("defaultUser"),
+    description:
+      currentUser.description ||
+      `${currentUser.country || t("defaultCountry")} · ${t("explorer")}`,
     persona: {
       id: personaData.id,
       name: personaData.name,
@@ -595,44 +615,41 @@ export function MypageView() {
   };
 
   const displayStats = [
-    { value: courseTotal.toLocaleString("ko-KR"), label: "만든 코스" },
-    { value: sharedCourses.length.toLocaleString("ko-KR"), label: "공유한 코스" },
-    { value: likedCourses.length.toLocaleString("ko-KR"), label: "찜한 코스" },
-    { value: bookmarkedCourses.length.toLocaleString("ko-KR"), label: "저장한 코스" },
+    { value: courseTotal.toLocaleString(locale), label: t("createdCourses") },
+    { value: sharedCourses.length.toLocaleString(locale), label: t("sharedCourses") },
+    { value: likedCourses.length.toLocaleString(locale), label: t("likedCourses") },
+    { value: bookmarkedCourses.length.toLocaleString(locale), label: t("savedCourses") },
   ];
 
+  const tabs = TAB_IDS.map((id) => ({
+    id,
+    label: t(TAB_TRANSLATION_KEYS[id]),
+  }));
+
   const emptyState = {
-    "내 코스": {
-      title: "아직 생성한 코스가 없어요",
-      description: "AI 추천 또는 직접 추가로 나만의 첫 코스를 만들어보세요!",
-      actionLabel: "+ 코스 만들러 가기",
+    mine: {
+      title: t("emptyMineTitle"),
+      description: t("emptyMineDescription"),
+      actionLabel: t("createCourse"),
       actionHref: "/ai-course",
     },
-    "공유한 코스": {
-      title: "아직 커뮤니티에 공유한 코스가 없어요",
-      description: "내가 만든 맞춤 코스를 여행자 커뮤니티에 공유해보세요!",
-      actionLabel: "코스 공유하러 가기",
+    shared: {
+      title: t("emptySharedTitle"),
+      description: t("emptySharedDescription"),
+      actionLabel: t("shareCourse"),
       actionHref: "/community/share",
     },
-    "찜한 코스": {
-      title: "아직 찜한(좋아요한) 코스가 없어요",
-      description: "커뮤니티에서 마음에 드는 코스를 찾아 좋아요를 눌러보세요.",
-      actionLabel: "커뮤니티 둘러보기",
+    liked: {
+      title: t("emptyLikedTitle"),
+      description: t("emptyLikedDescription"),
+      actionLabel: t("browseCommunity"),
       actionHref: "/community",
     },
-    "저장한 코스": {
-      title: "아직 저장한(북마크한) 코스가 없어요",
-      description: "커뮤니티에서 마음에 드는 코스를 찾아 북마크로 저장해보세요.",
-      actionLabel: "커뮤니티 둘러보기",
+    saved: {
+      title: t("emptySavedTitle"),
+      description: t("emptySavedDescription"),
+      actionLabel: t("browseCommunity"),
       actionHref: "/community",
-    },
-    후기: {
-      title: "아직 작성한 후기가 없어요",
-      description: "방문한 코스의 후기를 남기면 이곳에서 확인할 수 있어요.",
-    },
-    활동: {
-      title: "아직 표시할 활동이 없어요",
-      description: "DITTO에서 코스를 만들고 커뮤니티에 참여해보세요.",
     },
   }[activeTab];
 
@@ -646,19 +663,19 @@ export function MypageView() {
       />
       <section className="min-w-0 overflow-x-hidden px-4 py-5 sm:px-8 sm:py-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-52 lg:py-6 xl:px-60 2xl:px-72">
         <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] lg:mb-5 lg:gap-[22px] lg:overflow-visible [&::-webkit-scrollbar]:hidden">
-          {mypageTabs.map((tab) => {
+          {tabs.map((tab) => {
             return (
               <button
-                key={tab}
+                key={tab.id}
                 type="button"
-                onClick={() => handleTabChange(tab)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`-mb-px flex shrink-0 cursor-pointer items-center gap-1.5 border-b-2 pb-2.5 text-[13px] font-black transition lg:pb-3.5 lg:text-[15px] ${
-                  activeTab === tab
+                  activeTab === tab.id
                     ? "border-brand text-brand"
                     : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                <span>{tab}</span>
+                <span>{tab.label}</span>
               </button>
             );
           })}
@@ -703,7 +720,7 @@ export function MypageView() {
                         ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
                         : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
                     }`}
-                    aria-label="이전 페이지"
+                    aria-label={t("previousPage")}
                   >
                     ‹
                   </button>
@@ -737,7 +754,7 @@ export function MypageView() {
                         ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
                         : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
                     }`}
-                    aria-label="다음 페이지"
+                    aria-label={t("nextPage")}
                   >
                     ›
                   </button>
@@ -794,9 +811,9 @@ export function MypageView() {
             aria-modal="true"
             className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
           >
-            <h3 className="text-base font-black text-ink">로그인이 필요합니다</h3>
+            <h3 className="text-base font-black text-ink">{t("loginRequired")}</h3>
             <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-              좋아요 및 코스 저장 기능을 이용하시려면 먼저 로그인해주세요.
+              {t("loginRequiredDescription")}
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button
@@ -804,7 +821,7 @@ export function MypageView() {
                 onClick={() => setIsLoginModalOpen(false)}
                 className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
               >
-                취소
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -814,7 +831,7 @@ export function MypageView() {
                 }}
                 className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
               >
-                로그인하기 →
+                {t("login")}
               </button>
             </div>
           </div>
@@ -836,7 +853,7 @@ export function MypageView() {
             className="max-h-[90vh] w-full max-w-[500px] overflow-y-auto rounded-[28px] bg-white p-7 text-left shadow-2xl animate-in zoom-in-95 duration-150"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-ink">공유한 코스 수정</h3>
+              <h3 className="text-lg font-black text-ink">{t("editSharedCourse")}</h3>
               <button
                 type="button"
                 onClick={() => setPostToEdit(null)}
@@ -849,13 +866,13 @@ export function MypageView() {
             <form onSubmit={handleConfirmEditPost} className="mt-5 flex flex-col gap-4">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-ink">
-                  게시글 제목
+                  {t("postTitle")}
                 </label>
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="코스 제목을 입력하세요"
+                  placeholder={t("postTitlePlaceholder")}
                   required
                   className="w-full rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-bold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
                 />
@@ -863,13 +880,13 @@ export function MypageView() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-ink">
-                  후기 및 코스 설명
+                  {t("reviewDescription")}
                 </label>
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   rows={3}
-                  placeholder="코스에 대한 후기나 팁을 작성하세요"
+                  placeholder={t("reviewPlaceholder")}
                   className="w-full resize-none rounded-xl border border-line bg-surface-soft px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
                 />
               </div>
@@ -877,10 +894,10 @@ export function MypageView() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="block text-xs font-bold text-ink">
-                    첨부 사진
+                    {t("attachedPhotos")}
                   </label>
                   <span className="text-[11px] font-medium text-ink-muted">
-                    {editPhotos.length}/10장
+                    {t("photoCount", { count: editPhotos.length })}
                   </span>
                 </div>
 
@@ -903,7 +920,7 @@ export function MypageView() {
                       +
                     </span>
                     <span className="mt-1 text-[11px] font-bold text-ink">
-                      사진 추가
+                      {t("addPhoto")}
                     </span>
                   </button>
 
@@ -914,18 +931,18 @@ export function MypageView() {
                     >
                       <img
                         src={photoUrl}
-                        alt={`첨부 사진 ${idx + 1}`}
+                        alt={t("attachedPhotoAlt", { number: idx + 1 })}
                         className="h-full w-full object-cover"
                       />
                       {idx === 0 && (
                         <span className="pointer-events-none absolute bottom-1 left-1 rounded bg-brand/90 px-1 py-0.5 text-[9px] font-black text-white">
-                          대표
+                          {t("coverPhoto")}
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={() => handleRemoveEditPhoto(idx)}
-                        aria-label="사진 삭제"
+                        aria-label={t("deletePhoto")}
                         className="absolute right-1 top-1 flex size-5 cursor-pointer items-center justify-center rounded-full bg-black/70 text-xs font-bold leading-none text-white shadow-sm transition hover:bg-red-500"
                       >
                         ✕
@@ -942,14 +959,14 @@ export function MypageView() {
                   onClick={() => setPostToEdit(null)}
                   className="flex-1 cursor-pointer rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink transition hover:bg-line disabled:opacity-50"
                 >
-                  취소
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isEditingPost}
                   className="flex-1 cursor-pointer rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs transition hover:bg-brand-dark disabled:opacity-50"
                 >
-                  {isEditingPost ? "저장 중..." : "수정 완료"}
+                  {isEditingPost ? t("saving") : t("editComplete")}
                 </button>
               </div>
             </form>

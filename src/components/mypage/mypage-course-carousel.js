@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const ITEMS_PER_PAGE = 2;
 
@@ -18,6 +19,7 @@ export function MypageCourseCarousel({
   accentColor = "#5c2ef5",
   getItemKey,
 }) {
+  const t = useTranslations("mypage");
   const scrollerRef = useRef(null);
   const activePageRef = useRef(0);
   const [activePage, setActivePage] = useState(0);
@@ -137,7 +139,7 @@ export function MypageCourseCarousel({
                 ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
                 : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
             }`}
-            aria-label="이전 코스"
+            aria-label={t("previousCourse")}
           >
             ‹
           </button>
@@ -149,7 +151,7 @@ export function MypageCourseCarousel({
                 <button
                   key={`course-dot-${pageIndex}`}
                   type="button"
-                  aria-label={`${pageIndex + 1}페이지`}
+                  aria-label={t("page", { page: pageIndex + 1 })}
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => scrollToPage(pageIndex)}
                   style={{
@@ -174,7 +176,7 @@ export function MypageCourseCarousel({
                 ? "cursor-not-allowed border border-line bg-white/50 text-ink-muted/40"
                 : "cursor-pointer border border-line bg-white text-ink shadow-xs hover:border-line-strong"
             }`}
-            aria-label="다음 코스"
+            aria-label={t("nextCourse")}
           >
             ›
           </button>

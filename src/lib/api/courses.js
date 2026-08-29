@@ -34,6 +34,29 @@ export async function getCourses({ type = "SYSTEM", page = 0, size = 20 } = {}) 
 }
 
 export async function getSystemCourses({ page = 0, size = 20 } = {}) {
+  try {
+    const recommended = await requestData(
+      apiClient.get("/courses/recommended", { params: { page, size } }),
+    );
+    const list = Array.isArray(recommended?.content)
+      ? recommended.content
+      : Array.isArray(recommended)
+        ? recommended
+        : [];
+    if (list.length > 0) {
+      return list.map((course) => ({
+        ...course,
+        creationType: "SYSTEM",
+        image: course.imageUrl || course.image || null,
+        places: Array.isArray(course.placeNames)
+          ? course.placeNames.map((name) => ({ name }))
+          : course.places || [],
+      }));
+    }
+  } catch {
+    // Fall through to legacy endpoints while older backends are still deployed.
+  }
+
   // 1. Try direct API endpoints
   const directEndpoints = [
     "/courses?type=SYSTEM",
