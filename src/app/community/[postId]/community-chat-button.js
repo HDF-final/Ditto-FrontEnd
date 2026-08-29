@@ -22,33 +22,6 @@ import {
 } from "@/lib/api/community";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 
-const fallbackChatMessages = [
-  {
-    commentId: "fallback-1",
-    nickname: "Yuki_T",
-    isAuthor: true,
-    content: "워터폴 가든은 오전에 가면 사람이 적어서 사진 찍기 정말 좋아요!",
-    createdAt: "2026-08-18T10:14:00Z",
-    likes: 12,
-  },
-  {
-    commentId: "fallback-2",
-    nickname: "lujah1213",
-    isAuthor: false,
-    content: "5F 사운즈 포레스트에서 쉬다가 B2로 내려가는 동선 진짜 꿀팁이네요 ㅎㅎ",
-    createdAt: "2026-08-18T15:20:00Z",
-    likes: 5,
-  },
-  {
-    commentId: "fallback-3",
-    nickname: "Emma_R",
-    isAuthor: false,
-    content: "B2 크리에이티브 그라운드는 팝업 일정 미리 확인하고 가면 더 알차게 구경할 수 있어요 ✨",
-    createdAt: "2026-08-18T18:31:00Z",
-    likes: 8,
-  },
-];
-
 function formatTimeAgo(dateStr, t) {
   if (!dateStr) return t("justNow");
   try {
