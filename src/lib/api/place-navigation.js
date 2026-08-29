@@ -1,5 +1,6 @@
 import apiClient from "./client";
 import { requestData } from "./api-response";
+import { getImageUrl } from "../courses/image-url";
 
 export function getNavigablePlaces() {
   return requestData(apiClient.get("/places/navigation"));
@@ -16,7 +17,7 @@ export function normalizePlaceNavigation(place) {
     navigationKey: place.navigationKey ?? place.navigation_key ?? null,
     name: place.name ?? place.placeName ?? place.place_name ?? null,
     floorCode: place.floorCode ?? place.floor_code ?? place.floor ?? null,
-    imageUrl: place.imageUrl ?? place.image_url ?? null,
+    imageUrl: getImageUrl(place),
     description: place.description ?? place.desc ?? null,
     category: place.category ?? null,
   };

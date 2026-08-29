@@ -211,6 +211,20 @@ export function normalizePublicCourseCard(post) {
     hash,
     title: post.title,
     description: post.content || "",
+    createdAt:
+      post.createdAt ||
+      post.created_at ||
+      post.createdDate ||
+      post.created_date ||
+      post.regDate ||
+      post.reg_date,
+    updatedAt:
+      post.updatedAt ||
+      post.updated_at ||
+      post.modifiedAt ||
+      post.modified_at ||
+      post.updatedDate ||
+      post.updated_date,
     image,
     images: uploadedImages,
     imageItems,
@@ -279,6 +293,20 @@ export function normalizePublicCourseDetail(detail) {
     hash: "#공개코스 #더현대서울",
     title: detail.title,
     description: detail.content,
+    createdAt:
+      detail.createdAt ||
+      detail.created_at ||
+      detail.createdDate ||
+      detail.created_date ||
+      detail.regDate ||
+      detail.reg_date,
+    updatedAt:
+      detail.updatedAt ||
+      detail.updated_at ||
+      detail.modifiedAt ||
+      detail.modified_at ||
+      detail.updatedDate ||
+      detail.updated_date,
     image,
     images: uploadedImages,
     imageItems,
@@ -431,6 +459,12 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
                 ...(detail.user || {}),
                 ...(summary.user || {}),
               };
+              detail.likeCount = summary.likeCount ?? detail.likeCount;
+              detail.bookmarkCount =
+                summary.bookmarkCount ?? detail.bookmarkCount;
+              detail.commentCount = summary.commentCount ?? detail.commentCount;
+              detail.createdAt = summary.createdAt ?? detail.createdAt;
+              detail.updatedAt = summary.updatedAt ?? detail.updatedAt;
             }
           } catch (error) {
             console.warn(

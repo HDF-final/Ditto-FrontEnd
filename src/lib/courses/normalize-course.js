@@ -9,6 +9,7 @@
 // **상대경로다.** `@/` 별칭은 Next 빌드만 풀 수 있어, 별칭을 쓰면 `node --test` 가
 // 이 모듈을 못 읽는다 (tests/ 의 다른 검사들이 읽는 lib 모듈도 전부 그래서 별칭이 없다).
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "../community/default-course-images.js";
+import { getImageUrl } from "./image-url.js";
 
 const DEFAULT_SYSTEM_COURSE_IDS = ["1", "122", "21", "22", "23"];
 
@@ -50,7 +51,7 @@ export function normalizeCourse(rawCourse, slug) {
   // 이유가 없는 코스(예전에 손으로 올린 것)는 `null` 이라 일반 모달 그대로다.
   const stops = rawPlaces.map((p, idx) => {
     const reason = p.recommendationReason || p.reason || null;
-    const image = p.imageUrl || p.image || p.placeImg || null;
+    const image = getImageUrl(p);
     return {
       placeId: p.placeId,
       floor: p.floorCode || p.floor || `${idx + 1}F`,
@@ -71,12 +72,7 @@ export function normalizeCourse(rawCourse, slug) {
   // 차례로 고른 것이라 목록 카드와 같은 사진이다. 나머지는 예전 응답 모양을 받치는 것이고,
   // 전부 비면 그때 기본 이미지로 떨어진다.
   const image =
-    rawCourse.imageUrl ||
-    rawCourse.representativeImageUrl ||
-    rawCourse.image ||
-    rawCourse.thumbnailUrl ||
-    rawCourse.coverImageUrl ||
-    rawCourse.mainImageUrl ||
+    getImageUrl(rawCourse) ||
     getDefaultCourseImage(rawCourse, slug);
 
   const gradient =

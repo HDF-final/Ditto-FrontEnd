@@ -21,11 +21,14 @@ const tabs = ["popular", "latest"];
 const MOBILE_ITEMS_PER_PAGE = 2;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
-function CommunityCard({ card, rank, onAuthRequired }) {
-  const t = useTranslations("community");
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+function readLikeCount(response) {
+  if (typeof response?.likesCount === "number") return response.likesCount;
+  if (typeof response?.likeCount === "number") return response.likeCount;
+  if (typeof response?.likes === "number") return response.likes;
+  return null;
+}
 
+function getCommunityCardIdentity(card, rank) {
   const postId =
     card.postId ||
     card.courseId ||
@@ -33,15 +36,56 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     (typeof card.slug === "number" || /^\d+$/.test(card.slug)
       ? Number(card.slug)
       : rank || 1);
+  const slugKey = card.slug ? String(card.slug) : "";
+  const numKey = String(card.postId || postId || rank || "1");
 
+  return {
+    postId,
+    slugKey,
+    numKey,
+    cardKey: `${slugKey}:${numKey}`,
+  };
+}
+
+function readStoredLikesDelta(likesDeltaMap, slugKey, numKey) {
+  return (
+    (slugKey && likesDeltaMap?.[slugKey]) ||
+    (numKey && likesDeltaMap?.[numKey]) ||
+    0
+  );
+}
+
+function getDisplayLikeCount(card, {
+  rank,
+  likesDeltaMap = {},
+  confirmedLikesByKey = {},
+} = {}) {
+  const { slugKey, numKey, cardKey } = getCommunityCardIdentity(card, rank);
+  const confirmedLikes = confirmedLikesByKey[cardKey];
+  const baseLikes =
+    typeof confirmedLikes === "number" ? confirmedLikes : (card.likes ?? 0);
+  const likesDelta = readStoredLikesDelta(likesDeltaMap, slugKey, numKey);
+
+  return Math.max(0, baseLikes + likesDelta);
+}
+
+function CommunityCard({
+  card,
+  rank,
+  confirmedLikes,
+  onAuthRequired,
+  onLikeConfirmed,
+}) {
+  const t = useTranslations("community");
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  const { postId, slugKey, numKey, cardKey } = getCommunityCardIdentity(card, rank);
   const href = `/community/${card.postId || card.slug || rank || "1"}`;
   const mounted = useIsMounted();
   const getPostAuthor = useCommunityPostAuthorsStore(
     (state) => state.getPostAuthor,
   );
-
-  const slugKey = card.slug ? String(card.slug) : "";
-  const numKey = String(card.postId || postId || rank || "1");
 
   const image = card.image || null;
   const localAuthor = mounted
@@ -67,6 +111,9 @@ function CommunityCard({ card, rank, onAuthRequired }) {
     state.getLikesDelta(slugKey, numKey),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
@@ -75,7 +122,8 @@ function CommunityCard({ card, rank, onAuthRequired }) {
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
-  const baseLikes = card.likes ?? 0;
+  const baseLikes =
+    typeof confirmedLikes === "number" ? confirmedLikes : (card.likes ?? 0);
   const likesCount = Math.max(0, baseLikes + likesDelta);
   const baseSaves = card.saves ?? 0;
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
@@ -92,8 +140,14 @@ function CommunityCard({ card, rank, onAuthRequired }) {
 
     if (postId) {
       try {
-        if (nextState) await likeCourse(postId);
-        else await unlikeCourse(postId);
+        const response = nextState
+          ? await likeCourse(postId)
+          : await unlikeCourse(postId);
+        const serverLikeCount = readLikeCount(response);
+        if (serverLikeCount !== null) {
+          onLikeConfirmed?.(cardKey, serverLikeCount);
+          clearLikesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Card Like] error:", err);
       }
@@ -259,6 +313,8 @@ export function CommunityCoursePage({
   const [activeTab, setActiveTab] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [confirmedLikesByKey, setConfirmedLikesByKey] = useState({});
+  const likesDeltaMap = useCommunityInteractionsStore((state) => state.likesDelta);
   const pageTitle = isAuthorFiltered
     ? authorFilterName
       ? `${authorFilterName}님의 공유 코스`
@@ -285,8 +341,30 @@ export function CommunityCoursePage({
       return [...initialCards].sort((a, b) => (b.postId ?? 0) - (a.postId ?? 0));
     }
     // 기본값: 인기순
-    return [...initialCards].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
-  }, [initialCards, activeTab]);
+    const activeLikesDeltaMap = mounted ? likesDeltaMap : {};
+
+    return [...initialCards].sort((a, b) => {
+      const likeDiff =
+        getDisplayLikeCount(b, {
+          likesDeltaMap: activeLikesDeltaMap,
+          confirmedLikesByKey,
+        }) -
+        getDisplayLikeCount(a, {
+          likesDeltaMap: activeLikesDeltaMap,
+          confirmedLikesByKey,
+        });
+      if (likeDiff !== 0) return likeDiff;
+
+      return (b.postId ?? 0) - (a.postId ?? 0);
+    });
+  }, [initialCards, activeTab, mounted, likesDeltaMap, confirmedLikesByKey]);
+
+  const handleLikeConfirmed = (cardKey, likesCount) => {
+    setConfirmedLikesByKey((prev) => ({
+      ...prev,
+      [cardKey]: likesCount,
+    }));
+  };
 
   // 탭 변경 시 1페이지로 리셋
   const handleTabChange = (tab) => {
@@ -378,7 +456,13 @@ export function CommunityCoursePage({
                     <CommunityCard
                       card={card}
                       rank={actualRank}
+                      confirmedLikes={
+                        confirmedLikesByKey[
+                          getCommunityCardIdentity(card, actualRank).cardKey
+                        ]
+                      }
                       onAuthRequired={() => setIsLoginModalOpen(true)}
+                      onLikeConfirmed={handleLikeConfirmed}
                     />
                   </div>
                 );

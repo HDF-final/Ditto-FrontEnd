@@ -78,6 +78,19 @@ export const useCommunityInteractionsStore = create(
         });
       },
 
+      clearLikesDelta: (id1, id2) => {
+        if (!id1 && !id2) return;
+        const k1 = id1 ? String(id1) : "";
+        const k2 = id2 ? String(id2) : "";
+
+        set((state) => {
+          const nextDelta = { ...state.likesDelta };
+          if (k1) delete nextDelta[k1];
+          if (k2) delete nextDelta[k2];
+          return { likesDelta: nextDelta };
+        });
+      },
+
       setBookmarked: (id1, value, id2) => {
         if (!id1 && !id2) return;
         const k1 = id1 ? String(id1) : "";

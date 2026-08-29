@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -19,28 +19,192 @@ import { CommunityChatButton } from "./community-chat-button";
 import { CommunityShareButton } from "./community-share-button";
 import { useTranslations } from "next-intl";
 
-export function CommunityDetailActions({ course = {} }) {
-  const t = useTranslations("community");
-  const router = useRouter();
-
-  // 이 컴포넌트는 모바일/데스크톱 히어로에서 두 번 렌더된다. 그라디언트 id가 같으면
-  // url(#id) 는 문서 첫 정의를 잡는데, 그게 lg:hidden(display:none) 블록 안이면
-  // 스파클이 칠해지지 않는다. 인스턴스마다 고유 id 로 갈라 준다.
-  const sparkleUid = useId();
-  const likeGradId = `communityLikeSparkleGradient-${sparkleUid}`;
-  const likeHighlightId = `communityLikeSparkleHighlight-${sparkleUid}`;
-  const likeIdleId = `communityLikeSparkleIdle-${sparkleUid}`;
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const currentUser = useAuthStore((state) => state.user);
-  const mounted = useIsMounted();
-
-  const postId =
+function getCommunityPostId(course = {}) {
+  return (
     course.postId ||
     course.courseId ||
     course.id ||
-    (typeof course.slug === "number" || /^\d+$/.test(course.slug)
+    (typeof course.slug === "number" || /^\d+$/.test(String(course.slug || ""))
       ? Number(course.slug)
-      : 1);
+      : 1)
+  );
+}
+
+export function CommunityOwnerControls({ course = {} }) {
+  const router = useRouter();
+  const currentUser = useAuthStore((state) => state.user);
+  const mounted = useIsMounted();
+  const postId = getCommunityPostId(course);
+  const [liveDetail, setLiveDetail] = useState(null);
+  const [liveSummary, setLiveSummary] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+
+  useEffect(() => {
+    if (!postId) return;
+
+    getPublicCourse(postId)
+      .then((detail) => setLiveDetail(detail))
+      .catch(() => {});
+
+    getPublicCourses({ page: 0, size: 100 })
+      .then((pageData) => {
+        const content = Array.isArray(pageData?.content)
+          ? pageData.content
+          : [];
+        const matched = content.find(
+          (post) => String(post?.postId) === String(postId),
+        );
+        if (matched) setLiveSummary(matched);
+      })
+      .catch(() => {});
+  }, [postId]);
+
+  const isOwner =
+    mounted &&
+    Boolean(currentUser) &&
+    (isCommunityPostOwner(course, currentUser) ||
+      isCommunityPostOwner(liveDetail, currentUser) ||
+      isCommunityPostOwner(liveSummary, currentUser));
+
+  async function handleDeletePost() {
+    if (!postId || isDeletingPost) return;
+
+    setIsDeletingPost(true);
+    try {
+      await deleteCoursePost(postId);
+      setIsDeleteModalOpen(false);
+      router.push("/community");
+      router.refresh();
+    } catch (err) {
+      alert(err?.message || "게시글 삭제에 실패했습니다.");
+    } finally {
+      setIsDeletingPost(false);
+    }
+  }
+
+  if (!isOwner) return null;
+
+  return (
+    <>
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.push(`/community/${postId}/edit`)}
+          className="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-brand-soft px-3.5 text-xs font-black text-brand transition hover:bg-[#e9dfff] sm:px-4"
+        >
+          <svg
+            className="size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+          수정
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsDeleteModalOpen(true)}
+          disabled={isDeletingPost}
+          className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-black transition sm:px-4 ${
+            isDeletingPost
+              ? "cursor-not-allowed bg-red-50 text-red-300"
+              : "cursor-pointer bg-[#fff2f2] text-red-500 hover:bg-[#ffe6e6]"
+          }`}
+        >
+          <svg
+            className="size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M6 6l1 16h10l1-16" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+          </svg>
+          {isDeletingPost ? "삭제 중" : "삭제"}
+        </button>
+      </div>
+
+      {isDeleteModalOpen ? (
+        <div
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-[#17131f]/65 px-5 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingPost) {
+              setIsDeleteModalOpen(false);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="community-delete-title"
+            className="w-full max-w-[360px] rounded-[28px] bg-white p-6 text-center shadow-[0_28px_80px_rgba(18,14,34,0.35)] animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto mb-4 flex size-13 items-center justify-center rounded-full bg-[#fff2f2] text-red-500">
+              <svg
+                className="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M6 6l1 16h10l1-16" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </div>
+            <h3 id="community-delete-title" className="text-lg font-black text-ink">
+              게시글을 삭제할까요?
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+              삭제한 커뮤니티 게시글과 사진은 다시 복구할 수 없어요.
+            </p>
+            <div className="mt-6 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeletingPost}
+                className="h-11 flex-1 cursor-pointer rounded-full border border-line bg-surface-soft text-sm font-black text-ink transition hover:bg-line disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleDeletePost}
+                disabled={isDeletingPost}
+                className="h-11 flex-1 cursor-pointer rounded-full bg-red-500 text-sm font-black text-white shadow-[0_12px_28px_rgba(239,68,68,0.24)] transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
+              >
+                {isDeletingPost ? "삭제 중..." : "삭제하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export function CommunityDetailActions({ course = {} }) {
+  const t = useTranslations("community");
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const mounted = useIsMounted();
+  const postId = getCommunityPostId(course);
 
   const postIdentifier = String(course.postId || course.slug || postId || "1");
   const customizeCourseId =
@@ -57,14 +221,11 @@ export function CommunityDetailActions({ course = {} }) {
         ? course.likeCount
         : 0,
   );
-  const [liveDetail, setLiveDetail] = useState(null);
-  const [liveSummary, setLiveSummary] = useState(null);
 
   useEffect(() => {
     if (postId) {
       getPublicCourse(postId)
         .then((detail) => {
-          setLiveDetail(detail);
           const count =
             typeof detail?.likeCount === "number"
               ? detail.likeCount
@@ -72,18 +233,6 @@ export function CommunityDetailActions({ course = {} }) {
                 ? detail.likes
                 : null;
           if (count !== null) setLiveLikes(count);
-        })
-        .catch(() => {});
-
-      getPublicCourses({ page: 0, size: 100 })
-        .then((pageData) => {
-          const content = Array.isArray(pageData?.content)
-            ? pageData.content
-            : [];
-          const matched = content.find(
-            (post) => String(post?.postId) === String(postId),
-          );
-          if (matched) setLiveSummary(matched);
         })
         .catch(() => {});
     }
@@ -110,14 +259,6 @@ export function CommunityDetailActions({ course = {} }) {
   const baseLikes = liveLikes;
   const likesCount = Math.max(0, baseLikes + likesDelta);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeletingPost, setIsDeletingPost] = useState(false);
-  const isOwner =
-    mounted &&
-    Boolean(currentUser) &&
-    (isCommunityPostOwner(course, currentUser) ||
-      isCommunityPostOwner(liveDetail, currentUser) ||
-      isCommunityPostOwner(liveSummary, currentUser));
 
   async function handleLikeToggle() {
     if (!isAuthenticated) {
@@ -165,22 +306,6 @@ export function CommunityDetailActions({ course = {} }) {
     }
   }
 
-  async function handleDeletePost() {
-    if (!postId || isDeletingPost) return;
-
-    setIsDeletingPost(true);
-    try {
-      await deleteCoursePost(postId);
-      setIsDeleteModalOpen(false);
-      router.push("/community");
-      router.refresh();
-    } catch (err) {
-      alert(err?.message || "게시글 삭제에 실패했습니다.");
-    } finally {
-      setIsDeletingPost(false);
-    }
-  }
-
   return (
     <>
       <div className="mt-5 flex min-w-0 flex-col gap-3 sm:max-w-[560px]">
@@ -189,72 +314,24 @@ export function CommunityDetailActions({ course = {} }) {
             type="button"
             onClick={handleLikeToggle}
             aria-label={t("like")}
-            className={`inline-flex size-12 cursor-pointer items-center justify-center rounded-full border transition ${
+            className={`inline-flex size-11 cursor-pointer items-center justify-center rounded-full border transition ${
               isLiked
-                ? "border-[#eadcff] bg-white shadow-[0_10px_24px_rgba(154,116,255,0.26)] hover:bg-[#fbf8ff]"
-                : "border-[#ebe5fb] bg-[#fbf9ff] text-white shadow-[0_8px_18px_rgba(108,84,180,0.08)] hover:border-brand/30 hover:bg-brand-soft/20"
+                ? "border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
+                : "border-line bg-white text-ink-muted hover:border-brand/40 hover:bg-brand-soft/30 hover:text-brand"
             }`}
           >
             <svg
-              className={`size-8 drop-shadow-[0_5px_7px_rgba(137,112,212,0.23)] transition-transform ${isLiked ? "scale-105" : ""}`}
+              className={`size-[17px] transition-transform ${isLiked ? "scale-105" : ""}`}
               viewBox="0 0 24 24"
               fill="none"
               strokeLinejoin="round"
               strokeLinecap="round"
             >
-              <defs>
-                <linearGradient
-                  id={likeGradId}
-                  x1="3"
-                  y1="2"
-                  x2="21"
-                  y2="22"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop offset="0%" stopColor="#b99cff" />
-                  <stop offset="42%" stopColor="#6d36ff" />
-                  <stop offset="100%" stopColor="#4b18d8" />
-                </linearGradient>
-                <radialGradient
-                  id={likeHighlightId}
-                  cx="35%"
-                  cy="28%"
-                  r="55%"
-                >
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                  <stop offset="48%" stopColor="#ffffff" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient
-                  id={likeIdleId}
-                  x1="4"
-                  y1="3"
-                  x2="20"
-                  y2="21"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop offset="0%" stopColor="#c8b7ff" />
-                  <stop offset="48%" stopColor="#8f67ff" />
-                  <stop offset="100%" stopColor="#6d36ff" />
-                </linearGradient>
-              </defs>
               <path
-                d="M12 1.55C13.38 7.02 16.98 10.62 22.45 12 16.98 13.38 13.38 16.98 12 22.45 10.62 16.98 7.02 13.38 1.55 12 7.02 10.62 10.62 7.02 12 1.55Z"
-                fill={
-                  isLiked ? `url(#${likeGradId})` : `url(#${likeIdleId})`
-                }
-                opacity={isLiked ? "1" : "0.92"}
-              />
-              <path
-                d="M12 3.25C13.02 7.32 15.6 9.82 19.95 12 15.6 14.18 13.02 16.68 12 20.75 10.98 16.68 8.4 14.18 4.05 12 8.4 9.82 10.98 7.32 12 3.25Z"
-                fill={`url(#${likeHighlightId})`}
-                opacity={isLiked ? "0.9" : "0.55"}
-              />
-              <path
-                d="M7.25 11.55C9.2 10.95 10.95 8.95 12 5.8c1.05 3.15 2.8 5.15 4.75 5.75"
-                stroke="#ffffff"
-                strokeWidth="0.85"
-                opacity={isLiked ? "0.75" : "0.52"}
+                d="M12 21.35 10.62 20.1C5.72 15.66 2.5 12.74 2.5 9.15 2.5 6.23 4.79 3.95 7.7 3.95c1.64 0 3.22.76 4.3 1.96 1.08-1.2 2.66-1.96 4.3-1.96 2.91 0 5.2 2.28 5.2 5.2 0 3.59-3.22 6.51-8.12 10.96L12 21.35Z"
+                fill={isLiked ? "currentColor" : "#FFFFFF"}
+                stroke="currentColor"
+                strokeWidth="2.2"
               />
             </svg>
             <span className="sr-only">
@@ -316,61 +393,6 @@ export function CommunityDetailActions({ course = {} }) {
           <CommunityChatButton course={course} variant="secondary" />
         </div>
 
-        {isOwner ? (
-          <div className="mt-1 flex min-w-0 items-center justify-between gap-3 rounded-[20px] border border-[#ece6fb] bg-white/90 px-3 py-2 shadow-[0_14px_34px_rgba(88,64,154,0.08)] sm:w-fit sm:self-start">
-            <span className="hidden text-[11px] font-bold text-ink-muted sm:inline">
-              내 게시글 관리
-            </span>
-            <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-              <button
-                type="button"
-                onClick={() => router.push(`/community/${postId}/edit`)}
-                className="inline-flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-brand-soft px-4 text-xs font-black text-brand transition hover:bg-[#e9dfff] sm:flex-none"
-              >
-                <svg
-                  className="size-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-                수정
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsDeleteModalOpen(true)}
-                disabled={isDeletingPost}
-                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-xs font-black transition sm:flex-none ${
-                  isDeletingPost
-                    ? "cursor-not-allowed bg-red-50 text-red-300"
-                    : "cursor-pointer bg-[#fff2f2] text-red-500 hover:bg-[#ffe6e6]"
-                }`}
-              >
-                <svg
-                  className="size-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4h8v2" />
-                  <path d="M6 6l1 16h10l1-16" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                </svg>
-                {isDeletingPost ? "삭제 중" : "삭제"}
-              </button>
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {/* 로그인 필요 알림 모달 */}
@@ -428,65 +450,6 @@ export function CommunityDetailActions({ course = {} }) {
         </div>
       ) : null}
 
-      {isDeleteModalOpen ? (
-        <div
-          className="fixed inset-0 z-[140] flex items-center justify-center bg-[#17131f]/65 px-5 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isDeletingPost) {
-              setIsDeleteModalOpen(false);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="community-delete-title"
-            className="w-full max-w-[360px] rounded-[28px] bg-white p-6 text-center shadow-[0_28px_80px_rgba(18,14,34,0.35)] animate-in zoom-in-95 duration-150"
-          >
-            <div className="mx-auto mb-4 flex size-13 items-center justify-center rounded-full bg-[#fff2f2] text-red-500">
-              <svg
-                className="size-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M8 6V4h8v2" />
-                <path d="M6 6l1 16h10l1-16" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-              </svg>
-            </div>
-            <h3 id="community-delete-title" className="text-lg font-black text-ink">
-              게시글을 삭제할까요?
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              삭제한 커뮤니티 게시글과 사진은 다시 복구할 수 없어요.
-            </p>
-            <div className="mt-6 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDeleteModalOpen(false)}
-                disabled={isDeletingPost}
-                className="h-11 flex-1 cursor-pointer rounded-full border border-line bg-surface-soft text-sm font-black text-ink transition hover:bg-line disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={handleDeletePost}
-                disabled={isDeletingPost}
-                className="h-11 flex-1 cursor-pointer rounded-full bg-red-500 text-sm font-black text-white shadow-[0_12px_28px_rgba(239,68,68,0.24)] transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
-              >
-                {isDeletingPost ? "삭제 중..." : "삭제하기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 }
