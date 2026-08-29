@@ -27,6 +27,7 @@ export function ScanMapView() {
         className="max-lg:!absolute max-lg:!inset-0 max-lg:!h-full max-lg:!min-h-full absolute inset-0 h-full min-h-full w-full"
         initialView="all"
         variant="scan"
+        fitPreset="scan-mobile"
         showUserLocation
       />
 

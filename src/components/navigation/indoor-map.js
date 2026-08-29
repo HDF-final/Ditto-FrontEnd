@@ -157,7 +157,7 @@ const OVERVIEW_ROOM_LIFT = 2.3;
 const OVERVIEW_VERTICAL_BIAS = -0.1;
 const SCAN_VERTICAL_BIAS = -0.02;
 const OVERVIEW_MIN_ZOOM = 0.18;
-const OVERVIEW_MAX_ZOOM = 12;
+const OVERVIEW_MAX_ZOOM = 48;
 const SCAN_CAMERA_FIT = {
   // Fill the full-screen scan canvas: chips at the top, place card overlaid at
   // the bottom. Slight over-fill so the stack reads large instead of floating
@@ -174,18 +174,26 @@ const SCAN_MOBILE_CAMERA_FIT = {
   // Pull the default overview back slightly and keep a small horizontal margin.
   // Frame the floor plates themselves so layer labels on the right do not tug
   // the stack left of centre.
-  fill: 0.88,
+  fill: 0.98,
   verticalBias: -0.08,
   horizontalBias: 0.013,
   centerPlates: true,
-  pad: 18,
+  pad: 10,
+  // 출발/내 위치 층을 가운데 두고 위·아래까지 약 3개 층이 보이게 맞춥니다.
+  focusStart: true,
+  focusZoomBoost: 1.5,
+  focusFloorZoomBoost: 1.2,
 };
 const COURSE_MOBILE_CAMERA_FIT = {
-  fill: 0.96,
+  fill: 0.92,
   verticalBias: -0.01,
   topHud: 52,
   bottomHud: 18,
-  pad: 10,
+  pad: 8,
+  // 출발 층을 가운데 두고 위·아래까지 약 3개 층이 보이게 맞춥니다.
+  focusStart: true,
+  focusZoomBoost: 1.05,
+  focusFloorZoomBoost: 1.2,
 };
 const COURSE_DETAIL_FOCUS_CAMERA_FIT = {
   fill: 0.96,
@@ -304,6 +312,22 @@ function overviewViewBasis() {
   return { forward, right, up };
 }
 
+function projectViewExtents(min, max, cameraPosition, right, up) {
+  let maxX = 0;
+  let maxY = 0;
+  for (const x of [min.x, max.x]) {
+    for (const y of [min.y, max.y]) {
+      for (const z of [min.z, max.z]) {
+        const point = new THREE.Vector3(x, y, z);
+        const offset = point.sub(cameraPosition);
+        maxX = Math.max(maxX, Math.abs(offset.dot(right)));
+        maxY = Math.max(maxY, Math.abs(offset.dot(up)));
+      }
+    }
+  }
+  return { maxX, maxY };
+}
+
 function fitOverviewCamera(floors, viewport, options = {}) {
   const bounds = collectFloorBounds(floors);
   const plateBounds = options.centerPlates
@@ -311,22 +335,15 @@ function fitOverviewCamera(floors, viewport, options = {}) {
     : bounds;
   const { min, max } = bounds;
   const center = plateBounds.center;
-  const position = center.clone().add(OVERVIEW_CAMERA_OFFSET);
   const { right, up } = overviewViewBasis();
-  const viewX = (point) => point.clone().sub(position).dot(right);
-  const viewY = (point) => point.clone().sub(position).dot(up);
-
-  let maxX = 0;
-  let maxY = 0;
-  for (const x of [min.x, max.x]) {
-    for (const y of [min.y, max.y]) {
-      for (const z of [min.z, max.z]) {
-        const point = new THREE.Vector3(x, y, z);
-        maxX = Math.max(maxX, Math.abs(viewX(point)));
-        maxY = Math.max(maxY, Math.abs(viewY(point)));
-      }
-    }
-  }
+  const stackPosition = center.clone().add(OVERVIEW_CAMERA_OFFSET);
+  const { maxX: stackMaxX } = projectViewExtents(
+    min,
+    max,
+    stackPosition,
+    right,
+    up,
+  );
 
   const singleFloorStack = floors.length === 1;
   const fewFloors = floors.length <= 2;
@@ -353,26 +370,69 @@ function fitOverviewCamera(floors, viewport, options = {}) {
           : singleFloorStack
             ? 0.78
             : 0.86;
-  const fill = Math.min(options.fill ?? stackFill, stackFill);
+  // 모바일 지도는 건물 전체를 담지 않습니다. focusStart 이면 출발/내 위치
+  // (없으면 스택 중앙)를 가운데 두고 위·아래 포함 약 3개 층이 보이게 맞춥니다.
+  const focusPoint = options.focusPoint ?? null;
+  const closeUp = Boolean(options.focusStart);
+  const fill = closeUp
+    ? (options.fill ?? stackFill)
+    : Math.min(options.fill ?? stackFill, stackFill);
+
+  let framedCenter;
+  let fitMin = min;
+  let fitMax = max;
+  let zoomBoost = 1;
+
+  if (closeUp) {
+    framedCenter = (focusPoint ?? center).clone();
+    const aspect = floors[0]?.aspect ?? DEFAULT_ASPECT_RATIO;
+    const gap =
+      floors.length >= 2
+        ? Math.abs(floors[1].y - floors[0].y)
+        : TIER_GAP;
+    const halfX = FLOOR_WIDTH * 0.46;
+    const halfZ = FLOOR_WIDTH * aspect * 0.46;
+    const halfY = gap * 1.15;
+    fitMin = new THREE.Vector3(
+      framedCenter.x - halfX,
+      framedCenter.y - halfY,
+      framedCenter.z - halfZ,
+    );
+    fitMax = new THREE.Vector3(
+      framedCenter.x + halfX,
+      framedCenter.y + halfY,
+      framedCenter.z + halfZ,
+    );
+    zoomBoost = options.focusZoomBoost ?? 1;
+  } else {
+    framedCenter = center
+      .clone()
+      .add(right.clone().multiplyScalar(stackMaxX * 2 * horizontalBias));
+    framedCenter.y += (max.y - min.y) * verticalBias;
+  }
+
+  const position = framedCenter.clone().add(OVERVIEW_CAMERA_OFFSET);
+  const { maxX, maxY } = projectViewExtents(
+    fitMin,
+    fitMax,
+    position,
+    right,
+    up,
+  );
   const zoom = THREE.MathUtils.clamp(
     Math.min(
       fitW / (2 * Math.max(maxX, 0.01)),
       fitH / (2 * Math.max(maxY, 0.01)),
-    ) * fill,
+    ) *
+      fill *
+      zoomBoost,
     OVERVIEW_MIN_ZOOM,
     OVERVIEW_MAX_ZOOM,
   );
 
-  // Re-centre vertically: nudge the framing point up the Y axis so the deck sits
-  // dead-centre instead of riding high with empty space beneath it.
-  const framedCenter = center
-    .clone()
-    .add(right.clone().multiplyScalar((maxX * 2) * horizontalBias));
-  framedCenter.y += (max.y - min.y) * verticalBias;
-
   return {
     target: framedCenter,
-    position: framedCenter.clone().add(OVERVIEW_CAMERA_OFFSET),
+    position,
     zoom,
   };
 }
@@ -1302,6 +1362,7 @@ function MapCamera({
   resetSignal,
   onReady,
   fitPreset = "course",
+  focusPoint = null,
   overviewFocusPoint = null,
 }) {
   const { size, gl } = useThree();
@@ -1320,7 +1381,12 @@ function MapCamera({
   const singleFloor = viewMode === "floor" ? visibleFloors[0] : null;
   const focusY = singleFloor?.y ?? 0;
   const viewportReady = size.width >= 8 && size.height >= 8;
-  const fitOptions = getCameraFitOptions(fitPreset);
+  const baseFitOptions = getCameraFitOptions(fitPreset);
+  // 모바일 프리셋은 핀이 없어도 close-up 합니다. 핀이 있으면 그 좌표를 중심에 둡니다.
+  const fitOptions =
+    baseFitOptions?.focusStart
+      ? { ...baseFitOptions, ...(focusPoint ? { focusPoint } : {}) }
+      : baseFitOptions;
   const overviewFit =
     !singleFloor && visibleFloors.length && viewportReady
       ? fitOverviewCamera(
@@ -1340,6 +1406,10 @@ function MapCamera({
     (scanFit
       ? (scanFit.pad ?? 0) * 2 + (scanFit.topHud ?? 0) + (scanFit.bottomHud ?? 0)
       : 0);
+  const singleFloorFocusBoost =
+    singleFloor && scanFit?.focusStart
+      ? (scanFit.focusFloorZoomBoost ?? 1.2)
+      : 1;
   const targetZoom = singleFloor
     ? Math.max(
         2.4,
@@ -1348,11 +1418,17 @@ function MapCamera({
           (Math.max(160, singleFloorFitH) * (scanFit ? 0.94 : 0.84)) /
             (FLOOR_WIDTH * singleFloorAspectRatio),
         ),
-      )
+      ) * singleFloorFocusBoost
     : (overviewFocusZoom ?? overviewFit?.zoom ?? 2.2);
-  const focusKey = overviewFocusPoint
+  // 좌표가 바뀌면 배율이 같아도 다시 프레이밍하도록 presetKey 에 포함합니다.
+  // 기본 클로즈업(focusPoint)과 선택된 스팟 포커스(overviewFocusPoint)를 함께 반영합니다.
+  const closeUpKey = fitOptions?.focusPoint
+    ? `${fitOptions.focusPoint.x.toFixed(1)},${fitOptions.focusPoint.y.toFixed(1)},${fitOptions.focusPoint.z.toFixed(1)}`
+    : "none";
+  const overviewFocusKey = overviewFocusPoint
     ? `${overviewFocusPoint.x.toFixed(3)},${overviewFocusPoint.y.toFixed(3)},${overviewFocusPoint.z.toFixed(3)}`
     : "none";
+  const focusKey = `${closeUpKey}|${overviewFocusKey}`;
   const presetKey = `${viewMode}:${visibleFloors
     .map((floor) => `${floor.id}@${floor.y}`)
     .join(",")}:${size.width}x${size.height}:${targetZoom.toFixed(4)}:${focusKey}:${resetSignal}`;
@@ -1364,15 +1440,21 @@ function MapCamera({
     if (!singleFloor && !overviewFit) return false;
 
     const hasOverviewFocus = !singleFloor && overviewFocusPoint;
+    const floorFocusX = singleFloor ? (fitOptions?.focusPoint?.x ?? 0) : 0;
+    const floorFocusZ = singleFloor ? (fitOptions?.focusPoint?.z ?? 0) : 0;
     const target = hasOverviewFocus
       ? overviewFocusPoint.clone()
       : singleFloor || !overviewFit
-        ? new THREE.Vector3(0, focusY, 0)
+        ? new THREE.Vector3(floorFocusX, focusY, floorFocusZ)
         : overviewFit.target.clone();
     const position = hasOverviewFocus
       ? overviewFocusPoint.clone().add(OVERVIEW_CAMERA_OFFSET)
       : singleFloor || !overviewFit
-        ? new THREE.Vector3(0, focusY + FLOOR_CAMERA_HEIGHT, 0.001)
+        ? new THREE.Vector3(
+            floorFocusX,
+            focusY + FLOOR_CAMERA_HEIGHT,
+            floorFocusZ + 0.001,
+          )
         : overviewFit.position.clone();
 
     applyingPresetRef.current = true;
@@ -1561,7 +1643,7 @@ function MapCamera({
         minAzimuthAngle={-Infinity}
         maxAzimuthAngle={Infinity}
         minZoom={OVERVIEW_MIN_ZOOM}
-        maxZoom={34}
+        maxZoom={OVERVIEW_MAX_ZOOM}
         rotateSpeed={0.62}
         zoomSpeed={0.72}
         mouseButtons={
@@ -1630,6 +1712,46 @@ function FloorStack({
     });
   }, [floorsWithAspect, focusRouteStopIndex, route, routeGraph, viewMode]);
 
+  // 카메라를 '출발' 지점으로 모으기 위한 월드 좌표.
+  // - 코스가 있으면 첫 스팟(출발) 위치
+  // - 코스가 없으면(OCR 스캔) 내 위치 핀
+  // 없으면 null 을 돌려 기존 스택 전체 프레이밍으로 되돌아갑니다.
+  const flatView = viewMode === "floor";
+  const focusPoint = useMemo(() => {
+    if (route?.stopPlaceIds?.length && routeGraph) {
+      const placesById = new Map(routeGraph.places.map((p) => [p.id, p]));
+      const nodesById = new Map(routeGraph.nodes.map((n) => [n.id, n]));
+      const floorsById = new Map(floorsWithAspect.map((f) => [f.id, f]));
+      const place = placesById.get(route.stopPlaceIds[0]);
+      const node = place ? nodesById.get(place.nodeId) : null;
+      const floor = place?.floorId ? floorsById.get(place.floorId) : null;
+      if (node && floor) {
+        const [x, y, z] = toWorldPoint(node, floor, flatView);
+        return new THREE.Vector3(x, y, z);
+      }
+    }
+    if (userLocation?.navigationKey && floorDatasets) {
+      for (const floorData of floorDatasets) {
+        const place = floorData.places?.find(
+          (entry) =>
+            entry.id === userLocation.navigationKey ||
+            entry.navigationKey === userLocation.navigationKey,
+        );
+        if (!place) continue;
+        const node = floorData.nodes?.find((entry) => entry.id === place.nodeId);
+        const floor = floorsWithAspect.find(
+          (entry) => entry.id === floorData.floorId,
+        );
+        if (node && floor) {
+          const [x, y, z] = toWorldPoint(node, floor, flatView);
+          return new THREE.Vector3(x, y, z);
+        }
+        return null;
+      }
+    }
+    return null;
+  }, [route, routeGraph, floorsWithAspect, floorDatasets, userLocation, flatView]);
+
   return (
     <>
       <ambientLight intensity={1.4} />
@@ -1689,6 +1811,7 @@ function FloorStack({
         resetSignal={resetSignal}
         onReady={onCameraReady}
         fitPreset={fitPreset}
+        focusPoint={focusPoint}
         overviewFocusPoint={overviewFocusPoint}
       />
     </>
