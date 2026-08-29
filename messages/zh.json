@@ -32,7 +32,9 @@
     "mypage": "我的页面",
     "likedCourses": "我点赞的社区路线",
     "dittoHome": "DITTO首页",
-    "preferences": "选择国家和语言"
+    "preferences": "选择国家和语言",
+    "admin": "管理员",
+    "adminPage": "管理员页面"
   },
   "footer": {
     "service": "服务",
@@ -103,6 +105,15 @@
     "communityTitle": "当前热门自定义路线",
     "communityDescription": "查看其他旅行者创建并分享的路线。",
     "browseCommunity": "浏览社区",
+    "communityDesktopTitle": "让别人的旅程，成为我的下一条路线。",
+    "communityDesktopDescription": "探索世界各地旅行者亲自走过并分享的路线。",
+    "travelerCourseBadge": "旅行者亲自走过的路线",
+    "communityCourseFallbackDescription": "查看作者亲自体验这条路线后留下的评价。",
+    "authorReviewLabel": "作者留下的评价",
+    "authorReviewFallback": "亲自体验过这条路线的作者评价即将补充。",
+    "customizeCourse": "定制路线",
+    "popularCommunitySlide": "查看热门定制路线{index}",
+    "emptyCommunityCourses": "还没有分享的定制路线。",
     "courseListItem": "查看第{index}组路线",
     "like": "点赞",
     "comment": "评论",
@@ -158,7 +169,16 @@
     "viewLargePhoto": "查看大图",
     "createCourse": "创建路线",
     "previousPage": "上一页",
-    "nextPage": "下一页"
+    "nextPage": "下一页",
+    "storeDetailsAndDirections": "店铺详情与室内导航",
+    "source": "来源",
+    "sourcePublisherYonhap": "韩联社",
+    "relatedCoursePrompt": "创建与{keyword}相关的路线",
+    "defaultCoursePrompt": "创建K-Culture推荐路线",
+    "relatedCourseTitle": "创建与{keyword}相关的路线",
+    "keywordCategory": "{keyword}资讯",
+    "keywordInsight": "{keyword}关键词",
+    "interactionInsight": "互动热度高的文章"
   },
   "auth": {
     "welcomeBack": "欢迎回来",

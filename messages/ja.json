@@ -32,7 +32,9 @@
     "mypage": "マイページ",
     "likedCourses": "いいねしたコミュニティコース",
     "dittoHome": "DITTOホーム",
-    "preferences": "国・言語選択"
+    "preferences": "国・言語選択",
+    "admin": "管理者",
+    "adminPage": "管理者ページ"
   },
   "footer": {
     "service": "サービス",
@@ -103,6 +105,15 @@
     "communityTitle": "今人気のカスタムコース",
     "communityDescription": "旅行者が作って共有したコースをチェックしましょう。",
     "browseCommunity": "コミュニティを見る",
+    "communityDesktopTitle": "誰かの旅が、私の次のコースになる。",
+    "communityDesktopDescription": "世界中の旅行者が実際に歩いて共有したコースを見つけましょう。",
+    "travelerCourseBadge": "旅行者が実際に歩いたコース",
+    "communityCourseFallbackDescription": "このコースを巡った投稿者の体験をレビューで確認しましょう。",
+    "authorReviewLabel": "投稿者が残したレビュー",
+    "authorReviewFallback": "このコースを実際に巡った投稿者のレビューは、まもなく追加されます。",
+    "customizeCourse": "カスタマイズ",
+    "popularCommunitySlide": "人気カスタムコース{index}を見る",
+    "emptyCommunityCourses": "共有されたカスタムコースはまだありません。",
     "courseListItem": "{index}番目のコース一覧を見る",
     "like": "いいね",
     "comment": "コメント",
@@ -158,7 +169,16 @@
     "viewLargePhoto": "写真を拡大",
     "createCourse": "コース作成",
     "previousPage": "前のページ",
-    "nextPage": "次のページ"
+    "nextPage": "次のページ",
+    "storeDetailsAndDirections": "店舗詳細・館内ナビ",
+    "source": "出典",
+    "sourcePublisherYonhap": "聯合ニュース",
+    "relatedCoursePrompt": "{keyword}に関連するコースを作って",
+    "defaultCoursePrompt": "Kカルチャーのおすすめコースを作って",
+    "relatedCourseTitle": "{keyword}に関連するコースを作成",
+    "keywordCategory": "{keyword}ニュース",
+    "keywordInsight": "{keyword}キーワード",
+    "interactionInsight": "反響の大きい記事"
   },
   "auth": {
     "welcomeBack": "おかえりなさい",

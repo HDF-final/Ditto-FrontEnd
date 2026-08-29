@@ -123,6 +123,7 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
 
   const href = `/community/${course.slug || course.rank || "1"}`;
+  const review = course.review || course.description;
 
   async function handleLike(e) {
     e.preventDefault();
@@ -212,9 +213,9 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
           <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] lg:text-2xl">
             {course.title}
           </h3>
-          {course.description ? (
+          {review ? (
             <p className="line-clamp-1 text-[11px] font-medium text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] lg:text-xs">
-              {course.description}
+              {review}
             </p>
           ) : null}
         </div>
@@ -506,6 +507,8 @@ function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
 }
 
 function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
+  const t = useTranslations("home");
+  const communityT = useTranslations("community");
   const featuredCourses = courses.slice(0, 3);
   const { index, setIndex, dragging, viewportRef, trackStyle, handlers } =
     useDragCarousel({
@@ -517,7 +520,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
   if (featuredCourses.length === 0) {
     return (
       <div className="rounded-[34px] border border-[#e4def5] bg-white/80 p-12 text-center text-sm font-bold text-ink-muted shadow-[0_26px_70px_rgba(74,47,168,0.1)]">
-        아직 공유된 커스텀 코스가 없습니다.
+        {t("emptyCommunityCourses")}
       </div>
     );
   }
@@ -556,7 +559,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                   />
                   <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/25 via-transparent to-black/5" />
                   <div className="absolute bottom-8 left-8 rounded-full border border-white/30 bg-black/35 px-5 py-2.5 text-base font-black text-white backdrop-blur-md">
-                    여행자가 직접 걸은 코스
+                    {t("travelerCourseBadge")}
                   </div>
                 </Link>
 
@@ -567,10 +570,24 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                   <h3 className="mt-5 line-clamp-2 text-[clamp(30px,2.15vw,42px)] font-black leading-[1.18] tracking-[-0.025em] text-ink">
                     {course.title}
                   </h3>
-                  <p className="mt-5 line-clamp-3 text-[clamp(15px,1vw,17px)] font-medium leading-[1.75] text-ink-muted">
-                    {course.description ||
-                      "여행자가 직접 걷고 기록한 장소들을 하나의 코스로 만나보세요."}
-                  </p>
+                  <div className="mt-5 rounded-[22px] border border-brand/10 bg-[#f7f5ff] px-5 py-4">
+                    <span className="inline-flex rounded-full border border-brand/20 bg-white px-3 py-1 text-xs font-black text-brand shadow-sm">
+                      {t("authorReviewLabel")}
+                    </span>
+                    <div className="mt-3 flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="shrink-0 text-3xl font-black leading-none text-brand/55"
+                      >
+                        “
+                      </span>
+                      <p className="line-clamp-3 text-[clamp(14px,0.94vw,16px)] font-semibold leading-[1.7] text-[#6d6680]">
+                        {course.review ||
+                          course.description ||
+                          t("authorReviewFallback")}
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="mt-6 flex flex-wrap items-center gap-2 text-sm font-bold text-brand">
                     <span className="rounded-full bg-brand-soft px-3 py-1.5">
@@ -595,7 +612,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                       className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(92,46,245,0.24)] transition hover:-translate-y-0.5 hover:bg-brand-dark"
                     >
                       <span className="text-xl font-light leading-none">＋</span>
-                      커스텀하기
+                      {t("customizeCourse")}
                     </Link>
                     <Link
                       href={detailHref}
@@ -611,7 +628,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                       >
                         <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
-                      대화 참여
+                      {communityT("joinConversation")}
                     </Link>
                   </div>
 
@@ -621,7 +638,9 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                         key={dotIndex}
                         type="button"
                         onClick={() => setIndex(dotIndex)}
-                        aria-label={`인기 커스텀 코스 ${dotIndex + 1} 보기`}
+                        aria-label={t("popularCommunitySlide", {
+                          index: dotIndex + 1,
+                        })}
                         aria-current={index === dotIndex}
                         className={`h-2 rounded-full transition-all duration-300 ${
                           index === dotIndex
@@ -689,17 +708,17 @@ export function CommunityPreviewSection({ initialCourses = [] }) {
             />
           ) : (
             <div className="rounded-2xl border border-white/15 bg-white/10 p-8 text-center text-sm font-bold text-white/80">
-              아직 공유된 커스텀 코스가 없습니다.
+              {t("emptyCommunityCourses")}
             </div>
           )}
         </div>
         <div className="hidden lg:block">
           <div className="text-center">
             <h2 className="text-5xl font-black leading-[1.18] tracking-[-0.035em] text-ink">
-              누군가의 여행이, 나의 다음 코스가 되도록.
+              {t("communityDesktopTitle")}
             </h2>
             <p className="mt-2 text-lg font-semibold leading-8 text-ink-muted">
-              각국의 여행자들이 직접 걷고 남긴 코스를 만나보세요.
+              {t("communityDesktopDescription")}
             </p>
           </div>
           <div className="home-section-stage flex items-center justify-center">

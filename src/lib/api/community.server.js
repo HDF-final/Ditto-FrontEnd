@@ -198,6 +198,7 @@ export function normalizePublicCourseCard(post) {
   // Extract hash keywords from title
   const words = (post.title || "").split(/\s+/).filter((w) => w.length > 1);
   const hash = words.length > 0 ? `#${words.slice(0, 2).join(" #")}` : "#공유코스";
+  const review = pickFirst(post.review, post.content, post.description);
 
   return {
     postId,
@@ -210,7 +211,8 @@ export function normalizePublicCourseCard(post) {
     persona: post.persona || post.shoppingType || post.user?.persona || "sohwak",
     hash,
     title: post.title,
-    description: post.content || "",
+    review,
+    description: review,
     createdAt:
       post.createdAt ||
       post.created_at ||
