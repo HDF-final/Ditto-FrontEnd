@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/trends/candidates", label: "국가별 후보군", icon: "users" },
   { href: "/admin/trends/youtube", label: "YouTube 급상승", icon: "play" },
   { href: "/admin/courses", label: "승인 대기 코스", icon: "route" },
-  { href: "/admin/courses/cached", label: "캐시된 코스", icon: "cache" },
+  { href: "/admin/courses/cached", label: "저장된 코스", icon: "cache" },
   { href: "/admin/courses/system", label: "기본 추천 코스", icon: "star" },
 ];
 
@@ -20,7 +20,7 @@ const PAGE_TITLES = {
   "/admin/trends/candidates": ["국가별 후보군", "국가별 비교 분석에 투입된 후보군을 확인합니다."],
   "/admin/trends/youtube": ["YouTube 급상승", "최근 7일 K-컬처 영상 급상승 신호를 확인합니다."],
   "/admin/courses": ["승인 대기 코스 초안", "배치가 만든 셀럽 코스 초안을 승인 전에 확인합니다."],
-  "/admin/courses/cached": ["캐시된 코스", "승인이 끝나 지금 손님에게 나가고 있는 코스입니다. 오늘 자정에 만료됩니다."],
+  "/admin/courses/cached": ["저장된 코스", "승인이 끝나 지금 손님에게 나가고 있는 코스입니다. 오늘 자정에 만료됩니다."],
   "/admin/courses/system": ["기본 추천 코스", "메인과 코스 추천 리스트에 걸린 코스입니다. 만료가 없어 내릴 때까지 계속 걸립니다."],
 };
 
