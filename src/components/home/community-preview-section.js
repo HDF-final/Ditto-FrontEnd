@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,6 +16,65 @@ import {
   bookmarkCourse,
   unbookmarkCourse,
 } from "@/lib/api/community";
+
+function readCount(value) {
+  const count = Number(value);
+  return Number.isFinite(count) ? count : 0;
+}
+
+function getCoursePostId(course = {}) {
+  return (
+    course.postId ||
+    course.id ||
+    course.courseId ||
+    (typeof course.slug === "number" || /^\d+$/.test(String(course.slug || ""))
+      ? Number(course.slug)
+      : course.rank || 1)
+  );
+}
+
+function getCourseKeys(course = {}) {
+  const postId = getCoursePostId(course);
+  return {
+    slugKey: course.slug ? String(course.slug) : "",
+    numKey: String(course.postId || course.rank || postId || "1"),
+  };
+}
+
+function getStoredLikesDelta(course = {}, likesDelta = {}) {
+  const { slugKey, numKey } = getCourseKeys(course);
+  return readCount(likesDelta?.[slugKey] ?? likesDelta?.[numKey] ?? 0);
+}
+
+function getVisibleLikes(course = {}, likesDelta = {}) {
+  return Math.max(
+    0,
+    readCount(course.likes ?? course.likeCount) +
+      getStoredLikesDelta(course, likesDelta),
+  );
+}
+
+function sortCoursesByVisiblePopularity(courses = [], likesDelta = {}) {
+  return [...courses]
+    .sort((a, b) => {
+      const likeDiff = getVisibleLikes(b, likesDelta) - getVisibleLikes(a, likesDelta);
+      if (likeDiff !== 0) return likeDiff;
+
+      const saveDiff =
+        readCount(b.saves ?? b.bookmarkCount) -
+        readCount(a.saves ?? a.bookmarkCount);
+      if (saveDiff !== 0) return saveDiff;
+
+      const commentDiff =
+        readCount(b.comments ?? b.commentCount) -
+        readCount(a.comments ?? a.commentCount);
+      if (commentDiff !== 0) return commentDiff;
+
+      return readCount(b.postId) - readCount(a.postId);
+    })
+    .slice(0, 9)
+    .map((course, index) => ({ ...course, rank: index + 1 }));
+}
 
 function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
   const t = useTranslations("home");
@@ -37,16 +96,8 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
     localAuthor?.name ||
     "DITTO 여행자";
 
-  const postId =
-    course.postId ||
-    course.id ||
-    course.courseId ||
-    (typeof course.slug === "number" || /^\d+$/.test(course.slug)
-      ? Number(course.slug)
-      : course.rank || 1);
-
-  const slugKey = course.slug ? String(course.slug) : "";
-  const numKey = String(course.postId || course.rank || postId || "1");
+  const postId = getCoursePostId(course);
+  const { slugKey, numKey } = getCourseKeys(course);
 
   const isLikedStored = useCommunityInteractionsStore((state) =>
     state.isLiked(slugKey, numKey),
@@ -66,9 +117,9 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
 
-  const baseLikes = course.likes ?? 0;
+  const baseLikes = readCount(course.likes ?? course.likeCount);
   const likesCount = Math.max(0, baseLikes + likesDelta);
-  const baseSaves = course.saves ?? 0;
+  const baseSaves = readCount(course.saves ?? course.bookmarkCount);
   const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
 
   const href = `/community/${course.slug || course.rank || "1"}`;
@@ -324,12 +375,20 @@ function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
     state.isBookmarked(slugKey, numKey),
   );
+  const likesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getLikesDelta(slugKey, numKey),
+  );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
+  const likesDelta = mounted ? likesDeltaStored : 0;
+  const likesCount = Math.max(
+    0,
+    readCount(course.likes ?? course.likeCount) + likesDelta,
+  );
 
   async function handleLike() {
     if (!isAuthenticated) {
@@ -382,6 +441,8 @@ function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
 
   const actionClass =
     "inline-flex size-11 cursor-pointer items-center justify-center rounded-full border border-[#e5dff3] bg-white text-[#6d6680] shadow-[0_8px_20px_rgba(70,48,130,0.08)] transition hover:-translate-y-0.5 hover:border-brand/35 hover:bg-brand-soft/35 hover:text-brand";
+  const likeActionClass =
+    "inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#e5dff3] bg-white px-3 text-[#6d6680] shadow-[0_8px_20px_rgba(70,48,130,0.08)] transition hover:-translate-y-0.5 hover:border-brand/35 hover:bg-brand-soft/35 hover:text-brand";
 
   return (
     <div className="flex items-center gap-2.5">
@@ -390,7 +451,7 @@ function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
         onClick={handleLike}
         aria-label="찜하기"
         title="찜하기"
-        className={`${actionClass} ${isLiked ? "border-brand/30 bg-brand-soft text-brand" : ""}`}
+        className={`${likeActionClass} ${isLiked ? "border-brand/30 bg-brand-soft text-brand" : ""}`}
       >
         <svg className="size-5" viewBox="0 0 24 24" fill="none">
           <path
@@ -401,6 +462,7 @@ function DesktopCommunityActions({ course, detailHref, onAuthRequired }) {
             strokeLinejoin="round"
           />
         </svg>
+        <span className="text-sm font-black leading-none">{likesCount}</span>
       </button>
       <button
         type="button"
@@ -461,7 +523,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
   }
 
   return (
-    <div className="mx-auto w-[min(82vw,1120px)]">
+    <div className="mx-auto w-[min(86vw,1320px)]">
       <div
         ref={viewportRef}
         className={`relative overflow-hidden rounded-[36px] select-none shadow-[0_30px_80px_rgba(50,32,110,0.16)] ${
@@ -480,7 +542,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
             return (
               <article
                 key={course.postId || course.slug || course.rank}
-                className="relative grid h-[clamp(440px,52dvh,520px)] min-w-full shrink-0 basis-full grid-cols-[minmax(0,1.08fr)_minmax(370px,0.92fr)] overflow-hidden bg-white"
+                className="relative grid h-[clamp(520px,58dvh,640px)] min-w-full shrink-0 basis-full grid-cols-[minmax(0,1.12fr)_minmax(430px,0.88fr)] overflow-hidden bg-white"
               >
                 <Link
                   href={detailHref}
@@ -493,24 +555,24 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/25 via-transparent to-black/5" />
-                  <div className="absolute bottom-6 left-7 rounded-full border border-white/30 bg-black/35 px-4 py-2 text-sm font-black text-white backdrop-blur-md">
+                  <div className="absolute bottom-8 left-8 rounded-full border border-white/30 bg-black/35 px-5 py-2.5 text-base font-black text-white backdrop-blur-md">
                     여행자가 직접 걸은 코스
                   </div>
                 </Link>
 
-                <div className="relative flex min-w-0 flex-col justify-center bg-[#fffefe] px-[clamp(34px,3.2vw,54px)] py-8">
-                  <span className="text-xs font-black tracking-[0.22em] text-brand">
-                    TOP {slideIndex + 1}
+                <div className="relative flex min-w-0 flex-col justify-center bg-[#fffefe] px-[clamp(42px,3.8vw,68px)] py-10">
+                  <span className="text-sm font-black tracking-[0.22em] text-brand">
+                    TOP {course.rank || slideIndex + 1}
                   </span>
-                  <h3 className="mt-4 line-clamp-2 text-[clamp(24px,1.8vw,34px)] font-black leading-[1.2] tracking-[-0.025em] text-ink">
+                  <h3 className="mt-5 line-clamp-2 text-[clamp(30px,2.15vw,42px)] font-black leading-[1.18] tracking-[-0.025em] text-ink">
                     {course.title}
                   </h3>
-                  <p className="mt-4 line-clamp-3 text-[clamp(13px,0.9vw,15px)] font-medium leading-[1.75] text-ink-muted">
+                  <p className="mt-5 line-clamp-3 text-[clamp(15px,1vw,17px)] font-medium leading-[1.75] text-ink-muted">
                     {course.description ||
                       "여행자가 직접 걷고 기록한 장소들을 하나의 코스로 만나보세요."}
                   </p>
 
-                  <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-brand">
+                  <div className="mt-6 flex flex-wrap items-center gap-2 text-sm font-bold text-brand">
                     <span className="rounded-full bg-brand-soft px-3 py-1.5">
                       #{course.country || "GLOBAL"}
                     </span>
@@ -519,7 +581,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     </span>
                   </div>
 
-                  <div className="mt-6">
+                  <div className="mt-7">
                     <DesktopCommunityActions
                       course={course}
                       detailHref={detailHref}
@@ -527,7 +589,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     />
                   </div>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="mt-7 grid grid-cols-2 gap-4">
                     <Link
                       href={customizeHref}
                       className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(92,46,245,0.24)] transition hover:-translate-y-0.5 hover:bg-brand-dark"
@@ -586,8 +648,17 @@ export function CommunityPreviewSection({ initialCourses = [] }) {
   const t = useTranslations("home");
   const common = useTranslations("common");
   const router = useRouter();
+  const mounted = useIsMounted();
+  const likesDeltaMap = useCommunityInteractionsStore((state) => state.likesDelta);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const courses = initialCourses.slice(0, 9);
+  const courses = useMemo(
+    () =>
+      sortCoursesByVisiblePopularity(
+        initialCourses,
+        mounted ? likesDeltaMap : {},
+      ),
+    [initialCourses, likesDeltaMap, mounted],
+  );
 
   return (
     <section

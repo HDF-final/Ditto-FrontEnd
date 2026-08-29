@@ -5,7 +5,10 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { fetchPublicCourseDetailServer } from "@/lib/api/community.server";
 import { getPersonaById } from "@/lib/fixtures/personas";
-import { CommunityDetailActions } from "./community-detail-actions";
+import {
+  CommunityDetailActions,
+  CommunityOwnerControls,
+} from "./community-detail-actions";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
 import {
   CommunityAuthorCountry,
@@ -62,7 +65,7 @@ function AuthorReasonCard({ course }) {
         className="max-h-[132px] overflow-y-auto rounded-[14px] bg-brand-soft/50 px-4 py-3 overscroll-contain sm:max-h-[156px]"
       >
         <p className="inline-flex items-center rounded-full bg-white/85 px-3 py-1 text-sm font-black text-brand shadow-[0_6px_16px_rgba(92,46,245,0.12)] ring-1 ring-brand/10 sm:text-base">
-          작성자가 남긴 이유
+          작성자가 남긴 후기
         </p>
         <div className="mt-2 flex items-start gap-3">
           <svg
@@ -80,6 +83,24 @@ function AuthorReasonCard({ course }) {
       </div>
     </div>
   );
+}
+
+function formatCommunityDate(value, locale) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const formatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Seoul",
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map((part) => [part.type, part.value]),
+  );
+
+  return `${parts.year}.${parts.month}.${parts.day}`;
 }
 
 export default async function CommunityCourseDetailPage({ params }) {
@@ -106,38 +127,40 @@ export default async function CommunityCourseDetailPage({ params }) {
     course.persona || course.shoppingType || course.personaId || "sohwak",
     locale,
   );
+  const writtenDate = formatCommunityDate(course.createdAt, locale);
 
   const authorBlock = (
-    <div className="flex items-center gap-3.5">
-      <AuthorAvatar
-        persona={authorPersona}
-        name={course.name || travelerText}
-      />
-      <div className="flex flex-col justify-center">
-        <div className="flex items-center gap-2">
-          <span className="text-base font-black text-ink">
-            <CommunityAuthorName
-              name={course.name}
-              travelerText={travelerText}
-              postId={course.postId}
-              courseId={course.courseId}
-            />
-          </span>
-          <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
-            <CommunityAuthorCountry
-              country={course.country}
-              postId={course.postId}
-              courseId={course.courseId}
-            />
-          </span>
+    <div className="flex min-w-0 items-center gap-3.5">
+      <div className="flex min-w-0 flex-1 items-center gap-3.5">
+        <AuthorAvatar
+          persona={authorPersona}
+          name={course.name || travelerText}
+        />
+        <div className="flex min-w-0 flex-col justify-center">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate text-base font-black text-ink">
+              <CommunityAuthorName
+                name={course.name}
+                travelerText={travelerText}
+                postId={course.postId}
+                courseId={course.courseId}
+              />
+            </span>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-black text-brand">
+              <CommunityAuthorCountry
+                country={course.country}
+                postId={course.postId}
+                courseId={course.courseId}
+              />
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs font-medium text-ink-muted">
+            DITTO {travelerText}
+            {writtenDate ? ` · ${writtenDate}` : ""}
+          </p>
         </div>
-        <p className="mt-0.5 text-xs font-medium text-ink-muted">
-          DITTO {travelerText} ·{" "}
-          {course.createdAt
-            ? new Date(course.createdAt).toLocaleDateString(locale)
-            : "2026.03.02"}
-        </p>
       </div>
+      <CommunityOwnerControls course={course} />
     </div>
   );
 

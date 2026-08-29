@@ -14,18 +14,28 @@ import { getTranslations } from "next-intl/server";
 export const revalidate = 300;
 
 function sortCommunityCoursesByPopularity(courses = []) {
+  const readCount = (value) => {
+    const count = Number(value);
+    return Number.isFinite(count) ? count : 0;
+  };
+
   return [...courses]
     .sort((a, b) => {
-      const likeDiff = (b.likes ?? 0) - (a.likes ?? 0);
+      const likeDiff =
+        readCount(b.likes ?? b.likeCount) - readCount(a.likes ?? a.likeCount);
       if (likeDiff !== 0) return likeDiff;
 
-      const saveDiff = (b.saves ?? 0) - (a.saves ?? 0);
+      const saveDiff =
+        readCount(b.saves ?? b.bookmarkCount) -
+        readCount(a.saves ?? a.bookmarkCount);
       if (saveDiff !== 0) return saveDiff;
 
-      const commentDiff = (b.comments ?? 0) - (a.comments ?? 0);
+      const commentDiff =
+        readCount(b.comments ?? b.commentCount) -
+        readCount(a.comments ?? a.commentCount);
       if (commentDiff !== 0) return commentDiff;
 
-      return (b.postId ?? 0) - (a.postId ?? 0);
+      return readCount(b.postId) - readCount(a.postId);
     })
     .slice(0, 9)
     .map((course, index) => ({
@@ -48,8 +58,7 @@ export default async function Home() {
     fetchPublicCoursesServer({
       page: 0,
       size: 50,
-      cache: "force-cache",
-      revalidate: 300,
+      cache: "no-store",
     }).catch(() => []),
     getTranslations("home"),
   ]);

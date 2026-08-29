@@ -13,6 +13,7 @@ import {
   createComment,
   getComments,
   getPublicCourse,
+  getPublicCourses,
   updateComment,
   deleteComment,
   likeCourse,
@@ -21,33 +22,6 @@ import {
   unbookmarkCourse,
 } from "@/lib/api/community";
 import { CommunityDetailHeroImage } from "./community-detail-hero-image";
-
-const fallbackChatMessages = [
-  {
-    commentId: "fallback-1",
-    nickname: "Yuki_T",
-    isAuthor: true,
-    content: "워터폴 가든은 오전에 가면 사람이 적어서 사진 찍기 정말 좋아요!",
-    createdAt: "2026-08-18T10:14:00Z",
-    likes: 12,
-  },
-  {
-    commentId: "fallback-2",
-    nickname: "lujah1213",
-    isAuthor: false,
-    content: "5F 사운즈 포레스트에서 쉬다가 B2로 내려가는 동선 진짜 꿀팁이네요 ㅎㅎ",
-    createdAt: "2026-08-18T15:20:00Z",
-    likes: 5,
-  },
-  {
-    commentId: "fallback-3",
-    nickname: "Emma_R",
-    isAuthor: false,
-    content: "B2 크리에이티브 그라운드는 팝업 일정 미리 확인하고 가면 더 알차게 구경할 수 있어요 ✨",
-    createdAt: "2026-08-18T18:31:00Z",
-    likes: 8,
-  },
-];
 
 function formatTimeAgo(dateStr, t) {
   if (!dateStr) return t("justNow");
@@ -136,6 +110,9 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
     state.getLikesDelta(postIdentifier),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
@@ -149,6 +126,9 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
   );
   const [postContent, setPostContent] = useState(
     course?.description || course?.content || course?.note || "",
+  );
+  const [postCreatedAt, setPostCreatedAt] = useState(
+    course?.createdAt || course?.created_at || course?.createdDate || "",
   );
 
   const isLiked = mounted ? isLikedStored : false;
@@ -215,9 +195,10 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
     }
     setIsLoading(true);
     try {
-      const [res, postDetail] = await Promise.allSettled([
+      const [res, postDetail, postSummary] = await Promise.allSettled([
         getComments(id),
         getPublicCourse(id),
+        getPublicCourses({ page: 0, size: 100 }),
       ]);
       const commentData = res.status === "fulfilled" ? res.value : null;
       const list = Array.isArray(commentData)
@@ -277,6 +258,47 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
           setPostLikes(serverLikes);
         }
 
+        const serverCreatedAt =
+          detail?.createdAt ||
+          detail?.created_at ||
+          detail?.createdDate ||
+          detail?.created_date ||
+          detail?.regDate ||
+          detail?.reg_date;
+        if (serverCreatedAt) {
+          setPostCreatedAt(serverCreatedAt);
+        }
+      }
+
+      if (postSummary.status === "fulfilled" && postSummary.value) {
+        const content = Array.isArray(postSummary.value?.content)
+          ? postSummary.value.content
+          : [];
+        const matched = content.find(
+          (post) => String(post?.postId) === String(id),
+        );
+        if (matched) {
+          const summaryLikes =
+            typeof matched?.likeCount === "number"
+              ? matched.likeCount
+              : typeof matched?.likes === "number"
+                ? matched.likes
+                : null;
+          if (summaryLikes !== null) {
+            setPostLikes(summaryLikes);
+          }
+
+          const summaryCreatedAt =
+            matched?.createdAt ||
+            matched?.created_at ||
+            matched?.createdDate ||
+            matched?.created_date ||
+            matched?.regDate ||
+            matched?.reg_date;
+          if (summaryCreatedAt) {
+            setPostCreatedAt(summaryCreatedAt);
+          }
+        }
       }
     } catch (err) {
       console.warn("[CommunityChat] Error loading comments:", err.message);
@@ -309,7 +331,8 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
           res = await unlikeCourse(postId);
         }
         if (typeof res?.likesCount === "number") {
-          setPostLikes(res.likesCount - (nextState ? 1 : 0));
+          setPostLikes(res.likesCount);
+          clearLikesDelta(postIdentifier);
         }
       } catch (err) {
         console.warn("[Like Toggle] Failed:", err.message);
@@ -564,7 +587,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                       {postContent}
                     </p>
                     <p className="mt-1 text-[11px] font-medium text-ink-muted">
-                      {t("editedAgo")}
+                      {postCreatedAt ? formatTimeAgo(postCreatedAt, t) : t("justNow")}
                     </p>
                   </div>
                 ) : null}
@@ -697,7 +720,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                       <svg
                         aria-hidden="true"
                         className={`size-6.5 transition-colors ${
-                          isLiked ? "text-red-500 fill-red-500" : "text-ink hover:text-red-400"
+                          isLiked ? "text-brand fill-brand" : "text-ink hover:text-brand"
                         }`}
                         viewBox="0 0 24 24"
                         fill={isLiked ? "currentColor" : "none"}
@@ -731,11 +754,11 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                 </div>
 
                 <div className="px-5 pt-2 pb-2.5">
-                  <p className="text-xs font-black text-ink">
+                  <p className="text-xs font-black text-brand">
                     {t("likedBy", { count: likesCount.toLocaleString(locale) })}
                   </p>
                   <p className="text-[10px] font-semibold text-ink-muted uppercase mt-0.5">
-                    {t("oneDayAgo")}
+                    {postCreatedAt ? formatTimeAgo(postCreatedAt, t) : t("justNow")}
                   </p>
                 </div>
 
