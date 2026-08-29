@@ -87,38 +87,17 @@ async function loadScanPlaces(signal) {
 }
 
 /**
- * 촬영본(data URL)을 OCR 한 뒤 실내 지도 매장으로 붙입니다.
+ * 고른(또는 자동 선택된) 후보 하나를 실내 지도 매장으로 붙입니다.
  *
  * 백엔드 후보의 placeId·navigationKey 를 우선하고, 원장에 없으면
  * 인식된 상호(이탈리 / EATALY)로 다시 찾습니다.
  */
-export async function resolveOcrLocationFromDataUrl(dataUrl, { signal } = {}) {
-  const blob = dataUrlToBlob(dataUrl);
-  if (!blob) throw new Error("이미지를 읽을 수 없어요. 다시 촬영해주세요.");
-
-  const original = new File([blob], "scan.jpg", { type: blob.type || "image/jpeg" });
-  const compressedUrl = await compressImage(original, 1280, 0.82);
-  assertNotAborted(signal);
-  const uploadBlob = compressedUrl ? dataUrlToBlob(compressedUrl) : blob;
-  if (!uploadBlob) throw new Error("이미지를 읽을 수 없어요. 다시 촬영해주세요.");
-  const file = new File([uploadBlob], "scan.jpg", {
-    type: uploadBlob.type || "image/jpeg",
-  });
-
-  const result = await recognizeOcrLocation(file);
-  assertNotAborted(signal);
-
-  const recognizedName =
-    result?.recognizedBrandName || result?.recognized_brand_name || null;
-  const candidates = (Array.isArray(result?.candidates) ? result.candidates : [])
-    .map(normalizeOcrCandidate)
-    .filter(Boolean)
-    .sort((a, b) => (Number(b.confidence) || 0) - (Number(a.confidence) || 0));
-  const candidate = candidates[0] || pickBestOcrCandidate(result);
-  if (!candidate && !recognizedName) {
-    return { brand: null, place: null, location: null };
-  }
-
+async function resolveCandidateToLocation({
+  candidate,
+  candidates = [],
+  recognizedName = null,
+  signal,
+}) {
   const hydrated = await loadScanPlaces(signal);
 
   if (candidate && !candidate.navigationKey && candidate.placeId != null) {
@@ -164,4 +143,71 @@ export async function resolveOcrLocationFromDataUrl(dataUrl, { signal } = {}) {
     place,
     location: buildScanLocation(place, brand),
   };
+}
+
+/**
+ * 촬영본(data URL)을 OCR 합니다.
+ *
+ * 백엔드가 `requiresSelection: true` 로 내려주면(같은 상호가 여러 층에 있는 등)
+ * 자동 진행하지 않고 `{ requiresSelection: true, candidates }` 를 돌려줘 사용자가
+ * 직접 고르게 합니다. 그 외에는 기존처럼 가장 신뢰도 높은 후보로 바로 위치를 붙입니다.
+ */
+export async function resolveOcrLocationFromDataUrl(dataUrl, { signal } = {}) {
+  const blob = dataUrlToBlob(dataUrl);
+  if (!blob) throw new Error("이미지를 읽을 수 없어요. 다시 촬영해주세요.");
+
+  const original = new File([blob], "scan.jpg", { type: blob.type || "image/jpeg" });
+  const compressedUrl = await compressImage(original, 1280, 0.82);
+  assertNotAborted(signal);
+  const uploadBlob = compressedUrl ? dataUrlToBlob(compressedUrl) : blob;
+  if (!uploadBlob) throw new Error("이미지를 읽을 수 없어요. 다시 촬영해주세요.");
+  const file = new File([uploadBlob], "scan.jpg", {
+    type: uploadBlob.type || "image/jpeg",
+  });
+
+  const result = await recognizeOcrLocation(file);
+  assertNotAborted(signal);
+
+  const recognizedName =
+    result?.recognizedBrandName || result?.recognized_brand_name || null;
+  const candidates = (Array.isArray(result?.candidates) ? result.candidates : [])
+    .map(normalizeOcrCandidate)
+    .filter(Boolean)
+    .sort((a, b) => (Number(b.confidence) || 0) - (Number(a.confidence) || 0));
+  const requiresSelection = Boolean(
+    result?.requiresSelection ?? result?.requires_selection,
+  );
+
+  // 백엔드가 선택을 요구하면 자동 진행 금지 — 후보만 넘겨 UI에서 고르게 합니다.
+  if (requiresSelection && candidates.length > 0) {
+    return { requiresSelection: true, candidates, recognizedName };
+  }
+
+  const candidate = candidates[0] || pickBestOcrCandidate(result);
+  if (!candidate && !recognizedName) {
+    return { requiresSelection: false, brand: null, place: null, location: null };
+  }
+
+  const resolved = await resolveCandidateToLocation({
+    candidate,
+    candidates,
+    recognizedName,
+    signal,
+  });
+  return { requiresSelection: false, ...resolved };
+}
+
+/**
+ * 선택 UI에서 사용자가 탭한 후보 하나로 위치를 붙입니다.
+ * `resolveOcrLocationFromDataUrl` 의 자동 진행과 같은 매칭 로직을 재사용합니다.
+ */
+export async function resolveOcrCandidate(candidate, { signal } = {}) {
+  const normalized = normalizeOcrCandidate(candidate);
+  if (!normalized) return { brand: null, place: null, location: null };
+  return resolveCandidateToLocation({
+    candidate: normalized,
+    candidates: [normalized],
+    recognizedName: normalized.name ?? null,
+    signal,
+  });
 }
