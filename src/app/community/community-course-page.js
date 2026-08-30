@@ -452,47 +452,40 @@ export function CommunityCoursePage({
 
           {hasPopularPlaces ? (
             <div className="mt-3.5 mb-1 pt-1 lg:mt-6 lg:mb-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-ink lg:text-[15px]">
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand-soft shadow-2xs">
-                  <svg
-                    className="size-2.5 fill-brand"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
+              <div className="flex items-center">
+                <span className="inline-block rounded-[2px] bg-[#ede7ff] px-2 py-0.5 text-xs font-black tracking-tight text-[#5c2ef5] lg:text-[14px]">
+                  {popularPlacesTitle}
                 </span>
-                <span>{popularPlacesTitle}</span>
               </div>
 
-              <div className="mt-2.5 flex items-center justify-between gap-4">
-                <div className="flex min-w-0 flex-1 gap-2.5 overflow-x-auto pb-2 pt-1 lg:gap-3 lg:pt-2">
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:gap-2.5">
                   {popularPlaces.slice(0, 5).map((place, index) => (
                     <button
                       key={place.placeId || `${place.name}-${index}`}
                       type="button"
                       onClick={() => setSelectedPlace(place)}
-                      className="group inline-flex shrink-0 items-center gap-2.5 rounded-full border border-brand/20 bg-white hover:bg-brand-soft/40 px-3.5 py-2 shadow-xs transition-all hover:scale-[1.02] hover:shadow-md active:scale-95 cursor-pointer lg:gap-3 lg:px-4.5 lg:py-2.5"
+                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/15 bg-white hover:bg-brand-soft/30 px-2.5 py-1.5 shadow-2xs transition-all hover:scale-[1.02] hover:shadow-xs active:scale-95 cursor-pointer lg:gap-2.5 lg:px-3.5 lg:py-1.5"
                     >
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-black text-xs font-black text-white shadow-xs lg:size-8 lg:text-sm">
+                      <span className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-black text-[11px] font-black text-white shadow-2xs lg:size-6 lg:text-xs">
                         {place.rank || index + 1}
                       </span>
-                      <span className="flex size-10 shrink-0 overflow-hidden rounded-full border-2 border-brand/20 bg-neutral-100 shadow-xs lg:size-12">
+                      <span className="flex size-7 shrink-0 overflow-hidden rounded-full border border-brand/15 bg-neutral-100 shadow-2xs lg:size-8">
                         {place.imageUrl ? (
                           <img
                             src={place.imageUrl}
                             alt={place.name || ""}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
                           />
                         ) : (
                           <span className="h-full w-full bg-linear-to-br from-brand/90 to-brand-light" />
                         )}
                       </span>
-                      <span className="max-w-[130px] truncate text-xs font-black text-ink group-hover:text-brand transition-colors lg:max-w-[180px] lg:text-sm">
+                      <span className="max-w-[110px] truncate text-xs font-bold text-ink group-hover:text-brand transition-colors lg:max-w-[150px] lg:text-[13px]">
                         {place.name}
                       </span>
                       {place.floor ? (
-                        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-black text-brand shadow-xs lg:text-xs">
+                        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand shadow-2xs lg:text-[11px]">
                           {place.floor}
                         </span>
                       ) : null}
@@ -502,7 +495,7 @@ export function CommunityCoursePage({
 
                 <Link
                   href={isAuthorFiltered ? "/community" : "/community/share"}
-                  className={`hidden shrink-0 items-center justify-center rounded-full px-6 py-3.5 text-sm font-black shadow-control transition lg:inline-flex ${
+                  className={`hidden shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-xs font-black shadow-control transition lg:inline-flex lg:text-sm ${
                     isAuthorFiltered
                       ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
                       : "bg-brand text-white hover:bg-brand-dark"
