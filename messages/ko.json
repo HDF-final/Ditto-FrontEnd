@@ -235,6 +235,8 @@
     "publicCourseHash": "#추천코스 #더현대",
     "title": "여행자 커스텀 코스",
     "description": "여행자들이 직접 만들고 공유한 커스텀 코스를 둘러보고, 코스에 담긴 장소와 이야기를 확인해보세요.",
+    "popularPlacesTitle": "지금 여행자들이 가장 많이 다녀온 인기 장소",
+    "popularPlacesSubtitle": "",
     "popular": "인기순",
     "latest": "최신순",
     "shareMine": "내 코스 공유하기 →",

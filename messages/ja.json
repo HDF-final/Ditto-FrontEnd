@@ -235,6 +235,8 @@
     "publicCourseHash": "#おすすめコース #ザヒュンダイ",
     "title": "旅行者のカスタムコース",
     "description": "旅行者が自分で作って共有したカスタムコースと、各コースに込められた場所やストーリーをチェックしましょう。",
+    "popularPlacesTitle": "旅行者が一番多く訪れた人気スポット",
+    "popularPlacesSubtitle": "",
     "popular": "人気順",
     "latest": "新着順",
     "shareMine": "自分のコースを共有 →",

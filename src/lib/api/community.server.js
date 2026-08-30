@@ -1,5 +1,6 @@
 import { getCommunityCourse as getDefaultCommunityCourse } from "@/lib/fixtures/community-courses";
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "@/lib/community/default-course-images";
+import { getImageUrl } from "@/lib/courses/image-url";
 import { getServerApiBaseUrl } from "./server-base-url";
 import { getServerApiHeaders } from "./server-language";
 
@@ -239,6 +240,159 @@ export function normalizePublicCourseCard(post) {
   };
 }
 
+function normalizePopularPlace(place = {}) {
+  const rank = Number(place.rank || place.placeRank || 0);
+  const postCount = Number(place.postCount || place.count || 0);
+  const name = pickFirst(
+    place.name,
+    place.placeName,
+    place.place_name,
+    place.title,
+  );
+
+  if (!name) return null;
+
+  return {
+    rank: rank > 0 ? rank : 0,
+    placeId: place.placeId || place.id || place.place_id || "",
+    navigationKey: place.navigationKey || place.navigation_key || "",
+    name,
+    floor: pickFirst(place.floor, place.floorCode, place.floor_code),
+    imageUrl:
+      getImageUrl(place) ||
+      pickFirst(
+        place.imageUrl,
+        place.image_url,
+        place.image,
+        place.placeImg,
+        place.place_img,
+      ),
+    description: pickFirst(place.description, place.desc),
+    category: place.category || "",
+    postCount: postCount > 0 ? postCount : 0,
+  };
+}
+
+function getServerPlaceHeaders(headers = {}) {
+  const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() || "1";
+  return {
+    ...headers,
+    "X-User-Id": localUserId,
+  };
+}
+
+async function fetchJson(url, fetchOptions = {}) {
+  const response = await fetch(url, fetchOptions);
+  if (!response.ok) return null;
+
+  const json = await response.json();
+  if (json?.success === false) return null;
+  return json;
+}
+
+function getPlaceId(value) {
+  const id = value?.placeId || value?.place_id || value?.id;
+  return id == null ? "" : String(id);
+}
+
+async function fetchFallbackPopularPlaces(baseUrl, headers, preloadedPlaceRows) {
+  try {
+    const [coursesJson, placesJson] = await Promise.all([
+      fetchJson(`${baseUrl}/api/v1/community/courses?page=0&size=100`, {
+        method: "GET",
+        headers,
+        cache: "no-store",
+      }),
+      Array.isArray(preloadedPlaceRows) && preloadedPlaceRows.length > 0
+        ? { data: preloadedPlaceRows }
+        : fetchJson(`${baseUrl}/api/v1/places/navigation`, {
+            method: "GET",
+            headers: getServerPlaceHeaders(headers),
+            cache: "no-store",
+          }),
+    ]);
+
+    const posts = Array.isArray(coursesJson?.data?.content)
+      ? coursesJson.data.content
+      : [];
+    const placeRows = Array.isArray(placesJson?.data) ? placesJson.data : [];
+    if (posts.length === 0 || placeRows.length === 0) return [];
+
+    const placesById = new Map(
+      placeRows
+        .map((place) => [getPlaceId(place), place])
+        .filter(([placeId]) => placeId),
+    );
+
+    const detailResults = await Promise.all(
+      posts.map(async (post) => {
+        if (!post?.postId) return null;
+
+        const detailJson = await fetchJson(
+          `${baseUrl}/api/v1/community/courses/${post.postId}`,
+          {
+            method: "GET",
+            headers,
+            cache: "no-store",
+          },
+        );
+        return detailJson?.data || null;
+      }),
+    );
+
+    const countsByPlaceId = new Map();
+    detailResults.forEach((detail) => {
+      const places = Array.isArray(detail?.course?.places)
+        ? detail.course.places
+        : [];
+      const uniquePlaceIds = new Set(places.map(getPlaceId).filter(Boolean));
+
+      uniquePlaceIds.forEach((placeId) => {
+        const place = placesById.get(placeId);
+        if (!place) return;
+
+        const current = countsByPlaceId.get(placeId) || {
+          placeId,
+          name: pickFirst(place.name, place.placeName, place.place_name),
+          floor: pickFirst(place.floor, place.floorCode, place.floor_code),
+          imageUrl:
+            getImageUrl(place) ||
+            pickFirst(
+              place.imageUrl,
+              place.image_url,
+              place.image,
+              place.placeImg,
+              place.place_img,
+            ),
+          postCount: 0,
+        };
+        countsByPlaceId.set(placeId, {
+          ...current,
+          postCount: current.postCount + 1,
+        });
+      });
+    });
+
+    return Array.from(countsByPlaceId.values())
+      .filter((place) => place.name && place.postCount > 0)
+      .sort((a, b) => {
+        if (b.postCount !== a.postCount) return b.postCount - a.postCount;
+        return a.name.localeCompare(b.name, "ko");
+      })
+      .slice(0, 5)
+      .map((place, index) => ({
+        ...place,
+        rank: index + 1,
+      }));
+  } catch (error) {
+    console.error(
+      "[Community Server] Popular places fallback failed:",
+      error.message,
+    );
+    return [];
+  }
+}
+
 /**
  * 백엔드 PublicCourseDetailResponse -> UI 상세 데이터 정규화
  */
@@ -414,6 +568,110 @@ export async function fetchPublicCoursesServer({
   } catch (error) {
     console.error("[Community Server] Connection error:", error.message);
     return [];
+  }
+}
+
+/**
+ * 서버 사이드 커뮤니티 인기 장소 TOP3 조회
+ */
+export async function fetchPopularCommunityPlacesServer({
+  cache = "no-store",
+  revalidate,
+} = {}) {
+  const baseUrl = getBaseUrl();
+  const headers = await getServerApiHeaders({ Accept: "application/json" });
+
+  try {
+    const fetchOptions = {
+      method: "GET",
+      headers,
+      cache,
+    };
+    if (typeof revalidate === "number") {
+      fetchOptions.next = { revalidate };
+    }
+
+    const [popRes, placesJson] = await Promise.all([
+      fetch(`${baseUrl}/api/v1/community/courses/popular-places`, fetchOptions).catch(() => null),
+      fetchJson(`${baseUrl}/api/v1/places/navigation`, {
+        method: "GET",
+        headers: getServerPlaceHeaders(headers),
+        cache: "no-store",
+      }).catch(() => null),
+    ]);
+
+    const placeRows = Array.isArray(placesJson?.data) ? placesJson.data : [];
+    const placesById = new Map(
+      placeRows
+        .map((p) => [getPlaceId(p), p])
+        .filter(([id]) => id),
+    );
+    const placesByName = new Map(
+      placeRows
+        .map((p) => [
+          String(p.name || p.placeName || p.place_name || "").trim().toLowerCase(),
+          p,
+        ])
+        .filter(([k]) => k),
+    );
+
+    let normalizedPlaces = [];
+    if (popRes && popRes.ok) {
+      const json = await popRes.json();
+      const places = Array.isArray(json?.data) ? json.data : [];
+
+      normalizedPlaces = places
+        .map((p) => {
+          const matched =
+            placesById.get(getPlaceId(p)) ||
+            placesByName.get(String(p.name || p.placeName || p.place_name || "").trim().toLowerCase());
+          return normalizePopularPlace({
+            ...matched,
+            ...p,
+            imageUrl:
+              p.imageUrl ||
+              p.image_url ||
+              matched?.imageUrl ||
+              matched?.image_url ||
+              matched?.placeImg ||
+              matched?.image,
+          });
+        })
+        .filter(Boolean);
+    }
+
+    if (normalizedPlaces.length < 5) {
+      const fallbackPlaces = await fetchFallbackPopularPlaces(baseUrl, headers, placeRows);
+      const existingPlaceIds = new Set(
+        normalizedPlaces.map((p) => String(p.placeId || p.name).trim().toLowerCase()),
+      );
+
+      for (const fb of fallbackPlaces) {
+        const idKey = String(fb.placeId || fb.name).trim().toLowerCase();
+        if (!existingPlaceIds.has(idKey)) {
+          existingPlaceIds.add(idKey);
+          normalizedPlaces.push(fb);
+        }
+        if (normalizedPlaces.length >= 5) break;
+      }
+    }
+
+    if (normalizedPlaces.length > 0) {
+      return normalizedPlaces
+        .slice(0, 5)
+        .map((place, index) => ({
+          ...place,
+          rank: index + 1,
+        }));
+    }
+
+    return fetchFallbackPopularPlaces(baseUrl, headers, placeRows);
+  } catch (error) {
+    console.error(
+      "[Community Server] Popular places connection error:",
+      error.message,
+    );
+    return fetchFallbackPopularPlaces(baseUrl, headers);
   }
 }
 

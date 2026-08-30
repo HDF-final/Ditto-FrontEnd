@@ -235,6 +235,8 @@
     "publicCourseHash": "#推荐路线 #TheHyundai",
     "title": "旅行者定制路线",
     "description": "浏览旅行者亲自创建并分享的定制路线，了解每条路线中的地点与故事。",
+    "popularPlacesTitle": "旅行者到访最多的热门地点",
+    "popularPlacesSubtitle": "",
     "popular": "热门",
     "latest": "最新",
     "shareMine": "分享我的路线 →",

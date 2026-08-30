@@ -16,6 +16,7 @@ import { useCommunityInteractionsStore } from "@/stores/use-community-interactio
 import { useCommunityPostAuthorsStore } from "@/stores/use-community-post-authors-store";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useTranslations } from "next-intl";
+import { PlaceModal } from "@/components/ai-course/recommend/place-modal";
 
 const tabs = ["popular", "latest"];
 const MOBILE_ITEMS_PER_PAGE = 2;
@@ -303,6 +304,7 @@ function CommunityCard({
 
 export function CommunityCoursePage({
   initialCards = [],
+  popularPlaces = [],
   authorFilterName = "",
   isAuthorFiltered = false,
 }) {
@@ -315,6 +317,24 @@ export function CommunityCoursePage({
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [confirmedLikesByKey, setConfirmedLikesByKey] = useState({});
   const likesDeltaMap = useCommunityInteractionsStore((state) => state.likesDelta);
+  const [selectedPlace, setSelectedPlace] = useState(null);
+
+  const resolveMessage = (key, fallback) => {
+    try {
+      if (typeof t.has === "function" && !t.has(key)) return fallback;
+      const msg = t(key);
+      if (!msg || msg === key || msg.includes("community.")) return fallback;
+      return msg;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const popularPlacesTitle = resolveMessage(
+    "popularPlacesTitle",
+    "지금 여행자들이 가장 많이 다녀온 인기 장소",
+  );
+
   const pageTitle = isAuthorFiltered
     ? authorFilterName
       ? `${authorFilterName}님의 공유 코스`
@@ -323,6 +343,7 @@ export function CommunityCoursePage({
   const pageDescription = isAuthorFiltered
     ? "해당 사용자가 커뮤니티에 공유한 코스만 모아봤어요."
     : t("description");
+  const hasPopularPlaces = !isAuthorFiltered && popularPlaces.length > 0;
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -387,58 +408,124 @@ export function CommunityCoursePage({
   return (
     <main className="min-w-0 overflow-x-hidden bg-surface-soft max-lg:flex max-lg:min-h-0 max-lg:flex-1 max-lg:flex-col max-lg:overflow-hidden lg:min-h-screen lg:bg-background">
       <section className="shrink-0 bg-white px-4 pb-0 pt-3 lg:px-52 lg:pb-16 lg:pt-[94px] xl:px-60 2xl:px-72">
-        <div className="mx-auto flex max-w-[1020px] flex-col gap-2 lg:max-w-none lg:flex-row lg:items-end lg:justify-between lg:gap-10">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3 lg:block">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black text-brand lg:text-sm">
-                  THE HYUNDAI SEOUL COMMUNITY
-                </p>
-                <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[42px] lg:leading-none">
-                  {pageTitle}
-                </h1>
-                <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-base lg:leading-7">
-                  {pageDescription}
-                </p>
-              </div>
-              <Link
-                href={isAuthorFiltered ? "/community" : "/community/share"}
-                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-black shadow-control transition lg:hidden ${
-                  isAuthorFiltered
-                    ? "border border-brand bg-white text-brand"
-                    : "bg-brand text-white"
+        <div className="mx-auto max-w-[1020px] lg:max-w-none">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black text-brand lg:text-sm">
+                THE HYUNDAI SEOUL COMMUNITY
+              </p>
+              <h1 className="mt-1 text-[18px] font-black leading-tight text-ink lg:mt-6 lg:text-[42px] lg:leading-none">
+                {pageTitle}
+              </h1>
+              <p className="mt-1 hidden text-[13px] font-medium leading-5 text-ink-muted lg:mt-5 lg:block lg:text-base lg:leading-7">
+                {pageDescription}
+              </p>
+            </div>
+            <Link
+              href={isAuthorFiltered ? "/community" : "/community/share"}
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-black shadow-control transition lg:hidden ${
+                isAuthorFiltered
+                  ? "border border-brand bg-white text-brand"
+                  : "bg-brand text-white"
+              }`}
+            >
+              {isAuthorFiltered ? "전체 보기" : t("share")}
+            </Link>
+          </div>
+
+          <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => handleTabChange(tab)}
+                className={`-mb-px cursor-pointer border-b-2 pb-2 text-[13px] font-black transition lg:pb-3 lg:text-base ${
+                  activeTab === tab
+                    ? "border-brand text-brand"
+                    : "border-transparent text-ink-muted hover:text-ink"
                 }`}
               >
-                {isAuthorFiltered ? "전체 보기" : t("share")}
-              </Link>
-            </div>
-            <div className="mt-2 flex gap-6 border-b border-line lg:mt-6 lg:gap-10">
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => handleTabChange(tab)}
-                  className={`-mb-px cursor-pointer border-b-2 pb-2 text-[13px] font-black transition lg:pb-3 lg:text-base ${
-                    activeTab === tab
-                      ? "border-brand text-brand"
-                      : "border-transparent text-ink-muted hover:text-ink"
+                {t(tab)}
+              </button>
+            ))}
+          </div>
+
+          {hasPopularPlaces ? (
+            <div className="mt-3.5 mb-1 pt-1 lg:mt-6 lg:mb-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-ink lg:text-[15px]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand-soft shadow-2xs">
+                  <svg
+                    className="size-2.5 fill-brand"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                </span>
+                <span>{popularPlacesTitle}</span>
+              </div>
+
+              <div className="mt-2.5 flex items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-1 gap-2.5 overflow-x-auto pb-2 pt-1 lg:gap-3 lg:pt-2">
+                  {popularPlaces.slice(0, 5).map((place, index) => (
+                    <button
+                      key={place.placeId || `${place.name}-${index}`}
+                      type="button"
+                      onClick={() => setSelectedPlace(place)}
+                      className="group inline-flex shrink-0 items-center gap-2.5 rounded-full border border-brand/20 bg-white hover:bg-brand-soft/40 px-3.5 py-2 shadow-xs transition-all hover:scale-[1.02] hover:shadow-md active:scale-95 cursor-pointer lg:gap-3 lg:px-4.5 lg:py-2.5"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-black text-xs font-black text-white shadow-xs lg:size-8 lg:text-sm">
+                        {place.rank || index + 1}
+                      </span>
+                      <span className="flex size-10 shrink-0 overflow-hidden rounded-full border-2 border-brand/20 bg-neutral-100 shadow-xs lg:size-12">
+                        {place.imageUrl ? (
+                          <img
+                            src={place.imageUrl}
+                            alt={place.name || ""}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <span className="h-full w-full bg-linear-to-br from-brand/90 to-brand-light" />
+                        )}
+                      </span>
+                      <span className="max-w-[130px] truncate text-xs font-black text-ink group-hover:text-brand transition-colors lg:max-w-[180px] lg:text-sm">
+                        {place.name}
+                      </span>
+                      {place.floor ? (
+                        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-black text-brand shadow-xs lg:text-xs">
+                          {place.floor}
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+
+                <Link
+                  href={isAuthorFiltered ? "/community" : "/community/share"}
+                  className={`hidden shrink-0 items-center justify-center rounded-full px-6 py-3.5 text-sm font-black shadow-control transition lg:inline-flex ${
+                    isAuthorFiltered
+                      ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
+                      : "bg-brand text-white hover:bg-brand-dark"
                   }`}
                 >
-                  {t(tab)}
-                </button>
-              ))}
+                  {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
+                </Link>
+              </div>
             </div>
-          </div>
-          <Link
-            href={isAuthorFiltered ? "/community" : "/community/share"}
-            className={`hidden items-center justify-center rounded-full px-5 py-2 text-[11px] font-black shadow-control transition lg:inline-flex lg:w-fit lg:px-8 lg:py-4 lg:text-base ${
-              isAuthorFiltered
-                ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
-                : "bg-brand text-white hover:bg-brand-dark"
-            }`}
-          >
-            {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
-          </Link>
+          ) : (
+            <div className="mt-4 hidden justify-end lg:flex">
+              <Link
+                href={isAuthorFiltered ? "/community" : "/community/share"}
+                className={`items-center justify-center rounded-full px-6 py-3.5 text-sm font-black shadow-control transition lg:inline-flex ${
+                  isAuthorFiltered
+                    ? "border border-brand bg-white text-brand hover:bg-brand hover:text-white"
+                    : "bg-brand text-white hover:bg-brand-dark"
+                }`}
+              >
+                {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -627,6 +714,13 @@ export function CommunityCoursePage({
           </div>
         </div>
       ) : null}
+
+      {selectedPlace && (
+        <PlaceModal
+          place={selectedPlace}
+          onClose={() => setSelectedPlace(null)}
+        />
+      )}
     </main>
   );
 }

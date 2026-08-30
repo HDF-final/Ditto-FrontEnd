@@ -235,6 +235,8 @@
     "publicCourseHash": "#RecommendedCourse #TheHyundai",
     "title": "Traveler custom courses",
     "description": "Explore custom courses created and shared by travelers, along with the places and stories behind each route.",
+    "popularPlacesTitle": "Most Visited Places by Travelers",
+    "popularPlacesSubtitle": "",
     "popular": "Popular",
     "latest": "Latest",
     "shareMine": "Share my course →",

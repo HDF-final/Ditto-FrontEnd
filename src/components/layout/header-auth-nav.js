@@ -36,7 +36,8 @@ function isAdmin(user) {
 }
 
 export function HeaderAuthNav() {
-  const t = useTranslations();
+  const navT = useTranslations("navigation");
+  const commonT = useTranslations("common");
   const mounted = useIsMounted();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -69,15 +70,15 @@ export function HeaderAuthNav() {
         {activeUserIsAdmin ? (
           <Link
             href="/admin"
-            aria-label={t("navigation.adminPage")}
+            aria-label={navT("adminPage")}
             className="shrink-0 rounded-full border border-brand/20 bg-brand-soft px-4 py-2 text-xs font-black text-brand transition hover:border-brand hover:bg-brand hover:text-white"
           >
-            {t("navigation.admin")}
+            {navT("admin")}
           </Link>
         ) : (
           <Link
             href="/community/bookmarks"
-            aria-label={t("navigation.likedCourses")}
+            aria-label={navT("likedCourses")}
             className="shrink-0 text-ink transition hover:text-brand"
           >
             <HeartIcon />
@@ -88,7 +89,7 @@ export function HeaderAuthNav() {
             href="/mypage"
             className="hidden whitespace-nowrap text-sm font-bold text-ink transition hover:text-brand cursor-pointer sm:inline"
           >
-            {t("common.memberGreeting", {
+            {commonT("memberGreeting", {
               name: activeUser.nickname || activeUser.name || "디또러버",
             })}
           </Link>
@@ -97,7 +98,7 @@ export function HeaderAuthNav() {
             onClick={handleLogout}
             className="shrink-0 whitespace-nowrap rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-muted transition hover:border-brand hover:text-brand cursor-pointer sm:px-4 sm:py-2 sm:text-xs"
           >
-            {t("common.logout")}
+            {commonT("logout")}
           </button>
         </div>
       </div>
@@ -109,7 +110,7 @@ export function HeaderAuthNav() {
       href="/login"
       className="shrink-0 rounded-full bg-brand px-3.5 py-2 text-sm font-black leading-none text-white transition hover:bg-brand-dark lg:px-5 lg:py-3 lg:text-base"
     >
-      {t("common.login")}
+      {commonT("login")}
     </Link>
   );
 }
