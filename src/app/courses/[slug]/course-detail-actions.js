@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useIsMounted } from "@/hooks/use-is-mounted";
-import { bookmarkCourse, unbookmarkCourse } from "@/lib/api/community";
-import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import { createCourse } from "@/lib/api/courses";
 import { CommunityShareButton } from "@/app/community/[postId]/community-share-button";
 import { useTranslations } from "next-intl";
 
@@ -13,77 +12,165 @@ export function CourseDetailActions({ course = {} }) {
   const t = useTranslations("community");
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const mounted = useIsMounted();
 
+  // 연예인 기본(SYSTEM) 코스는 커뮤니티 게시글이 아니라 코스라, '저장'은 북마크가
+  // 아니라 내 코스로 복사해야 마이페이지 '내 코스'에 뜬다. 결과 화면의 저장과 같은
+  // 경로(createCourse · COPIED)를 쓴다.
   const courseId =
     course.courseId ||
     course.postId ||
     course.id ||
     (typeof course.slug === "number" || /^\d+$/.test(course.slug)
       ? Number(course.slug)
-      : 1);
+      : null);
 
-  const postIdentifier = String(course.courseId || course.slug || courseId || "1");
+  // 상세 정규화(normalize-course)가 각 자리에 실어 주는 백엔드 placeId.
+  const placeIds = (Array.isArray(course.stops) ? course.stops : [])
+    .map((stop) => stop?.placeId)
+    .filter((id) => id !== null && id !== undefined);
 
-  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
-    state.isBookmarked(postIdentifier),
-  );
-  const setBookmarked = useCommunityInteractionsStore(
-    (state) => state.setBookmarked,
-  );
-
-  const isBookmarked = mounted ? isBookmarkedStored : false;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const [savedCourseId, setSavedCourseId] = useState(null);
+  const [saveError, setSaveError] = useState("");
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
-  async function handleBookmarkToggle() {
+  const isSaved = saveStatus === "saved" || savedCourseId !== null;
+
+  async function handleSaveCourse() {
     if (!isAuthenticated) {
       setIsLoginModalOpen(true);
       return;
     }
-    const nextState = !isBookmarked;
-    setBookmarked(postIdentifier, nextState);
+    if (saveStatus === "saving") return;
 
-    if (courseId) {
-      try {
-        if (nextState) {
-          await bookmarkCourse(courseId);
-        } else {
-          await unbookmarkCourse(courseId);
-        }
-      } catch (err) {
-        console.warn("[Bookmark Toggle] Failed:", err);
-      }
+    // 이미 저장했으면 중복 복사 대신 마이페이지로 안내.
+    if (isSaved) {
+      router.push("/mypage");
+      return;
+    }
+
+    if (placeIds.length === 0) {
+      setSaveError("이 코스는 지금 저장할 수 없어요. 잠시 후 다시 시도해 주세요.");
+      setSaveStatus("error");
+      return;
+    }
+
+    setSaveStatus("saving");
+    setSaveError("");
+    try {
+      const created = await createCourse({
+        name: course.title || "저장한 코스",
+        placeIds,
+        courseType: "COPIED",
+        sourceCourseId: courseId || null,
+      });
+      setSavedCourseId(created?.courseId ?? courseId ?? true);
+      setSaveStatus("saved");
+      setIsSuccessOpen(true);
+    } catch (err) {
+      setSaveError(err?.message || "코스 저장에 실패했어요. 다시 시도해 주세요.");
+      setSaveStatus("error");
     }
   }
+
+  const saveLabel =
+    saveStatus === "saving"
+      ? "저장 중…"
+      : isSaved
+        ? t("saved")
+        : t("saveCourse");
 
   return (
     <>
       <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:mt-5">
-        {/* 코스 저장 / 북마크 버튼 */}
+        {/* 코스 저장 — 내 코스로 복사(마이페이지 '내 코스'에 표시) */}
         <button
           type="button"
-          onClick={handleBookmarkToggle}
-          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm ${
-            isBookmarked
+          onClick={handleSaveCourse}
+          disabled={saveStatus === "saving"}
+          aria-busy={saveStatus === "saving"}
+          className={`inline-flex h-11 min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition shadow-xs hover:scale-[1.02] cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100 sm:h-12 sm:min-w-[142px] sm:flex-none sm:basis-auto sm:gap-2 sm:px-8 sm:text-sm ${
+            isSaved
               ? "border border-brand bg-brand-soft text-brand hover:bg-[#e7ddff]"
               : "bg-brand text-white hover:bg-brand-dark"
           }`}
         >
           <svg
-            className={`size-4.5 ${isBookmarked ? "fill-current" : ""}`}
+            className={`size-4.5 ${isSaved ? "fill-current" : ""}`}
             viewBox="0 0 24 24"
-            fill={isBookmarked ? "currentColor" : "none"}
+            fill={isSaved ? "currentColor" : "none"}
             stroke="currentColor"
             strokeWidth="2.2"
           >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
-          <span>{isBookmarked ? t("saved") : t("saveCourse")}</span>
+          <span>{saveLabel}</span>
         </button>
 
         {/* 공유하기 버튼 */}
         <CommunityShareButton />
       </div>
+
+      {saveStatus === "error" && saveError ? (
+        <p className="mt-2.5 rounded-xl bg-red-50 px-3.5 py-2 text-xs font-bold text-red-600">
+          {saveError}
+        </p>
+      ) : null}
+
+      {/* 저장 완료 안내 모달 */}
+      {isSuccessOpen ? (
+        <div
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-5 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsSuccessOpen(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150"
+          >
+            <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand">
+              <svg
+                className="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.4}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h3 className="text-base font-black text-ink">코스 저장 완료!</h3>
+            <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+              <strong className="font-bold text-ink">
+                {course.title || "이 코스"}
+              </strong>
+              를 마이페이지 &lsquo;내 코스&rsquo;에 저장했어요.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsSuccessOpen(false)}
+                className="flex-1 rounded-full border border-line bg-surface-soft py-2.5 text-xs font-bold text-ink hover:bg-line transition cursor-pointer"
+              >
+                닫기
+              </button>
+              <Link
+                href="/mypage"
+                className="flex-1 rounded-full bg-brand py-2.5 text-xs font-black text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
+              >
+                마이페이지 보기
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* 로그인 필요 알림 모달 */}
       {isLoginModalOpen ? (
