@@ -111,7 +111,10 @@ export function MypageCourseCarousel({
           {pages.map((pageItems, pageIndex) => (
             <div
               key={`course-page-${pageIndex}`}
-              className="grid w-full min-w-full max-w-full flex-[0_0_100%] snap-start snap-always grid-cols-2 gap-3 sm:gap-4"
+              // 좌우 패딩을 카드 간격(gap)의 절반씩 줘, 페이지 경계에서 맞닿는
+              // 카드(예: 2번↔다음 페이지 3번) 사이 간격을 페이지 안쪽 간격과 똑같이 맞춘다.
+              // 패딩은 border-box 안쪽이라 페이지 폭은 100% 그대로여서 스냅 정렬에 영향 없다.
+              className="grid w-full min-w-full max-w-full flex-[0_0_100%] snap-start snap-always grid-cols-2 gap-3 px-1.5 sm:gap-4 sm:px-2"
             >
               {pageItems.map((item) => (
                 <div

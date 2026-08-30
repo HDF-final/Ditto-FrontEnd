@@ -942,6 +942,11 @@ export function ResultScreen({
           <span className="h-1.5 w-16 rounded-full bg-[#d8d3ee]" />
         </div>
 
+        {/* 모바일: 핸들 아래 본문을 하나의 스크롤 영역으로 묶는다. 시트가 낮으면
+            제목·버튼·이동수단 조건만으로도 시트가 꽉 차 장소 카드가 잘려 안 보였는데,
+            이렇게 묶으면 시트가 낮아도 카드까지 스크롤로 닿는다. 데스크톱(lg)은
+            display:contents 로 래퍼를 지워 기존 레이아웃은 그대로 둔다. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain sm:gap-[14px] lg:contents">
         {/* Editable title */}
         <input
           className="w-full min-w-0 pb-1 text-[18px] font-bold text-[#1a142e] bg-transparent outline-none placeholder-[#ccc8d8] border-b-2 border-transparent focus:border-[#5c2ef5] transition-colors sm:text-[22px] md:text-[26px]"
@@ -1080,7 +1085,7 @@ export function ResultScreen({
         {/* Place cards */}
         <div
           ref={listRef}
-          className="flex flex-col gap-[10px] min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5"
+          className="flex flex-col gap-[10px] min-h-0 overscroll-contain pr-0.5 max-lg:pb-1 lg:flex-1 lg:overflow-y-auto"
         >
           {items.map((place, index) => {
             const isStart = index === 0;
@@ -1289,6 +1294,7 @@ export function ResultScreen({
             </div>
             );
           })}
+        </div>
         </div>
       </div>
 
