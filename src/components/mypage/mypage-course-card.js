@@ -76,6 +76,12 @@ export function MypageCourseCard({
   const savesCount = Math.max(0, baseSaves + savesDelta);
 
   const href = course.href || `/community/${numKey || slugKey}`;
+  const isSavedRecommended =
+    course.badge === "SAVED" ||
+    course.badge === "SAVED COURSE" ||
+    course.badge === "RECOMMENDED" ||
+    course.creationType === "SYSTEM" ||
+    course.isSystemCourse;
 
   const image =
     course.image ||
@@ -216,65 +222,73 @@ export function MypageCourseCard({
           ) : null}
         </div>
 
-        {/* Bottom Stats Toolbar */}
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 pt-0.5 text-[10px] font-bold text-white lg:gap-2 lg:text-[11px]">
-          {/* 좋아요 버튼 */}
-          <button
-            type="button"
-            onClick={handleLike}
-            aria-label={t("like")}
-            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
-              isLiked
-                ? "bg-red-500 text-white scale-105"
-                : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
-            }`}
-          >
-            <svg
-              className={`size-3.5 ${isLiked ? "fill-current" : "fill-none"}`}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.2"
+        {/* Bottom Stats Toolbar - 커뮤니티 게시물만 노출, 기본 추천 코스는 미노출 */}
+        {!isSavedRecommended ? (
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 pt-0.5 text-[10px] font-bold text-white lg:gap-2 lg:text-[11px]">
+            {/* 좋아요 버튼 */}
+            <button
+              type="button"
+              onClick={handleLike}
+              aria-label={t("like")}
+              className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
+                isLiked
+                  ? "bg-red-500 text-white scale-105"
+                  : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
+              }`}
             >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span>{likesCount}</span>
-          </button>
+              <svg
+                className={`size-3.5 ${isLiked ? "fill-current" : "fill-none"}`}
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span>{likesCount}</span>
+            </button>
 
-          {/* 댓글 버튼 */}
-          <button
-            type="button"
-            onClick={handleCommentClick}
-            aria-label={t("comments")}
-            className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-black/40 px-1.5 py-1 text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer sm:gap-1 sm:px-2.5"
-          >
-            <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span>{course.comments ?? 0}</span>
-          </button>
-
-          {/* 북마크 버튼 */}
-          <button
-            type="button"
-            onClick={handleBookmark}
-            aria-label={t("save")}
-            className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
-              isBookmarked
-                ? "bg-brand text-white scale-105"
-                : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
-            }`}
-          >
-            <svg
-              className={`size-3.5 ${isBookmarked ? "fill-current" : "fill-none"}`}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.2"
+            {/* 댓글 버튼 */}
+            <button
+              type="button"
+              onClick={handleCommentClick}
+              aria-label={t("comments")}
+              className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-black/40 px-1.5 py-1 text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer sm:gap-1 sm:px-2.5"
             >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-            <span>{savesCount}</span>
-          </button>
-        </div>
+              <svg
+                className="size-3.5 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{course.comments ?? 0}</span>
+            </button>
+
+            {/* 북마크 버튼 */}
+            <button
+              type="button"
+              onClick={handleBookmark}
+              aria-label={t("save")}
+              className={`flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 transition shadow-xs cursor-pointer sm:gap-1 sm:px-2.5 ${
+                isBookmarked
+                  ? "bg-brand text-white scale-105"
+                  : "bg-black/40 backdrop-blur-xs text-white border border-white/10 hover:bg-white/20"
+              }`}
+            >
+              <svg
+                className={`size-3.5 ${isBookmarked ? "fill-current" : "fill-none"}`}
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{savesCount}</span>
+            </button>
+          </div>
+        ) : null}
       </div>
     </Link>
   );
