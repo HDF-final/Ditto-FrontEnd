@@ -38,7 +38,11 @@ import {
   getCourseDetail,
   updateCourse,
 } from "@/lib/api/courses";
-import { getImageUrl, pickCoursePlaceImage } from "@/lib/courses/image-url";
+import {
+  getImageUrl,
+  pickCoursePlaceImage,
+  normalizeImageUrl,
+} from "@/lib/courses/image-url";
 
 const MAX_COURSE_PLACES = 8;
 const MOBILE_LIST_MIN_PERCENT = 36;
@@ -144,11 +148,31 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
         ? { ...rawPlace.place, ...rawPlace }
         : rawPlace;
       const catalogPlace = findCatalogPlace(place, placeCatalog);
+      const rawImage = place?.imageUrl || place?.image;
+      const normalizedRawImage = rawImage ? normalizeImageUrl(rawImage) : null;
       const image = pickCoursePlaceImage(place, catalogPlace);
       const fallbackName =
         place?.name ?? place?.placeName ?? place?.place_name ?? catalogPlace?.name;
       const fallbackFloor =
         place?.floorCode ?? place?.floor_code ?? place?.floor ?? catalogPlace?.floor;
+
+      const aiReason =
+        place?.recommendationReason ||
+        place?.aiReason ||
+        catalogPlace?.aiReason ||
+        null;
+      const aiImage =
+        normalizedRawImage ||
+        place?.aiImage ||
+        catalogPlace?.aiImage ||
+        image;
+
+      const desc =
+        aiReason ||
+        place?.description ||
+        place?.desc ||
+        catalogPlace?.desc ||
+        `${fallbackFloor ?? ""} ${fallbackName ?? ""}`.trim();
 
       if (catalogPlace) {
         return {
@@ -159,12 +183,14 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
           navigationKey: catalogPlace.navigationKey,
           floor: catalogPlace.floor ?? fallbackFloor,
           name: fallbackName,
-          desc: place?.description ?? place?.desc ?? catalogPlace.desc,
-          description: place?.description ?? place?.desc ?? catalogPlace.description,
+          desc,
+          description: desc,
+          aiReason,
+          aiImage,
           image: image ?? catalogPlace.image,
           imageUrl: image ?? catalogPlace.imageUrl,
           placeImg: image ?? catalogPlace.placeImg,
-          isAiRecommended: false,
+          isAiRecommended: Boolean(aiReason),
         };
       }
 
@@ -175,12 +201,14 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
         floor: fallbackFloor,
         name: fallbackName,
         category: place?.category,
-        desc: place?.description ?? place?.desc ?? `${fallbackFloor ?? ""} ${fallbackName ?? ""}`.trim(),
-        description: place?.description ?? place?.desc,
+        desc,
+        description: desc,
+        aiReason,
+        aiImage,
         image,
         imageUrl: image,
         location: `더현대서울 ${fallbackFloor ?? ""}`.trim(),
-        isAiRecommended: false,
+        isAiRecommended: Boolean(aiReason),
       };
     })
     .filter((place) => place.name);
@@ -1210,6 +1238,9 @@ export function ResultScreen({
                         : "text-[#1a142e]"
                     }`}
                   >
+                    {place.floor && !place.name.startsWith(place.floor)
+                      ? `${place.floor} `
+                      : ""}
                     {place.name}
                   </h3>
                   <p className="line-clamp-1 text-[12px] leading-[1.5] text-[#6b6685] sm:line-clamp-2">

@@ -197,9 +197,7 @@ async function normalizeSavedCourses(data, t) {
         courseId: saved.courseId,
         postId: saved.courseId,
         slug: String(saved.courseId),
-        href: isSystemCourse
-          ? `/courses/${saved.courseId}`
-          : `/ai-course?courseId=${saved.courseId}&from=mypage`,
+        href: `/ai-course?courseId=${saved.courseId}&from=mypage`,
         badge: isSystemCourse ? "RECOMMENDED" : "SAVED",
         badgeLabel: t("savedCourses"),
         creationType,
@@ -272,9 +270,9 @@ async function normalizeBookmarks(data, t) {
       const creationType = courseDetail?.creationType || bookmark.creationType || postDetail?.creationType || null;
       const isSystem = creationType === "SYSTEM";
 
-      // 기본 추천 코스(SYSTEM)면 /courses/{courseId}, 아니면 해당 사용자의 커뮤니티 상세(/community/{postId})로 이동
+      // 기본 추천 코스(SYSTEM)면 /ai-course?courseId={courseId}&from=mypage, 아니면 해당 사용자의 커뮤니티 상세(/community/{postId})로 이동
       const href = isSystem && courseId
-        ? `/courses/${courseId}`
+        ? `/ai-course?courseId=${courseId}&from=mypage`
         : `/community/${postId || courseId}`;
 
       const images = Array.isArray(postDetail?.imageUrls)
