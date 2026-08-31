@@ -82,6 +82,12 @@ export function MypageCourseCard({
       course.isSystemCourse) &&
     course.creationType !== "MANUAL" &&
     course.badge !== "MANUAL";
+  const isBoni =
+    isSavedRecommended ||
+    course.name === "Boni" ||
+    course.badge === "RECOMMENDED" ||
+    course.creationType === "SYSTEM" ||
+    course.isSystemCourse;
 
   const image =
     course.image ||
@@ -175,12 +181,22 @@ export function MypageCourseCard({
                 ? mypageT("sharedBadge")
                 : "★"}
           </span>
-          <span className="shrink-0 text-xs leading-none lg:text-sm">
-            {getFlagEmoji(course.country || course.flag)}
-          </span>
+          {isBoni ? (
+            <div className="size-4.5 shrink-0 overflow-hidden rounded-full border border-purple-300/40 bg-white shadow-xs lg:size-5">
+              <img
+                src="/assets/ai-course/boni-profile.png"
+                alt="Boni"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <span className="shrink-0 text-xs leading-none lg:text-sm">
+              {getFlagEmoji(course.country || course.flag)}
+            </span>
+          )}
           <div className="min-w-0 flex-1 leading-tight">
             <span className="block truncate text-[11px] font-bold text-white">
-              {course.name || t("traveler")}
+              {isBoni ? "Boni" : (course.name || t("traveler"))}
             </span>
             {course.badge === "SHARED" ? null : (
               <span className="block truncate text-[10px] font-semibold text-violet-200">
