@@ -241,11 +241,6 @@ body {
   display: none;
 }
 
-::selection {
-  background: #fff176;
-  color: var(--brand-dark);
-}
-
 @keyframes boni-float {
   0%,
   100% {
@@ -264,11 +259,6 @@ body {
   .boni-float {
     animation: none;
   }
-}
-
-::-moz-selection {
-  background: #fff176;
-  color: var(--brand-dark);
 }
 
 :focus-visible {

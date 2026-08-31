@@ -459,7 +459,7 @@ export function CommunityCoursePage({
               </div>
 
               <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:gap-2.5">
+                <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:flex-wrap lg:gap-2.5 lg:gap-y-2 lg:overflow-visible">
                   {popularPlaces.slice(0, 5).map((place, index) => (
                     <button
                       key={place.placeId || `${place.name}-${index}`}
