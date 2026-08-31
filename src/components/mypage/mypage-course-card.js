@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -45,17 +46,34 @@ export function MypageCourseCard({
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
     state.getLikesDelta(slugKey, numKey),
   );
+  const savesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getSavesDelta(slugKey, numKey),
+  );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
-  const setBookmarked = useCommunityInteractionsStore((state) => state.setBookmarked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
+  const setBookmarked = useCommunityInteractionsStore(
+    (state) => state.setBookmarked,
+  );
+  const clearSavesDelta = useCommunityInteractionsStore(
+    (state) => state.clearSavesDelta,
+  );
+
+  const [confirmedLikes, setConfirmedLikes] = useState(null);
+  const [confirmedSaves, setConfirmedSaves] = useState(null);
 
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
+  const savesDelta = mounted ? savesDeltaStored : 0;
 
-  const baseLikes = course.likes ?? 0;
+  const baseLikes =
+    typeof confirmedLikes === "number" ? confirmedLikes : (course.likes ?? 0);
   const likesCount = Math.max(0, baseLikes + likesDelta);
-  const baseSaves = course.saves ?? 0;
-  const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
+  const baseSaves =
+    typeof confirmedSaves === "number" ? confirmedSaves : (course.saves ?? 0);
+  const savesCount = Math.max(0, baseSaves + savesDelta);
 
   const href = course.href || `/community/${numKey || slugKey}`;
 
@@ -76,8 +94,14 @@ export function MypageCourseCard({
     const postIdNum = Number(course.postId || course.id);
     if (postIdNum && !Number.isNaN(postIdNum)) {
       try {
-        if (nextState) await likeCourse(postIdNum);
-        else await unlikeCourse(postIdNum);
+        const res = nextState
+          ? await likeCourse(postIdNum)
+          : await unlikeCourse(postIdNum);
+        const count = res?.likesCount ?? res?.likeCount ?? res?.likes;
+        if (typeof count === "number") {
+          setConfirmedLikes(count);
+          clearLikesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Mypage Card Like] error:", err);
       }
@@ -97,8 +121,14 @@ export function MypageCourseCard({
     const postIdNum = Number(course.postId || course.id);
     if (postIdNum && !Number.isNaN(postIdNum)) {
       try {
-        if (nextState) await bookmarkCourse(postIdNum);
-        else await unbookmarkCourse(postIdNum);
+        const res = nextState
+          ? await bookmarkCourse(postIdNum)
+          : await unbookmarkCourse(postIdNum);
+        const count = res?.bookmarkCount ?? res?.savesCount ?? res?.saves;
+        if (typeof count === "number") {
+          setConfirmedSaves(count);
+          clearSavesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Mypage Card Bookmark] error:", err);
       }

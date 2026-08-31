@@ -7,24 +7,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { getMyProfile, getMyBookmarks } from "@/lib/api/users";
+import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
+import {
+  getMyProfile,
+  getMyBookmarks,
+  getMyLikes,
+  getMySavedCourses,
+} from "@/lib/api/users";
 import { getCourseDetail, getMyCourses } from "@/lib/api/courses";
 import { logout } from "@/lib/api/auth";
 import {
+  getPublicCourse,
   getPublicCourses,
   updateCoursePost,
   uploadCoursePostImages,
 } from "@/lib/api/community";
-import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { compressImage, dataUrlToBlob } from "@/lib/utils/image-compression";
-import { communityCourses } from "@/lib/fixtures/community-courses";
 import { getPersonaById } from "@/lib/fixtures/personas";
 import { MypageProfile } from "@/components/mypage/mypage-profile";
 import { MypageCourseCard } from "@/components/mypage/mypage-course-card";
 import { MypageCourseCarousel } from "@/components/mypage/mypage-course-carousel";
 import { MyCoursePrivateCard } from "@/components/mypage/my-course-private-card";
 import { ProfileEditModal } from "@/components/mypage/profile-edit-modal";
-import { useIsMounted } from "@/hooks/use-is-mounted";
 
 const ITEMS_PER_PAGE = 3;
 const TAB_IDS = ["mine", "shared", "liked", "saved"];
@@ -129,9 +133,12 @@ async function hydrateMyCourses(data, userName, t) {
 
       return {
         id: course.courseId,
+        courseId: course.courseId,
         postId: course.courseId,
         href: `/ai-course?courseId=${course.courseId}&from=mypage`,
         badge: "MY COURSE",
+        creationType: detail?.creationType || course.creationType || null,
+        sourceCourseId: detail?.sourceCourseId || course.sourceCourseId || null,
         name: userName || t("defaultUser"),
         country: "KR",
         flag: "KR",
@@ -139,6 +146,7 @@ async function hydrateMyCourses(data, userName, t) {
         title: detail?.name || course.name || t("untitledCourse"),
         description,
         image:
+          detail?.imageUrl ||
           detail?.representativeImageUrl ||
           course.representativeImageUrl ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
@@ -155,41 +163,154 @@ async function hydrateMyCourses(data, userName, t) {
   };
 }
 
-function normalizeBookmarks(data, t) {
+async function normalizeSavedCourses(data, t) {
   const page = normalizePage(data);
+  const details = await Promise.allSettled(
+    page.content.map((saved) => getCourseDetail(saved.courseId)),
+  );
+
   return {
     totalElements: page.totalElements,
-    bookmarks: page.content.map((bookmark) => {
+    saved: page.content.map((saved, index) => {
+      const detailResult = details[index];
+      const detail =
+        detailResult?.status === "fulfilled" ? detailResult.value : null;
+      const places = Array.isArray(detail?.places)
+        ? [...detail.places].sort(
+            (a, b) => Number(a.visitOrder) - Number(b.visitOrder),
+          )
+        : [];
+      const placeCount = Number(saved.placeCount ?? places.length) || 0;
+
+      return {
+        id: `saved-course-${saved.courseId}`,
+        courseId: saved.courseId,
+        href: `/courses/${saved.courseId}`,
+        badge: "SAVED COURSE",
+        badgeLabel: t("savedCourses"),
+        name: "Boni",
+        country: "KR",
+        flag: "KR",
+        hash: t("popularCourseHash"),
+        title: detail?.name || saved.title || t("untitledCourse"),
+        description:
+          detail?.description ||
+          saved.description ||
+          t("myCourseLocationDescription", { count: placeCount }),
+        image:
+          detail?.imageUrl ||
+          saved.imageUrl ||
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        likes: 0,
+        comments: 0,
+        saves: 0,
+        spotCount: t("spotCount", { count: placeCount }),
+        stops: places.map((place) => ({
+          floor: place.floorCode || t("floorUnknown"),
+          name: place.name || t("unnamedPlace"),
+        })),
+      };
+    }),
+  };
+}
+
+async function normalizeBookmarks(data, t) {
+  const page = normalizePage(data);
+  const details = await Promise.allSettled(
+    page.content.map((bookmark) =>
+      getPublicCourse(bookmark.postId || bookmark.courseId),
+    ),
+  );
+
+  return {
+    totalElements: page.totalElements,
+    bookmarks: page.content.map((bookmark, index) => {
       const postId = bookmark.postId || bookmark.courseId;
-      const fixture = communityCourses.find(
-        (c) =>
-          String(c.postId || c.slug) === String(postId) ||
-          String(c.rank) === String(postId),
-      );
+      const detailResult = details[index];
+      const detail =
+        detailResult?.status === "fulfilled" ? detailResult.value : null;
+      const images = Array.isArray(detail?.imageUrls)
+        ? detail.imageUrls.filter(Boolean)
+        : [];
 
       return {
         id: postId,
         postId,
-        slug: fixture?.slug || String(postId),
-        href: `/community/${fixture?.slug || postId}`,
+        slug: String(postId),
+        href: `/community/${postId}`,
         badge: "BOOKMARK",
-        name: fixture?.name || t("traveler"),
-        country: fixture?.country || "KR",
-        flag: fixture?.flag || "KR",
-        hash: fixture?.hash || t("popularCourseHash"),
+        name: t("traveler"),
+        country: "KR",
+        flag: "KR",
+        hash: t("popularCourseHash"),
         title:
-          bookmark.title || fixture?.title || t("recommendedCommunityCourse"),
+          detail?.title ||
+          bookmark.title ||
+          t("recommendedCommunityCourse"),
         description:
+          detail?.content ||
           bookmark.description ||
-          fixture?.description ||
           t("recommendedCommunityDescription"),
         image:
-          fixture?.image ||
+          images[0] ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-        likes: Number(bookmark.likeCount ?? fixture?.likes) || 0,
-        comments: Number(bookmark.commentCount ?? fixture?.comments) || 0,
-        saves: Number(bookmark.bookmarkCount ?? fixture?.saves) || 0,
-        stops: fixture?.stops || [],
+        images,
+        likes: Number(bookmark.likeCount) || 0,
+        comments:
+          Number(bookmark.commentCount) ||
+          (Array.isArray(detail?.comments) ? detail.comments.length : 0),
+        saves: Number(bookmark.bookmarkCount) || 0,
+        stops: [],
+      };
+    }),
+  };
+}
+
+async function normalizeLikedCourses(data, t) {
+  const page = normalizePage(data);
+  const details = await Promise.allSettled(
+    page.content.map((liked) => getPublicCourse(liked.postId || liked.courseId)),
+  );
+
+  return {
+    totalElements: page.totalElements,
+    likes: page.content.map((liked, index) => {
+      const postId = liked.postId || liked.courseId;
+      const detailResult = details[index];
+      const detail =
+        detailResult?.status === "fulfilled" ? detailResult.value : null;
+      const images = Array.isArray(detail?.imageUrls)
+        ? detail.imageUrls.filter(Boolean)
+        : [];
+
+      return {
+        id: postId,
+        postId,
+        slug: String(postId),
+        href: `/community/${postId}`,
+        badge: "LIKED",
+        name: t("traveler"),
+        country: "KR",
+        flag: "KR",
+        hash: t("popularCourseHash"),
+        title:
+          detail?.title ||
+          liked.title ||
+          t("recommendedCommunityCourse"),
+        description:
+          detail?.content ||
+          liked.description ||
+          t("recommendedCommunityDescription"),
+        image:
+          images[0] ||
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        images,
+        likes: Number(liked.likeCount) || 0,
+        comments:
+          Number(liked.commentCount) ||
+          (Array.isArray(detail?.comments) ? detail.comments.length : 0),
+        saves: Number(liked.bookmarkCount) || 0,
+        stops: [],
       };
     }),
   };
@@ -203,7 +324,6 @@ export function MypageView() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setUser = useAuthStore((state) => state.setUser);
   const clearUser = useAuthStore((state) => state.clearUser);
-  const mounted = useIsMounted();
 
   const handleLogout = async () => {
     clearUser();
@@ -218,22 +338,29 @@ export function MypageView() {
     }
   };
 
-  const isLikedStored = useCommunityInteractionsStore((state) => state.isLiked);
-  const isBookmarkedStored = useCommunityInteractionsStore((state) => state.isBookmarked);
-  const likedPosts = useCommunityInteractionsStore((state) => state.likedPosts);
-  const bookmarkedPosts = useCommunityInteractionsStore((state) => state.bookmarkedPosts);
-
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [courses, setCourses] = useState([]);
   const [sharedCourses, setSharedCourses] = useState([]);
+  const [likedCourses, setLikedCourses] = useState([]);
+  const [savedCourses, setSavedCourses] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
+  const [publicCoursesList, setPublicCoursesList] = useState([]);
   const [courseTotal, setCourseTotal] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState("mine");
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const isLikedStored = useCommunityInteractionsStore((state) => state.isLiked);
+  const isBookmarkedStored = useCommunityInteractionsStore(
+    (state) => state.isBookmarked,
+  );
+  const likedPosts = useCommunityInteractionsStore((state) => state.likedPosts);
+  const bookmarkedPosts = useCommunityInteractionsStore(
+    (state) => state.bookmarkedPosts,
+  );
   const [postToEdit, setPostToEdit] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -340,10 +467,18 @@ export function MypageView() {
       }
 
       try {
-        const [myCoursesResult, bookmarksResult, publicCoursesResult] =
+        const [
+          myCoursesResult,
+          likesResult,
+          bookmarksResult,
+          savedCoursesResult,
+          publicCoursesResult,
+        ] =
           await Promise.allSettled([
             getMyCourses(),
+            getMyLikes(),
             getMyBookmarks(),
+            getMySavedCourses(),
             getPublicCourses({ page: 0, size: 100 }),
           ]);
 
@@ -373,6 +508,7 @@ export function MypageView() {
               : Array.isArray(publicCoursesResult.value)
                 ? publicCoursesResult.value
                 : [];
+            setPublicCoursesList(publicList);
             setSharedCourses(
               normalizeSharedCourses(
                 publicList,
@@ -382,14 +518,49 @@ export function MypageView() {
               ),
             );
           } else {
+            setPublicCoursesList([]);
             setSharedCourses([]);
           }
 
+          if (likesResult.status === "fulfilled") {
+            const normalized = await normalizeLikedCourses(likesResult.value, t);
+            if (!isMounted) return;
+            setLikedCourses(normalized.likes);
+            normalized.likes.forEach((item) => {
+              const key = String(item.postId || item.id);
+              if (useCommunityInteractionsStore.getState().likedPosts[key] === undefined) {
+                useCommunityInteractionsStore.getState().setLiked(key, true);
+              }
+            });
+          } else {
+            setLikedCourses([]);
+            failures.push(t("likedCourses"));
+          }
+
           if (bookmarksResult.status === "fulfilled") {
-            const normalized = normalizeBookmarks(bookmarksResult.value, t);
+            const normalized = await normalizeBookmarks(bookmarksResult.value, t);
+            if (!isMounted) return;
             setBookmarks(normalized.bookmarks);
+            normalized.bookmarks.forEach((item) => {
+              const key = String(item.postId || item.id);
+              if (useCommunityInteractionsStore.getState().bookmarkedPosts[key] === undefined) {
+                useCommunityInteractionsStore.getState().setBookmarked(key, true);
+              }
+            });
           } else {
             setBookmarks([]);
+            failures.push(t("savedCourses"));
+          }
+
+          if (savedCoursesResult.status === "fulfilled") {
+            const normalized = await normalizeSavedCourses(
+              savedCoursesResult.value,
+              t,
+            );
+            if (!isMounted) return;
+            setSavedCourses(normalized.saved);
+          } else {
+            setSavedCourses([]);
             failures.push(t("savedCourses"));
           }
 
@@ -424,83 +595,124 @@ export function MypageView() {
     }
   }, [loading, profile, isAuthenticated, router]);
 
-  // 찜한 코스 (좋아요한 코스) - Unconditional Hook Call
-  const likedCourses = useMemo(() => {
-    if (!mounted) return [];
-    return communityCourses
-      .filter((c, idx) => {
-        const slugKey = c.slug ? String(c.slug) : "";
-        const numKey = String(c.postId || c.id || idx + 1);
-        return isLikedStored(slugKey, numKey);
-      })
-      .map((c, index) => ({
-        id: c.slug || c.postId || index + 1,
-        postId: c.postId || c.id || index + 1,
-        slug: c.slug,
-        href: `/community/${c.slug || c.postId || index + 1}`,
-        badge: "LIKED",
-        name: c.name,
-        country: c.country,
-        flag: c.flag,
-        hash: c.hash,
-        title: c.title,
-        description: c.description,
-        image: c.image,
-        likes: c.likes || 0,
-        comments: c.comments || 0,
-        saves: c.saves || 0,
-        stops: c.stops || [],
-      }));
-  }, [likedPosts, isLikedStored, mounted]);
-
-  // 저장한 코스 (북마크한 코스) - Unconditional Hook Call
-  const bookmarkedCourses = useMemo(() => {
-    if (!mounted) return bookmarks;
+  // 찜한 코스 (좋아요한 코스) - 오직 하트(좋아요)가 눌린 코스만 필터링
+  const activeLikedCourses = useMemo(() => {
     const map = new Map();
 
-    // 1. Backend Bookmarks
-    bookmarks.forEach((b) => map.set(String(b.slug || b.id), b));
+    likedCourses.forEach((c) => {
+      const key = String(c.postId || c.id || c.slug);
+      map.set(key, c);
+    });
 
-    // 2. Locally Bookmarked
-    communityCourses.forEach((c, index) => {
-      const slugKey = c.slug ? String(c.slug) : "";
-      const numKey = String(c.postId || c.id || index + 1);
-      if (isBookmarkedStored(slugKey, numKey)) {
-        const key = slugKey || numKey;
-        if (!map.has(key)) {
-          map.set(key, {
-            id: key,
-            postId: c.postId || c.id || index + 1,
-            slug: c.slug,
-            href: `/community/${slugKey || numKey}`,
-            badge: "BOOKMARK",
-            name: c.name,
-            country: c.country,
-            flag: c.flag,
-            hash: c.hash,
-            title: c.title,
-            description: c.description,
-            image: c.image,
-            likes: c.likes || 0,
-            comments: c.comments || 0,
-            saves: c.saves || 0,
-            stops: c.stops || [],
-          });
-        }
+    publicCoursesList.forEach((post) => {
+      const key = String(post.postId || post.id);
+      if (!map.has(key)) {
+        map.set(key, {
+          id: post.postId,
+          postId: post.postId,
+          slug: String(post.postId),
+          href: `/community/${post.postId}`,
+          badge: "LIKED",
+          name:
+            post.writerNickname ||
+            post.authorNickname ||
+            post.userNickname ||
+            t("traveler"),
+          country: post.country || "KR",
+          flag: post.country || "KR",
+          hash: t("popularCourseHash"),
+          title: post.title || t("recommendedCommunityCourse"),
+          description: post.content || t("recommendedCommunityDescription"),
+          image:
+            (Array.isArray(post.imageUrls) && post.imageUrls[0]) ||
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+          images: Array.isArray(post.imageUrls)
+            ? post.imageUrls.filter(Boolean)
+            : [],
+          likes: Number(post.likeCount) || 0,
+          comments: Number(post.commentCount) || 0,
+          saves: Number(post.bookmarkCount) || 0,
+          stops: [],
+        });
       }
     });
 
-    return Array.from(map.values());
-  }, [bookmarks, bookmarkedPosts, isBookmarkedStored, mounted]);
+    return Array.from(map.values()).filter((c) => {
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.courseId || c.id || "");
+      return isLikedStored(slugKey, numKey);
+    });
+  }, [likedCourses, publicCoursesList, isLikedStored, t]);
+
+  // 저장한 코스 (북마크한 코스 및 추천 저장 코스)
+  const activeBookmarkedCourses = useMemo(() => {
+    const map = new Map();
+
+    savedCourses.forEach((course) => {
+      const key = `course-${course.courseId || course.id}`;
+      map.set(key, course);
+    });
+
+    bookmarks.forEach((b) => {
+      const key = String(b.postId || b.id || b.slug);
+      map.set(key, b);
+    });
+
+    publicCoursesList.forEach((post) => {
+      const key = String(post.postId || post.id);
+      if (!map.has(key)) {
+        map.set(key, {
+          id: post.postId,
+          postId: post.postId,
+          slug: String(post.postId),
+          href: `/community/${post.postId}`,
+          badge: "BOOKMARK",
+          name:
+            post.writerNickname ||
+            post.authorNickname ||
+            post.userNickname ||
+            t("traveler"),
+          country: post.country || "KR",
+          flag: post.country || "KR",
+          hash: t("popularCourseHash"),
+          title: post.title || t("recommendedCommunityCourse"),
+          description: post.content || t("recommendedCommunityDescription"),
+          image:
+            (Array.isArray(post.imageUrls) && post.imageUrls[0]) ||
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+          images: Array.isArray(post.imageUrls)
+            ? post.imageUrls.filter(Boolean)
+            : [],
+          likes: Number(post.likeCount) || 0,
+          comments: Number(post.commentCount) || 0,
+          saves: Number(post.bookmarkCount) || 0,
+          stops: [],
+        });
+      }
+    });
+
+    return Array.from(map.values()).filter((c) => {
+      if (c.badge === "SAVED COURSE") return true;
+      const slugKey = c.slug ? String(c.slug) : "";
+      const numKey = String(c.postId || c.courseId || c.id || "");
+      return isBookmarkedStored(slugKey, numKey);
+    });
+  }, [savedCourses, bookmarks, publicCoursesList, isBookmarkedStored, t]);
 
   // Displayed courses list based on active tab
   const displayedCourses = useMemo(() => {
     if (activeTab === "mine") return courses;
     if (activeTab === "shared") return sharedCourses;
-    if (activeTab === "liked") return likedCourses;
-    if (activeTab === "saved") return bookmarkedCourses;
+    if (activeTab === "liked") return activeLikedCourses;
+    if (activeTab === "saved") return activeBookmarkedCourses;
     return [];
-  }, [activeTab, courses, sharedCourses, likedCourses, bookmarkedCourses]);
+  }, [
+    activeTab,
+    courses,
+    sharedCourses,
+    activeLikedCourses,
+    activeBookmarkedCourses,
+  ]);
 
   const totalPages = Math.ceil(displayedCourses.length / ITEMS_PER_PAGE) || 1;
   const paginatedCourses = useMemo(() => {
@@ -545,6 +757,10 @@ export function MypageView() {
           }}
         />
       );
+    }
+
+    if (activeTab === "saved" && course.badge === "SAVED COURSE") {
+      return <MyCoursePrivateCard course={course} />;
     }
 
     return (
@@ -617,8 +833,8 @@ export function MypageView() {
   const displayStats = [
     { value: courseTotal.toLocaleString(locale), label: t("createdCourses") },
     { value: sharedCourses.length.toLocaleString(locale), label: t("sharedCourses") },
-    { value: likedCourses.length.toLocaleString(locale), label: t("likedCourses") },
-    { value: bookmarkedCourses.length.toLocaleString(locale), label: t("savedCourses") },
+    { value: activeLikedCourses.length.toLocaleString(locale), label: t("likedCourses") },
+    { value: activeBookmarkedCourses.length.toLocaleString(locale), label: t("savedCourses") },
   ];
 
   const tabs = TAB_IDS.map((id) => ({

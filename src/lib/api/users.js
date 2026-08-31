@@ -11,11 +11,27 @@ export function getMyProfile() {
 }
 
 /**
- * 내 찜한 코스 (북마크) 목록 조회
+ * 내 저장한 코스 (북마크) 목록 조회
  * GET /api/v1/users/me/bookmarks
  */
-export function getMyBookmarks() {
-  return requestData(apiClient.get("/users/me/bookmarks"));
+export function getMyBookmarks({ page = 0, size = 10 } = {}) {
+  return requestData(apiClient.get("/users/me/bookmarks", { params: { page, size } }));
+}
+
+/**
+ * 내 찜한 코스 (좋아요) 목록 조회
+ * GET /api/v1/users/me/likes
+ */
+export function getMyLikes({ page = 0, size = 10 } = {}) {
+  return requestData(apiClient.get("/users/me/likes", { params: { page, size } }));
+}
+
+/**
+ * 내 저장한 추천 코스 목록 조회
+ * GET /api/v1/users/me/saved-courses
+ */
+export function getMySavedCourses({ page = 0, size = 100 } = {}) {
+  return requestData(apiClient.get("/users/me/saved-courses", { params: { page, size } }));
 }
 
 /**

@@ -108,19 +108,38 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
     state.getLikesDelta(slugKey, numKey),
   );
+  const savesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getSavesDelta(slugKey, numKey),
+  );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
+  const clearSavesDelta = useCommunityInteractionsStore(
+    (state) => state.clearSavesDelta,
+  );
+
+  const [confirmedLikes, setConfirmedLikes] = useState(null);
+  const [confirmedSaves, setConfirmedSaves] = useState(null);
 
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
+  const savesDelta = mounted ? savesDeltaStored : 0;
 
-  const baseLikes = readCount(course.likes ?? course.likeCount);
+  const baseLikes =
+    typeof confirmedLikes === "number"
+      ? confirmedLikes
+      : readCount(course.likes ?? course.likeCount);
   const likesCount = Math.max(0, baseLikes + likesDelta);
-  const baseSaves = readCount(course.saves ?? course.bookmarkCount);
-  const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
+  const baseSaves =
+    typeof confirmedSaves === "number"
+      ? confirmedSaves
+      : readCount(course.saves ?? course.bookmarkCount);
+  const savesCount = Math.max(0, baseSaves + savesDelta);
 
   const href = `/community/${course.slug || course.rank || "1"}`;
   const review = course.review || course.description;
@@ -137,8 +156,14 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
 
     if (postId) {
       try {
-        if (nextState) await likeCourse(postId);
-        else await unlikeCourse(postId);
+        const res = nextState
+          ? await likeCourse(postId)
+          : await unlikeCourse(postId);
+        const count = res?.likesCount ?? res?.likeCount ?? res?.likes;
+        if (typeof count === "number") {
+          setConfirmedLikes(count);
+          clearLikesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Home Card Like] error:", err);
       }
@@ -157,8 +182,14 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
 
     if (postId) {
       try {
-        if (nextState) await bookmarkCourse(postId);
-        else await unbookmarkCourse(postId);
+        const res = nextState
+          ? await bookmarkCourse(postId)
+          : await unbookmarkCourse(postId);
+        const count = res?.bookmarkCount ?? res?.savesCount ?? res?.saves;
+        if (typeof count === "number") {
+          setConfirmedSaves(count);
+          clearSavesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Home Card Bookmark] error:", err);
       }
