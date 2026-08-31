@@ -270,24 +270,21 @@ async function normalizeBookmarks(data, t) {
       const postId = bookmark.postId || bookmark.id;
       const courseId = bookmark.courseId || courseDetail?.courseId || postDetail?.courseId;
       const creationType = courseDetail?.creationType || bookmark.creationType || postDetail?.creationType || null;
-
-      const isManual = creationType === "MANUAL";
       const isSystem = creationType === "SYSTEM";
 
-      let href = `/community/${postId || courseId}`;
-      if (isManual && courseId) {
-        href = `/ai-course?courseId=${courseId}&from=mypage`;
-      } else if (isSystem && courseId) {
-        href = `/courses/${courseId}`;
-      }
+      // 기본 추천 코스(SYSTEM)면 /courses/{courseId}, 아니면 해당 사용자의 커뮤니티 상세(/community/{postId})로 이동
+      const href = isSystem && courseId
+        ? `/courses/${courseId}`
+        : `/community/${postId || courseId}`;
 
       const images = Array.isArray(postDetail?.imageUrls)
         ? postDetail.imageUrls.filter(Boolean)
         : [];
       const image =
-        courseDetail?.imageUrl ||
         images[0] ||
+        postDetail?.imageUrl ||
         bookmark.imageUrl ||
+        courseDetail?.imageUrl ||
         "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
 
       const places = Array.isArray(courseDetail?.places)
@@ -310,21 +307,26 @@ async function normalizeBookmarks(data, t) {
         courseId: courseId || postId,
         slug: String(postId || courseId),
         href,
-        badge: isSystem ? "RECOMMENDED" : isManual ? "MANUAL" : "BOOKMARK",
+        badge: isSystem ? "RECOMMENDED" : "BOOKMARK",
         creationType,
-        name: postDetail?.writerNickname || (isSystem ? "Boni" : t("traveler")),
+        name: isSystem
+          ? "Boni"
+          : (postDetail?.writerNickname ||
+            postDetail?.authorNickname ||
+            bookmark.writerNickname ||
+            t("traveler")),
         country: postDetail?.country || "KR",
         flag: postDetail?.country || "KR",
         hash: hash || "#인기코스 #더현대",
         title:
-          courseDetail?.name ||
           postDetail?.title ||
           bookmark.title ||
+          courseDetail?.name ||
           t("recommendedCommunityCourse"),
         description:
-          courseDetail?.description ||
           postDetail?.content ||
           bookmark.description ||
+          courseDetail?.description ||
           t("recommendedCommunityDescription"),
         image,
         images,
