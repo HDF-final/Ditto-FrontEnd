@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { bookmarkCourse } from "@/lib/api/courses";
+import { bookmarkCourse, unbookmarkCourse } from "@/lib/api/courses";
 import { getMySavedCourses } from "@/lib/api/users";
+import { useCommunityInteractionsStore } from "@/stores/use-community-interactions-store";
 import { CommunityShareButton } from "@/app/community/[postId]/community-share-button";
 import { useTranslations } from "next-intl";
 
@@ -22,13 +23,26 @@ export function CourseDetailActions({ course = {} }) {
       ? Number(course.slug)
       : null);
 
+  const courseSlug = course.slug ? String(course.slug) : "";
+  const courseIdStr = courseId ? String(courseId) : "";
+
+  const isBookmarkedStored = useCommunityInteractionsStore((state) =>
+    state.isBookmarked(courseSlug, courseIdStr),
+  );
+  const setBookmarked = useCommunityInteractionsStore(
+    (state) => state.setBookmarked,
+  );
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
   const [savedCourseId, setSavedCourseId] = useState(null);
   const [saveError, setSaveError] = useState("");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
-  const isSaved = saveStatus === "saved" || savedCourseId !== null;
+  const isSaved =
+    saveStatus === "saved" ||
+    savedCourseId !== null ||
+    isBookmarkedStored;
 
   useEffect(() => {
     let alive = true;
@@ -54,7 +68,8 @@ export function CourseDetailActions({ course = {} }) {
         if (alreadySaved) {
           setSavedCourseId(courseId);
           setSaveStatus("saved");
-        } else {
+          setBookmarked(courseSlug, true, courseIdStr);
+        } else if (!isBookmarkedStored) {
           setSavedCourseId(null);
           setSaveStatus("idle");
         }
@@ -70,7 +85,7 @@ export function CourseDetailActions({ course = {} }) {
     return () => {
       alive = false;
     };
-  }, [courseId, isAuthenticated]);
+  }, [courseId, courseSlug, courseIdStr, isAuthenticated, isBookmarkedStored, setBookmarked]);
 
   async function handleSaveCourse() {
     if (!isAuthenticated) {
@@ -78,12 +93,6 @@ export function CourseDetailActions({ course = {} }) {
       return;
     }
     if (saveStatus === "saving") return;
-
-    // 이미 저장했으면 중복 요청 대신 마이페이지로 안내.
-    if (isSaved) {
-      router.push("/mypage");
-      return;
-    }
 
     if (!courseId) {
       setSaveError("이 코스는 지금 저장할 수 없어요. 잠시 후 다시 시도해 주세요.");
@@ -93,20 +102,37 @@ export function CourseDetailActions({ course = {} }) {
 
     setSaveStatus("saving");
     setSaveError("");
-    try {
-      const saved = await bookmarkCourse(courseId);
-      setSavedCourseId(saved?.courseId ?? courseId ?? true);
-      setSaveStatus("saved");
-      setIsSuccessOpen(true);
-    } catch (err) {
-      if (err?.status === 409 || err?.code === "CM004") {
-        setSavedCourseId(courseId);
-        setSaveStatus("saved");
-        setSaveError("");
-        return;
+
+    if (isSaved) {
+      // 이미 저장된 경우 -> 저장 취소 토글
+      try {
+        await unbookmarkCourse(courseId);
+        setSavedCourseId(null);
+        setSaveStatus("idle");
+        setBookmarked(courseSlug, false, courseIdStr);
+      } catch (err) {
+        setSaveError(err?.message || "저장 취소에 실패했어요. 다시 시도해 주세요.");
+        setSaveStatus("error");
       }
-      setSaveError(err?.message || "코스 저장에 실패했어요. 다시 시도해 주세요.");
-      setSaveStatus("error");
+    } else {
+      // 저장되지 않은 경우 -> 저장 토글
+      try {
+        const saved = await bookmarkCourse(courseId);
+        setSavedCourseId(saved?.courseId ?? courseId ?? true);
+        setSaveStatus("saved");
+        setIsSuccessOpen(true);
+        setBookmarked(courseSlug, true, courseIdStr);
+      } catch (err) {
+        if (err?.status === 409 || err?.code === "CM004") {
+          setSavedCourseId(courseId);
+          setSaveStatus("saved");
+          setSaveError("");
+          setBookmarked(courseSlug, true, courseIdStr);
+          return;
+        }
+        setSaveError(err?.message || "코스 저장에 실패했어요. 다시 시도해 주세요.");
+        setSaveStatus("error");
+      }
     }
   }
 

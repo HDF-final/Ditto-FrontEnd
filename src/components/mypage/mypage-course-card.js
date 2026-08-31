@@ -77,11 +77,11 @@ export function MypageCourseCard({
 
   const href = course.href || `/community/${numKey || slugKey}`;
   const isSavedRecommended =
-    course.badge === "SAVED" ||
-    course.badge === "SAVED COURSE" ||
-    course.badge === "RECOMMENDED" ||
-    course.creationType === "SYSTEM" ||
-    course.isSystemCourse;
+    (course.badge === "RECOMMENDED" ||
+      course.creationType === "SYSTEM" ||
+      course.isSystemCourse) &&
+    course.creationType !== "MANUAL" &&
+    course.badge !== "MANUAL";
 
   const image =
     course.image ||
