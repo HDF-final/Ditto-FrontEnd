@@ -458,14 +458,14 @@ export function CommunityCoursePage({
                 </span>
               </div>
 
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:flex-wrap lg:gap-2.5 lg:gap-y-2 lg:overflow-visible">
+              <div className="mt-2 flex items-center justify-between gap-3 lg:gap-4">
+                <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:flex-nowrap lg:gap-2.5">
                   {popularPlaces.slice(0, 5).map((place, index) => (
                     <button
                       key={place.placeId || `${place.name}-${index}`}
                       type="button"
                       onClick={() => setSelectedPlace(place)}
-                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/15 bg-white hover:bg-brand-soft/30 px-2.5 py-1.5 shadow-2xs transition-all hover:scale-[1.02] hover:shadow-xs active:scale-95 cursor-pointer lg:gap-2.5 lg:px-3.5 lg:py-1.5"
+                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/15 bg-white hover:bg-brand-soft/30 px-2.5 py-1.5 shadow-2xs transition-all hover:scale-[1.02] hover:shadow-xs active:scale-95 cursor-pointer lg:gap-2 lg:px-3 lg:py-1.5"
                     >
                       <span className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-black text-[11px] font-black text-white shadow-2xs lg:size-6 lg:text-xs">
                         {place.rank || index + 1}
@@ -481,7 +481,7 @@ export function CommunityCoursePage({
                           <span className="h-full w-full bg-linear-to-br from-brand/90 to-brand-light" />
                         )}
                       </span>
-                      <span className="max-w-[110px] truncate text-xs font-bold text-ink group-hover:text-brand transition-colors lg:max-w-[150px] lg:text-[13px]">
+                      <span className="max-w-[110px] truncate text-xs font-bold text-ink group-hover:text-brand transition-colors lg:max-w-[120px] lg:text-[13px]">
                         {place.name}
                       </span>
                       {place.floor ? (
