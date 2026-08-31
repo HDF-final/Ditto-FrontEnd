@@ -52,9 +52,10 @@ function StopRow({ stop, idx, compact, placeFallback }) {
 export function MyCoursePrivateCard({ course }) {
   const t = useTranslations("mypage");
   const courseId = course?.courseId || course?.id;
-  const href = `/ai-course?courseId=${courseId}&from=mypage`;
+  const href = course?.href || `/ai-course?courseId=${courseId}&from=mypage`;
   const stops = Array.isArray(course?.stops) ? course.stops.filter(Boolean) : [];
   const previewStops = stops.slice(0, 3);
+  const badgeLabel = course?.badgeLabel || t("myCustomCourse");
   const spotCountText =
     course?.spotCount ||
     (stops.length > 0
@@ -70,7 +71,7 @@ export function MyCoursePrivateCard({ course }) {
         <div className="flex min-w-0 items-center justify-between gap-1 lg:gap-2">
           <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-brand-soft px-1.5 py-0.5 text-[9px] font-black text-brand lg:gap-1.5 lg:px-2.5 lg:py-1 lg:text-xs">
             <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-brand" />
-            <span className="truncate">{t("myCustomCourse")}</span>
+            <span className="truncate">{badgeLabel}</span>
           </span>
           <span className="shrink-0 rounded-full bg-surface-soft px-1.5 py-0.5 text-[9px] font-bold text-ink-muted lg:px-2.5 lg:py-1 lg:text-xs">
             {spotCountText}

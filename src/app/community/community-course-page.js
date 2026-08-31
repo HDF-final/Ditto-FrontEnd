@@ -29,6 +29,13 @@ function readLikeCount(response) {
   return null;
 }
 
+function readBookmarkCount(response) {
+  if (typeof response?.bookmarkCount === "number") return response.bookmarkCount;
+  if (typeof response?.savesCount === "number") return response.savesCount;
+  if (typeof response?.saves === "number") return response.saves;
+  return null;
+}
+
 function getCommunityCardIdentity(card, rank) {
   const postId =
     card.postId ||
@@ -74,8 +81,10 @@ function CommunityCard({
   card,
   rank,
   confirmedLikes,
+  confirmedSaves,
   onAuthRequired,
   onLikeConfirmed,
+  onBookmarkConfirmed,
 }) {
   const t = useTranslations("community");
   const router = useRouter();
@@ -111,23 +120,30 @@ function CommunityCard({
   const likesDeltaStored = useCommunityInteractionsStore((state) =>
     state.getLikesDelta(slugKey, numKey),
   );
+  const savesDeltaStored = useCommunityInteractionsStore((state) =>
+    state.getSavesDelta(slugKey, numKey),
+  );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
   const clearLikesDelta = useCommunityInteractionsStore(
     (state) => state.clearLikesDelta,
   );
-  const setBookmarked = useCommunityInteractionsStore(
-    (state) => state.setBookmarked,
+  const setBookmarked = useCommunityInteractionsStore((state) => state.setBookmarked,
+  );
+  const clearSavesDelta = useCommunityInteractionsStore(
+    (state) => state.clearSavesDelta,
   );
 
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const likesDelta = mounted ? likesDeltaStored : 0;
+  const savesDelta = mounted ? savesDeltaStored : 0;
 
   const baseLikes =
     typeof confirmedLikes === "number" ? confirmedLikes : (card.likes ?? 0);
   const likesCount = Math.max(0, baseLikes + likesDelta);
-  const baseSaves = card.saves ?? 0;
-  const savesCount = Math.max(0, baseSaves + (isBookmarked ? 1 : 0));
+  const baseSaves =
+    typeof confirmedSaves === "number" ? confirmedSaves : (card.saves ?? 0);
+  const savesCount = Math.max(0, baseSaves + savesDelta);
 
   async function handleLike(e) {
     e.preventDefault();
@@ -167,8 +183,14 @@ function CommunityCard({
 
     if (postId) {
       try {
-        if (nextState) await bookmarkCourse(postId);
-        else await unbookmarkCourse(postId);
+        const response = nextState
+          ? await bookmarkCourse(postId)
+          : await unbookmarkCourse(postId);
+        const serverBookmarkCount = readBookmarkCount(response);
+        if (serverBookmarkCount !== null) {
+          onBookmarkConfirmed?.(cardKey, serverBookmarkCount);
+          clearSavesDelta(slugKey, numKey);
+        }
       } catch (err) {
         console.warn("[Card Bookmark] error:", err);
       }
@@ -316,6 +338,7 @@ export function CommunityCoursePage({
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [confirmedLikesByKey, setConfirmedLikesByKey] = useState({});
+  const [confirmedSavesByKey, setConfirmedSavesByKey] = useState({});
   const likesDeltaMap = useCommunityInteractionsStore((state) => state.likesDelta);
   const [selectedPlace, setSelectedPlace] = useState(null);
 
@@ -384,6 +407,13 @@ export function CommunityCoursePage({
     setConfirmedLikesByKey((prev) => ({
       ...prev,
       [cardKey]: likesCount,
+    }));
+  };
+
+  const handleBookmarkConfirmed = (cardKey, bookmarkCount) => {
+    setConfirmedSavesByKey((prev) => ({
+      ...prev,
+      [cardKey]: bookmarkCount,
     }));
   };
 
@@ -541,8 +571,14 @@ export function CommunityCoursePage({
                           getCommunityCardIdentity(card, actualRank).cardKey
                         ]
                       }
+                      confirmedSaves={
+                        confirmedSavesByKey[
+                          getCommunityCardIdentity(card, actualRank).cardKey
+                        ]
+                      }
                       onAuthRequired={() => setIsLoginModalOpen(true)}
                       onLikeConfirmed={handleLikeConfirmed}
+                      onBookmarkConfirmed={handleBookmarkConfirmed}
                     />
                   </div>
                 );

@@ -11,6 +11,7 @@ export const useCommunityInteractionsStore = create(
       bookmarkedPosts: {}, // { [identifier]: true }
       bookmarkedAtMap: {}, // { [identifier]: timestamp }
       likesDelta: {}, // { [identifier]: delta }
+      savesDelta: {}, // { [identifier]: delta }
 
       isLiked: (id1, id2) => {
         const state = get();
@@ -47,6 +48,13 @@ export const useCommunityInteractionsStore = create(
         return (k1 && state.likesDelta?.[k1]) || (k2 && state.likesDelta?.[k2]) || 0;
       },
 
+      getSavesDelta: (id1, id2) => {
+        const state = get();
+        const k1 = id1 ? String(id1) : "";
+        const k2 = id2 ? String(id2) : "";
+        return (k1 && state.savesDelta?.[k1]) || (k2 && state.savesDelta?.[k2]) || 0;
+      },
+
       setLiked: (id1, value, id2) => {
         if (!id1 && !id2) return;
         const k1 = id1 ? String(id1) : "";
@@ -62,12 +70,12 @@ export const useCommunityInteractionsStore = create(
           if (k1) {
             nextLiked[k1] = boolVal;
             nextLikedAt[k1] = boolVal ? (nextLikedAt[k1] || now) : 0;
-            nextDelta[k1] = boolVal ? 1 : 0;
+            nextDelta[k1] = boolVal ? 1 : -1;
           }
           if (k2 && k2 !== k1) {
             nextLiked[k2] = boolVal;
             nextLikedAt[k2] = boolVal ? (nextLikedAt[k2] || now) : 0;
-            nextDelta[k2] = boolVal ? 1 : 0;
+            nextDelta[k2] = boolVal ? 1 : -1;
           }
 
           return {
@@ -101,25 +109,48 @@ export const useCommunityInteractionsStore = create(
         set((state) => {
           const nextBookmarked = { ...state.bookmarkedPosts };
           const nextBookmarkedAt = { ...state.bookmarkedAtMap };
+          const nextSavesDelta = { ...state.savesDelta };
 
           if (k1) {
             nextBookmarked[k1] = boolVal;
             nextBookmarkedAt[k1] = boolVal ? (nextBookmarkedAt[k1] || now) : 0;
+            nextSavesDelta[k1] = boolVal ? 1 : -1;
           }
           if (k2 && k2 !== k1) {
             nextBookmarked[k2] = boolVal;
             nextBookmarkedAt[k2] = boolVal ? (nextBookmarkedAt[k2] || now) : 0;
+            nextSavesDelta[k2] = boolVal ? 1 : -1;
           }
 
           return {
             bookmarkedPosts: nextBookmarked,
             bookmarkedAtMap: nextBookmarkedAt,
+            savesDelta: nextSavesDelta,
           };
+        });
+      },
+
+      clearSavesDelta: (id1, id2) => {
+        if (!id1 && !id2) return;
+        const k1 = id1 ? String(id1) : "";
+        const k2 = id2 ? String(id2) : "";
+
+        set((state) => {
+          const nextDelta = { ...state.savesDelta };
+          if (k1) delete nextDelta[k1];
+          if (k2) delete nextDelta[k2];
+          return { savesDelta: nextDelta };
         });
       },
     }),
     {
       name: "ditto:community-interactions",
+      partialize: (state) => ({
+        likedPosts: state.likedPosts,
+        likedAtMap: state.likedAtMap,
+        bookmarkedPosts: state.bookmarkedPosts,
+        bookmarkedAtMap: state.bookmarkedAtMap,
+      }),
     },
   ),
 );

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { createCourse } from "@/lib/api/courses";
+import { bookmarkCourse } from "@/lib/api/courses";
+import { getMySavedCourses } from "@/lib/api/users";
 import { CommunityShareButton } from "@/app/community/[postId]/community-share-button";
 import { useTranslations } from "next-intl";
 
@@ -13,9 +14,6 @@ export function CourseDetailActions({ course = {} }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // 연예인 기본(SYSTEM) 코스는 커뮤니티 게시글이 아니라 코스라, '저장'은 북마크가
-  // 아니라 내 코스로 복사해야 마이페이지 '내 코스'에 뜬다. 결과 화면의 저장과 같은
-  // 경로(createCourse · COPIED)를 쓴다.
   const courseId =
     course.courseId ||
     course.postId ||
@@ -23,11 +21,6 @@ export function CourseDetailActions({ course = {} }) {
     (typeof course.slug === "number" || /^\d+$/.test(course.slug)
       ? Number(course.slug)
       : null);
-
-  // 상세 정규화(normalize-course)가 각 자리에 실어 주는 백엔드 placeId.
-  const placeIds = (Array.isArray(course.stops) ? course.stops : [])
-    .map((stop) => stop?.placeId)
-    .filter((id) => id !== null && id !== undefined);
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
@@ -37,6 +30,48 @@ export function CourseDetailActions({ course = {} }) {
 
   const isSaved = saveStatus === "saved" || savedCourseId !== null;
 
+  useEffect(() => {
+    let alive = true;
+
+    async function syncSavedState() {
+      if (!isAuthenticated || !courseId) {
+        setSavedCourseId(null);
+        setSaveStatus("idle");
+        return;
+      }
+
+      try {
+        const savedCourses = await getMySavedCourses({ page: 0, size: 100 });
+        if (!alive) return;
+        const content = Array.isArray(savedCourses?.content)
+          ? savedCourses.content
+          : Array.isArray(savedCourses)
+            ? savedCourses
+            : [];
+        const alreadySaved = content.some(
+          (saved) => Number(saved.courseId || saved.id) === Number(courseId),
+        );
+        if (alreadySaved) {
+          setSavedCourseId(courseId);
+          setSaveStatus("saved");
+        } else {
+          setSavedCourseId(null);
+          setSaveStatus("idle");
+        }
+      } catch (err) {
+        if (alive) {
+          console.warn("[CourseDetailActions] Failed to sync saved state:", err?.message);
+        }
+      }
+    }
+
+    syncSavedState();
+
+    return () => {
+      alive = false;
+    };
+  }, [courseId, isAuthenticated]);
+
   async function handleSaveCourse() {
     if (!isAuthenticated) {
       setIsLoginModalOpen(true);
@@ -44,13 +79,13 @@ export function CourseDetailActions({ course = {} }) {
     }
     if (saveStatus === "saving") return;
 
-    // 이미 저장했으면 중복 복사 대신 마이페이지로 안내.
+    // 이미 저장했으면 중복 요청 대신 마이페이지로 안내.
     if (isSaved) {
       router.push("/mypage");
       return;
     }
 
-    if (placeIds.length === 0) {
+    if (!courseId) {
       setSaveError("이 코스는 지금 저장할 수 없어요. 잠시 후 다시 시도해 주세요.");
       setSaveStatus("error");
       return;
@@ -59,16 +94,17 @@ export function CourseDetailActions({ course = {} }) {
     setSaveStatus("saving");
     setSaveError("");
     try {
-      const created = await createCourse({
-        name: course.title || "저장한 코스",
-        placeIds,
-        courseType: "COPIED",
-        sourceCourseId: courseId || null,
-      });
-      setSavedCourseId(created?.courseId ?? courseId ?? true);
+      const saved = await bookmarkCourse(courseId);
+      setSavedCourseId(saved?.courseId ?? courseId ?? true);
       setSaveStatus("saved");
       setIsSuccessOpen(true);
     } catch (err) {
+      if (err?.status === 409 || err?.code === "CM004") {
+        setSavedCourseId(courseId);
+        setSaveStatus("saved");
+        setSaveError("");
+        return;
+      }
       setSaveError(err?.message || "코스 저장에 실패했어요. 다시 시도해 주세요.");
       setSaveStatus("error");
     }
@@ -84,7 +120,7 @@ export function CourseDetailActions({ course = {} }) {
   return (
     <>
       <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:mt-5">
-        {/* 코스 저장 — 내 코스로 복사(마이페이지 '내 코스'에 표시) */}
+        {/* 코스 저장 — 마이페이지 '저장한 코스'에 표시 */}
         <button
           type="button"
           onClick={handleSaveCourse}
@@ -151,7 +187,7 @@ export function CourseDetailActions({ course = {} }) {
               <strong className="font-bold text-ink">
                 {course.title || "이 코스"}
               </strong>
-              를 마이페이지 &lsquo;내 코스&rsquo;에 저장했어요.
+              를 마이페이지 &lsquo;저장한 코스&rsquo;에 저장했어요.
             </p>
             <div className="mt-5 flex items-center gap-2">
               <button

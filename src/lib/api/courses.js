@@ -17,9 +17,17 @@ export function createCourse({
 export function copyCourse(sourceCourseId, payload = {}) {
   return requestData(
     apiClient
-      .post(`/courses/public/${sourceCourseId}/copy`, payload)
-      .catch(() => apiClient.post("/courses/copy", { sourceCourseId, ...payload, courseType: "COPIED" })),
+      .post(`/courses/${sourceCourseId}/copy`, payload)
+      .catch(() => apiClient.post(`/courses/public/${sourceCourseId}/copy`, payload)),
   );
+}
+
+export function bookmarkCourse(courseId) {
+  return requestData(apiClient.post(`/courses/${courseId}/bookmarks`));
+}
+
+export function unbookmarkCourse(courseId) {
+  return requestData(apiClient.delete(`/courses/${courseId}/bookmarks`));
 }
 
 export async function getCourses({ type = "SYSTEM", page = 0, size = 20 } = {}) {
