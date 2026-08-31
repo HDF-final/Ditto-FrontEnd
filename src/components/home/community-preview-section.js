@@ -545,7 +545,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
             return (
               <article
                 key={course.postId || course.slug || course.rank}
-                className="relative grid h-[clamp(520px,58dvh,640px)] min-w-full shrink-0 basis-full grid-cols-[minmax(0,1.12fr)_minmax(430px,0.88fr)] overflow-hidden bg-white"
+                className="relative grid h-[clamp(420px,calc(100dvh-270px),540px)] min-w-full shrink-0 basis-full grid-cols-[minmax(0,1.12fr)_minmax(430px,0.88fr)] overflow-hidden bg-white"
               >
                 <Link
                   href={detailHref}
@@ -563,18 +563,18 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                   </div>
                 </Link>
 
-                <div className="relative flex min-w-0 flex-col justify-center bg-[#fffefe] px-[clamp(42px,3.8vw,68px)] py-10">
+                <div className="relative flex min-w-0 flex-col justify-center bg-[#fffefe] px-[clamp(42px,3.8vw,68px)] py-[clamp(10px,1.6dvh,32px)]">
                   <span className="text-sm font-black tracking-[0.22em] text-brand">
                     TOP {course.rank || slideIndex + 1}
                   </span>
-                  <h3 className="mt-5 line-clamp-2 text-[clamp(30px,2.15vw,42px)] font-black leading-[1.18] tracking-[-0.025em] text-ink">
+                  <h3 className="mt-[clamp(8px,1.4dvh,20px)] line-clamp-2 text-[clamp(26px,2.15vw,42px)] font-black leading-[1.18] tracking-[-0.025em] text-ink">
                     {course.title}
                   </h3>
-                  <div className="mt-5 rounded-[22px] border border-brand/10 bg-[#f7f5ff] px-5 py-4">
+                  <div className="mt-[clamp(8px,1.4dvh,20px)] rounded-[22px] border border-brand/10 bg-[#f7f5ff] px-5 py-[clamp(8px,1.2dvh,16px)]">
                     <span className="inline-flex rounded-full border border-brand/20 bg-white px-3 py-1 text-xs font-black text-brand shadow-sm">
                       {t("authorReviewLabel")}
                     </span>
-                    <div className="mt-3 flex items-start gap-3">
+                    <div className="mt-[clamp(6px,1.2dvh,12px)] flex items-start gap-3">
                       <span
                         aria-hidden="true"
                         className="shrink-0 text-3xl font-black leading-none text-brand/55"
@@ -589,7 +589,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex flex-wrap items-center gap-2 text-sm font-bold text-brand">
+                  <div className="mt-[clamp(6px,1.4dvh,24px)] flex flex-wrap items-center gap-2 text-sm font-bold text-brand">
                     <span className="rounded-full bg-brand-soft px-3 py-1.5">
                       #{course.country || "GLOBAL"}
                     </span>
@@ -598,7 +598,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     </span>
                   </div>
 
-                  <div className="mt-7">
+                  <div className="mt-[clamp(8px,1.4dvh,28px)]">
                     <DesktopCommunityActions
                       course={course}
                       detailHref={detailHref}
@@ -606,7 +606,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     />
                   </div>
 
-                  <div className="mt-7 grid grid-cols-2 gap-4">
+                  <div className="mt-[clamp(8px,1.4dvh,28px)] grid grid-cols-2 gap-4">
                     <Link
                       href={customizeHref}
                       className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-brand px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(92,46,245,0.24)] transition hover:-translate-y-0.5 hover:bg-brand-dark"
@@ -632,7 +632,7 @@ function DesktopCommunityFeatureSlider({ courses, onAuthRequired }) {
                     </Link>
                   </div>
 
-                  <div className="mt-6 flex items-center gap-2">
+                  <div className="mt-[clamp(6px,1.4dvh,24px)] flex items-center gap-2">
                     {featuredCourses.map((_, dotIndex) => (
                       <button
                         key={dotIndex}
