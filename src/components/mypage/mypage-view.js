@@ -181,17 +181,31 @@ async function normalizeSavedCourses(data, t) {
           )
         : [];
       const placeCount = Number(saved.placeCount ?? places.length) || 0;
+      const tags = places
+        .map((p) => p.name)
+        .filter(Boolean)
+        .slice(0, 2);
+      const hash =
+        tags.length > 0
+          ? tags.map((tag) => `#${tag}`).join(" ")
+          : t("popularCourseHash");
+      const creationType = detail?.creationType || saved.creationType || null;
+      const isSystemCourse = creationType === "SYSTEM";
 
       return {
         id: `saved-course-${saved.courseId}`,
         courseId: saved.courseId,
-        href: `/courses/${saved.courseId}`,
-        badge: "SAVED COURSE",
+        postId: saved.courseId,
+        slug: String(saved.courseId),
+        href: `/ai-course?courseId=${saved.courseId}&from=mypage`,
+        badge: isSystemCourse ? "RECOMMENDED" : "SAVED",
         badgeLabel: t("savedCourses"),
-        name: "Boni",
+        creationType,
+        sourceCourseId: detail?.sourceCourseId || saved.sourceCourseId || null,
+        name: isSystemCourse ? "Boni" : (saved.name || "Boni"),
         country: "KR",
         flag: "KR",
-        hash: t("popularCourseHash"),
+        hash: hash || "#인기코스 #더현대",
         title: detail?.name || saved.title || t("untitledCourse"),
         description:
           detail?.description ||
@@ -201,10 +215,16 @@ async function normalizeSavedCourses(data, t) {
           detail?.imageUrl ||
           saved.imageUrl ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-        likes: 0,
-        comments: 0,
-        saves: 0,
+        likes: Number(detail?.likeCount ?? saved.likeCount) || 0,
+        comments: Number(detail?.commentCount ?? saved.commentCount) || 0,
+        saves: Number(detail?.bookmarkCount ?? saved.bookmarkCount) || 1,
         spotCount: t("spotCount", { count: placeCount }),
+        tags,
+        places: places.map((place) => ({
+          placeId: place.placeId,
+          name: place.name || t("unnamedPlace"),
+          floorCode: place.floorCode || t("floorUnknown"),
+        })),
         stops: places.map((place) => ({
           floor: place.floorCode || t("floorUnknown"),
           name: place.name || t("unnamedPlace"),
@@ -214,62 +234,186 @@ async function normalizeSavedCourses(data, t) {
   };
 }
 
-async function normalizeBookmarks(data, t) {
+function inferAuthorCountry(country, nickname = "", text = "") {
+  if (country && country !== "KR" && country !== "KOREA") return country;
+
+  const nick = String(nickname || "").trim();
+  const body = String(text || "").trim();
+
+  // Explicit known nicknames
+  if (nick === "李伟" || nick === "王芳" || nick === "张伟") return "CN";
+  if (nick === "佐藤優希" || nick === "田中" || nick === "さくら") return "JP";
+  if (nick === "Matilda" || nick === "John" || nick === "Alex") return "US";
+  if (nick === "구본희" || nick === "김민수") return "KR";
+
+  // CJK regex check on nickname
+  if (/[\u3040-\u309f\u30a0-\u30ff]/.test(nick)) return "JP";
+  if (/[\u4e00-\u9fa5]/.test(nick)) return "CN";
+  if (/[\uac00-\ud7a3]/.test(nick)) return "KR";
+  if (/^[a-zA-Z\s._-]+$/.test(nick) && nick.length > 0) return "US";
+
+  // Check body/text content
+  if (/[\u3040-\u309f\u30a0-\u30ff]/.test(body)) return "JP";
+  if (/[\u4e00-\u9fa5]/.test(body)) return "CN";
+  if (/^[a-zA-Z0-9\s.,!?'"#-]+$/.test(body) && body.length > 10) return "US";
+
+  return country || "KR";
+}
+
+async function normalizeBookmarks(data, t, publicCourses = []) {
   const page = normalizePage(data);
   const details = await Promise.allSettled(
-    page.content.map((bookmark) =>
-      getPublicCourse(bookmark.postId || bookmark.courseId),
-    ),
+    page.content.map(async (bookmark) => {
+      const postId = bookmark.postId;
+      const courseId = bookmark.courseId;
+      let postDetail = null;
+      let courseDetail = null;
+
+      if (postId) {
+        postDetail = await getPublicCourse(postId).catch(() => null);
+      }
+      if (!postDetail && publicCourses.length > 0 && postId) {
+        postDetail =
+          publicCourses.find(
+            (p) => String(p.postId) === String(postId) || String(p.id) === String(postId),
+          ) || null;
+      }
+      if (courseId) {
+        courseDetail = await getCourseDetail(courseId).catch(() => null);
+      } else if (postDetail?.courseId) {
+        courseDetail = await getCourseDetail(postDetail.courseId).catch(() => null);
+      }
+
+      return { postDetail, courseDetail };
+    }),
   );
 
   return {
     totalElements: page.totalElements,
     bookmarks: page.content.map((bookmark, index) => {
-      const postId = bookmark.postId || bookmark.courseId;
       const detailResult = details[index];
-      const detail =
-        detailResult?.status === "fulfilled" ? detailResult.value : null;
-      const images = Array.isArray(detail?.imageUrls)
-        ? detail.imageUrls.filter(Boolean)
+      const { postDetail, courseDetail } =
+        detailResult?.status === "fulfilled" && detailResult.value
+          ? detailResult.value
+          : { postDetail: null, courseDetail: null };
+
+      const postId = bookmark.postId || bookmark.id;
+      const courseId = bookmark.courseId || courseDetail?.courseId || postDetail?.courseId;
+      const creationType = courseDetail?.creationType || bookmark.creationType || postDetail?.creationType || null;
+      const isSystem = creationType === "SYSTEM";
+
+      // 기본 추천 코스(SYSTEM)면 /ai-course?courseId={courseId}&from=mypage, 아니면 해당 사용자의 커뮤니티 상세(/community/{postId})로 이동
+      const href = isSystem && courseId
+        ? `/ai-course?courseId=${courseId}&from=mypage`
+        : `/community/${postId || courseId}`;
+
+      const images = Array.isArray(postDetail?.imageUrls)
+        ? postDetail.imageUrls.filter(Boolean)
         : [];
+      const image =
+        images[0] ||
+        postDetail?.imageUrl ||
+        bookmark.imageUrl ||
+        courseDetail?.imageUrl ||
+        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop";
+
+      const places = Array.isArray(courseDetail?.places)
+        ? [...courseDetail.places].sort(
+            (a, b) => Number(a.visitOrder) - Number(b.visitOrder),
+          )
+        : [];
+      const tags = places
+        .map((p) => p.name)
+        .filter(Boolean)
+        .slice(0, 2);
+      const hash =
+        tags.length > 0
+          ? tags.map((item) => `#${item}`).join(" ")
+          : t("popularCourseHash");
+
+      const authorName = isSystem
+        ? "Boni"
+        : (postDetail?.writerNickname ||
+          postDetail?.authorNickname ||
+          postDetail?.userNickname ||
+          bookmark.writerNickname ||
+          bookmark.authorNickname ||
+          t("traveler"));
+
+      const title =
+        postDetail?.title ||
+        bookmark.title ||
+        courseDetail?.name ||
+        t("recommendedCommunityCourse");
+
+      const description =
+        postDetail?.content ||
+        bookmark.description ||
+        courseDetail?.description ||
+        t("recommendedCommunityDescription");
+
+      const country = isSystem
+        ? "KR"
+        : inferAuthorCountry(
+            postDetail?.country || bookmark.country,
+            authorName,
+            `${title} ${description}`,
+          );
 
       return {
-        id: postId,
-        postId,
-        slug: String(postId),
-        href: `/community/${postId}`,
-        badge: "BOOKMARK",
-        name: t("traveler"),
-        country: "KR",
-        flag: "KR",
-        hash: t("popularCourseHash"),
-        title:
-          detail?.title ||
-          bookmark.title ||
-          t("recommendedCommunityCourse"),
-        description:
-          detail?.content ||
-          bookmark.description ||
-          t("recommendedCommunityDescription"),
-        image:
-          images[0] ||
-          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
+        id: `bookmark-${postId || courseId}`,
+        postId: postId || courseId,
+        courseId: courseId || postId,
+        slug: String(postId || courseId),
+        href,
+        badge: isSystem ? "RECOMMENDED" : "BOOKMARK",
+        creationType,
+        name: authorName,
+        country,
+        flag: country,
+        hash: hash || "#인기코스 #더현대",
+        title,
+        description,
+        image,
         images,
-        likes: Number(bookmark.likeCount) || 0,
+        likes: Number(postDetail?.likeCount ?? bookmark.likeCount) || 0,
         comments:
-          Number(bookmark.commentCount) ||
-          (Array.isArray(detail?.comments) ? detail.comments.length : 0),
-        saves: Number(bookmark.bookmarkCount) || 0,
-        stops: [],
+          Number(postDetail?.commentCount ?? bookmark.commentCount) ||
+          (Array.isArray(postDetail?.comments) ? postDetail.comments.length : 0),
+        saves: Number(postDetail?.bookmarkCount ?? bookmark.bookmarkCount) || 0,
+        stops: places.map((place) => ({
+          floor: place.floorCode || t("floorUnknown"),
+          name: place.name || t("unnamedPlace"),
+        })),
       };
     }),
   };
 }
 
-async function normalizeLikedCourses(data, t) {
+async function normalizeLikedCourses(data, t, publicCourses = []) {
   const page = normalizePage(data);
   const details = await Promise.allSettled(
-    page.content.map((liked) => getPublicCourse(liked.postId || liked.courseId)),
+    page.content.map(async (liked) => {
+      const postId = liked.postId || liked.courseId;
+      const courseId = liked.courseId;
+      let postDetail = null;
+      let courseDetail = null;
+
+      if (postId) {
+        postDetail = await getPublicCourse(postId).catch(() => null);
+      }
+      if (!postDetail && publicCourses.length > 0 && postId) {
+        postDetail =
+          publicCourses.find(
+            (p) => String(p.postId) === String(postId) || String(p.id) === String(postId),
+          ) || null;
+      }
+      if (courseId) {
+        courseDetail = await getCourseDetail(courseId).catch(() => null);
+      }
+
+      return { postDetail, courseDetail };
+    }),
   );
 
   return {
@@ -277,11 +421,39 @@ async function normalizeLikedCourses(data, t) {
     likes: page.content.map((liked, index) => {
       const postId = liked.postId || liked.courseId;
       const detailResult = details[index];
-      const detail =
-        detailResult?.status === "fulfilled" ? detailResult.value : null;
-      const images = Array.isArray(detail?.imageUrls)
-        ? detail.imageUrls.filter(Boolean)
+      const { postDetail, courseDetail } =
+        detailResult?.status === "fulfilled" && detailResult.value
+          ? detailResult.value
+          : { postDetail: null, courseDetail: null };
+
+      const images = Array.isArray(postDetail?.imageUrls)
+        ? postDetail.imageUrls.filter(Boolean)
         : [];
+      const authorName =
+        postDetail?.writerNickname ||
+        postDetail?.authorNickname ||
+        postDetail?.userNickname ||
+        liked.writerNickname ||
+        liked.authorNickname ||
+        t("traveler");
+
+      const title =
+        postDetail?.title ||
+        liked.title ||
+        courseDetail?.name ||
+        t("recommendedCommunityCourse");
+
+      const description =
+        postDetail?.content ||
+        liked.description ||
+        courseDetail?.description ||
+        t("recommendedCommunityDescription");
+
+      const country = inferAuthorCountry(
+        postDetail?.country || liked.country,
+        authorName,
+        `${title} ${description}`,
+      );
 
       return {
         id: postId,
@@ -289,27 +461,24 @@ async function normalizeLikedCourses(data, t) {
         slug: String(postId),
         href: `/community/${postId}`,
         badge: "LIKED",
-        name: t("traveler"),
-        country: "KR",
-        flag: "KR",
+        name: authorName,
+        country,
+        flag: country,
         hash: t("popularCourseHash"),
-        title:
-          detail?.title ||
-          liked.title ||
-          t("recommendedCommunityCourse"),
-        description:
-          detail?.content ||
-          liked.description ||
-          t("recommendedCommunityDescription"),
+        title,
+        description,
         image:
           images[0] ||
+          postDetail?.imageUrl ||
+          liked.imageUrl ||
+          courseDetail?.imageUrl ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
         images,
-        likes: Number(liked.likeCount) || 0,
+        likes: Number(postDetail?.likeCount ?? liked.likeCount) || 0,
         comments:
-          Number(liked.commentCount) ||
-          (Array.isArray(detail?.comments) ? detail.comments.length : 0),
-        saves: Number(liked.bookmarkCount) || 0,
+          Number(postDetail?.commentCount ?? liked.commentCount) ||
+          (Array.isArray(postDetail?.comments) ? postDetail.comments.length : 0),
+        saves: Number(postDetail?.bookmarkCount ?? liked.bookmarkCount) || 0,
         stops: [],
       };
     }),
@@ -502,8 +671,9 @@ export function MypageView() {
             failures.push(t("myCourses"));
           }
 
+          let publicList = [];
           if (publicCoursesResult.status === "fulfilled") {
-            const publicList = Array.isArray(publicCoursesResult.value?.content)
+            publicList = Array.isArray(publicCoursesResult.value?.content)
               ? publicCoursesResult.value.content
               : Array.isArray(publicCoursesResult.value)
                 ? publicCoursesResult.value
@@ -523,7 +693,11 @@ export function MypageView() {
           }
 
           if (likesResult.status === "fulfilled") {
-            const normalized = await normalizeLikedCourses(likesResult.value, t);
+            const normalized = await normalizeLikedCourses(
+              likesResult.value,
+              t,
+              publicList,
+            );
             if (!isMounted) return;
             setLikedCourses(normalized.likes);
             normalized.likes.forEach((item) => {
@@ -538,7 +712,11 @@ export function MypageView() {
           }
 
           if (bookmarksResult.status === "fulfilled") {
-            const normalized = await normalizeBookmarks(bookmarksResult.value, t);
+            const normalized = await normalizeBookmarks(
+              bookmarksResult.value,
+              t,
+              publicList,
+            );
             if (!isMounted) return;
             setBookmarks(normalized.bookmarks);
             normalized.bookmarks.forEach((item) => {
@@ -607,19 +785,26 @@ export function MypageView() {
     publicCoursesList.forEach((post) => {
       const key = String(post.postId || post.id);
       if (!map.has(key)) {
+        const authorName =
+          post.writerNickname ||
+          post.authorNickname ||
+          post.userNickname ||
+          t("traveler");
+        const country = inferAuthorCountry(
+          post.country,
+          authorName,
+          `${post.title || ""} ${post.content || ""}`,
+        );
+
         map.set(key, {
           id: post.postId,
           postId: post.postId,
           slug: String(post.postId),
           href: `/community/${post.postId}`,
           badge: "LIKED",
-          name:
-            post.writerNickname ||
-            post.authorNickname ||
-            post.userNickname ||
-            t("traveler"),
-          country: post.country || "KR",
-          flag: post.country || "KR",
+          name: authorName,
+          country,
+          flag: country,
           hash: t("popularCourseHash"),
           title: post.title || t("recommendedCommunityCourse"),
           description: post.content || t("recommendedCommunityDescription"),
@@ -661,19 +846,26 @@ export function MypageView() {
     publicCoursesList.forEach((post) => {
       const key = String(post.postId || post.id);
       if (!map.has(key)) {
+        const authorName =
+          post.writerNickname ||
+          post.authorNickname ||
+          post.userNickname ||
+          t("traveler");
+        const country = inferAuthorCountry(
+          post.country,
+          authorName,
+          `${post.title || ""} ${post.content || ""}`,
+        );
+
         map.set(key, {
           id: post.postId,
           postId: post.postId,
           slug: String(post.postId),
           href: `/community/${post.postId}`,
           badge: "BOOKMARK",
-          name:
-            post.writerNickname ||
-            post.authorNickname ||
-            post.userNickname ||
-            t("traveler"),
-          country: post.country || "KR",
-          flag: post.country || "KR",
+          name: authorName,
+          country,
+          flag: country,
           hash: t("popularCourseHash"),
           title: post.title || t("recommendedCommunityCourse"),
           description: post.content || t("recommendedCommunityDescription"),
@@ -692,7 +884,13 @@ export function MypageView() {
     });
 
     return Array.from(map.values()).filter((c) => {
-      if (c.badge === "SAVED COURSE") return true;
+      if (
+        c.badge === "SAVED" ||
+        c.badge === "SAVED COURSE" ||
+        c.badge === "RECOMMENDED" ||
+        c.creationType === "SYSTEM"
+      )
+        return true;
       const slugKey = c.slug ? String(c.slug) : "";
       const numKey = String(c.postId || c.courseId || c.id || "");
       return isBookmarkedStored(slugKey, numKey);
@@ -757,10 +955,6 @@ export function MypageView() {
           }}
         />
       );
-    }
-
-    if (activeTab === "saved" && course.badge === "SAVED COURSE") {
-      return <MyCoursePrivateCard course={course} />;
     }
 
     return (
