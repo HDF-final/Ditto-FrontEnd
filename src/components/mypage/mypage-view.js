@@ -181,17 +181,29 @@ async function normalizeSavedCourses(data, t) {
           )
         : [];
       const placeCount = Number(saved.placeCount ?? places.length) || 0;
+      const tags = places
+        .map((p) => p.name)
+        .filter(Boolean)
+        .slice(0, 2);
+      const hash =
+        tags.length > 0
+          ? tags.map((tag) => `#${tag}`).join(" ")
+          : t("popularCourseHash");
 
       return {
         id: `saved-course-${saved.courseId}`,
         courseId: saved.courseId,
-        href: `/courses/${saved.courseId}`,
-        badge: "SAVED COURSE",
+        postId: saved.courseId,
+        slug: String(saved.courseId),
+        href: `/ai-course?courseId=${saved.courseId}&from=mypage`,
+        badge: "SAVED",
         badgeLabel: t("savedCourses"),
+        creationType: detail?.creationType || saved.creationType || null,
+        sourceCourseId: detail?.sourceCourseId || saved.sourceCourseId || null,
         name: "Boni",
         country: "KR",
         flag: "KR",
-        hash: t("popularCourseHash"),
+        hash: hash || "#인기코스 #더현대",
         title: detail?.name || saved.title || t("untitledCourse"),
         description:
           detail?.description ||
@@ -201,10 +213,16 @@ async function normalizeSavedCourses(data, t) {
           detail?.imageUrl ||
           saved.imageUrl ||
           "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=900&fit=crop",
-        likes: 0,
-        comments: 0,
-        saves: 0,
+        likes: Number(detail?.likeCount ?? saved.likeCount) || 0,
+        comments: Number(detail?.commentCount ?? saved.commentCount) || 0,
+        saves: Number(detail?.bookmarkCount ?? saved.bookmarkCount) || 1,
         spotCount: t("spotCount", { count: placeCount }),
+        tags,
+        places: places.map((place) => ({
+          placeId: place.placeId,
+          name: place.name || t("unnamedPlace"),
+          floorCode: place.floorCode || t("floorUnknown"),
+        })),
         stops: places.map((place) => ({
           floor: place.floorCode || t("floorUnknown"),
           name: place.name || t("unnamedPlace"),
@@ -692,7 +710,7 @@ export function MypageView() {
     });
 
     return Array.from(map.values()).filter((c) => {
-      if (c.badge === "SAVED COURSE") return true;
+      if (c.badge === "SAVED" || c.badge === "SAVED COURSE") return true;
       const slugKey = c.slug ? String(c.slug) : "";
       const numKey = String(c.postId || c.courseId || c.id || "");
       return isBookmarkedStored(slugKey, numKey);
@@ -757,10 +775,6 @@ export function MypageView() {
           }}
         />
       );
-    }
-
-    if (activeTab === "saved" && course.badge === "SAVED COURSE") {
-      return <MyCoursePrivateCard course={course} />;
     }
 
     return (
