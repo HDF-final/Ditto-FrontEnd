@@ -504,7 +504,7 @@ export const suggestions = [
   "더현대 K-pop 코스 만들어줘",
   "요즘 MZ 핫플 알려줘",
   "팝업 스토어 데이트 코스",
-  "K-뷰티 쇼핑 루트 추천해줘",
+  "카리나 코스 생성해줘",
 ];
 
 export const BONI_IMAGE = "/assets/ai-course/boni-profile.png";

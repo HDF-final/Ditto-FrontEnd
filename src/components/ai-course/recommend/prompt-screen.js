@@ -100,11 +100,17 @@ export function PromptScreen({
     { value: "auto", label: t("auto"), desc: t("autoDetail") },
     { value: "manual", label: t("manual"), desc: t("manualDetail") },
   ];
+  const suggestion4 = t.has("suggestion4") ? t("suggestion4") : "카리나 코스 생성해줘";
+  const suggestion4Text =
+    suggestion4 === "K-뷰티 쇼핑 루트 추천해줘"
+      ? "카리나 코스 생성해줘"
+      : suggestion4;
+
   const suggestions = [
-    t("suggestion1"),
-    t("suggestion2"),
-    t("suggestion3"),
-    t("suggestion4"),
+    t.has("suggestion1") ? t("suggestion1") : "더현대 K-pop 코스 만들어줘",
+    t.has("suggestion2") ? t("suggestion2") : "요즘 MZ 핫플 알려줘",
+    t.has("suggestion3") ? t("suggestion3") : "팝업 스토어 데이트 코스",
+    suggestion4Text,
   ];
 
   const submit = (val) => {
