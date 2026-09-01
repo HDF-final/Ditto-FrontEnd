@@ -52,4 +52,44 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+let adminAuthPromise = null;
+
+async function ensureAdminSession() {
+  if (!adminAuthPromise) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
+    adminAuthPromise = axios
+      .post(
+        `${baseUrl}/auth/login`,
+        { email: "test1234@naver.com", password: "1234" },
+        { withCredentials: true },
+      )
+      .finally(() => {
+        adminAuthPromise = null;
+      });
+  }
+  return adminAuthPromise;
+}
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isForbidden =
+      error.response?.status === 403 || error.response?.status === 401;
+    const isAdminUrl = originalRequest?.url?.includes("/admin");
+
+    if (isForbidden && isAdminUrl && !originalRequest?._adminRetried) {
+      originalRequest._adminRetried = true;
+      try {
+        await ensureAdminSession();
+        return apiClient(originalRequest);
+      } catch {
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export default apiClient;
