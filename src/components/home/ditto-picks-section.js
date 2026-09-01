@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CourseCard } from "@/components/home/course-card";
 import { RecommendedCourseOrbit } from "@/components/home/recommended-course-orbit";
 import { getSystemCourses } from "@/lib/api/courses";
@@ -111,6 +112,15 @@ export function DittoPicksSection({ initialCourses = [] }) {
               </div>
             )}
           </div>
+          {displayCourses.length > 0 ? (
+            <Link
+              href="/courses"
+              className="mt-4 flex items-center justify-center gap-1 rounded-full border border-brand/25 bg-white py-3 text-sm font-black text-brand shadow-2xs transition active:scale-[0.98] lg:hidden"
+            >
+              {t("picksViewAll")}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
           {displayCourses.length > 0 ? (
             <div className="hidden lg:block">
               <RecommendedCourseOrbit courses={displayCourses} />
