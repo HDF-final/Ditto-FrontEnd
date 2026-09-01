@@ -150,6 +150,90 @@ function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
   );
 }
 
+/** 돋보기 아이콘 (사진 확대 힌트) */
+function ZoomIcon({ size = 14, className = "" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <line x1="11" y1="8" x2="11" y2="14" />
+      <line x1="8" y1="11" x2="14" y2="11" />
+    </svg>
+  );
+}
+
+/** 사진 전체화면 라이트박스 (뉴스피드와 동일한 확대 보기) */
+function PlaceImageLightbox({ src, alt = "", caption = "", closeLabel = "닫기", onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  if (!src) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      className="fixed inset-0 z-[160] flex flex-col items-center justify-center bg-black/90 p-4 backdrop-blur-md animate-in fade-in duration-200 sm:p-8"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="absolute right-5 top-5 z-20 flex size-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:scale-105 hover:bg-white/30 cursor-pointer shadow-lg"
+        aria-label={closeLabel}
+      >
+        <X size={22} />
+      </button>
+
+      <div
+        className="relative flex max-h-[90vh] max-w-[92vw] flex-col items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="max-h-[82vh] max-w-[92vw] rounded-[20px] object-contain shadow-2xl ring-1 ring-white/20"
+        />
+        {alt || caption ? (
+          <div className="mt-3.5 flex max-w-2xl flex-col items-center px-4 text-center">
+            {alt ? (
+              <p className="text-sm font-bold text-white/95 drop-shadow-sm">{alt}</p>
+            ) : null}
+            {caption ? <p className="mt-1 text-xs text-white/70">{caption}</p> : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /**
  * AI 추천 장소 전용 상세 모달 (스케치 반영: 2컬럼 레이아웃)
  * - 좌측: 브랜드명, 브랜드 위치, AI 추천 이유, 매장 사진 갤러리 (3장), 방문 CTA
@@ -195,8 +279,11 @@ function AiPlaceModalContent({ place, onClose }) {
     rightImage && rightImage === place.aiImage ? place.aiImageCaption : null;
 
   const boniReasonLabel = t.has("boniReason") ? t("boniReason") : "보니 추천 이유";
+  const viewLargePhotoLabel = t.has("viewLargePhoto") ? t("viewLargePhoto") : "사진 크게 보기";
+  const [isPhotoZoomOpen, setIsPhotoZoomOpen] = useState(false);
 
   return (
+    <>
     <div
       className="relative flex max-h-[72dvh] w-full max-w-[960px] flex-col overflow-hidden rounded-t-[24px] bg-white shadow-[0_36px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100dvh-1.25rem)] sm:rounded-[24px] md:grid md:min-h-[620px] md:max-h-[720px] md:grid-cols-[0.88fr_1.12fr] md:rounded-[32px]"
       onClick={(e) => e.stopPropagation()}
@@ -228,7 +315,17 @@ function AiPlaceModalContent({ place, onClose }) {
               className="absolute inset-0 size-full object-cover object-top"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30" />
-            <div className="absolute bottom-3 left-4 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPhotoZoomOpen(true)}
+              aria-label={viewLargePhotoLabel}
+              className="absolute inset-0 z-[5] cursor-zoom-in outline-none"
+            />
+            <span className="pointer-events-none absolute left-3.5 top-3.5 z-[6] inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
+              <ZoomIcon size={12} />
+              {viewLargePhotoLabel}
+            </span>
+            <div className="absolute bottom-3 left-4 z-[6] flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3 py-1 text-[11px] font-black text-white shadow-xs">
                 <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                 {place.category ? getPlaceCategoryLabel(place.category, t) : t("categoryDittoPick")}
@@ -340,6 +437,17 @@ function AiPlaceModalContent({ place, onClose }) {
               className="absolute inset-0 w-full h-full object-cover object-top"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+            <button
+              type="button"
+              onClick={() => setIsPhotoZoomOpen(true)}
+              aria-label={viewLargePhotoLabel}
+              className="group absolute inset-0 z-[5] cursor-zoom-in outline-none"
+            >
+              <span className="absolute left-6 top-6 inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-[11px] font-bold text-white opacity-0 backdrop-blur-md transition duration-200 group-hover:opacity-100">
+                <ZoomIcon size={13} />
+                {viewLargePhotoLabel}
+              </span>
+            </button>
           </>
         ) : null}
 
@@ -365,6 +473,16 @@ function AiPlaceModalContent({ place, onClose }) {
         ) : null}
       </div>
     </div>
+    {isPhotoZoomOpen ? (
+      <PlaceImageLightbox
+        src={rightImage}
+        alt={place.name}
+        caption={rightImageCaption || ""}
+        closeLabel={t("close")}
+        onClose={() => setIsPhotoZoomOpen(false)}
+      />
+    ) : null}
+    </>
   );
 }
 
