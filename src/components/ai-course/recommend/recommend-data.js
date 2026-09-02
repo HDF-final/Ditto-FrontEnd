@@ -501,9 +501,9 @@ export const departmentStorePlaces = [
 ];
 
 export const suggestions = [
-  "더현대 K-pop 코스 만들어줘",
-  "요즘 MZ 핫플 알려줘",
-  "팝업 스토어 데이트 코스",
+  "뷔 무드로 코스 생성해줘",
+  "장원영처럼 반짝 코스 생성해줘",
+  "필릭스 감성으로 코스 생성해줘",
   "카리나 코스 생성해줘",
 ];
 

@@ -514,6 +514,15 @@
     "savingCourse": "正在保存路线。",
     "savedCourse": "路线及访问顺序已保存。",
     "saveFailed": "无法保存路线。",
+    "deleteCourseShort": "删除",
+    "deletingShort": "删除中",
+    "deleteCourseTitle": "要删除这条路线吗？",
+    "deleteCourseConfirm": "删除后的路线无法恢复。",
+    "cancelDeleteCourse": "取消",
+    "confirmDeleteCourse": "删除",
+    "deletingCourse": "正在删除路线。",
+    "deletedCourse": "路线已删除。",
+    "deleteCourseFailed": "无法删除路线。",
     "departmentStore": "现代首尔",
     "boniAiPlace": "BONI AI推荐地点",
     "close": "关闭",
@@ -555,9 +564,9 @@
     "connectionError": "无法连接路线推荐服务器。",
     "genericError": "无法制定路线，请稍后重试。",
     "cancelledMessage": "请求已取消，欢迎重新提问 🐾",
-    "suggestion1": "制定现代首尔K-pop路线",
-    "suggestion2": "推荐最近年轻人热门地点",
-    "suggestion3": "规划快闪店约会路线",
+    "suggestion1": "生成V氛围路线",
+    "suggestion2": "生成张员瑛闪亮路线",
+    "suggestion3": "生成Felix感性路线",
     "suggestion4": "生成Karina推荐路线"
   }
 }

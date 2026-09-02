@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Plus,
@@ -18,6 +19,7 @@ import { PanelChat } from "./boni-chat";
 import { AddPlaceModal } from "./add-place-modal";
 import { CourseLoadingOverlay } from "./course-loading-overlay";
 import { CourseSaveSuccessModal } from "./course-save-success-modal";
+import { Modal } from "@/components/common/modal";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 import { CourseMapScanButton } from "./course-map-scan-button";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
@@ -35,6 +37,7 @@ import { splitAiReason } from "@/lib/courses/ai-reason";
 import {
   addCoursePlace,
   createCourse,
+  deleteCourse,
   deleteCoursePlace,
   getCourseDetail,
   updateCourse,
@@ -239,6 +242,7 @@ export function ResultScreen({
   fromMypage = false,
 }) {
   const t = useTranslations("aiCourse");
+  const router = useRouter();
   const [items, setItems] = useState([]);
   const [placeCatalog, setPlaceCatalog] = useState([]);
   const [placeLogos, setPlaceLogos] = useState(null);
@@ -264,6 +268,8 @@ export function ResultScreen({
   const [appliedCourse, setAppliedCourse] = useState(null); // 이미 반영한 Boni 코스
   const [savedCourse, setSavedCourse] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
+  const [deleteStatus, setDeleteStatus] = useState("idle");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
   const scanLocation = useScanLocationStore((state) => state.location);
   const hydrateLocation = useScanLocationStore((state) => state.hydrate);
@@ -318,6 +324,7 @@ export function ResultScreen({
 
   const aiCourse = chat?.course ?? null;
   const chatPending = chat?.pending ?? null;
+  const editableCourseId = savedCourse?.courseId || sourceCourseId;
 
   useEffect(() => {
     if (!seedFromScan || seededFromScanRef.current) return;
@@ -398,11 +405,23 @@ export function ResultScreen({
                 ? course.coursePlaceList
                 : [];
         const hydratedPlaces = hydrateSourceCoursePlaces(sourcePlaces, placeCatalog);
+        const hydratedPlaceIds = hydratedPlaces
+          .map((place) => place.placeId)
+          .filter((placeId) => placeId !== null && placeId !== undefined);
 
         setItems(hydratedPlaces);
         setCourseTitle(course?.name || course?.title || t("recommendedCourseName"));
-        setSavedCourse(null);
+        setSavedCourse(
+          fromMypage
+            ? {
+                courseId: course?.courseId || sourceCourseId,
+                placeIds: hydratedPlaceIds,
+              }
+            : null,
+        );
         setSaveStatus("idle");
+        setDeleteStatus("idle");
+        setDeleteConfirmOpen(false);
         setSaveSuccessOpen(false);
         setHistory([]);
         setVisited(new Set());
@@ -418,7 +437,7 @@ export function ResultScreen({
     return () => {
       active = false;
     };
-  }, [datasetStatus, placeCatalog, sourceCourseId, t]);
+  }, [datasetStatus, fromMypage, placeCatalog, sourceCourseId, t]);
 
   // 브랜드 로고는 지도 핑(출발·도착)에만 쓰는 장식이라, 실패해도 지도/코스 로딩을
   // 막지 않도록 별도 effect로 느슨하게 붙입니다. 이름으로 매칭하는 조회 맵을 만듭니다.
@@ -686,6 +705,23 @@ export function ResultScreen({
       }
       setNotice(error.message || t("saveFailed"));
       setSaveStatus("error");
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    const courseId = editableCourseId;
+    if (!fromMypage || !courseId || deleteStatus === "deleting") return;
+
+    setDeleteStatus("deleting");
+    setDeleteConfirmOpen(false);
+    setNotice(t("deletingCourse"));
+    try {
+      await deleteCourse(courseId);
+      setNotice(t("deletedCourse"));
+      router.push("/mypage");
+    } catch (error) {
+      setDeleteStatus("error");
+      setNotice(error.message || t("deleteCourseFailed"));
     }
   };
 
@@ -1020,11 +1056,20 @@ export function ResultScreen({
           </button>
           <button
             onClick={handleSave}
-            disabled={saveStatus === "saving" || datasetStatus !== "ready"}
+            disabled={saveStatus === "saving" || deleteStatus === "deleting" || datasetStatus !== "ready"}
             className="flex items-center gap-[5px] rounded-full px-3 py-1.5 text-[11px] text-white bg-[#5c2ef5] hover:bg-[#4a22d4] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:px-[14px] sm:py-[7px] sm:text-[12px]"
           >
             <Save size={12} /> {saveStatus === "saving" ? t("savingShort") : t("saveShort")}
           </button>
+          {fromMypage ? (
+            <button
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={deleteStatus === "deleting" || !editableCourseId}
+              className="flex items-center gap-[5px] rounded-full border border-[#f0c7c7] bg-white px-3 py-1.5 text-[11px] text-[#d64545] transition-colors hover:border-[#d64545] hover:bg-[#fff5f5] disabled:cursor-not-allowed disabled:opacity-50 sm:px-[14px] sm:py-[7px] sm:text-[12px]"
+            >
+              <Trash2 size={12} /> {deleteStatus === "deleting" ? t("deletingShort") : t("deleteCourseShort")}
+            </button>
+          ) : null}
         </div>
 
         {/* Drag hint */}
@@ -1364,6 +1409,40 @@ export function ResultScreen({
       courseName={courseTitle.trim() || t("unnamedCourse")}
       onClose={() => setSaveSuccessOpen(false)}
     />
+
+    <Modal
+      open={deleteConfirmOpen}
+      onClose={() => {
+        if (deleteStatus !== "deleting") setDeleteConfirmOpen(false);
+      }}
+      labelledBy="delete-course-title"
+      panelClassName="w-full max-w-[360px] rounded-[20px] border border-[#f0e8ff] bg-white p-6 shadow-[0_24px_70px_rgba(26,20,46,0.22)]"
+    >
+      <h3 id="delete-course-title" className="text-[18px] font-black text-[#1a142e]">
+        {t("deleteCourseTitle")}
+      </h3>
+      <p className="mt-2 text-[13px] leading-6 text-[#6b6685]">
+        {t("deleteCourseConfirm")}
+      </p>
+      <div className="mt-6 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setDeleteConfirmOpen(false)}
+          disabled={deleteStatus === "deleting"}
+          className="flex-1 rounded-full border border-[#ded8ee] bg-white px-4 py-3 text-[13px] font-bold text-[#6b6685] transition hover:border-[#bdb3d8] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {t("cancelDeleteCourse")}
+        </button>
+        <button
+          type="button"
+          onClick={handleDeleteCourse}
+          disabled={deleteStatus === "deleting"}
+          className="flex-1 rounded-full bg-[#d64545] px-4 py-3 text-[13px] font-bold text-white transition hover:bg-[#bd3434] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {deleteStatus === "deleting" ? t("deletingShort") : t("confirmDeleteCourse")}
+        </button>
+      </div>
+    </Modal>
 
     {chatPending ? (
       <CourseLoadingOverlay

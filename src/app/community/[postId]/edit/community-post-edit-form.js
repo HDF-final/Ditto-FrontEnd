@@ -138,6 +138,7 @@ export function CommunityPostEditForm({ course = {} }) {
   const fileInputRef = useRef(null);
   const mounted = useIsMounted();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const authHydrated = useAuthStore((state) => state.hydrated);
   const currentUser = useAuthStore((state) => state.user);
 
   const initialPhotos = useMemo(() => buildInitialPhotos(course), [course]);
@@ -220,6 +221,7 @@ export function CommunityPostEditForm({ course = {} }) {
         deleteImageIds: deleteAllImages ? [] : removedImageIds,
         deleteAllImages,
         images: newImages,
+        userId: course.authorId || currentUser?.id || currentUser?.userId,
       });
 
       router.push(`/community/${postId}`);
@@ -236,7 +238,7 @@ export function CommunityPostEditForm({ course = {} }) {
     }
   }
 
-  if (!mounted) {
+  if (!mounted || !authHydrated) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-3 border-brand border-t-transparent" />
