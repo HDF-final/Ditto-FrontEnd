@@ -552,9 +552,9 @@
     "connectionError": "코스 추천 서버에 연결하지 못했어요. 서버가 실행 중인지 확인해주세요.",
     "genericError": "코스를 만들지 못했어요. 잠시 후 다시 시도해주세요.",
     "cancelledMessage": "요청을 취소했어요. 다시 물어봐 주세요 🐾",
-    "suggestion1": "더현대 K-pop 코스 만들어줘",
-    "suggestion2": "요즘 MZ 핫플 알려줘",
-    "suggestion3": "팝업 스토어 데이트 코스",
+    "suggestion1": "뷔 무드로 코스 생성해줘",
+    "suggestion2": "장원영처럼 반짝 코스 생성해줘",
+    "suggestion3": "필릭스 감성으로 코스 생성해줘",
     "suggestion4": "카리나 코스 생성해줘"
   }
 }

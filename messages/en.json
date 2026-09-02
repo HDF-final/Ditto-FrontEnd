@@ -552,9 +552,9 @@
     "connectionError": "We couldn't connect to the course recommendation server.",
     "genericError": "We couldn't build the course. Please try again shortly.",
     "cancelledMessage": "Request cancelled. Ask me again anytime 🐾",
-    "suggestion1": "Build a K-pop course at The Hyundai",
-    "suggestion2": "Show me today's Gen Z hot spots",
-    "suggestion3": "Plan a pop-up store date",
+    "suggestion1": "Create a V-inspired course",
+    "suggestion2": "Create a Wonyoung sparkle course",
+    "suggestion3": "Create a Felix mood course",
     "suggestion4": "Create a Karina course"
   }
 }
