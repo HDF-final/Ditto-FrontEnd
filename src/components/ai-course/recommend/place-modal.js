@@ -19,7 +19,7 @@ import {
 } from "@/lib/navigation/course-routing-service";
 import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
-import { getAiPlaceProductImages } from "@/lib/api/ai-course";
+import { getAiPlaceProductImages, getAiPlaceReservation } from "@/lib/api/ai-course";
 import { CourseNavigationMap } from "@/components/navigation/course-navigation-map";
 
 function getProductNavigationKey(place) {
@@ -61,6 +61,116 @@ function usePlaceProducts(navigationKey, limit = 3) {
     Boolean(navigationKey) && productResult.navigationKey !== navigationKey;
 
   return isLoading ? [] : productResult.products;
+}
+
+function usePlaceReservation(navigationKey) {
+  const [reservationResult, setReservationResult] = useState({
+    navigationKey: null,
+    reservation: null,
+  });
+
+  useEffect(() => {
+    if (!navigationKey) return undefined;
+
+    const controller = new AbortController();
+    getAiPlaceReservation(navigationKey, { signal: controller.signal })
+      .then((reservation) => {
+        setReservationResult({ navigationKey, reservation });
+      })
+      .catch((error) => {
+        if (error?.code === "ERR_CANCELED") return;
+        setReservationResult({ navigationKey, reservation: null });
+      });
+
+    return () => controller.abort();
+  }, [navigationKey]);
+
+  const isLoading =
+    Boolean(navigationKey) && reservationResult.navigationKey !== navigationKey;
+
+  return isLoading ? null : reservationResult.reservation;
+}
+
+/** 캐치테이블 로고 마크 (코랄 사각형 속 흰 'C') */
+function CatchTableMark({ size = 22, className = "" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+    >
+      <path
+        d="M23 9.6a9.4 9.4 0 1 0 0 12.8"
+        stroke="currentColor"
+        strokeWidth="6.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * 캐치테이블 예약 섹션.
+ * 예약 링크(reservation)가 있을 때만 그려지고, 없으면 아무것도 렌더하지 않는다.
+ * (더현대Hi 상품 바로가기와 동일하게 data 유무로 켜고 끄는 패턴)
+ */
+function ReservationSection({ reservation, t, className = "mt-6" }) {
+  if (!reservation?.reservationUrl) return null;
+
+  const label = t.has("reservation") ? t("reservation") : "캐치테이블 예약하기";
+  const hint = t.has("reservationHint")
+    ? t("reservationHint")
+    : "실시간 예약·대기 확인을 캐치테이블에서 할 수 있어요.";
+
+  return (
+    <div className={className}>
+      <a
+        href={reservation.reservationUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="group relative flex items-center gap-3.5 overflow-hidden rounded-[20px] bg-gradient-to-br from-[#ff7a45] via-[#ff5a36] to-[#ff3f52] px-4 py-4 shadow-[0_14px_30px_rgba(255,80,54,0.35)] outline-none transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,80,54,0.48)] focus-visible:ring-2 focus-visible:ring-[#ff603d] focus-visible:ring-offset-2 active:translate-y-0 active:scale-[0.99]"
+      >
+        {/* hover 시 지나가는 광택 */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-1/3 top-0 h-full w-1/3 -skew-x-12 bg-white/25 blur-md transition-transform duration-700 ease-out group-hover:translate-x-[420%]"
+        />
+        {/* 로고 칩 (흰 사각형 + 코랄 C) */}
+        <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-white shadow-[0_6px_14px_rgba(0,0,0,0.12)]">
+          <CatchTableMark size={22} className="text-[#ff4d2e]" />
+        </span>
+        {/* 문구 */}
+        <span className="relative min-w-0 flex-1">
+          <span className="block text-[15px] font-black tracking-tight text-white drop-shadow-sm">
+            {label}
+          </span>
+          <span className="mt-0.5 block truncate text-[11.5px] font-semibold text-white/85">
+            {hint}
+          </span>
+        </span>
+        {/* 화살표 */}
+        <span className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-xs transition group-hover:bg-white/30">
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-transform group-hover:translate-x-0.5"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </span>
+      </a>
+    </div>
+  );
 }
 
 function BrandProductsGrid({ products, place, t, className = "mt-6" }) {
@@ -244,6 +354,7 @@ function AiPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
   const productNavigationKey = getProductNavigationKey(place);
   const brandProducts = usePlaceProducts(productNavigationKey, 3);
+  const reservation = usePlaceReservation(productNavigationKey);
   const locationText = place.location || (place.floor ? `${t("departmentStore")} ${place.floor}` : t("departmentStore"));
 
   // 브랜드별 컨텍스트 매핑 (프라다 카리나, 아디다스 손흥민/제니 등)
@@ -415,6 +526,9 @@ function AiPlaceModalContent({ place, onClose }) {
 
             {/* 브랜드 상품 이미지 */}
             <BrandProductsGrid products={brandProducts} place={place} t={t} />
+
+            {/* 캐치테이블 예약 (예약 링크가 있는 장소에만 노출) */}
+            <ReservationSection reservation={reservation} t={t} />
           </div>
 
           {/* Bottom CTA Button (장소 추가 모달에서 열었을 때만 노출) */}
@@ -508,6 +622,7 @@ function StandardPlaceModalContent({ place, onClose }) {
   const t = useTranslations("aiCourse");
   const productNavigationKey = getProductNavigationKey(place);
   const brandProducts = usePlaceProducts(productNavigationKey, 3);
+  const reservation = usePlaceReservation(productNavigationKey);
   const [routeState, setRouteState] = useState({
     status: "loading",
     itinerary: null,
@@ -701,6 +816,13 @@ function StandardPlaceModalContent({ place, onClose }) {
             place={place}
             t={t}
             className="mt-7 pb-2 sm:mt-8"
+          />
+
+          {/* 캐치테이블 예약 (예약 링크가 있는 장소에만 노출) */}
+          <ReservationSection
+            reservation={reservation}
+            t={t}
+            className="mt-5"
           />
 
           {/* 매장 사진 (실제 다중 사진 데이터가 있을 때만 노출) */}
