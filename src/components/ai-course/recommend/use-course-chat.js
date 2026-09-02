@@ -8,6 +8,7 @@ import {
 import { resolveCoursePlace } from "@/lib/navigation/course-routing-service";
 import { resolvePlaceCategory } from "@/lib/navigation/place-category";
 import { getImageUrl } from "@/lib/courses/image-url";
+import { splitAiReason } from "@/lib/courses/ai-reason";
 import { useTranslations } from "next-intl";
 
 /**
@@ -90,7 +91,9 @@ async function toCoursePlaces(apiPlaces) {
         navigationKey: item?.navigationKey ?? item?.navigation_key,
       });
       if (!place) return null;
-      const reason = item?.reason?.trim() || "";
+      // 이유 끝에 "사진을 못 붙였다" 알림이 붙어 오는 자리가 있다. 이유와 알림은
+      // 화면에서 따로 그려야 해서 여기서 가른다.
+      const { reason, notice } = splitAiReason(item?.reason);
       // 실내 지도 원장에는 카테고리 필드가 없어 모든 장소가 "매장"으로만 채워집니다.
       // 응답이 준 카테고리(음식점 / 카페 / 여가 …)가 유일한 실제 값이라, 있으면
       // 그걸로 덮어써야 태그가 카테고리별 색으로 나옵니다.
@@ -103,6 +106,7 @@ async function toCoursePlaces(apiPlaces) {
         ...category,
         desc: reason || place.desc,
         aiReason: reason || null,
+        aiNotice: notice || null,
         isAiRecommended: true,
         ...toAiImageFields(item),
       };
