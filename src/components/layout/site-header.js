@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { HeaderNavLinks } from "./header-nav-links";
 import { HeaderAuthNav } from "./header-auth-nav";
+import { HeaderLanguageSwitcher } from "./header-language-switcher";
 
 export function SiteHeader() {
   const t = useTranslations("navigation");
@@ -36,6 +37,7 @@ export function SiteHeader() {
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2 text-ink sm:gap-5">
+          <HeaderLanguageSwitcher />
           <HeaderAuthNav />
         </div>
       </div>
