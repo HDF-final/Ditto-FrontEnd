@@ -31,6 +31,7 @@ import {
 import { getNavigablePlaces } from "@/lib/api/place-navigation";
 import { getBrands, buildBrandLogoMap } from "@/lib/api/brands";
 import { getPlaceCategoryLabel } from "@/lib/navigation/place-category";
+import { splitAiReason } from "@/lib/courses/ai-reason";
 import {
   addCoursePlace,
   createCourse,
@@ -156,11 +157,18 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
       const fallbackFloor =
         place?.floorCode ?? place?.floor_code ?? place?.floor ?? catalogPlace?.floor;
 
-      const aiReason =
+      // 이유 끝에 붙어 오는 "사진을 못 붙였다" 알림은 이유가 아니라 시스템이 하는
+      // 말이다. 대화에서 이미 갈라 온 자리(`place.aiNotice`)도 있고, 저장된 코스처럼
+      // 붙은 채로 오는 자리도 있어 여기서 한 번 더 가른다.
+      const { reason: splitReason, notice: splitNotice } = splitAiReason(
         place?.recommendationReason ||
-        place?.aiReason ||
-        catalogPlace?.aiReason ||
-        null;
+          place?.aiReason ||
+          catalogPlace?.aiReason ||
+          "",
+      );
+      const aiReason = splitReason || null;
+      const aiNotice =
+        splitNotice || place?.aiNotice || catalogPlace?.aiNotice || null;
       const aiImage =
         normalizedRawImage ||
         place?.aiImage ||
@@ -186,6 +194,7 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
           desc,
           description: desc,
           aiReason,
+          aiNotice,
           aiImage,
           image: image ?? catalogPlace.image,
           imageUrl: image ?? catalogPlace.imageUrl,
@@ -204,6 +213,7 @@ function hydrateSourceCoursePlaces(coursePlaces, placeCatalog) {
         desc,
         description: desc,
         aiReason,
+        aiNotice,
         aiImage,
         image,
         imageUrl: image,
@@ -449,6 +459,7 @@ export function ResultScreen({
             imageUrl: storeImage,
             placeImg: storeImage,
             aiReason: place.aiReason || catalogPlace.aiReason,
+            aiNotice: place.aiNotice || catalogPlace.aiNotice || null,
             isAiRecommended: true,
           }
         : { ...place, isAiRecommended: true };

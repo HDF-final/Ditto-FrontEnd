@@ -9,6 +9,7 @@ import {
   MapPin,
   Plus,
   Clock,
+  Info,
 } from "./recommend-icons";
 import {
   attachPlaceIdsToCourseDataset,
@@ -260,6 +261,10 @@ function AiPlaceModalContent({ place, onClose }) {
       ? t("gentleReason")
       : place.desc || t("genericReason"));
 
+  // 근거 기사는 찾았는데 쓸 만한 사진이 없던 자리에 붙는 한 줄. 추천 이유가 아니라
+  // 시스템이 하는 말이라 이유 카드 **밖에**, 다른 색으로 따로 그린다.
+  const aiNoticeText = place.aiNotice || "";
+
   // 매장 / 브랜드 대표 사진 (추천 응답이 준 사진 > placeImg / image 순)
   const rightImage =
     place.aiImage ||
@@ -397,6 +402,16 @@ function AiPlaceModalContent({ place, onClose }) {
                 {aiReasonText}
               </p>
             </div>
+
+            {/* 사진을 못 붙인 자리 안내 (추천 이유와 섞이지 않게 카드 밖 · 앰버색) */}
+            {aiNoticeText ? (
+              <div className="mt-2.5 flex items-start gap-2 rounded-[16px] border border-[#f7dfae] bg-[#fff8ec] px-3.5 py-2.5">
+                <Info size={15} strokeWidth={2.4} className="mt-[3px] shrink-0 text-[#c07d13]" />
+                <p className="text-[13px] sm:text-[14px] font-semibold leading-[1.55] text-[#9a6206] break-keep">
+                  {aiNoticeText}
+                </p>
+              </div>
+            ) : null}
 
             {/* 브랜드 상품 이미지 */}
             <BrandProductsGrid products={brandProducts} place={place} t={t} />

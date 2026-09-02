@@ -215,6 +215,7 @@ export function AddPlaceModal({
                         modalMode: "compact",
                         isAiRecommended: false,
                         aiReason: null,
+                        aiNotice: null,
                         isAiVersion: false,
                         onAddPlace: () => handleAdd(place),
                       });

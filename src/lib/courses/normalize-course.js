@@ -9,6 +9,7 @@
 // **상대경로다.** `@/` 별칭은 Next 빌드만 풀 수 있어, 별칭을 쓰면 `node --test` 가
 // 이 모듈을 못 읽는다 (tests/ 의 다른 검사들이 읽는 lib 모듈도 전부 그래서 별칭이 없다).
 import { DEFAULT_COMMUNITY_COURSE_IMAGES } from "../community/default-course-images.js";
+import { splitAiReason } from "./ai-reason.js";
 import { getImageUrl } from "./image-url.js";
 
 const DEFAULT_SYSTEM_COURSE_IDS = ["1", "122", "21", "22", "23"];
@@ -50,7 +51,9 @@ export function normalizeCourse(rawCourse, slug) {
   // 떨어져 "매장 안내 + 일반 문구 + 기본 사진" 이 나온다 — 지금까지 그랬다.
   // 이유가 없는 코스(예전에 손으로 올린 것)는 `null` 이라 일반 모달 그대로다.
   const stops = rawPlaces.map((p, idx) => {
-    const reason = p.recommendationReason || p.reason || null;
+    // 이유 끝에 "사진을 못 붙였다" 알림이 붙어 오는 자리가 있다. 알림은 이유가
+    // 아니라 시스템이 하는 말이라 따로 떼어 `aiNotice` 로 넘긴다.
+    const { reason, notice } = splitAiReason(p.recommendationReason || p.reason);
     const image = getImageUrl(p);
     return {
       placeId: p.placeId,
@@ -62,7 +65,8 @@ export function normalizeCourse(rawCourse, slug) {
       navigationKey: p.navigationKey,
       x: p.xCoordinate,
       y: p.yCoordinate,
-      aiReason: reason,
+      aiReason: reason || null,
+      aiNotice: notice || null,
       aiImage: image,
       aiImageCaption: null,
     };
