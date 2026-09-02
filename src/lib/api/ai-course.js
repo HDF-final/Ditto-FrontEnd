@@ -57,3 +57,25 @@ export async function getAiPlaceProductImages(navigationKey, { limit = 3, signal
 
   return Array.isArray(data?.data) ? data.data : [];
 }
+
+/**
+ * 장소의 예약 링크(캐치테이블 등)를 돌려줍니다.
+ *
+ * 예약 링크가 있는 장소는 `{ provider, placeName, reservationUrl }`, 없는 장소는
+ * `data: null`이 옵니다. 링크가 없으면 그대로 `null`을 반환하므로, 호출부는 값이
+ * 있을 때만 예약 섹션을 그리면 됩니다. (상품 바로가기와 동일한 패턴)
+ */
+export async function getAiPlaceReservation(navigationKey, { signal } = {}) {
+  if (!navigationKey) return null;
+
+  const { data } = await apiClient.get(
+    `${PLACE_PRODUCTS_ENDPOINT}/${encodeURIComponent(navigationKey)}/reservation`,
+    { signal },
+  );
+
+  if (data?.success === false) {
+    throw new Error(data.message || "예약 정보를 불러오지 못했어요.");
+  }
+
+  return data?.data ?? null;
+}
