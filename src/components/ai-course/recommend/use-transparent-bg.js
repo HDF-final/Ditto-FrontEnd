@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 const cache = new Map();
 
@@ -26,10 +27,7 @@ export function useTransparentBg(src, threshold = 30) {
   // flipping the consumer's element (img vs placeholder) and tripping a
   // structural hydration mismatch. Stay null until mounted so the first client
   // render matches the server, then reveal the (already cached) image.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   // When src/threshold change, adopt a newly cached value during render (a
   // React-supported state update) rather than syncing it from an effect. If the

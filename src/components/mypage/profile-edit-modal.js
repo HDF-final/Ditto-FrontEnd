@@ -5,7 +5,6 @@ import Image from "next/image";
 import { normalizePersonaId, getPersonaPageCopy, getPersonaById } from "@/lib/fixtures/personas";
 import { updateMyProfile } from "@/lib/api/users";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { CountrySelector } from "@/components/common/country-selector";
 import { useLocale, useTranslations } from "next-intl";
 
 export function ProfileEditModal({
@@ -17,7 +16,6 @@ export function ProfileEditModal({
   onSuccess,
 }) {
   const t = useTranslations("mypage");
-  const preferenceT = useTranslations("preferences");
   const locale = useLocale();
   const setUser = useAuthStore((state) => state.setUser);
   const authUser = useAuthStore((state) => state.user);
@@ -182,13 +180,6 @@ export function ProfileEditModal({
                 );
               })}
             </div>
-          </div>
-
-          <div className="border-t border-line pt-5">
-            <p className="mb-1.5 text-xs font-bold text-ink">
-              {preferenceT("languageLabel")}
-            </p>
-            <CountrySelector showCountry={false} variant="profile" />
           </div>
 
           {/* 에러 메시지 */}
