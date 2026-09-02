@@ -1,15 +1,17 @@
 import { ImageResponse } from "next/og";
-
-const BRAND = "#5c2ef5";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * Shared PWA / home-screen icon renderer.
- * A solid brand tile with a white "D" so install surfaces stay on-brand
- * without shipping extra raster assets.
+ * Renders the Boni brand mascot on a white tile so every install surface
+ * (favicon route, apple-icon, manifest icons) stays on-brand.
  */
-export function createAppIcon(size) {
-  const fontSize = Math.round(size * 0.42);
+const BONI_ICON =
+  "data:image/png;base64," +
+  readFileSync(join(process.cwd(), "src/lib/pwa/boni.png")).toString("base64");
 
+export function createAppIcon(size) {
   return new ImageResponse(
     (
       <div
@@ -19,14 +21,15 @@ export function createAppIcon(size) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: BRAND,
-          color: "#ffffff",
-          fontSize,
-          fontWeight: 800,
-          letterSpacing: "-0.06em",
+          background: "#ffffff",
         }}
       >
-        D
+        <img
+          src={BONI_ICON}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain" }}
+        />
       </div>
     ),
     {
