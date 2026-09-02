@@ -68,7 +68,7 @@ export function ScanMapView() {
             onClick={() => router.push("/ai-course?from=scan")}
             className="flex-[1.7] rounded-full bg-brand py-2.5 text-[14px] font-black text-white disabled:opacity-40"
           >
-            코스 만들기
+            길찾기
           </button>
         </div>
       </div>
