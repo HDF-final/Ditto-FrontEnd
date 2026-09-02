@@ -21,6 +21,16 @@ export function useTransparentBg(src, threshold = 30) {
   const [result, setResult] = useState(() => cache.get(key) ?? null);
   const [renderedKey, setRenderedKey] = useState(key);
 
+  // The server has no canvas, so it always renders null. A warm module cache
+  // could otherwise make the client's first render return the processed image,
+  // flipping the consumer's element (img vs placeholder) and tripping a
+  // structural hydration mismatch. Stay null until mounted so the first client
+  // render matches the server, then reveal the (already cached) image.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // When src/threshold change, adopt a newly cached value during render (a
   // React-supported state update) rather than syncing it from an effect. If the
   // new key isn't cached yet we keep the previous image until the pass finishes.
@@ -56,5 +66,5 @@ export function useTransparentBg(src, threshold = 30) {
     img.src = src;
   }, [key, src, threshold]);
 
-  return result;
+  return mounted ? result : null;
 }
