@@ -134,25 +134,15 @@ jobs:
 
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-      # 5. ASG 시작 템플릿 버전 갱신
-      - name: Update ASG Launch Template version
+      # 5. ASG 인스턴스 새로고침 실행 및 모니터링 (무중단 롤링 + 웜업 60초)
+      #    LT 버전은 --desired-configuration 으로 넘긴다. refresh 가 성공해야
+      #    ASG 설정이 갱신되고, 실패하면 AutoRollback 이 직전 버전으로 되돌린다.
+      - name: Trigger and monitor ASG Instance Refresh
         shell: bash
         run: |
           TARGET_ASG="${{ vars.ASG_NAME }}"
           TARGET_LT="${{ vars.LAUNCH_TEMPLATE_NAME }}"
           TARGET_VER="${{ steps.create-lt.outputs.NEW_VERSION }}"
-
-          echo "Updating ASG [${TARGET_ASG}] with Launch Template [${TARGET_LT}] Version [${TARGET_VER}]"
-
-          aws autoscaling update-auto-scaling-group \
-            --auto-scaling-group-name "${TARGET_ASG}" \
-            --launch-template "LaunchTemplateName=${TARGET_LT},Version=${TARGET_VER}"
-
-      # 6. ASG 인스턴스 새로고침 실행 및 모니터링 (무중단 롤링 + 웜업 60초 + 6분 타임아웃)
-      - name: Trigger and monitor ASG Instance Refresh
-        shell: bash
-        run: |
-          TARGET_ASG="${{ vars.ASG_NAME }}"
           echo "Checking existing Instance Refresh for ASG: ${TARGET_ASG}..."
 
           EXISTING_STATUS=$(aws autoscaling describe-instance-refreshes \
@@ -184,14 +174,16 @@ jobs:
           # MinHealthy 100%, MaxHealthy 200%, Warmup 60s 설정
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name "${TARGET_ASG}" \
+            --desired-configuration "{\"LaunchTemplate\":{\"LaunchTemplateName\":\"${TARGET_LT}\",\"Version\":\"${TARGET_VER}\"}}" \
             --preferences '{"MinHealthyPercentage": 100, "MaxHealthyPercentage": 200, "InstanceWarmup": 60, "AutoRollback": true}' \
             --query 'InstanceRefreshId' \
             --output text)
 
           echo "Instance Refresh ID: $REFRESH_ID"
 
-          # 6분 타임아웃 (10초 간격 * 36회 = 360초)
-          MAX_ATTEMPTS=36
+          # 12분 타임아웃 (10초 간격 * 72회 = 720초)
+          # AZ별 1대씩 2대를 동시에 교체하므로 둘 중 느린 쪽이 기준이 된다.
+          MAX_ATTEMPTS=72
           ATTEMPT=0
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
@@ -216,7 +208,7 @@ jobs:
           done
 
           if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-            echo "❌ Instance Refresh timed out after 6 minutes!"
+            echo "❌ Instance Refresh timed out after 12 minutes!"
             echo "Cancelling stuck instance refresh..."
             aws autoscaling cancel-instance-refresh --auto-scaling-group-name "${TARGET_ASG}" || true
             exit 1
