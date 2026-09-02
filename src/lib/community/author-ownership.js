@@ -65,7 +65,9 @@ export function isCommunityPostOwner(course = {}, user = {}) {
   const authorIds = getCourseAuthorIdentifierValues(course);
 
   if (userIds.length > 0 && authorIds.length > 0) {
-    return userIds.some((id) => authorIds.includes(id));
+    if (userIds.some((id) => authorIds.includes(id))) {
+      return true;
+    }
   }
 
   const userNames = [

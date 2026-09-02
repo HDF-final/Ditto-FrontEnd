@@ -82,6 +82,7 @@ export function updateCoursePost(
     deleteImageIds = [],
     deleteAllImages = false,
     images = [],
+    userId,
   },
 ) {
   const payload = {
@@ -114,7 +115,10 @@ export function updateCoursePost(
   return requestData(
     apiClient.patch(`/community/courses/${postId}`, form, {
       timeout: 60_000,
-      headers: { "Content-Type": undefined },
+      headers: {
+        "Content-Type": undefined,
+        ...(userId ? { "X-User-Id": String(userId) } : {}),
+      },
     }),
   );
 }

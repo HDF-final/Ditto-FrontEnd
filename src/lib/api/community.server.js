@@ -274,7 +274,7 @@ function normalizePopularPlace(place = {}) {
 }
 
 function getServerPlaceHeaders(headers = {}) {
-  const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() || "1";
+  const localUserId = process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() || "123";
   return {
     ...headers,
     "X-User-Id": localUserId,
@@ -411,6 +411,7 @@ export function normalizePublicCourseDetail(detail) {
 
   const comments = (detail.comments || []).map((c) => ({
     commentId: c.commentId,
+    userId: c.userId,
     name: c.nickname || `여행자_${c.userId || ""}`,
     country: "KR",
     text: c.content,
@@ -430,7 +431,9 @@ export function normalizePublicCourseDetail(detail) {
     getDefaultCourseImage(num);
 
   const authorName = getAuthorName(detail);
-  const authorId = getAuthorId(detail);
+  const authorId =
+    getAuthorId(detail) ||
+    pickFirst(detail.comments?.find((comment) => comment?.isAuthor)?.userId);
 
   return {
     postId,

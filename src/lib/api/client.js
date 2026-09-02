@@ -34,18 +34,23 @@ apiClient.interceptors.request.use((config) => {
     ? authUser?.id ||
       authUser?.userId ||
       process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
-      "1"
+      "123"
     : authUser?.id || authUser?.userId || null;
 
-  if (userId) {
+  const hasUserIdHeader =
+    typeof config.headers?.has === "function"
+      ? config.headers.has("X-User-Id")
+      : Boolean(config.headers?.["X-User-Id"] || config.headers?.["x-user-id"]);
+
+  if (userId && !hasUserIdHeader) {
     if (typeof config.headers?.set === "function") {
       config.headers.set("X-User-Id", String(userId));
     } else if (config.headers) {
       config.headers["X-User-Id"] = String(userId);
     }
-  } else if (typeof config.headers?.delete === "function") {
+  } else if (!userId && typeof config.headers?.delete === "function") {
     config.headers.delete("X-User-Id");
-  } else if (config.headers) {
+  } else if (!userId && config.headers) {
     delete config.headers["X-User-Id"];
   }
 

@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 export const MOCK_USER = {
-  id: 1,
-  userId: 1,
+  id: 123,
+  userId: 123,
   email: "yuki@example.com",
   name: "구본희",
   nickname: "구본희",
