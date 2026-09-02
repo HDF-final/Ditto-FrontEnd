@@ -737,7 +737,7 @@ export async function fetchPublicCourseDetailServer(postIdOrSlug) {
             try {
               const courseRes = await fetch(`${baseUrl}/api/v1/courses/${courseId}`, {
                 method: "GET",
-                headers,
+                headers: getServerPlaceHeaders(headers),
                 cache: "no-store",
               });
               if (courseRes.ok) {
