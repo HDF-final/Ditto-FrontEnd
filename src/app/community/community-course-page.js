@@ -355,7 +355,7 @@ export function CommunityCoursePage({
 
   const popularPlacesTitle = resolveMessage(
     "popularPlacesTitle",
-    "지금 여행자들이 가장 많이 다녀온 인기 장소",
+    "사용자들이 가장 많이 방문한 매장",
   );
 
   const pageTitle = isAuthorFiltered
@@ -481,48 +481,16 @@ export function CommunityCoursePage({
           </div>
 
           {hasPopularPlaces ? (
-            <div className="mt-3.5 mb-1 pt-1 lg:mt-6 lg:mb-2">
-              <div className="flex items-center">
-                <span className="inline-block rounded-[2px] bg-[#ede7ff] px-2 py-0.5 text-xs font-black tracking-tight text-[#5c2ef5] lg:text-[14px]">
-                  {popularPlacesTitle}
-                </span>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between gap-3 lg:gap-4">
-                <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1.5 pt-0.5 lg:flex-nowrap lg:gap-2.5">
-                  {popularPlaces.slice(0, 5).map((place, index) => (
-                    <button
-                      key={place.placeId || `${place.name}-${index}`}
-                      type="button"
-                      onClick={() => setSelectedPlace(place)}
-                      className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/15 bg-white hover:bg-brand-soft/30 px-2.5 py-1.5 shadow-2xs transition-all hover:scale-[1.02] hover:shadow-xs active:scale-95 cursor-pointer lg:gap-2 lg:px-3 lg:py-1.5"
-                    >
-                      <span className="flex size-5.5 shrink-0 items-center justify-center rounded-full bg-black text-[11px] font-black text-white shadow-2xs lg:size-6 lg:text-xs">
-                        {place.rank || index + 1}
-                      </span>
-                      <span className="flex size-7 shrink-0 overflow-hidden rounded-full border border-brand/15 bg-neutral-100 shadow-2xs lg:size-8">
-                        {place.imageUrl ? (
-                          <img
-                            src={place.imageUrl}
-                            alt={place.name || ""}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                          />
-                        ) : (
-                          <span className="h-full w-full bg-linear-to-br from-brand/90 to-brand-light" />
-                        )}
-                      </span>
-                      <span className="max-w-[110px] truncate text-xs font-bold text-ink group-hover:text-brand transition-colors lg:max-w-[120px] lg:text-[13px]">
-                        {place.name}
-                      </span>
-                      {place.floor ? (
-                        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand shadow-2xs lg:text-[11px]">
-                          {place.floor}
-                        </span>
-                      ) : null}
-                    </button>
-                  ))}
+            <div className="mt-5 mb-2 lg:mt-7">
+              <div className="flex items-end justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black text-brand lg:text-xs">
+                    POPULAR VISITS
+                  </p>
+                  <h2 className="mt-1 text-lg font-black leading-tight text-ink lg:text-2xl">
+                    {popularPlacesTitle}
+                  </h2>
                 </div>
-
                 <Link
                   href={isAuthorFiltered ? "/community" : "/community/share"}
                   className={`hidden shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-xs font-black shadow-control transition lg:inline-flex lg:text-sm ${
@@ -533,6 +501,82 @@ export function CommunityCoursePage({
                 >
                   {isAuthorFiltered ? "전체 코스 보기" : t("shareMine")}
                 </Link>
+              </div>
+
+              <div className="mt-3 flex max-w-[640px] flex-col gap-2.5">
+                {popularPlaces.slice(0, 3).map((place, index) => {
+                  const isTopPlace = index === 0;
+                  return (
+                    <button
+                      key={place.placeId || `${place.name}-${index}`}
+                      type="button"
+                      onClick={() => setSelectedPlace(place)}
+                      className={`group grid w-full cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 text-left transition-all active:scale-[0.99] ${
+                        isTopPlace
+                          ? "relative overflow-hidden rounded-[18px] border border-brand/25 bg-white px-3.5 py-3 shadow-[0_14px_30px_rgba(92,46,245,0.10)] ring-1 ring-brand/10 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(92,46,245,0.14)] before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-brand"
+                          : "rounded-[16px] border border-line bg-white px-3 py-2.5 shadow-2xs hover:border-brand/25 hover:shadow-[0_10px_24px_rgba(92,46,245,0.08)]"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-9 min-w-16 shrink-0 items-center justify-center rounded-full px-3 text-xs font-black ${
+                          isTopPlace
+                            ? "bg-brand text-white shadow-[0_8px_18px_rgba(92,46,245,0.22)]"
+                            : "bg-[#f0ebff] text-brand"
+                        }`}
+                      >
+                        {index + 1}순위
+                      </span>
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={`flex shrink-0 overflow-hidden border bg-neutral-100 shadow-2xs ${
+                            isTopPlace
+                              ? "size-12 rounded-[14px] border-brand/15"
+                              : "size-10 rounded-[12px] border-brand/10"
+                          }`}
+                        >
+                          {place.imageUrl ? (
+                            <img
+                              src={place.imageUrl}
+                              alt={place.name || ""}
+                              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                            />
+                          ) : (
+                            <span className="h-full w-full bg-linear-to-br from-brand/90 to-brand-light" />
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span
+                            className={`block truncate font-black ${
+                              isTopPlace
+                                ? "text-base text-ink lg:text-lg"
+                                : "text-sm text-ink group-hover:text-brand lg:text-base"
+                            }`}
+                          >
+                            {place.name}
+                          </span>
+                          <span
+                            className={`mt-0.5 block text-[11px] font-bold ${
+                              isTopPlace ? "text-brand" : "text-ink-muted"
+                            }`}
+                          >
+                            사용자 방문 랭킹
+                          </span>
+                        </span>
+                      </span>
+                      {place.floor ? (
+                        <span
+                          className={`justify-self-end rounded-full px-2.5 py-1 text-xs font-black ${
+                            isTopPlace
+                              ? "bg-[#f0ebff] text-brand ring-1 ring-brand/10"
+                              : "bg-brand-soft text-brand"
+                          }`}
+                        >
+                          {place.floor}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
