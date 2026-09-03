@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --port 3000",
     "lint": "eslint .",
-    "test": "pnpm test:navigation && pnpm test:navigation-assets && pnpm test:place-category && pnpm test:scan-location && pnpm test:preferences && pnpm test:i18n && pnpm test:request-language && pnpm test:image-url && pnpm test:course-detail && pnpm test:hero-image && pnpm test:css-url && pnpm test:ai-reason",
+    "test": "pnpm test:navigation && pnpm test:navigation-assets && pnpm test:place-category && pnpm test:scan-location && pnpm test:preferences && pnpm test:i18n && pnpm test:request-language && pnpm test:image-url && pnpm test:course-detail && pnpm test:hero-image && pnpm test:css-url && pnpm test:ai-reason && pnpm test:home-course-limit",
     "test:navigation": "node --test tests/navigation-routing.test.mjs",
     "test:navigation-assets": "node --test tests/navigation-assets.test.mjs",
     "test:place-category": "node --test tests/place-category.test.mjs",
@@ -20,7 +20,8 @@
     "test:course-detail": "node --test tests/course-detail-normalize.test.mjs",
     "test:hero-image": "node --test tests/hero-image.test.mjs",
     "test:css-url": "node --test tests/css-url.test.mjs",
-    "test:ai-reason": "node --test tests/ai-reason.test.mjs"
+    "test:ai-reason": "node --test tests/ai-reason.test.mjs",
+    "test:home-course-limit": "node --test tests/home-course-limit.test.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

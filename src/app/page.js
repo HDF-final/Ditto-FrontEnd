@@ -9,6 +9,7 @@ import { heroSlides } from "@/lib/fixtures/home";
 import { fetchPublicCoursesServer } from "@/lib/api/community.server";
 import { fetchNewsFeedsServer } from "@/lib/api/news.server";
 import { fetchSystemCoursesServer } from "@/lib/api/courses.server";
+import { HOME_SYSTEM_COURSE_LIMIT } from "@/lib/courses/home-course-limit";
 import { getTranslations } from "next-intl/server";
 
 export const revalidate = 300;
@@ -54,7 +55,7 @@ export default async function Home() {
       cache: "force-cache",
       revalidate: 300,
     }),
-    fetchSystemCoursesServer({ size: 50 }).catch(() => []),
+    fetchSystemCoursesServer({ size: HOME_SYSTEM_COURSE_LIMIT }).catch(() => []),
     fetchPublicCoursesServer({
       page: 0,
       size: 50,
