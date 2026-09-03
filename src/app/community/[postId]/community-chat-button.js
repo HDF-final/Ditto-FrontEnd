@@ -321,7 +321,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
     }
 
     const nextState = !isLiked;
-    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
+    const nextLikesCount = Math.max(0, baseLikes + (nextState ? 1 : -1));
     setLiked(postIdentifier, nextState);
 
     if (postId) {
