@@ -9,6 +9,7 @@ import {
   HOME_SYSTEM_COURSE_LIMIT,
   limitHomeSystemCourses,
 } from "@/lib/courses/home-course-limit";
+import { usePreferenceStore } from "@/stores/use-preference-store";
 import { useTranslations } from "next-intl";
 
 const GRADIENTS = [
@@ -20,6 +21,9 @@ const GRADIENTS = [
 
 export function DittoPicksSection({ initialCourses = [] }) {
   const t = useTranslations("home");
+  const languageWasManuallySelected = usePreferenceStore(
+    (state) => state.languageWasManuallySelected,
+  );
   const [systemCourses, setSystemCourses] = useState(initialCourses);
 
   useEffect(() => {
@@ -128,7 +132,10 @@ export function DittoPicksSection({ initialCourses = [] }) {
           ) : null}
           {displayCourses.length > 0 ? (
             <div className="hidden lg:block">
-              <RecommendedCourseOrbit courses={displayCourses} />
+              <RecommendedCourseOrbit
+                courses={displayCourses}
+                showLanguageShowcase={!languageWasManuallySelected}
+              />
             </div>
           ) : null}
         </div>
