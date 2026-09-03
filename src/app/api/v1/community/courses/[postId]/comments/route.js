@@ -26,6 +26,24 @@ const HOP_BY_HOP_HEADERS = new Set([
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+async function forwardToBackend(url, request, headers, body) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
+  try {
+    return await fetch(url, {
+      method: request.method,
+      headers,
+      body,
+      cache: "no-store",
+      redirect: "manual",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function buildBackendUrl(request, postId) {
   const baseUrl = API_PROXY_TARGET.replace(/\/$/, "");
   const url = new URL(request.url);
@@ -62,15 +80,30 @@ async function proxyCommunityComments(request, { params }) {
   const { postId } = await params;
   const method = request.method.toUpperCase();
   const hasBody = method !== "GET" && method !== "HEAD";
-  const upstream = await fetch(buildBackendUrl(request, postId), {
-    method,
-    headers: buildRequestHeaders(request),
-    body: hasBody ? await request.arrayBuffer() : undefined,
-    cache: "no-store",
-    redirect: "manual",
-  });
+  let upstream;
 
-  return new Response(upstream.body, {
+  try {
+    upstream = await forwardToBackend(
+      buildBackendUrl(request, postId),
+      request,
+      buildRequestHeaders(request),
+      hasBody ? await request.arrayBuffer() : undefined,
+    );
+  } catch (err) {
+    const status = err?.name === "AbortError" ? 504 : 502;
+    return Response.json(
+      {
+        success: false,
+        code: "COMMUNITY_COMMENTS_PROXY_FAILED",
+        message: "댓글 서버 요청에 실패했습니다.",
+      },
+      { status },
+    );
+  }
+
+  const responseBody = await upstream.arrayBuffer();
+
+  return new Response(responseBody, {
     status: upstream.status,
     statusText: upstream.statusText,
     headers: buildResponseHeaders(upstream.headers),
