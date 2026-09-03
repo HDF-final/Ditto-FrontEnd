@@ -6,7 +6,7 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { ScanLocationLifecycle } from "@/components/layout/scan-location-lifecycle";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { ADMIN_MOCK_USER, MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { ADMIN_MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile } from "@/lib/api/users";
 
 const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
@@ -41,19 +41,8 @@ function normalizeSessionUser(profile, isAdminRoute) {
 
   return {
     ...profile,
-    apiUserId: profile?.id || profile?.userId || MOCK_USER.id,
-    apiEmail: profile?.email || MOCK_USER.email,
-    email: MOCK_USER.email,
-    name: MOCK_USER.name,
-    nickname: MOCK_USER.nickname,
-    role: MOCK_USER.role,
-    country: MOCK_USER.country,
-    countryCode: MOCK_USER.countryCode,
-    languageCode: MOCK_USER.languageCode,
-    persona: MOCK_USER.persona,
-    shoppingType: MOCK_USER.shoppingType,
-    personaId: MOCK_USER.personaId,
-    description: MOCK_USER.description,
+    ...ADMIN_MOCK_USER,
+    email: profile?.email || ADMIN_MOCK_USER.email,
   };
 }
 
