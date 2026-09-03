@@ -93,24 +93,26 @@ export function NewsKeyPoints({
     <>
       <div className="flex flex-col gap-4 lg:sticky lg:top-[116px]">
         {/* 1. 기사 요약 (KEY POINTS) 카드 */}
-        <aside className="h-fit rounded-[16px] border border-line bg-white p-4 shadow-card transition-all lg:rounded-[28px] lg:p-7">
+        <aside className="h-fit overflow-hidden rounded-[16px] border border-line bg-white p-4 shadow-card transition-all lg:rounded-[28px] lg:p-7">
           <div className="flex items-center justify-between gap-2 border-b border-line pb-3 lg:gap-3 lg:pb-5">
-            <div className="flex items-center gap-2 lg:gap-3">
-              <span className="size-2 rounded-full bg-brand lg:size-3" />
-              <h2 className="text-base font-black text-ink lg:text-2xl">{summaryTitle || newsT("summary")}</h2>
+            <div className="flex min-w-0 items-center gap-2 lg:gap-3">
+              <span className="size-2 flex-none rounded-full bg-brand lg:size-3" />
+              <h2 className="min-w-0 text-base font-black leading-tight text-ink break-words [overflow-wrap:anywhere] lg:text-2xl">
+                {summaryTitle || newsT("summary")}
+              </h2>
             </div>
-            <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[10px] font-black text-brand lg:px-3.5 lg:py-1 lg:text-xs">
+            <span className="flex-none rounded-full bg-brand-soft px-2.5 py-0.5 text-[10px] font-black text-brand lg:px-3.5 lg:py-1 lg:text-xs">
               KEY POINTS
             </span>
           </div>
 
           <ol className="mt-3.5 flex flex-col gap-3.5 lg:mt-6 lg:gap-5">
             {summaryPoints.map((point, index) => (
-              <li key={index} className="flex items-start gap-2.5 lg:gap-3.5">
+              <li key={index} className="flex min-w-0 items-start gap-2.5 lg:gap-3.5">
                 <span className="mt-0.5 flex size-5 flex-none items-center justify-center rounded-full bg-brand text-[10px] font-black text-white lg:size-7 lg:text-xs">
                   {index + 1}
                 </span>
-                <p className="text-[13px] font-bold leading-relaxed text-ink break-keep lg:text-[17px]">
+                <p className="min-w-0 flex-1 text-[13px] font-bold leading-relaxed text-ink break-words [overflow-wrap:anywhere] lg:text-[17px]">
                   {point}
                 </p>
               </li>
