@@ -6,10 +6,48 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { ScanLocationLifecycle } from "@/components/layout/scan-location-lifecycle";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { ADMIN_MOCK_USER, MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
 import { getMyProfile } from "@/lib/api/users";
 
 const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
+
+function isAdminProfile(user) {
+  const role = String(user?.role || "")
+    .trim()
+    .replace(/^ROLE_/i, "")
+    .toUpperCase();
+  const email = String(user?.email || "").trim().toLowerCase();
+  const nickname = String(user?.nickname || user?.name || "").trim();
+
+  return (
+    role === "ADMIN" ||
+    nickname === "구본희" ||
+    email === "yuki@example.com" ||
+    email === "test1234@naver.com"
+  );
+}
+
+function normalizeSessionUser(profile, isAdminRoute) {
+  if (isAdminRoute) {
+    return isAdminProfile(profile) ? { ...ADMIN_MOCK_USER, ...profile } : profile;
+  }
+  if (!isAdminProfile(profile)) return profile;
+
+  return {
+    ...profile,
+    email: MOCK_USER.email,
+    name: MOCK_USER.name,
+    nickname: MOCK_USER.nickname,
+    role: MOCK_USER.role,
+    country: MOCK_USER.country,
+    countryCode: MOCK_USER.countryCode,
+    languageCode: MOCK_USER.languageCode,
+    persona: MOCK_USER.persona,
+    shoppingType: MOCK_USER.shoppingType,
+    personaId: MOCK_USER.personaId,
+    description: MOCK_USER.description,
+  };
+}
 
 /**
  * App chrome. Phone viewports keep the 430px PWA shell and tab bar.
@@ -61,7 +99,7 @@ export function AppFrame({ children }) {
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
-          setUser(profile);
+          setUser(normalizeSessionUser(profile, isAdminRoute));
         } else if (isMounted && !useAuthStore.getState().isAuthenticated) {
           clearUser();
         }
@@ -78,7 +116,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [pathname, setUser, clearUser]);
+  }, [pathname, isAdminRoute, setUser, clearUser]);
 
   if (isAuthRoute) {
     return (

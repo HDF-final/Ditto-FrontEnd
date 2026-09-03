@@ -36,11 +36,21 @@ apiClient.interceptors.request.use((config) => {
       process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
       "123"
     : authUser?.id || authUser?.userId || null;
+  const userRole = authUser?.role || "ROLE_CUSTOMER";
+  const userEmail = authUser?.email || "local-user@example.com";
 
   const hasUserIdHeader =
     typeof config.headers?.has === "function"
       ? config.headers.has("X-User-Id")
       : Boolean(config.headers?.["X-User-Id"] || config.headers?.["x-user-id"]);
+  const hasUserRoleHeader =
+    typeof config.headers?.has === "function"
+      ? config.headers.has("X-User-Role")
+      : Boolean(config.headers?.["X-User-Role"] || config.headers?.["x-user-role"]);
+  const hasUserEmailHeader =
+    typeof config.headers?.has === "function"
+      ? config.headers.has("X-User-Email")
+      : Boolean(config.headers?.["X-User-Email"] || config.headers?.["x-user-email"]);
 
   if (userId && !hasUserIdHeader) {
     if (typeof config.headers?.set === "function") {
@@ -52,6 +62,30 @@ apiClient.interceptors.request.use((config) => {
     config.headers.delete("X-User-Id");
   } else if (!userId && config.headers) {
     delete config.headers["X-User-Id"];
+  }
+
+  if (userId && !hasUserRoleHeader) {
+    if (typeof config.headers?.set === "function") {
+      config.headers.set("X-User-Role", String(userRole));
+    } else if (config.headers) {
+      config.headers["X-User-Role"] = String(userRole);
+    }
+  } else if (!userId && typeof config.headers?.delete === "function") {
+    config.headers.delete("X-User-Role");
+  } else if (!userId && config.headers) {
+    delete config.headers["X-User-Role"];
+  }
+
+  if (userId && !hasUserEmailHeader) {
+    if (typeof config.headers?.set === "function") {
+      config.headers.set("X-User-Email", String(userEmail));
+    } else if (config.headers) {
+      config.headers["X-User-Email"] = String(userEmail);
+    }
+  } else if (!userId && typeof config.headers?.delete === "function") {
+    config.headers.delete("X-User-Email");
+  } else if (!userId && config.headers) {
+    delete config.headers["X-User-Email"];
   }
 
   return config;
