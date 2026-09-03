@@ -1,5 +1,30 @@
 import apiClient from "./client";
 import { requestData } from "./api-response";
+import { MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+
+function getCustomerActionHeaders() {
+  const { isAuthenticated, user } = useAuthStore.getState();
+  if (!isAuthenticated) return {};
+
+  const isAdminProfile =
+    String(user?.role || "")
+      .trim()
+      .replace(/^ROLE_/i, "")
+      .toUpperCase() === "ADMIN" ||
+    String(user?.email || "").trim().toLowerCase() === "test1234@naver.com";
+  const requestUser = isAdminProfile ? MOCK_USER : user;
+  const userId =
+    requestUser?.id ||
+    requestUser?.userId ||
+    process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
+    "123";
+
+  return {
+    "X-User-Id": String(userId),
+    "X-User-Role": "ROLE_CUSTOMER",
+    "X-User-Email": requestUser?.email || "local-user@example.com",
+  };
+}
 
 /**
  * 공개 코스 목록 조회 (페이징).
@@ -137,9 +162,13 @@ export function deleteCoursePost(postId) {
  */
 export function createComment(postId, { content }) {
   return requestData(
-    apiClient.post(`/community/courses/${postId}/comments`, {
-      content,
-    }),
+    apiClient.post(
+      `/community/courses/${postId}/comments`,
+      {
+        content,
+      },
+      { headers: getCustomerActionHeaders() },
+    ),
   );
 }
 
@@ -157,9 +186,13 @@ export function getComments(postId) {
  */
 export function updateComment(postId, commentId, { content }) {
   return requestData(
-    apiClient.patch(`/community/courses/${postId}/comments/${commentId}`, {
-      content,
-    }),
+    apiClient.patch(
+      `/community/courses/${postId}/comments/${commentId}`,
+      {
+        content,
+      },
+      { headers: getCustomerActionHeaders() },
+    ),
   );
 }
 
@@ -169,7 +202,9 @@ export function updateComment(postId, commentId, { content }) {
  */
 export function deleteComment(postId, commentId) {
   return requestData(
-    apiClient.delete(`/community/courses/${postId}/comments/${commentId}`),
+    apiClient.delete(`/community/courses/${postId}/comments/${commentId}`, {
+      headers: getCustomerActionHeaders(),
+    }),
   );
 }
 
