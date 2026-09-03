@@ -6,44 +6,31 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { ScanLocationLifecycle } from "@/components/layout/scan-location-lifecycle";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { ADMIN_MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { login, logout } from "@/lib/api/auth";
 import { getMyProfile } from "@/lib/api/users";
 
 const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
+const AUTO_LOGIN_EMAIL = "emily.johnson.us@example.com";
+const MANUAL_LOGIN_STORAGE_KEY = "ditto_manual_login";
+const AUTO_LOGIN_CREDENTIALS = {
+  email: AUTO_LOGIN_EMAIL,
+  password: "qwer1234",
+};
 
-function isAdminProfile(user) {
-  const role = String(user?.role || "")
-    .trim()
-    .replace(/^ROLE_/i, "")
-    .toUpperCase();
+function isAutoLoginProfile(user) {
   const email = String(user?.email || "").trim().toLowerCase();
-  const nickname = String(user?.nickname || user?.name || "").trim();
-
-  return (
-    role === "ADMIN" ||
-    nickname === "구본희" ||
-    email === "yuki@example.com" ||
-    email === "test1234@naver.com"
-  );
+  return email === AUTO_LOGIN_EMAIL;
 }
 
-function normalizeSessionUser(profile, isAdminRoute) {
-  if (isAdminRoute) {
-    return isAdminProfile(profile)
-      ? {
-          ...profile,
-          ...ADMIN_MOCK_USER,
-          email: profile?.email || ADMIN_MOCK_USER.email,
-        }
-      : profile;
-  }
-  if (!isAdminProfile(profile)) return profile;
+function hasManualLoginSession() {
+  if (typeof window === "undefined") return false;
+  return window.localStorage?.getItem(MANUAL_LOGIN_STORAGE_KEY) === "true";
+}
 
-  return {
-    ...profile,
-    ...ADMIN_MOCK_USER,
-    email: profile?.email || ADMIN_MOCK_USER.email,
-  };
+async function loginWithDefaultAccount() {
+  const loginResult = await login(AUTO_LOGIN_CREDENTIALS);
+  return getMyProfile().catch(() => loginResult);
 }
 
 /**
@@ -96,7 +83,15 @@ export function AppFrame({ children }) {
       try {
         const profile = await getMyProfile();
         if (isMounted && profile) {
-          setUser(normalizeSessionUser(profile, isAdminRoute));
+          if (isAutoLoginProfile(profile) || hasManualLoginSession()) {
+            setUser(profile);
+            return;
+          }
+          await logout().catch(() => {});
+          const defaultProfile = await loginWithDefaultAccount();
+          if (isMounted) {
+            setUser(defaultProfile);
+          }
         } else if (isMounted && !useAuthStore.getState().isAuthenticated) {
           clearUser();
         }
@@ -104,7 +99,16 @@ export function AppFrame({ children }) {
         if (!isMounted) return;
         // 로그인 직후 세션 복원이 한발 늦어도, 방금 세팅한 로그인 상태를 지우지 않습니다.
         if (useAuthStore.getState().isAuthenticated) return;
-        clearUser();
+        try {
+          const profile = await loginWithDefaultAccount();
+          if (!isMounted) return;
+          setUser(profile);
+        } catch (autoLoginError) {
+          if (isMounted) {
+            console.warn("[AppFrame] Auto login failed:", autoLoginError?.message);
+            clearUser();
+          }
+        }
       }
     }
 
@@ -113,7 +117,7 @@ export function AppFrame({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [pathname, isAdminRoute, setUser, clearUser]);
+  }, [pathname, setUser, clearUser]);
 
   if (isAuthRoute) {
     return (

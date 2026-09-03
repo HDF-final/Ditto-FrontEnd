@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { ADMIN_MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { useEffect } from "react";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 function isAdmin(user) {
   const role = String(user?.role || "")
@@ -30,40 +29,14 @@ export function AdminGuard({ children }) {
   const user = useAuthStore((state) => state.user);
   const hydrated = useAuthStore((state) => state.hydrated);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const setUser = useAuthStore((state) => state.setUser);
-  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    if (sessionReady && hydrated && !isAuthenticated) {
+    if (hydrated && !isAuthenticated) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [hydrated, isAuthenticated, pathname, router, sessionReady]);
+  }, [hydrated, isAuthenticated, pathname, router]);
 
-  useEffect(() => {
-    let active = true;
-    async function prepareAdminSession() {
-      try {
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1"}/auth/login`,
-          { email: "test1234@naver.com", password: "1234" },
-          { withCredentials: true },
-        );
-      } catch (err) {
-        console.warn("[AdminGuard] admin session init warning:", err?.message);
-      } finally {
-        if (active) {
-          setUser(ADMIN_MOCK_USER);
-          setSessionReady(true);
-        }
-      }
-    }
-    prepareAdminSession();
-    return () => {
-      active = false;
-    };
-  }, [setUser]);
-
-  if (!hydrated || !isAuthenticated || !sessionReady) {
+  if (!hydrated || !isAuthenticated) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[#f3f5fa]">
         <div className="flex items-center gap-3 text-sm font-semibold text-[#596078]">

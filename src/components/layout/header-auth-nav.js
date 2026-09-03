@@ -35,6 +35,7 @@ export function HeaderAuthNav() {
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
       window.sessionStorage?.setItem("ditto_logged_out", "true");
+      window.localStorage?.removeItem("ditto_manual_login");
     }
     clearUser();
     try {

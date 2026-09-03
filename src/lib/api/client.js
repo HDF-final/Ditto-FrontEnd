@@ -30,6 +30,7 @@ apiClient.interceptors.request.use((config) => {
     window.sessionStorage?.getItem("ditto_logged_out") === "true";
 
   const authUser = useAuthStore.getState()?.user;
+  const isAuthLoginUrl = String(config.url || "").includes("/auth/login");
   const isAdminRoute =
     typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
   const isAdminProfile =
@@ -43,8 +44,7 @@ apiClient.interceptors.request.use((config) => {
   const userId = !isExplicitlyLoggedOut
     ? requestUser?.id ||
       requestUser?.userId ||
-      process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
-      "123"
+      (authUser ? process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() : null)
     : requestUser?.id || requestUser?.userId || null;
   const userRole = requestUser?.role || "ROLE_CUSTOMER";
   const userEmail = requestUser?.email || "local-user@example.com";
@@ -61,6 +61,19 @@ apiClient.interceptors.request.use((config) => {
     typeof config.headers?.has === "function"
       ? config.headers.has("X-User-Email")
       : Boolean(config.headers?.["X-User-Email"] || config.headers?.["x-user-email"]);
+
+  if (isAuthLoginUrl) {
+    if (typeof config.headers?.delete === "function") {
+      config.headers.delete("X-User-Id");
+      config.headers.delete("X-User-Role");
+      config.headers.delete("X-User-Email");
+    } else if (config.headers) {
+      delete config.headers["X-User-Id"];
+      delete config.headers["X-User-Role"];
+      delete config.headers["X-User-Email"];
+    }
+    return config;
+  }
 
   if (userId && !hasUserIdHeader) {
     if (typeof config.headers?.set === "function") {
@@ -101,44 +114,9 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-let adminAuthPromise = null;
-
-async function ensureAdminSession() {
-  if (!adminAuthPromise) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
-    adminAuthPromise = axios
-      .post(
-        `${baseUrl}/auth/login`,
-        { email: "test1234@naver.com", password: "1234" },
-        { withCredentials: true },
-      )
-      .finally(() => {
-        adminAuthPromise = null;
-      });
-  }
-  return adminAuthPromise;
-}
-
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    const isForbidden =
-      error.response?.status === 403 || error.response?.status === 401;
-    const isAdminUrl = originalRequest?.url?.includes("/admin");
-
-    if (isForbidden && isAdminUrl && !originalRequest?._adminRetried) {
-      originalRequest._adminRetried = true;
-      try {
-        await ensureAdminSession();
-        return apiClient(originalRequest);
-      } catch {
-        return Promise.reject(error);
-      }
-    }
-
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 export default apiClient;

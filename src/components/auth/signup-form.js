@@ -109,6 +109,7 @@ export function SignupForm() {
         const loginResult = await login({ email, password });
         if (typeof window !== "undefined") {
           window.sessionStorage?.removeItem("ditto_logged_out");
+          window.localStorage?.setItem("ditto_manual_login", "true");
         }
         if (loginResult) {
           setUser(loginResult);
