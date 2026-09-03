@@ -43,9 +43,6 @@ export function MypageCourseCard({
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
     state.isBookmarked(slugKey, numKey),
   );
-  const likesDeltaStored = useCommunityInteractionsStore((state) =>
-    state.getLikesDelta(slugKey, numKey),
-  );
   const savesDeltaStored = useCommunityInteractionsStore((state) =>
     state.getSavesDelta(slugKey, numKey),
   );
@@ -65,12 +62,11 @@ export function MypageCourseCard({
 
   const isLiked = mounted ? isLikedStored : false;
   const isBookmarked = mounted ? isBookmarkedStored : false;
-  const likesDelta = mounted ? likesDeltaStored : 0;
   const savesDelta = mounted ? savesDeltaStored : 0;
 
   const baseLikes =
     typeof confirmedLikes === "number" ? confirmedLikes : (course.likes ?? 0);
-  const likesCount = Math.max(0, baseLikes + likesDelta);
+  const likesCount = Math.max(0, baseLikes);
   const baseSaves =
     typeof confirmedSaves === "number" ? confirmedSaves : (course.saves ?? 0);
   const savesCount = Math.max(0, baseSaves + savesDelta);
@@ -103,16 +99,20 @@ export function MypageCourseCard({
     const nextState = !isLiked;
     const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
+    clearLikesDelta(slugKey, numKey);
+    setConfirmedLikes(nextLikesCount);
 
     const postIdNum = Number(course.postId || course.id);
     if (postIdNum && !Number.isNaN(postIdNum)) {
       try {
         if (nextState) await likeCourse(postIdNum);
         else await unlikeCourse(postIdNum);
-        setConfirmedLikes(nextLikesCount);
         clearLikesDelta(slugKey, numKey);
       } catch (err) {
         console.warn("[Mypage Card Like] error:", err);
+        setLiked(slugKey, !nextState, numKey);
+        clearLikesDelta(slugKey, numKey);
+        setConfirmedLikes(likesCount);
       }
     }
   }

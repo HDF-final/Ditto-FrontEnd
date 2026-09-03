@@ -703,7 +703,9 @@ export function MypageView() {
             normalized.likes.forEach((item) => {
               const key = String(item.postId || item.id);
               if (useCommunityInteractionsStore.getState().likedPosts[key] === undefined) {
-                useCommunityInteractionsStore.getState().setLiked(key, true);
+                const interactionStore = useCommunityInteractionsStore.getState();
+                interactionStore.setLiked(key, true);
+                interactionStore.clearLikesDelta(key);
               }
             });
           } else {
@@ -722,7 +724,9 @@ export function MypageView() {
             normalized.bookmarks.forEach((item) => {
               const key = String(item.postId || item.id);
               if (useCommunityInteractionsStore.getState().bookmarkedPosts[key] === undefined) {
-                useCommunityInteractionsStore.getState().setBookmarked(key, true);
+                const interactionStore = useCommunityInteractionsStore.getState();
+                interactionStore.setBookmarked(key, true);
+                interactionStore.clearSavesDelta(key);
               }
             });
           } else {
