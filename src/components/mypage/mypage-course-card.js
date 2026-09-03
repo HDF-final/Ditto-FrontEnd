@@ -43,6 +43,7 @@ export function MypageCourseCard({
   const isBookmarkedStored = useCommunityInteractionsStore((state) =>
     state.isBookmarked(slugKey, numKey),
   );
+  const likedPostsMap = useCommunityInteractionsStore((state) => state.likedPosts);
   const savesDeltaStored = useCommunityInteractionsStore((state) =>
     state.getSavesDelta(slugKey, numKey),
   );
@@ -60,7 +61,16 @@ export function MypageCourseCard({
   const [confirmedLikes, setConfirmedLikes] = useState(null);
   const [confirmedSaves, setConfirmedSaves] = useState(null);
 
-  const isLiked = mounted ? isLikedStored : false;
+  const hasStoredLikedState =
+    mounted &&
+    ((slugKey && Object.prototype.hasOwnProperty.call(likedPostsMap, slugKey)) ||
+      (numKey && Object.prototype.hasOwnProperty.call(likedPostsMap, numKey)));
+  const defaultLiked = course.isLiked === true || course.badge === "LIKED";
+  const isLiked = mounted
+    ? hasStoredLikedState
+      ? isLikedStored
+      : defaultLiked
+    : defaultLiked;
   const isBookmarked = mounted ? isBookmarkedStored : false;
   const savesDelta = mounted ? savesDeltaStored : 0;
 
