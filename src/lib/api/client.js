@@ -2,7 +2,7 @@ import "client-only";
 
 import axios from "axios";
 import { applyApiLanguageHeader } from "./request-language";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1",
@@ -30,14 +30,24 @@ apiClient.interceptors.request.use((config) => {
     window.sessionStorage?.getItem("ditto_logged_out") === "true";
 
   const authUser = useAuthStore.getState()?.user;
+  const isAdminRoute =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+  const isAdminProfile =
+    String(authUser?.role || "")
+      .trim()
+      .replace(/^ROLE_/i, "")
+      .toUpperCase() === "ADMIN" ||
+    String(authUser?.email || "").trim().toLowerCase() === "test1234@naver.com" ||
+    String(authUser?.nickname || authUser?.name || "").trim() === "구본희";
+  const requestUser = !isAdminRoute && isAdminProfile ? MOCK_USER : authUser;
   const userId = !isExplicitlyLoggedOut
-    ? authUser?.id ||
-      authUser?.userId ||
+    ? requestUser?.id ||
+      requestUser?.userId ||
       process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
       "123"
-    : authUser?.id || authUser?.userId || null;
-  const userRole = authUser?.role || "ROLE_CUSTOMER";
-  const userEmail = authUser?.email || "local-user@example.com";
+    : requestUser?.id || requestUser?.userId || null;
+  const userRole = requestUser?.role || "ROLE_CUSTOMER";
+  const userEmail = requestUser?.email || "local-user@example.com";
 
   const hasUserIdHeader =
     typeof config.headers?.has === "function"
