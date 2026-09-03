@@ -5,6 +5,10 @@ import Link from "next/link";
 import { CourseCard } from "@/components/home/course-card";
 import { RecommendedCourseOrbit } from "@/components/home/recommended-course-orbit";
 import { getSystemCourses } from "@/lib/api/courses";
+import {
+  HOME_SYSTEM_COURSE_LIMIT,
+  limitHomeSystemCourses,
+} from "@/lib/courses/home-course-limit";
 import { useTranslations } from "next-intl";
 
 const GRADIENTS = [
@@ -23,7 +27,7 @@ export function DittoPicksSection({ initialCourses = [] }) {
     if (initialCourses.length > 0) {
       return undefined;
     }
-    getSystemCourses({ page: 0, size: 50 })
+    getSystemCourses({ page: 0, size: HOME_SYSTEM_COURSE_LIMIT })
       .then((data) => {
         if (!active) return;
         const list = Array.isArray(data?.content)
@@ -77,8 +81,9 @@ export function DittoPicksSection({ initialCourses = [] }) {
     };
   }, [initialCourses, t]);
 
-  const displayCourses =
-    initialCourses.length > 0 ? initialCourses : systemCourses;
+  const displayCourses = limitHomeSystemCourses(
+    initialCourses.length > 0 ? initialCourses : systemCourses,
+  );
 
   return (
     <section
