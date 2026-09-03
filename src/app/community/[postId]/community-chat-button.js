@@ -320,20 +320,18 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
     }
 
     const nextState = !isLiked;
+    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(postIdentifier, nextState);
 
     if (postId) {
       try {
-        let res;
         if (nextState) {
-          res = await likeCourse(postId);
+          await likeCourse(postId);
         } else {
-          res = await unlikeCourse(postId);
+          await unlikeCourse(postId);
         }
-        if (typeof res?.likesCount === "number") {
-          setPostLikes(res.likesCount);
-          clearLikesDelta(postIdentifier);
-        }
+        setPostLikes(nextLikesCount);
+        clearLikesDelta(postIdentifier);
       } catch (err) {
         console.warn("[Like Toggle] Failed:", err.message);
       }

@@ -248,6 +248,9 @@ export function CommunityDetailActions({ course = {} }) {
     state.getLikesDelta(postIdentifier),
   );
   const setLiked = useCommunityInteractionsStore((state) => state.setLiked);
+  const clearLikesDelta = useCommunityInteractionsStore(
+    (state) => state.clearLikesDelta,
+  );
   const setBookmarked = useCommunityInteractionsStore(
     (state) => state.setBookmarked,
   );
@@ -266,19 +269,18 @@ export function CommunityDetailActions({ course = {} }) {
       return;
     }
     const nextState = !isLiked;
+    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(postIdentifier, nextState);
 
     if (postId) {
       try {
-        let res;
         if (nextState) {
-          res = await likeCourse(postId);
+          await likeCourse(postId);
         } else {
-          res = await unlikeCourse(postId);
+          await unlikeCourse(postId);
         }
-        if (typeof res?.likesCount === "number") {
-          setLiveLikes(res.likesCount - (nextState ? 1 : 0));
-        }
+        setLiveLikes(nextLikesCount);
+        clearLikesDelta(postIdentifier);
       } catch (err) {
         console.warn("[Like Toggle] Failed:", err);
       }

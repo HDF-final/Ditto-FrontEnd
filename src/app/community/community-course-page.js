@@ -22,13 +22,6 @@ const tabs = ["popular", "latest"];
 const MOBILE_ITEMS_PER_PAGE = 2;
 const DESKTOP_ITEMS_PER_PAGE = 6;
 
-function readLikeCount(response) {
-  if (typeof response?.likesCount === "number") return response.likesCount;
-  if (typeof response?.likeCount === "number") return response.likeCount;
-  if (typeof response?.likes === "number") return response.likes;
-  return null;
-}
-
 function readBookmarkCount(response) {
   if (typeof response?.bookmarkCount === "number") return response.bookmarkCount;
   if (typeof response?.savesCount === "number") return response.savesCount;
@@ -153,18 +146,15 @@ function CommunityCard({
       return;
     }
     const nextState = !isLiked;
+    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
-        const response = nextState
-          ? await likeCourse(postId)
-          : await unlikeCourse(postId);
-        const serverLikeCount = readLikeCount(response);
-        if (serverLikeCount !== null) {
-          onLikeConfirmed?.(cardKey, serverLikeCount);
-          clearLikesDelta(slugKey, numKey);
-        }
+        if (nextState) await likeCourse(postId);
+        else await unlikeCourse(postId);
+        onLikeConfirmed?.(cardKey, nextLikesCount);
+        clearLikesDelta(slugKey, numKey);
       } catch (err) {
         console.warn("[Card Like] error:", err);
       }

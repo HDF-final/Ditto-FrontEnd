@@ -101,19 +101,16 @@ export function MypageCourseCard({
       return;
     }
     const nextState = !isLiked;
+    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
 
     const postIdNum = Number(course.postId || course.id);
     if (postIdNum && !Number.isNaN(postIdNum)) {
       try {
-        const res = nextState
-          ? await likeCourse(postIdNum)
-          : await unlikeCourse(postIdNum);
-        const count = res?.likesCount ?? res?.likeCount ?? res?.likes;
-        if (typeof count === "number") {
-          setConfirmedLikes(count);
-          clearLikesDelta(slugKey, numKey);
-        }
+        if (nextState) await likeCourse(postIdNum);
+        else await unlikeCourse(postIdNum);
+        setConfirmedLikes(nextLikesCount);
+        clearLikesDelta(slugKey, numKey);
       } catch (err) {
         console.warn("[Mypage Card Like] error:", err);
       }
