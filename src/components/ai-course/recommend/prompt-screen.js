@@ -101,7 +101,7 @@ export function PromptScreen({
     { value: "manual", label: t("manual"), desc: t("manualDetail") },
   ];
   const suggestions = [
-    t.has("suggestion1") ? t("suggestion1") : "뷔 무드로 코스 생성해줘",
+    t.has("suggestion1") ? t("suggestion1") : "지수와 관련된 브랜드 코스 생성해줘",
     t.has("suggestion2") ? t("suggestion2") : "장원영처럼 반짝 코스 생성해줘",
     t.has("suggestion3") ? t("suggestion3") : "필릭스 감성으로 코스 생성해줘",
     t.has("suggestion4") ? t("suggestion4") : "카리나 코스 생성해줘",
