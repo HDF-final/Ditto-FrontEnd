@@ -14,6 +14,7 @@ import {
   validatePassword,
 } from "@/lib/utils/auth-validation";
 import { login } from "@/lib/api/auth";
+import { getMyProfile } from "@/lib/api/users";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 const LOGIN_SUCCESS_HREF = "/";
@@ -70,10 +71,12 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const userData = await login({ email, password });
+      const loginResult = await login({ email, password });
+      const userData = await getMyProfile().catch(() => loginResult);
       if (typeof window !== "undefined") {
         window.sessionStorage?.removeItem("ditto_logged_out");
-        window.localStorage?.setItem("ditto_manual_login", "true");
+        window.sessionStorage?.setItem("ditto_manual_login", "true");
+        window.sessionStorage?.setItem("ditto_manual_user", JSON.stringify(userData));
       }
       if (userData) {
         setUser(userData);

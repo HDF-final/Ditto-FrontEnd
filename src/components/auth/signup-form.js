@@ -21,6 +21,7 @@ import { useSignupStore } from "@/stores/use-signup-store";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { usePreferenceStore } from "@/stores/use-preference-store";
 import { signup, login } from "@/lib/api/auth";
+import { getMyProfile } from "@/lib/api/users";
 
 /**
  * Valid signup form → validates & signs up in RDS → country selection (`/country`) → persona (`/persona`) → finish.
@@ -107,12 +108,14 @@ export function SignupForm() {
       // 2. Establish login session
       try {
         const loginResult = await login({ email, password });
+        const userData = await getMyProfile().catch(() => loginResult);
         if (typeof window !== "undefined") {
           window.sessionStorage?.removeItem("ditto_logged_out");
-          window.localStorage?.setItem("ditto_manual_login", "true");
+          window.sessionStorage?.setItem("ditto_manual_login", "true");
+          window.sessionStorage?.setItem("ditto_manual_user", JSON.stringify(userData));
         }
-        if (loginResult) {
-          setUser(loginResult);
+        if (userData) {
+          setUser(userData);
         }
       } catch {
         // Signup success does not establish an authenticated session.
