@@ -96,7 +96,10 @@ export function HeaderLanguageSwitcher() {
   };
 
   async function handleLanguageChange(nextLanguageCode) {
-    if (nextLanguageCode === languageCode || isSaving) {
+    if (
+      isSaving ||
+      (nextLanguageCode === languageCode && languageWasManuallySelected)
+    ) {
       setIsOpen(false);
       return;
     }

@@ -90,16 +90,25 @@ test("header exposes the primary product navigation items", async () => {
 });
 
 test("display language is changed from the shared header, not the profile modal", async () => {
-  const [siteHeader, languageSwitcher, profileModal] = await Promise.all([
+  const [siteHeader, languageSwitcher, profileModal, homePicks] = await Promise.all([
     read("src/components/layout/site-header.js"),
     read("src/components/layout/header-language-switcher.js"),
     read("src/components/mypage/profile-edit-modal.js"),
+    read("src/components/home/ditto-picks-section.js"),
   ]);
 
   assert.match(siteHeader, /<HeaderLanguageSwitcher \/>/);
   assert.match(languageSwitcher, /LANGUAGES\.map/);
   assert.match(languageSwitcher, /setLanguageCode\(nextLanguageCode\)/);
   assert.match(languageSwitcher, /updateMyPreferences\(nextPreferences\)/);
+  assert.match(
+    languageSwitcher,
+    /nextLanguageCode === languageCode && languageWasManuallySelected/,
+  );
+  assert.match(
+    homePicks,
+    /showLanguageShowcase=\{!languageWasManuallySelected\}/,
+  );
   assert.doesNotMatch(profileModal, /languageLabel|CountrySelector/);
 });
 
