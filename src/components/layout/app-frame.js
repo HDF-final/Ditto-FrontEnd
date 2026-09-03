@@ -13,6 +13,7 @@ import { getMyProfile } from "@/lib/api/users";
 const AUTH_PATHS = new Set(["/login", "/signup", "/country", "/persona"]);
 const AUTO_LOGIN_EMAIL = "emily.johnson.us@example.com";
 const MANUAL_LOGIN_STORAGE_KEY = "ditto_manual_login";
+const MANUAL_USER_STORAGE_KEY = "ditto_manual_user";
 const AUTO_LOGIN_CREDENTIALS = {
   email: AUTO_LOGIN_EMAIL,
   password: "qwer1234",
@@ -25,7 +26,17 @@ function isAutoLoginProfile(user) {
 
 function hasManualLoginSession() {
   if (typeof window === "undefined") return false;
-  return window.localStorage?.getItem(MANUAL_LOGIN_STORAGE_KEY) === "true";
+  return window.sessionStorage?.getItem(MANUAL_LOGIN_STORAGE_KEY) === "true";
+}
+
+function getManualLoginUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const rawUser = window.sessionStorage?.getItem(MANUAL_USER_STORAGE_KEY);
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch {
+    return null;
+  }
 }
 
 async function loginWithDefaultAccount() {
@@ -77,6 +88,12 @@ export function AppFrame({ children }) {
 
       if (isExplicitlyLoggedOut) {
         clearUser();
+        return;
+      }
+
+      const manualUser = getManualLoginUser();
+      if (manualUser) {
+        setUser(manualUser);
         return;
       }
 
