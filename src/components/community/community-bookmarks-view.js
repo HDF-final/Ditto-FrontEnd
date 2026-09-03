@@ -136,18 +136,15 @@ function BookmarkCard({ course, onAuthRequired }) {
       return;
     }
     const nextState = !isLiked;
+    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
 
     if (postId) {
       try {
-        const res = nextState
-          ? await likeCourse(postId)
-          : await unlikeCourse(postId);
-        const count = res?.likesCount ?? res?.likeCount ?? res?.likes;
-        if (typeof count === "number") {
-          setConfirmedLikes(count);
-          clearLikesDelta(slugKey, numKey);
-        }
+        if (nextState) await likeCourse(postId);
+        else await unlikeCourse(postId);
+        setConfirmedLikes(nextLikesCount);
+        clearLikesDelta(slugKey, numKey);
       } catch (err) {
         console.warn("[Bookmarks Card Like] error:", err);
       }
