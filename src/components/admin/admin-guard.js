@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { ADMIN_MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
 
 function isAdmin(user) {
   const role = String(user?.role || "")
@@ -30,6 +30,7 @@ export function AdminGuard({ children }) {
   const user = useAuthStore((state) => state.user);
   const hydrated = useAuthStore((state) => state.hydrated);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setUser = useAuthStore((state) => state.setUser);
   const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
@@ -50,14 +51,17 @@ export function AdminGuard({ children }) {
       } catch (err) {
         console.warn("[AdminGuard] admin session init warning:", err?.message);
       } finally {
-        if (active) setSessionReady(true);
+        if (active) {
+          setUser(ADMIN_MOCK_USER);
+          setSessionReady(true);
+        }
       }
     }
     prepareAdminSession();
     return () => {
       active = false;
     };
-  }, []);
+  }, [setUser]);
 
   if (!hydrated || !isAuthenticated || !sessionReady) {
     return (

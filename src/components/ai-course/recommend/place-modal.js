@@ -415,7 +415,7 @@ function AiPlaceModalContent({ place, onClose }) {
       </button>
 
       {/* Main Scrollable Content Area */}
-      <div className="flex flex-1 min-h-0 flex-col overflow-y-auto overscroll-contain bg-white">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain bg-white">
         {/* Mobile Header Photo Banner */}
         {rightImage ? (
           <div className="relative h-[180px] w-full shrink-0 overflow-hidden bg-neutral-950 md:hidden">
@@ -463,8 +463,8 @@ function AiPlaceModalContent({ place, onClose }) {
         ) : null}
 
         {/* Text Details Body */}
-        <div className="flex flex-col justify-between gap-5 p-4 sm:p-6 md:p-8">
-          <div>
+        <div className="flex min-w-0 flex-col justify-between gap-5 p-4 sm:p-6 md:p-8">
+          <div className="min-w-0">
             {/* Desktop Top Category Badge */}
             <div className="hidden md:flex items-center justify-between gap-3 mb-5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5c2ef5] px-3.5 py-1.5 text-[12px] font-black text-white shadow-xs">
@@ -484,18 +484,18 @@ function AiPlaceModalContent({ place, onClose }) {
             )}
 
             {/* 매장명 */}
-            <div>
-              <h2 className="text-xl font-black leading-snug tracking-tight break-keep text-[#1a142e] sm:text-2xl md:text-[30px]">
+            <div className="min-w-0">
+              <h2 className="text-xl font-black leading-snug tracking-tight text-[#1a142e] break-words [overflow-wrap:anywhere] [word-break:break-all] sm:text-2xl md:text-[30px]">
                 {place.name}
               </h2>
               {/* 매장 위치 */}
               <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-[#5c2ef5]">
                 <MapPin size={15} className="shrink-0" />
-                <span className="min-w-0 break-keep">{locationText}</span>
+                <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-all]">{locationText}</span>
                 {place.category ? (
                   <>
                     <span className="text-[#9994ad] font-normal">·</span>
-                    <span className="text-[#6b6685] font-semibold">
+                    <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-all] text-[#6b6685] font-semibold">
                       {getPlaceCategoryLabel(place.category, t)}
                     </span>
                   </>
@@ -504,12 +504,12 @@ function AiPlaceModalContent({ place, onClose }) {
             </div>
 
             {/* AI 추천 이유 카드 */}
-            <div className="mt-5 rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-4.5 sm:p-5 shadow-xs">
-              <div className="flex items-center gap-2 text-[15px] sm:text-[16px] font-black text-[#5c2ef5] mb-2">
+            <div className="mt-5 min-w-0 max-w-full overflow-hidden rounded-[22px] bg-[#faf8ff] border border-[#e0d9f8] p-4 sm:p-5 shadow-xs">
+              <div className="flex min-w-0 items-center gap-2 text-[15px] sm:text-[16px] font-black text-[#5c2ef5] mb-2">
                 <span>✨</span>
-                <span>{boniReasonLabel}</span>
+                <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-all]">{boniReasonLabel}</span>
               </div>
-              <p className="text-[15px] sm:text-[17px] font-medium leading-[1.65] text-[#2d2745] break-keep">
+              <p className="min-w-0 max-w-full whitespace-normal text-[14px] font-medium leading-[1.6] text-[#2d2745] break-words [overflow-wrap:anywhere] [word-break:break-all] sm:text-[15px]">
                 {aiReasonText}
               </p>
             </div>
@@ -518,7 +518,7 @@ function AiPlaceModalContent({ place, onClose }) {
             {aiNoticeText ? (
               <div className="mt-2.5 flex items-start gap-2 rounded-[16px] border border-[#f7dfae] bg-[#fff8ec] px-3.5 py-2.5">
                 <Info size={15} strokeWidth={2.4} className="mt-[3px] shrink-0 text-[#c07d13]" />
-                <p className="text-[13px] sm:text-[14px] font-semibold leading-[1.55] text-[#9a6206] break-keep">
+                <p className="min-w-0 max-w-full whitespace-normal text-[13px] sm:text-[14px] font-semibold leading-[1.55] text-[#9a6206] break-words [overflow-wrap:anywhere] [word-break:break-all]">
                   {aiNoticeText}
                 </p>
               </div>

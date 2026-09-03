@@ -441,14 +441,15 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
         await loadComments(postId);
       } catch (err) {
         console.warn("[Comment Update] Error:", err.message);
+        return;
       }
+    } else {
+      setComments((prev) =>
+        prev.map((c) =>
+          c.commentId === commentId ? { ...c, content: nextContent } : c,
+        ),
+      );
     }
-
-    setComments((prev) =>
-      prev.map((c) =>
-        c.commentId === commentId ? { ...c, content: nextContent } : c,
-      ),
-    );
     setEditingCommentId(null);
   };
 
@@ -462,10 +463,13 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
         await loadComments(postId);
       } catch (err) {
         console.warn("[Comment Delete] Error:", err.message);
+        setIsDeleting(false);
+        return;
       }
+    } else {
+      setComments((prev) => prev.filter((c) => c.commentId !== deletingCommentId));
     }
 
-    setComments((prev) => prev.filter((c) => c.commentId !== deletingCommentId));
     setDeletingCommentId(null);
     setIsDeleting(false);
   };
@@ -603,15 +607,15 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                   comments.map((message, index) => {
                     const cId = message.commentId ?? `idx-${index}`;
                     const commenterName = message.nickname || message.author || t("traveler");
+                    const currentUserId = Number(user?.id || user?.userId || 0);
+                    const commentUserId = Number(
+                      message.userId || message.writerId || message.authorId || 0,
+                    );
                     const isMine =
-                      message.isMine ||
-                      (user && (
-                        (message.userId && Number(message.userId) === Number(user.id || user.userId)) ||
-                        (user.nickname && message.nickname === user.nickname) ||
-                        (user.name && message.nickname === user.name)
-                      )) ||
-                      commenterName === "나" ||
-                      commenterName === user?.nickname;
+                      message.isMine === true ||
+                      (currentUserId > 0 && commentUserId > 0 && commentUserId === currentUserId) ||
+                      String(cId).startsWith("user-") ||
+                      String(cId).startsWith("local-");
                     const isLikedComment = Boolean(likedComments[cId]);
 
                     const commenterPersona = getPersonaById(

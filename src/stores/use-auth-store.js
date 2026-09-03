@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export const MOCK_USER = {
+export const ADMIN_MOCK_USER = {
   id: 123,
   userId: 123,
   email: "yuki@example.com",
@@ -16,6 +16,21 @@ export const MOCK_USER = {
   description: "한국 · DITTO 탐험가",
   profileImageUrl: "/assets/common/borangi-2.svg",
   image: "/assets/common/borangi-2.svg",
+};
+
+export const MOCK_USER = {
+  ...ADMIN_MOCK_USER,
+  email: "matilda@example.com",
+  name: "Matilda",
+  nickname: "Matilda",
+  role: "ROLE_CUSTOMER",
+  country: "US",
+  countryCode: "US",
+  languageCode: "en",
+  persona: "openrun",
+  shoppingType: "openrun",
+  personaId: "openrun",
+  description: "US · DITTO traveler",
 };
 
 export const useAuthStore = create((set) => ({
