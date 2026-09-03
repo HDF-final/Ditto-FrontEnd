@@ -63,8 +63,9 @@ function getDisplayLikeCount(card, {
 } = {}) {
   const { slugKey, numKey, cardKey } = getCommunityCardIdentity(card, rank);
   const confirmedLikes = confirmedLikesByKey[cardKey];
-  const baseLikes =
-    typeof confirmedLikes === "number" ? confirmedLikes : (card.likes ?? 0);
+  if (typeof confirmedLikes === "number") return Math.max(0, confirmedLikes);
+
+  const baseLikes = card.likes ?? 0;
   const likesDelta = readStoredLikesDelta(likesDeltaMap, slugKey, numKey);
 
   return Math.max(0, baseLikes + likesDelta);
@@ -133,7 +134,10 @@ function CommunityCard({
 
   const baseLikes =
     typeof confirmedLikes === "number" ? confirmedLikes : (card.likes ?? 0);
-  const likesCount = Math.max(0, baseLikes + likesDelta);
+  const likesCount = Math.max(
+    0,
+    typeof confirmedLikes === "number" ? baseLikes : baseLikes + likesDelta,
+  );
   const baseSaves =
     typeof confirmedSaves === "number" ? confirmedSaves : (card.saves ?? 0);
   const savesCount = Math.max(0, baseSaves + savesDelta);
@@ -146,7 +150,7 @@ function CommunityCard({
       return;
     }
     const nextState = !isLiked;
-    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
+    const nextLikesCount = Math.max(0, baseLikes + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
 
     if (postId) {

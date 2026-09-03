@@ -2,6 +2,17 @@ import apiClient from "./client";
 import { requestData } from "./api-response";
 import { useAuthStore } from "@/stores/use-auth-store";
 
+const COMMUNITY_API_ORIGIN =
+  process.env.NEXT_PUBLIC_COMMUNITY_API_ORIGIN ||
+  (typeof window !== "undefined" && window.location.protocol === "http:"
+    ? "http://hdf-spring-alb-476185930.ap-northeast-2.elb.amazonaws.com"
+    : "");
+
+function getCommunityApiPath(path) {
+  if (!COMMUNITY_API_ORIGIN) return path;
+  return `${COMMUNITY_API_ORIGIN.replace(/\/$/, "")}/api/v1${path}`;
+}
+
 function getCustomerActionHeaders() {
   const { isAuthenticated, user } = useAuthStore.getState();
   if (!isAuthenticated) return {};
@@ -158,7 +169,7 @@ export function deleteCoursePost(postId) {
 export function createComment(postId, { content }) {
   return requestData(
     apiClient.post(
-      `/community/courses/${postId}/comments`,
+      getCommunityApiPath(`/community/courses/${postId}/comments`),
       {
         content,
       },
@@ -182,7 +193,7 @@ export function getComments(postId) {
 export function updateComment(postId, commentId, { content }) {
   return requestData(
     apiClient.patch(
-      `/community/courses/${postId}/comments/${commentId}`,
+      getCommunityApiPath(`/community/courses/${postId}/comments/${commentId}`),
       {
         content,
       },
@@ -197,9 +208,12 @@ export function updateComment(postId, commentId, { content }) {
  */
 export function deleteComment(postId, commentId) {
   return requestData(
-    apiClient.delete(`/community/courses/${postId}/comments/${commentId}`, {
-      headers: getCustomerActionHeaders(),
-    }),
+    apiClient.delete(
+      getCommunityApiPath(`/community/courses/${postId}/comments/${commentId}`),
+      {
+        headers: getCustomerActionHeaders(),
+      },
+    ),
   );
 }
 

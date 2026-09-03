@@ -702,11 +702,9 @@ export function MypageView() {
             setLikedCourses(normalized.likes);
             normalized.likes.forEach((item) => {
               const key = String(item.postId || item.id);
-              if (useCommunityInteractionsStore.getState().likedPosts[key] === undefined) {
-                const interactionStore = useCommunityInteractionsStore.getState();
-                interactionStore.setLiked(key, true);
-                interactionStore.clearLikesDelta(key);
-              }
+              const interactionStore = useCommunityInteractionsStore.getState();
+              interactionStore.setLiked(key, true);
+              interactionStore.clearLikesDelta(key);
             });
           } else {
             setLikedCourses([]);

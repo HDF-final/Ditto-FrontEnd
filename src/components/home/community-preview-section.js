@@ -134,7 +134,10 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
     typeof confirmedLikes === "number"
       ? confirmedLikes
       : readCount(course.likes ?? course.likeCount);
-  const likesCount = Math.max(0, baseLikes + likesDelta);
+  const likesCount = Math.max(
+    0,
+    typeof confirmedLikes === "number" ? baseLikes : baseLikes + likesDelta,
+  );
   const baseSaves =
     typeof confirmedSaves === "number"
       ? confirmedSaves
@@ -152,7 +155,7 @@ function CommunityCourseCard({ course, onAuthRequired, className = "" }) {
       return;
     }
     const nextState = !isLiked;
-    const nextLikesCount = Math.max(0, likesCount + (nextState ? 1 : -1));
+    const nextLikesCount = Math.max(0, baseLikes + (nextState ? 1 : -1));
     setLiked(slugKey, nextState, numKey);
 
     if (postId) {
