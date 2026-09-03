@@ -1,28 +1,23 @@
 import apiClient from "./client";
 import { requestData } from "./api-response";
-import { MOCK_USER, useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 function getCustomerActionHeaders() {
   const { isAuthenticated, user } = useAuthStore.getState();
   if (!isAuthenticated) return {};
 
-  const isAdminProfile =
-    String(user?.role || "")
-      .trim()
-      .replace(/^ROLE_/i, "")
-      .toUpperCase() === "ADMIN" ||
-    String(user?.email || "").trim().toLowerCase() === "test1234@naver.com";
-  const requestUser = isAdminProfile ? MOCK_USER : user;
   const userId =
-    requestUser?.id ||
-    requestUser?.userId ||
+    user?.apiUserId ||
+    user?.id ||
+    user?.userId ||
     process.env.NEXT_PUBLIC_LOCAL_USER_ID?.trim() ||
     "123";
+  const email = user?.apiEmail || user?.email || "local-user@example.com";
 
   return {
     "X-User-Id": String(userId),
     "X-User-Role": "ROLE_CUSTOMER",
-    "X-User-Email": requestUser?.email || "local-user@example.com",
+    "X-User-Email": email,
   };
 }
 

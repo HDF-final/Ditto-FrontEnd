@@ -41,6 +41,8 @@ function normalizeSessionUser(profile, isAdminRoute) {
 
   return {
     ...profile,
+    apiUserId: profile?.id || profile?.userId || MOCK_USER.id,
+    apiEmail: profile?.email || MOCK_USER.email,
     email: MOCK_USER.email,
     name: MOCK_USER.name,
     nickname: MOCK_USER.nickname,
