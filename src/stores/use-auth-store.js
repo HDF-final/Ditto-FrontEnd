@@ -19,8 +19,9 @@ export const ADMIN_MOCK_USER = {
 };
 
 export const MOCK_USER = {
-  ...ADMIN_MOCK_USER,
-  email: "matilda@example.com",
+  id: 123,
+  userId: 123,
+  email: "emily.johnson.us@example.com",
   name: "Matilda",
   nickname: "Matilda",
   role: "ROLE_CUSTOMER",
