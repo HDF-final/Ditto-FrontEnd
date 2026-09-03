@@ -316,6 +316,7 @@
     "addEmoji": "Add emoji",
     "commentPlaceholder": "Add a comment...",
     "loginCommentPlaceholder": "Log in to write a comment...",
+    "commentPostFailed": "Failed to save the comment. Please try again.",
     "post": "Post",
     "loginShort": "Log in",
     "conversationLoginDescription": "Please log in to comment, like, or bookmark.",

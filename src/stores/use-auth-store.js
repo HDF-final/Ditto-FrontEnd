@@ -3,7 +3,7 @@ import { create } from "zustand";
 export const ADMIN_MOCK_USER = {
   id: 123,
   userId: 123,
-  email: "yuki@example.com",
+  email: "test1234@naver.com",
   name: "구본희",
   nickname: "구본희",
   role: "ROLE_ADMIN",

@@ -316,6 +316,7 @@
     "addEmoji": "絵文字を追加",
     "commentPlaceholder": "コメントを追加...",
     "loginCommentPlaceholder": "ログインしてコメントを書く...",
+    "commentPostFailed": "コメントの保存に失敗しました。もう一度お試しください。",
     "post": "投稿",
     "loginShort": "ログイン",
     "conversationLoginDescription": "コメント・いいね・ブックマークを利用するにはログインしてください。",

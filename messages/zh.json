@@ -316,6 +316,7 @@
     "addEmoji": "添加表情",
     "commentPlaceholder": "添加评论...",
     "loginCommentPlaceholder": "登录后发表评论...",
+    "commentPostFailed": "评论保存失败，请稍后重试。",
     "post": "发布",
     "loginShort": "登录",
     "conversationLoginDescription": "请登录后使用评论、点赞和收藏功能。",
