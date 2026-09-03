@@ -316,6 +316,7 @@
     "addEmoji": "添加表情",
     "commentPlaceholder": "添加评论...",
     "loginCommentPlaceholder": "登录后发表评论...",
+    "commentPostFailed": "评论保存失败，请稍后重试。",
     "post": "发布",
     "loginShort": "登录",
     "conversationLoginDescription": "请登录后使用评论、点赞和收藏功能。",
@@ -564,7 +565,7 @@
     "connectionError": "无法连接路线推荐服务器。",
     "genericError": "无法制定路线，请稍后重试。",
     "cancelledMessage": "请求已取消，欢迎重新提问 🐾",
-    "suggestion1": "生成V氛围路线",
+    "suggestion1": "生成与Jisoo相关品牌路线",
     "suggestion2": "生成张员瑛闪亮路线",
     "suggestion3": "生成Felix感性路线",
     "suggestion4": "生成Karina推荐路线"

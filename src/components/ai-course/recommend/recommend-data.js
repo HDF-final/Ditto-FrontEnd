@@ -501,7 +501,7 @@ export const departmentStorePlaces = [
 ];
 
 export const suggestions = [
-  "지수와 관련된 브랜드 코스 생성해줘",
+  "지수 브랜드 코스 생성해줘",
   "장원영처럼 반짝 코스 생성해줘",
   "필릭스 감성으로 코스 생성해줘",
   "카리나 코스 생성해줘",

@@ -34,10 +34,10 @@ export function AdminGuard({ children }) {
   const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    if (hydrated && !isAuthenticated) {
+    if (sessionReady && hydrated && !isAuthenticated) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [hydrated, isAuthenticated, pathname, router]);
+  }, [hydrated, isAuthenticated, pathname, router, sessionReady]);
 
   useEffect(() => {
     let active = true;

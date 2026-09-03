@@ -316,6 +316,7 @@
     "addEmoji": "Add emoji",
     "commentPlaceholder": "Add a comment...",
     "loginCommentPlaceholder": "Log in to write a comment...",
+    "commentPostFailed": "Failed to save the comment. Please try again.",
     "post": "Post",
     "loginShort": "Log in",
     "conversationLoginDescription": "Please log in to comment, like, or bookmark.",
@@ -564,7 +565,7 @@
     "connectionError": "We couldn't connect to the course recommendation server.",
     "genericError": "We couldn't build the course. Please try again shortly.",
     "cancelledMessage": "Request cancelled. Ask me again anytime 🐾",
-    "suggestion1": "Create a V-inspired course",
+    "suggestion1": "Create a Jisoo brand course",
     "suggestion2": "Create a Wonyoung sparkle course",
     "suggestion3": "Create a Felix mood course",
     "suggestion4": "Create a Karina course"

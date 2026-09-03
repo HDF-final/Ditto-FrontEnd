@@ -316,6 +316,7 @@
     "addEmoji": "絵文字を追加",
     "commentPlaceholder": "コメントを追加...",
     "loginCommentPlaceholder": "ログインしてコメントを書く...",
+    "commentPostFailed": "コメントの保存に失敗しました。もう一度お試しください。",
     "post": "投稿",
     "loginShort": "ログイン",
     "conversationLoginDescription": "コメント・いいね・ブックマークを利用するにはログインしてください。",
@@ -564,7 +565,7 @@
     "connectionError": "コースおすすめサーバーに接続できませんでした。",
     "genericError": "コースを作成できませんでした。しばらくしてからお試しください。",
     "cancelledMessage": "リクエストをキャンセルしました。また聞いてください 🐾",
-    "suggestion1": "Vの雰囲気でコースを作って",
+    "suggestion1": "ジス関連ブランドのコースを作って",
     "suggestion2": "ウォニョンみたいに輝くコースを作って",
     "suggestion3": "フィリックス感性のコースを作って",
     "suggestion4": "カリナのコースを作成して"

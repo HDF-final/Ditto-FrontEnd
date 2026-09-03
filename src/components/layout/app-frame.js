@@ -29,7 +29,13 @@ function isAdminProfile(user) {
 
 function normalizeSessionUser(profile, isAdminRoute) {
   if (isAdminRoute) {
-    return isAdminProfile(profile) ? { ...ADMIN_MOCK_USER, ...profile } : profile;
+    return isAdminProfile(profile)
+      ? {
+          ...profile,
+          ...ADMIN_MOCK_USER,
+          email: profile?.email || ADMIN_MOCK_USER.email,
+        }
+      : profile;
   }
   if (!isAdminProfile(profile)) return profile;
 

@@ -85,6 +85,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -390,6 +391,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
     const content = inputText.trim();
     if (!content || isSubmitting) return;
 
+    setSubmitError("");
     setInputText("");
     setIsSubmitting(true);
 
@@ -399,16 +401,8 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
         await loadComments(postId);
       } catch (err) {
         console.error("[CommunityChat] Failed to post:", err.message);
-        // Optimistic fallback for immediate UX
-        const fallbackObj = {
-          commentId: `user-${Date.now()}`,
-          nickname: user?.nickname || user?.name || "나",
-          isAuthor: false,
-          content,
-          createdAt: new Date().toISOString(),
-          isMine: true,
-        };
-        setComments((prev) => deduplicateComments([...prev, fallbackObj]));
+        setInputText(content);
+        setSubmitError(t("commentPostFailed"));
       } finally {
         setIsSubmitting(false);
       }
@@ -773,7 +767,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                     }
                     handleSend(e);
                   }}
-                  className="flex items-center gap-2 border-t border-line bg-white px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]"
+                  className="flex flex-wrap items-center gap-2 border-t border-line bg-white px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]"
                 >
                   <button
                     type="button"
@@ -782,6 +776,7 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                         setIsLoginModalOpen(true);
                         return;
                       }
+                      setSubmitError("");
                       setInputText((prev) => `${prev}😊`);
                     }}
                     className="text-ink-muted hover:text-ink transition cursor-pointer p-1"
@@ -806,7 +801,10 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                     ref={inputRef}
                     type="text"
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={(e) => {
+                      setSubmitError("");
+                      setInputText(e.target.value);
+                    }}
                     onFocus={() => {
                       if (!isAuthenticated) {
                         inputRef.current?.blur();
@@ -844,6 +842,12 @@ export function CommunityChatButton({ course = {}, variant = "default" }) {
                       {t("loginShort")}
                     </button>
                   )}
+
+                  {submitError ? (
+                    <p className="basis-full pl-9 text-[10px] font-bold text-danger">
+                      {submitError}
+                    </p>
+                  ) : null}
                 </form>
               </div>
             </div>
