@@ -367,6 +367,9 @@ export function CommunityCoursePage({
     ? "해당 사용자가 커뮤니티에 공유한 코스만 모아봤어요."
     : t("description");
   const hasPopularPlaces = !isAuthorFiltered && popularPlaces.length > 0;
+  // 데스크톱은 1~3위 왼쪽, 4~6위 오른쪽 두 단으로 편다. 3개 이하면 예전처럼 한 단이다.
+  const visiblePopularPlaces = popularPlaces.slice(0, 6);
+  const isPopularPlacesTwoColumn = visiblePopularPlaces.length > 3;
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -503,15 +506,23 @@ export function CommunityCoursePage({
                 </Link>
               </div>
 
-              <div className="mt-3 flex max-w-[640px] flex-col gap-2.5">
-                {popularPlaces.slice(0, 3).map((place, index) => {
+              <div
+                className={`mt-3 grid max-w-[640px] grid-cols-1 gap-2.5 ${
+                  isPopularPlacesTwoColumn
+                    ? "lg:max-w-none lg:grid-flow-col lg:grid-cols-2 lg:grid-rows-3 lg:gap-x-4"
+                    : ""
+                }`}
+              >
+                {visiblePopularPlaces.map((place, index) => {
                   const isTopPlace = index === 0;
                   return (
                     <button
                       key={place.placeId || `${place.name}-${index}`}
                       type="button"
                       onClick={() => setSelectedPlace(place)}
-                      className={`group grid w-full cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 text-left transition-all active:scale-[0.99] ${
+                      className={`group w-full cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 text-left transition-all active:scale-[0.99] ${
+                        index >= 3 ? "hidden lg:grid" : "grid"
+                      } ${
                         isTopPlace
                           ? "relative overflow-hidden rounded-[18px] border border-brand/25 bg-white px-3.5 py-3 shadow-[0_14px_30px_rgba(92,46,245,0.10)] ring-1 ring-brand/10 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(92,46,245,0.14)] before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:bg-brand"
                           : "rounded-[16px] border border-line bg-white px-3 py-2.5 shadow-2xs hover:border-brand/25 hover:shadow-[0_10px_24px_rgba(92,46,245,0.08)]"

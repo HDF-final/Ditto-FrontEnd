@@ -21,6 +21,8 @@ export function getGradientForId(id = 0) {
 
 const getBaseUrl = getServerApiBaseUrl;
 
+const POPULAR_PLACE_LIMIT = 6;
+
 const COURSE_IMAGES = DEFAULT_COMMUNITY_COURSE_IMAGES;
 
 function getDefaultCourseImage(id = 0) {
@@ -379,7 +381,7 @@ async function fetchFallbackPopularPlaces(baseUrl, headers, preloadedPlaceRows) 
         if (b.postCount !== a.postCount) return b.postCount - a.postCount;
         return a.name.localeCompare(b.name, "ko");
       })
-      .slice(0, 5)
+      .slice(0, POPULAR_PLACE_LIMIT)
       .map((place, index) => ({
         ...place,
         rank: index + 1,
@@ -575,7 +577,7 @@ export async function fetchPublicCoursesServer({
 }
 
 /**
- * 서버 사이드 커뮤니티 인기 장소 TOP3 조회
+ * 서버 사이드 커뮤니티 인기 장소 TOP6 조회
  */
 export async function fetchPopularCommunityPlacesServer({
   cache = "no-store",
@@ -643,7 +645,7 @@ export async function fetchPopularCommunityPlacesServer({
         .filter(Boolean);
     }
 
-    if (normalizedPlaces.length < 5) {
+    if (normalizedPlaces.length < POPULAR_PLACE_LIMIT) {
       const fallbackPlaces = await fetchFallbackPopularPlaces(baseUrl, headers, placeRows);
       const existingPlaceIds = new Set(
         normalizedPlaces.map((p) => String(p.placeId || p.name).trim().toLowerCase()),
@@ -655,13 +657,13 @@ export async function fetchPopularCommunityPlacesServer({
           existingPlaceIds.add(idKey);
           normalizedPlaces.push(fb);
         }
-        if (normalizedPlaces.length >= 5) break;
+        if (normalizedPlaces.length >= POPULAR_PLACE_LIMIT) break;
       }
     }
 
     if (normalizedPlaces.length > 0) {
       return normalizedPlaces
-        .slice(0, 5)
+        .slice(0, POPULAR_PLACE_LIMIT)
         .map((place, index) => ({
           ...place,
           rank: index + 1,
