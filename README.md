@@ -1,8 +1,156 @@
+![Hi, Ditto!](docs/images/01-cover.jpg)
+
+<div align="center">
+
 # DITTO FrontEnd
 
-중국·일본·미국 관광객이 국가별 K-컬처 트렌드를 탐색하고, AI로 맞춤 코스를 만든 뒤 코스 커스텀·모바일 실내 길찾기·여행자 커뮤니티로 경험을 이어가는 관광 플랫폼 DITTO의 프론트엔드입니다.
+**국가 트렌드 분석부터 코스 추천까지, 백화점 외국인 방문객을 위한 AI 쇼핑 메이트**
 
-현재 문서는 **프론트엔드 초기 개발 환경 안내서**입니다. 화면과 기능이 완성되면 최종 서비스 설명, 기능 목록, 아키텍처 및 배포 안내를 포함한 프로젝트 소개 문서로 교체합니다.
+`Next.js 16 App Router` · `React 19` · `Three.js` · `Tailwind CSS` · `Zustand` · `next-intl` · `PWA`
+
+**HI-FO! 3팀**
+
+| 팀장 | 부팀장 | 팀원 | 팀원 |
+|:---:|:---:|:---:|:---:|
+| **도건우** | **공희진** | **안의찬** | **안정민** |
+| [@woodgeon](https://github.com/woodgeon) | [@heejinkong](https://github.com/heejinkong) | [@Ui-chan](https://github.com/Ui-chan) | [@Dev-Anniee](https://github.com/Dev-Anniee) |
+
+</div>
+
+---
+
+## 목차
+
+**[프로젝트 소개](#프로젝트-소개)** · **[주요 화면](#주요-화면)** · **[프론트엔드가 푸는 문제](#프론트엔드가-푸는-문제)** · **[개발 가이드](#개발-가이드)**
+
+---
+
+## 프로젝트 소개
+
+### 왜 만들었나
+
+![한국 관심 계기](docs/images/05-kculture-motivation.jpg)
+
+외국인이 한국에 관심을 갖게 된 계기 1위는 **한류 콘텐츠 38.3%**(K-POP · DRAMA · K-BEAUTY · K-FOOD)입니다.
+그런데 그 관심을 실제 쇼핑으로 옮기려면 정보가 판매처 · 영상 콘텐츠 · SNS · 후기로 **전부 흩어져 있습니다.**
+
+![정보 탐색과 선택 부담](docs/images/07-decision-fatigue.jpg)
+
+`SNS에서 탐색` → `운영 정보 확인` → `후기 비교` → `매장 정보 대조` → `일정·동선 재구성`.
+다섯 단계를 매번 반복해야 합니다. **선택지가 많아질수록 불확실성은 커지고, 결정은 늦어집니다.**
+
+### DITTO — 흩어진 관심을 하나의 코스로
+
+![DITTO 서비스 개요](docs/images/08-ditto-overview.jpg)
+
+> **네가 해봤으니, 나도.**
+
+| | | |
+|---|---|---|
+| **01 DISCOVER** 발견 | **02 PLAN** 계획 | **03 NAVIGATE** 이동 |
+| 국가별 Trend Map으로 K-트렌드를 골라 담는다 | 요청을 반영한 AI 맞춤형 코스를 만든다 | 3D 지도와 실내 길찾기로 실제 이동까지 안내한다 |
+
+이 저장소는 그 **세 단계를 손님이 실제로 만지는 화면**입니다.
+
+---
+
+## 주요 화면
+
+### DISCOVER — 국가별 Trend Map
+
+![국가별 Trend Map](docs/images/09-discover-trend-map.jpg)
+
+4개국의 관심 콘텐츠와 브랜드를 분석해 기본 코스를 추천합니다.
+국가·언어는 `use-preference-store`가 `ditto-country` · `ditto-language` 쿠키로 들고 있어
+**SSR 단계에서 이미 결정**됩니다 — hydration 뒤에 언어가 뒤늦게 바뀌지 않습니다.
+
+### PLAN — AI 맞춤형 코스 생성
+
+![AI 맞춤형 코스 생성](docs/images/10-plan-ai-course.jpg)
+
+`/ai-course`. 코스 편집처럼 여러 Client Component가 공유하는 다단계 작성 상태는
+`use-course-editor-store` 한 곳에 모읍니다. 생성된 코스는 저장하고 공유할 수 있습니다.
+
+### NAVIGATE — 3D 코스와 실내 길찾기
+
+![3D 코스와 실내 길찾기](docs/images/11-navigate-3d.jpg)
+
+`three` + `@react-three/fiber` + `@react-three/drei`로 **8개 층을 하나의 화면**에 그립니다.
+
+| | |
+|---|---|
+| **01** | 추천 코스를 층별 3D로 확인 |
+| **02** | 현재 위치에서 다음 매장까지 길찾기 |
+| **03** | 층이 바뀌어도 하나의 경로로 연결 |
+
+### BONI — 더현대 안내 캐릭터
+
+![BONI](docs/images/12-boni.jpg)
+
+발견 · 계획 · 이동 전 과정을 함께하는 친구.
+
+---
+
+## 프론트엔드가 푸는 문제
+
+### 8개 층을 하나의 길찾기 그래프로
+
+![실내 길찾기 파이프라인](docs/images/14-indoor-navigation-pipeline.jpg)
+
+CVAT로 라벨링한 통로·출입구를 노드·간선 그래프로 바꾸고 **A\*** 로 탐색한 결과를,
+이 저장소가 2D · 3D로 그립니다. 층 그래프 8개 · 장소 원장 147곳 · 방 폴리곤이 그 입력입니다.
+
+### 지도 자산은 번들이 아니라 CDN에서
+
+![인프라 개선](docs/images/23-infra-improvements.jpg)
+
+실내 지도 원장(JSON **588KB**)과 층 텍스처(PNG **2.2MB**)는 한 번 만들어지면 바뀌지 않습니다.
+CloudFront `course-resource/*`로 내보내고 3주짜리 `Cache-Control`을 붙였습니다.
+CDN 도입으로 **이미지 로딩 −51.7%**(94.9ms → 45.8ms), **동영상 재생 시작 −48.0%**(222ms → 150ms).
+
+층 텍스처는 `next/image`가 아니라 three.js `useTexture`가 받습니다 — WebGL 텍스처라
+CORS 헤더가 필요하고, CloudFront의 `Managed-SimpleCORS` 정책이 그것을 채웁니다.
+자세한 내용과 함정은 아래 [실내 지도 정적 자산 (CDN)](#실내-지도-정적-자산-cdn)에 있습니다.
+
+### 간판을 찍으면 내 위치가 잡힌다
+
+![OCR 최적화](docs/images/22-ocr-optimization.jpg)
+
+하단 `+` 카메라로 매장 로고를 찍으면 `POST /api/v1/ocr/locations/recognize`로 보내고,
+`/scan-map`의 전체층 3D 지도에 핀으로 내 위치를 띄웁니다.
+**업로드 전 전처리로 평균 용량을 −85.0%**(4.61MB → 696KB) 줄여 응답 시간도 −25.0%(1.60초 → 1.20초)가 됐습니다.
+
+거기서 **AI 코스 생성하기**를 누르면 `/ai-course?from=scan`이 열리고 1번 장소가 방금 인식한 매장으로 채워집니다.
+이 위치 정보는 그 두 화면에만 남고, 탭·헤더·뒤로가기로 나가면 바로 지웁니다.
+
+### 한 화면, 네 개 언어
+
+`next-intl`로 한국어 · 중국어 · 일본어 · 영어를 지원합니다. 고정 UI 문구는 `messages/{locale}.json`
+네 카탈로그에 같은 키로 들어가야 하고, 키 구조가 어긋나거나 다른 언어 파일에 한국어가 섞이면
+`pnpm test:i18n`이 잡습니다.
+
+### 전체 구조 안에서 이곳
+
+![기술 스택](docs/images/24-tech-stack.jpg)
+
+DITTO는 저장소 셋에 걸쳐 있습니다.
+
+| 저장소 | 무엇 |
+|---|---|
+| **[Ditto-FrontEnd](https://github.com/HDF-final/Ditto-FrontEnd)** (여기) | Next.js 16 App Router · Three.js 3D 지도 · PWA |
+| [Ditto-BackEnd](https://github.com/HDF-final/Ditto-BackEnd) | Spring Boot 3 · Java 17 · MyBatis · Oracle |
+| Ditto-AI | 람다 8종 · RAG 추천 파이프라인 · Azure OpenAI · Tavily |
+
+브라우저는 **항상 Next만 봅니다.** `next.config.mjs`의 `rewrites`가 `/api/*`를 ALB로 넘기므로
+CORS 설정이 필요 없고, 백엔드 주소는 번들에 노출되지 않습니다.
+
+![더현대 서울을 디토한다](docs/images/32-slogan.jpg)
+
+> **Ditto** / ˈdɪt.oʊ / — 따라하다, 나도(me too). 모두가 따라하고 싶은 것.
+
+---
+
+# 개발 가이드
 
 ## 핵심 사용자 흐름
 
@@ -24,6 +172,7 @@
 | UI | React | 컴포넌트와 화면 상호작용 |
 | Language | JavaScript | 애플리케이션 코드 |
 | Styling | Tailwind CSS | 반응형 UI와 디자인 토큰 |
+| 3D | Three.js · @react-three/fiber · @react-three/drei | 8개 층 실내 지도와 코스 경로 렌더링 |
 | HTTP | Axios | 브라우저 API 통신 공통 인스턴스 |
 | Client state | Zustand | 여러 클라이언트 컴포넌트가 공유하는 상태 |
 | Internationalization | next-intl | 서버 렌더링과 클라이언트 UI의 한·중·일·영 고정 문구 |
